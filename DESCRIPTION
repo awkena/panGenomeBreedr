@@ -17,3 +17,5 @@ Description: A unified platform for pangenome-enabled breeding that follows
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
+URL: https://github.com/awkena/panGenomeBreedr
+BugReports: https://github.com/awkena/panGenomeBreedr/issues
