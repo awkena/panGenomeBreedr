@@ -2,15 +2,16 @@
 #' @param file A character value indicating the file name or path for the KASP
 #' results file (csv format).
 #' @param row_tags A character vector for the ordered row tags for the
-#' components of the data in \code {file}.
+#' components of the data in \code{file}.
 #' @param spacing An integer value for specifying the number of empty rows between
-#' data components in  \code {file}.
+#' data components in \code{file}.
 #' @param data_type A character value indicating the file type to import;
 #' currently supports either `raw` or `polished` KASP results file.
 #'
 #' @returns A list object of KASP results file ka genotyping calls with FAM and HEX coordinates.
 #'
 #' @export
+#' @import utils
 
 read_kasp_csv <- function(file,
                           row_tags = c('Statistics', 'DNA', 'SNPs','Scaling', 'Data'),
@@ -230,6 +231,9 @@ kasp_color <- function(x,
 #' @param x A numeric vector of FAM or HEX fluorescence values
 #'
 #' @returns A numeric vector of normalized values between 0 and 1
+#' @export
+#'
+#' @returns A numeric vector of normalized values between 0 and 1.
 #'
 scale_axis <- function(x) {
 
@@ -282,6 +286,8 @@ scale_axis <- function(x) {
 #' @returns A graphic object or plot.
 #'
 #' @export
+#' @import ggplot2
+#' @import gridExtra
 
 kasp_qc_ggplot <- function(x,
                            FAM = 'X',
@@ -314,6 +320,10 @@ kasp_qc_ggplot <- function(x,
   # Create an empty list object to hold ggplots
   gg_plts <- vector(mode = 'list', length = nplates)
   names(gg_plts) <- plate_ns
+
+  X <- NULL
+  Y <- NULL
+  Call <- NULL
 
   for (i in seq_len(nplates)) {
 
@@ -374,7 +384,7 @@ kasp_qc_ggplot <- function(x,
     # Get unique colors in input data
     cols <- unique(Color)
 
-    Calls <- plate[, 'Call']
+    Calls <- plate[, geno_call]
 
     # Replace NTC with Blank and ? with Unused
     Calls[Calls == blank] <- 'Blank'
@@ -506,11 +516,20 @@ kasp_qc_ggplot <- function(x,
 #' plate wells.
 #' @param color A character value indicating the column name of assigned colors
 #' in \code{x}.
+#' @param geno_call A character indicating the column name used for genotype
+#' @param snp_id A character value indicating the column name for SNP IDs
+#' in \code{x}.
+#' @param pdf A logical value indicating whether to save plot as a pdf graphic
+#' @param width A numeric value for the width of pdf device.
+#' @param height A numeric value for the height of pdf device.
+#' @param filename A character value for path or file name for saving pdf.
 #' @param text_size A numeric value for text size in plot output.
+#' @param ... Other valid arguments that can be passed to ggplot2.
 #'
 #' @returns A ggplot graphical output of plate layout.
 #'
 #' @export
+#' @import ggplot2
 #'
 plot_plate <- function(x,
                        well = 'MasterWell',
@@ -521,7 +540,8 @@ plot_plate <- function(x,
                        width = 8,
                        height = 5,
                        filename = 'plate_layout',
-                       text_size = 12){
+                       text_size = 12,
+                       ...){
 
   # Get the number of plates or subset units in data input
   nplates <- length(x)
@@ -531,6 +551,9 @@ plot_plate <- function(x,
 
   gg_plts <- vector(mode = 'list', length = nplates)
   names(gg_plts) <- plate_ns
+
+  V1 <- NULL
+  V2 <- NULL
 
   gg_plate <- function() {
 
