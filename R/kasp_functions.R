@@ -1,0 +1,651 @@
+#' Read raw KASP results file (csv format) with one or multiple plates.
+#' @param file A character value indicating the file name or path for the KASP
+#' results file (csv format).
+#' @param row_tags A character vector for the ordered row tags for the
+#' components of the data in \code {file}.
+#' @param spacing An integer value for specifying the number of empty rows between
+#' data components in  \code {file}.
+#' @param data_type A character value indicating the file type to import;
+#' currently supports either `raw` or `polished` KASP results file.
+#'
+#' @returns A list object of KASP results file ka genotyping calls with FAM and HEX coordinates.
+#'
+#' @export
+
+read_kasp_csv <- function(file,
+                          row_tags = c('Statistics', 'DNA', 'SNPs','Scaling', 'Data'),
+                          spacing = 2L,
+                          data_type = c('raw', 'polished')) {
+
+  file <- file.path(file) # File path
+
+  read_rows <- readLines(file, warn = FALSE)
+
+  # Row tags for components of input data
+  tags <- row_tags
+
+  # Empty numeric vector to hold temporary results
+  # Row numbers of tags in raw data file
+  row_nums <- vector(mode = 'numeric', length = length(tags))
+
+  # List components are data frames in raw kasp results file
+  kasp_res <- vector(mode = 'list', length = length(tags) )
+  names( row_nums) <- names(kasp_res) <- tags
+
+  if (data_type == 'polished'){
+
+    kasp_res[[5]] <- utils::read.csv(file, header = TRUE, na.strings = c("", NA))
+
+  } else {
+
+  # Get row numbers for each tag
+  for (i in seq_len(length(tags))) {
+
+    if (any(grepl(tags[i], read_rows)) == FALSE){
+
+      stop(paste(tags[i], 'is not contained in the input file.'))
+
+    }
+
+    row_nums[i] <- grep(tags[i], read_rows)
+
+  }
+
+  for (d in seq_len(length(tags))) {
+
+    # Read csv data of genotype calls and FAM/HEX coordinates
+    dat <- utils::read.csv(file, skip = row_nums[d], header = TRUE,
+                           na.strings = c("", NA))
+
+    if (d == length(tags)) {
+
+      # Subset data for each component
+      aa <- dat
+
+      # Remove rows with all NAs
+      bb <- aa[rowSums(is.na(aa[, 2:ncol(aa)])) != (ncol(aa)-1),]
+
+      # Remove columns with all NAs and pass data frame to kasp_res list object
+      kasp_res[[d]] <- bb[, colSums(is.na(bb)) != nrow(bb)]
+
+    } else {
+
+      dd <- row_nums - (row_nums[d] + 1)
+
+      # Subset data for each component
+      aa <- dat[1:(dd[(d+1)] - spacing),]
+
+      # Remove rows with all NAs
+      bb <- aa[rowSums(is.na(aa[, 2:ncol(aa)])) != (ncol(aa)-1),]
+
+      # Remove columns with all NAs
+      kasp_res[[d]] <- bb[, colSums(is.na(bb)) != nrow(bb)]
+
+    }
+
+    }
+
+  }
+
+  return(kasp_res)
+}
+
+#' Color-code KASP genotype calls based on LGC genomics colors.
+#' @param x A data frame of KASP genotype calls for one or multiple plates.
+#' @param subset A character value indicating the column name for taking subsets
+#' of \code{x} for processing; default is the `MasterPlate`.
+#' @param x A data frame of KASP genotype calls.
+#'
+#' @param sep A character used as separator for genotype calls, default is a
+#' colon.
+#' @param geno_call A character indicating the column name used for genotype
+#' calls in \code{x}.
+#' @param uncallable A character indicating `Uncallable` genotype calls, if present.
+#' @param unused A character indicating `?` genotype calls, if present.
+#' @param blank A character value indicating `No Template Controls (NTC)`
+#' genotype calls.
+#' @returns A list object with subset unit as component data frames.
+#'
+#' @details
+#' This is an experimental function. The default values of some of the
+#' arguments in the function are based on LGC Genomics conventions including
+#' the color codes for FAM and HEX fluorescence.
+#' @export
+
+kasp_color <- function(x,
+                       subset = 'MasterPlate',
+                       sep = ':',
+                       geno_call = 'Call',
+                       uncallable = 'Uncallable',
+                       unused = '?',
+                       blank = 'NTC') {
+
+  # Get subset unit from data set
+  plates <- x[, subset]
+  plates_uniq <- unique(plates)
+
+  # Number of units or plates
+  nplates <- length(plates_uniq)
+
+  # Empty list object to hold results
+  res <- vector(mode = 'list', length = nplates)
+  names(res) <- plates_uniq
+
+  for (i in seq_len(nplates)) {
+    # Subset each master plate
+    master_plate <- x[plates == plates_uniq[i],]
+
+    # create a color vector based on KASP geno calls
+    Color <- master_plate[, geno_call]
+
+    geno_uniq <- unique(Color)
+
+    # Subset and sort genotype calls
+    geno_uniq <- sort(geno_uniq[geno_uniq != 'NTC' & geno_uniq != 'Uncallable' & geno_uniq != '?'])
+
+    alleles <- unique(unlist(strsplit(x = geno_uniq, split = sep)))
+
+    if (length(alleles) == 2) {
+
+      homo1 <- paste(alleles[1], alleles[1], sep = sep) # homozygous genotype 1
+      homo2 <- paste(alleles[2], alleles[2], sep = sep) # homozygous genotype 2
+      homo12 <- c(homo1, homo2)
+      het1 <- paste(alleles[1], alleles[2], sep = sep) # heterozygous genotype 1
+      het2 <- paste(alleles[2], alleles[1], sep = sep) # heterozygous genotype 2
+
+      # Subset homozygotes
+      homs <- subset(master_plate, subset = Color == homo1 | Color == homo2)
+
+      # Get the column index of the genotype calls
+      call_col <- which(colnames(master_plate) == geno_call)
+
+      FAM <- homs[which.max(homs$X),][, call_col] # FAM homozygote
+      HEX <- homo12[which(homo12 != FAM)] # HEX homozygote
+
+      # Assign colors based on LGC rules
+      Color[Color == HEX] <- "red" # HEX homozygote
+      Color[Color == FAM] <- "blue" # FAM homozygote
+      Color[Color == het1] <- "green" # Heterozygote
+      Color[Color == het2] <- "green" # Heterozygote
+
+      # KASP FAM and HEX color coding for others
+      Color[Color == uncallable] <- "darkmagenta"
+      Color[Color == unused] <- "pink"
+      Color[Color == blank] <- "black"
+
+      master_plate <- cbind(master_plate, Color)
+
+      res[[i]] <- master_plate
+
+
+    } else if (length(alleles) == 1) {
+
+      homo1 <- paste(alleles[1], alleles[1], sep = sep) # homozygous genotype 1
+      Color[Color == homo1] <- "blue" # Homozygous 1
+
+      # KASP FAM and HEX color coding for others
+      Color[Color == uncallable] <- "darkmagenta"
+      Color[Color == unused] <- "pink"
+      Color[Color == blank] <- "black"
+
+      master_plate <- cbind(master_plate, Color)
+
+      res[[i]] <- master_plate
+
+    } else if (length(alleles) == 0){
+
+      message(cat(paste('Marker in Plate', plates_uniq[i], 'failed! \n', 'Check genotype calls.')))
+
+      # KASP FAM and HEX color coding for others
+      Color[Color == uncallable] <- "darkmagenta"
+      Color[Color == unused] <- "pink"
+      Color[Color == blank] <- "black"
+
+      master_plate <- cbind(master_plate, Color)
+
+      res[[i]] <- master_plate
+
+    } else {
+
+      message(cat(paste('Marker in Plate', plates_uniq[i], 'is multi-allelic! \n', 'Check genotype calls.')))
+
+      # KASP FAM and HEX color coding for others
+      Color[Color == uncallable] <- "darkmagenta"
+      Color[Color == unused] <- "pink"
+      Color[Color == blank] <- "black"
+
+      master_plate <- cbind(master_plate, Color)
+
+      res[[i]] <- master_plate
+    }
+
+  }
+
+  return(res)
+
+}
+
+
+#' Normalize FAM and HEX fluorescence values between 0 and 1
+#' @param x A numeric vector of FAM or HEX fluorescence values
+#'
+#' @returns A numeric vector of normalized values between 0 and 1
+#'
+scale_axis <- function(x) {
+
+  norm <- (x - min(x))/(max(x) - min(x))
+
+  return(norm)
+
+}
+
+
+
+#' Make KASP marker genotyping QC plot.
+#' @param x A list object of KASP genotype calls processed by the `kasp_color()`
+#' function.
+#' @param FAM A character indicating the column name for FAM fluorescence
+#' coordinates in \code{x}.
+#' @param HEX A character indicating the column name for HEX fluorescence
+#' coordinates in \code{x}.
+#' @param geno_call A character value indicating the column name for KASP genotype
+#' calls in \code{x}.
+#' @param color A character value indicating the column name for assigned colors
+#' in \code{x}.
+#' @param snp_id A character value indicating the column name for SNP IDs
+#' in \code{x}.
+#' @param blank A character value indicating `No Template Controls (NTC)`
+#' genotype calls.
+#' @param Group_id A character value for the column ID indicating the predictions
+#' of the positive controls in \code{x}.
+#' @param scale A logical value indicating whether to scale FAM and HEX axis
+#' to values between 0 and 1.
+#' @param pdf A logical value indicating whether to save plot as a pdf graphic
+#' device when TRUE or output plot in R when FALSE.
+#' @param width A numeric value for the width of pdf device.
+#' @param height A numeric value for the height of pdf device.
+#' @param filename A character value for path or file name for saving pdf.
+#' @param expand_axis A numeric value to expand the axes for legend positioning.
+#' @param legend.pos.x A numeric value representing the x coordinate for legend
+#' placement.
+#' @param legend.pos.y A numeric value representing the y coordinate for legend
+#' placement.
+#' @param legend.box A character value of either `horizontal` or `vertical`
+#' legend placement.
+#' @param legend.pos A character value for the position of legend; the
+#' default value is `inside`.
+#' @param alpha A numeric value between 0 and 1 for modifying the
+#' opacity of colors.
+#' @param text_size A numeric value for setting text size.
+#' @param ... Other valid arguments that can be passed to ggplot2.
+#'
+#' @returns A graphic object or plot.
+#'
+#' @export
+
+kasp_qc_ggplot <- function(x,
+                           FAM = 'X',
+                           HEX = 'Y',
+                           geno_call = 'Call',
+                           color = 'Color',
+                           snp_id = 'SNPID',
+                           blank = 'NTC',
+                           Group_id = NULL,
+                           scale = FALSE,
+                           pdf = TRUE,
+                           width = 6,
+                           height = 6,
+                           filename = 'kasp_qc',
+                           expand_axis = 0.5,
+                           legend.pos.x = 0.6,
+                           legend.pos.y = 0.75,
+                           legend.box = 'horizontal',
+                           legend.pos = 'inside',
+                           alpha = 0.5,
+                           text_size = 12,
+                           ...) {
+
+  # Get the number of plates or subset units in data input
+  nplates <- length(x)
+
+  # Get plate names
+  plate_ns <- names(x)
+
+  # Create an empty list object to hold ggplots
+  gg_plts <- vector(mode = 'list', length = nplates)
+  names(gg_plts) <- plate_ns
+
+  for (i in seq_len(nplates)) {
+
+    plate <- x[[i]]
+
+    snp_ns <- plate[, snp_id][1]
+
+    title <- paste0('Plate: ', plate_ns[i], ' | ', 'SNP: ', snp_ns)
+
+    # Generate plotting characters
+    if (!is.null(Group_id)) {
+
+      Group_pch <- plate[, Group_id] # Get predictions for positive controls
+      Group_pch <- as.factor(Group_pch) # Convert to a factor
+      aa <- levels(Group_pch) # Get factor levels
+
+      if (length(aa) > 5) stop("Number of positive control groups exceeded!")
+
+      aa <- c(aa[aa != blank], blank) # reorder factor levels
+      Group_pch <- factor(Group_pch, levels = aa)
+
+      # Create plotting characters based on the number of groups
+      PCH <- vector(mode = 'integer', length = length(Group_pch))
+
+      PCH[Group_pch != blank] <- as.integer(Group_pch[Group_pch != blank]) + 20
+
+      PCH[PCH == 21] <- 25 # Replace all 21s with 25
+
+      PCH[Group_pch == blank] <- 21 # Assign pch 21 to Blanks
+
+
+      Group_pch <- as.character(Group_pch)
+      Group_pch[Group_pch == blank] <- 'Blank'
+
+      plate$Group_pch <- Group_pch
+
+
+      # Sorting breaks for prediction labels
+      grp_pch <- unique(PCH)
+      grp <- unique(Group_pch)
+      names(grp) <- grp_pch
+
+      grp1 <-  sort(grp[grp != 'Blank'])
+      grp2 <- sort(grp[grp == 'Blank'])
+
+      grp <- c(grp1, grp2)
+      grp_pch <- as.numeric(names(grp))
+
+    } else {
+
+      PCH <- 21 # If no positive controls, pch 21 for all samples
+
+    }
+
+    # Sorting breaks for the Observation labels
+    Color <- plate[, 'Color'] # Subset color assignment column from input data
+
+    # Get unique colors in input data
+    cols <- unique(Color)
+
+    Calls <- plate[, 'Call']
+
+    # Replace NTC with Blank and ? with Unused
+    Calls[Calls == blank] <- 'Blank'
+    Calls[Calls == '?'] <- 'Unused'
+
+    plate$Call <- Calls
+
+    # Get unique calls in input data
+    calls <- unique(Calls)
+
+    # Assign unique colors to unique calls
+    names(calls) <- cols
+
+    # Subset and sort genotype calls
+    calls2 <- sort(calls[calls != 'Blank' & calls != 'Uncallable' & calls != 'Unused'])
+
+    # Subset and sort non-genotype calls
+    calls3 <- sort(calls[calls == 'Blank' | calls == 'Uncallable' | calls == 'Unused'])
+
+    # Re-combine unique calls
+    calls <- c(calls2, calls3)
+    cols <- names(calls)
+
+    # Scale FAM and HEX values to 0 and 1s -- recommended
+    if (scale == TRUE) {
+
+      plate$X <- scale_axis(plate[, FAM]) # Scale FAM fluorescence coordinates from data input
+      plate$Y <- scale_axis(plate[, HEX]) # Scale HEX fluorescence coordinates from data input
+
+    } else {
+
+      plate$X <- plate[, FAM] # FAM fluorescence coordinates from data input
+      plate$Y <- plate[, HEX] # HEX fluorescence coordinates from data input
+
+    }
+
+    # Set x and y axes limits
+    x_max <- round(max(plate[, FAM]), 1) + expand_axis
+    y_max <- round(max(plate[, HEX]), 1) + expand_axis
+
+    xy_max <- c(x_max, y_max)
+
+    # Set axis limits to comparable values
+    axis_max <- xy_max[which.max(xy_max)]
+
+    # Plot title
+    title <- paste0('Plate: ', plate_ns[i])
+
+    # Plotting
+    if (!is.null(Group_id)) {
+
+
+        plt <- ggplot2::ggplot(plate, ggplot2::aes(x = X,
+                                                   y = Y,
+                                                   fill = Call,
+                                                   shape = Group_pch)) +
+          ggplot2::geom_point(size = 4) +
+          ggplot2::scale_shape_manual(values = grp_pch,
+                                      breaks = grp,
+                                      name = 'Prediction') +
+
+          ggplot2::guides(shape = ggplot2::guide_legend(order = 2)) +
+
+          ggplot2::scale_fill_manual(values = ggplot2::alpha(cols, alpha),
+                                     breaks = calls,
+                                     name = 'Observation') +
+          ggplot2::guides(fill = ggplot2::guide_legend(order = 0, override.aes = list(shape = 21)))
+
+    } else {
+
+      plt <- ggplot2::ggplot(plate, ggplot2::aes(x = X,
+                                                 y = Y,
+                                                 fill = Call)) +
+        ggplot2::geom_point(size = 4, pch = 21) +
+        ggplot2::scale_fill_manual(values = ggplot2::alpha(cols, alpha),
+                                   breaks = calls,
+                                   name = 'Observation')
+    }
+
+    plt <- plt + ggplot2::theme_classic() + ggplot2::xlim(c(0, axis_max)) +
+      ggplot2::ylim(c(0, axis_max)) +
+      ggplot2::labs(title = paste(title, '\n', 'SNP: ', snp_ns),
+                    x = "FAM fluorescence", y = "HEX fluorescence") +
+      ggplot2::theme(panel.background = ggplot2::element_rect(color = "black",
+                                                              linewidth = 1),
+                     axis.line = ggplot2::element_line(linewidth = 0.2),
+                     plot.title = ggplot2::element_text(hjust = 0.5,
+                                                        face = 'bold',
+                                                        size = text_size),
+                     axis.text = ggplot2::element_text(size  = text_size,
+                                                       face = 'bold',
+                                                       color = 'black'),
+                     axis.title = ggplot2::element_text(size  = text_size + 4,
+                                                        face = 'bold',
+                                                        color = 'black'),
+                     legend.text = ggplot2::element_text(size  = text_size,
+                                                         color = 'black'),
+                     legend.title = ggplot2::element_text(size  = text_size,
+                                                          color = 'black'),
+                     legend.key = ggplot2::element_blank(),
+                     legend.position = legend.pos,
+                     legend.position.inside = c(legend.pos.x, legend.pos.y),
+                     legend.box = legend.box
+      )
+
+    gg_plts[[i]] <- plt
+
+  }
+
+  if (pdf == TRUE) {
+
+    ggplot2::ggsave(filename = paste0(filename, ".pdf"),
+                    plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
+                    device = "pdf", path = file.path(getwd()),
+                    units = "in", width = width, height = height)
+
+  } else {
+
+    return(gg_plts)
+
+  }
+
+}
+
+#' Plot kasp genotyping plate layout.
+#' @param x A list object of KASP genotype calls processed by the `kasp_color()`
+#' function.
+#' @param well A character value representing the column name for genotyping
+#' plate wells.
+#' @param color A character value indicating the column name of assigned colors
+#' in \code{x}.
+#' @param text_size A numeric value for text size in plot output.
+#'
+#' @returns A ggplot graphical output of plate layout.
+#'
+#' @export
+#'
+plot_plate <- function(x,
+                       well = 'MasterWell',
+                       color = 'Color',
+                       geno_call = 'Call',
+                       snp_id = 'SNPID',
+                       pdf = TRUE,
+                       width = 8,
+                       height = 5,
+                       filename = 'plate_layout',
+                       text_size = 12){
+
+  # Get the number of plates or subset units in data input
+  nplates <- length(x)
+
+  # Get plate names
+  plate_ns <- names(x)
+
+  gg_plts <- vector(mode = 'list', length = nplates)
+  names(gg_plts) <- plate_ns
+
+  gg_plate <- function() {
+
+    # Make plot
+    plt <- ggplot2::ggplot(pcr_plate, ggplot2::aes(x = V2, y = V1,
+                                                   fill = Call)) +
+      ggplot2::geom_tile(col = 'grey50',
+                         alpha = 0,
+                         linewidth = 0.2) +
+      ggplot2::geom_point(size = text_size, alpha = 0.5, pch = 21) +
+      ggplot2::theme_classic() +
+      ggplot2::scale_fill_manual(values = myCol,
+                                 breaks = calls,
+                                 name = snp_ns) +
+      ggplot2::scale_x_discrete(position = "top") +
+      ggplot2::scale_y_discrete(limits = rev(levels(pcr_plate$V1))) +
+      ggplot2::labs(title = title) +
+
+      ggplot2::theme(axis.line = ggplot2::element_blank(),
+                     axis.title = ggplot2::element_blank(),
+                     axis.ticks = ggplot2::element_blank(),
+                     plot.title = ggplot2::element_text(hjust = 0.5,
+                                                        face = 'bold',
+                                                        size = text_size),
+                     axis.text = ggplot2::element_text(size  = text_size,
+                                                       face = 'bold',
+                                                       color = 'black')
+      )
+
+    return(plt)
+
+  }
+
+
+  for (i in seq_len(nplates)) {
+
+  # Subset plate
+  plate <- x[[i]]
+  # Get well column for wells
+  MasterWell <- plate[, well]
+  well_freq <- table(MasterWell)
+
+  # Stop function if well IDs are not unique.
+  if( any(well_freq > 1)) {
+
+    stop("Plate well IDs are not unique! Check the plate layout.")
+
+  }
+
+  # Get Color column for genotype calls
+  Color <- plate[, color]
+  myCol <- unique(Color)
+
+  # Get geno call
+  Call <- plate[, geno_call]
+
+  # Replace NTC with Blank and ? with Unused
+  Call[Call == 'NTC'] <- 'Blank'
+  Call[Call == '?'] <- 'Unused'
+
+  calls <- unique(Call)
+  names(calls) <- myCol
+
+  # Subset and sort genotype calls
+  calls2 <- sort(calls[calls != 'Blank' & calls != 'Uncallable' & calls != 'Unused'])
+
+  # Subset and sort non-genotype calls
+  calls3 <- sort(calls[calls == 'Blank' | calls == 'Uncallable' | calls == 'Unused'])
+
+  # Re-combine unique calls
+  calls <- c(calls2, calls3)
+  myCol <- names(calls)
+
+
+  # Get SNP name
+  snp_ns <- plate[, snp_id][1]
+
+  # Plot title
+  title <- paste0('Plate: ', plate_ns[i])
+
+  # Split alphanumeric well IDs into alphabet and numeric
+  pcr_plate <- strsplit(MasterWell, split = "(?<=[a-zA-Z])(?=[0-9])",
+                        perl = TRUE)
+
+  # Make a data frame from split well IDs
+  pcr_plate <- t(as.data.frame(pcr_plate))
+  pcr_plate <- as.data.frame(cbind(pcr_plate,
+                                   MasterWell = MasterWell,
+                                   Call = Call,
+                                   Color = Color))
+
+  # Convert Column 1 and 2 into a data frame
+  pcr_plate$V1 <- as.factor(pcr_plate$V1)
+  pcr_plate$V2 <- as.factor(pcr_plate$V2)
+  # pcr_plate$Call <- as.factor(pcr_plate$Call)
+
+  gg_plts[[i]] <- gg_plate()
+
+  }
+
+  if (pdf == TRUE) {
+
+    ggplot2::ggsave(filename = paste0(filename, ".pdf"),
+           plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
+           device = "pdf", path = file.path(getwd()),
+           units = "in", width = width, height = height)
+
+  } else {
+
+    return(gg_plts)
+
+  }
+
+}
+
+
+
+
