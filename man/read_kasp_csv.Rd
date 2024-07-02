@@ -30,3 +30,18 @@ A list object of KASP results file ka genotyping calls with FAM and HEX coordina
 \description{
 Read raw KASP results file (csv format) with one or multiple plates.
 }
+\examples{
+# example code
+library(panGenomeBreedr)
+# Read raw bulked KASP data into R
+\donttest{
+path1 <-  system.file("extdata", "Genotyping_141.010_01.csv",
+                      package = "panGenomeBreedr",
+                      mustWork = TRUE)
+
+file1 <- read_kasp_csv(file = path1, data_type = 'raw')
+# Get KASP genotyping data for plotting
+kasp_dat <- file1$Data
+}
+
+}

@@ -92,3 +92,28 @@ A graphic object or plot.
 \description{
 Make KASP marker genotyping QC plot.
 }
+\examples{
+# example code
+library(panGenomeBreedr)
+\donttest{
+# Assign KASP colors to plates
+dat1 <- kasp_color(x = panGenomeBreedr::kasp_dat,
+                   subset = 'MasterPlate',
+                   sep = ':',
+                   geno_call = 'Call',
+                   uncallable = 'Uncallable',
+                   unused = '?',
+                   blank = 'NTC')
+
+# KASP QC plot for Plate 12
+kasp_qc_ggplot(x = dat1[12],
+                    pdf = FALSE,
+                    Group_id = 'Group',
+                    scale = TRUE,
+                    expand_axis = 0.6,
+                    alpha = 0.5,
+                    legend.pos.x = 0.6,
+                    legend.pos.y = 0.8)
+}
+
+}

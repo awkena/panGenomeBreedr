@@ -44,3 +44,17 @@ This is an experimental function. The default values of some of the
 arguments in the function are based on LGC Genomics conventions including
 the color codes for FAM and HEX fluorescence.
 }
+\examples{
+# example code
+library(panGenomeBreedr)
+\donttest{
+dat1 <- kasp_color(x = panGenomeBreedr::kasp_dat,
+                   subset = 'MasterPlate',
+                   sep = ':',
+                   geno_call = 'Call',
+                   uncallable = 'Uncallable',
+                   unused = '?',
+                   blank = 'NTC')
+}
+
+}

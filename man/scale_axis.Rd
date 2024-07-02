@@ -11,9 +11,15 @@ scale_axis(x)
 }
 \value{
 A numeric vector of normalized values between 0 and 1
-
-A numeric vector of normalized values between 0 and 1.
 }
 \description{
 Normalize FAM and HEX fluorescence values between 0 and 1
+}
+\examples{
+# example code
+library(panGenomeBreedr)
+# Get Plate 1
+dat1 <- panGenomeBreedr::kasp_dat[1:96,]
+FAM_scaled <- scale_axis(dat1$X)
+
 }

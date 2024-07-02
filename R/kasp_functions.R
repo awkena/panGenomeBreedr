@@ -10,6 +10,20 @@
 #'
 #' @returns A list object of KASP results file ka genotyping calls with FAM and HEX coordinates.
 #'
+#' @examples
+#' # example code
+#' library(panGenomeBreedr)
+#' # Read raw bulked KASP data into R
+#' \donttest{
+#' path1 <-  system.file("extdata", "Genotyping_141.010_01.csv",
+#'                       package = "panGenomeBreedr",
+#'                       mustWork = TRUE)
+#'
+#' file1 <- read_kasp_csv(file = path1, data_type = 'raw')
+#' # Get KASP genotyping data for plotting
+#' kasp_dat <- file1$Data
+#' }
+#'
 #' @export
 #' @import utils
 
@@ -96,7 +110,6 @@ read_kasp_csv <- function(file,
 #' @param subset A character value indicating the column name for taking subsets
 #' of \code{x} for processing; default is the `MasterPlate`.
 #' @param x A data frame of KASP genotype calls.
-#'
 #' @param sep A character used as separator for genotype calls, default is a
 #' colon.
 #' @param geno_call A character indicating the column name used for genotype
@@ -107,12 +120,25 @@ read_kasp_csv <- function(file,
 #' genotype calls.
 #' @returns A list object with subset unit as component data frames.
 #'
+#' @examples
+#' # example code
+#' library(panGenomeBreedr)
+#' \donttest{
+#' dat1 <- kasp_color(x = panGenomeBreedr::kasp_dat,
+#'                    subset = 'MasterPlate',
+#'                    sep = ':',
+#'                    geno_call = 'Call',
+#'                    uncallable = 'Uncallable',
+#'                    unused = '?',
+#'                    blank = 'NTC')
+#' }
+#'
 #' @details
 #' This is an experimental function. The default values of some of the
 #' arguments in the function are based on LGC Genomics conventions including
 #' the color codes for FAM and HEX fluorescence.
 #' @export
-
+#'
 kasp_color <- function(x,
                        subset = 'MasterPlate',
                        sep = ':',
@@ -231,9 +257,15 @@ kasp_color <- function(x,
 #' @param x A numeric vector of FAM or HEX fluorescence values
 #'
 #' @returns A numeric vector of normalized values between 0 and 1
-#' @export
 #'
-#' @returns A numeric vector of normalized values between 0 and 1.
+#' @examples
+#' # example code
+#' library(panGenomeBreedr)
+#' # Get Plate 1
+#' dat1 <- panGenomeBreedr::kasp_dat[1:96,]
+#' FAM_scaled <- scale_axis(dat1$X)
+#'
+#' @export
 #'
 scale_axis <- function(x) {
 
@@ -284,6 +316,30 @@ scale_axis <- function(x) {
 #' @param ... Other valid arguments that can be passed to ggplot2.
 #'
 #' @returns A graphic object or plot.
+#'
+#' @examples
+#' # example code
+#' library(panGenomeBreedr)
+#' \donttest{
+#' # Assign KASP colors to plates
+#' dat1 <- kasp_color(x = panGenomeBreedr::kasp_dat,
+#'                    subset = 'MasterPlate',
+#'                    sep = ':',
+#'                    geno_call = 'Call',
+#'                    uncallable = 'Uncallable',
+#'                    unused = '?',
+#'                    blank = 'NTC')
+#'
+#' # KASP QC plot for Plate 12
+#' kasp_qc_ggplot(x = dat1[12],
+#'                     pdf = FALSE,
+#'                     Group_id = 'Group',
+#'                     scale = TRUE,
+#'                     expand_axis = 0.6,
+#'                     alpha = 0.5,
+#'                     legend.pos.x = 0.6,
+#'                     legend.pos.y = 0.8)
+#' }
 #'
 #' @export
 #' @import ggplot2
@@ -527,6 +583,22 @@ kasp_qc_ggplot <- function(x,
 #' @param ... Other valid arguments that can be passed to ggplot2.
 #'
 #' @returns A ggplot graphical output of plate layout.
+#'
+#' @examples
+#' # example code
+#' library(panGenomeBreedr)
+#' \donttest{
+#' # Assign KASP colors to plates
+#' dat1 <- kasp_color(x = panGenomeBreedr::kasp_dat,
+#'                    subset = 'MasterPlate',
+#'                    sep = ':',
+#'                    geno_call = 'Call',
+#'                    uncallable = 'Uncallable',
+#'                    unused = '?',
+#'                    blank = 'NTC')
+#' # Plot Plate 12 to see sample arrangement
+#' plot_plate(dat1[12], pdf = FALSE)
+#' }
 #'
 #' @export
 #' @import ggplot2

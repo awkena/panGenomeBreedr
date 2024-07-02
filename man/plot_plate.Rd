@@ -51,3 +51,20 @@ A ggplot graphical output of plate layout.
 \description{
 Plot kasp genotyping plate layout.
 }
+\examples{
+# example code
+library(panGenomeBreedr)
+\donttest{
+# Assign KASP colors to plates
+dat1 <- kasp_color(x = panGenomeBreedr::kasp_dat,
+                   subset = 'MasterPlate',
+                   sep = ':',
+                   geno_call = 'Call',
+                   uncallable = 'Uncallable',
+                   unused = '?',
+                   blank = 'NTC')
+# Plot Plate 12 to see sample arrangement
+plot_plate(dat1[12], pdf = FALSE)
+}
+
+}
