@@ -8,7 +8,7 @@
 #' @param data_type A character value indicating the file type to import;
 #' currently supports either `raw` or `polished` KASP results file.
 #'
-#' @returns A list object of KASP results file ka genotyping calls with FAM and HEX coordinates.
+#' @returns A list object of KASP results file for genotyping calls with FAM and HEX coordinates.
 #'
 #' @examples
 #' # example code

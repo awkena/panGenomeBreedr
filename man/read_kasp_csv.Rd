@@ -25,7 +25,7 @@ data components in \code{file}.}
 currently supports either `raw` or `polished` KASP results file.}
 }
 \value{
-A list object of KASP results file ka genotyping calls with FAM and HEX coordinates.
+A list object of KASP results file for genotyping calls with FAM and HEX coordinates.
 }
 \description{
 Read raw KASP results file (csv format) with one or multiple plates.
