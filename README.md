@@ -39,7 +39,7 @@ Submit bug reports and feature suggestions, or track changes on the
 - [Usage](#usage)
   - [Example](#example)
 - [Troubleshooting](#troubleshooting)
-- [Authors](#authors)
+- [Authors and contributors](#authors-and-contributors)
 - [License](#license)
 - [Support and Feedback](##support-and-feedback)
 
@@ -243,9 +243,13 @@ If the app does not run as expected, check the following:
 
 - Are all packages up to date?
 
-# Authors
+# Authors and contributors
 
 - [Alexander Wireko Kena](https://www.github.com/awkena)
+
+- [Cruet Burgos](https://www.morrislab.org/people/clara-cruet-burgos)
+
+- [Samuel Abebrese](https://www.morrislab.org/people)
 
 - [Geoffrey Preston
   Morris](https://www.morrislab.org/people/geoff-morris)
