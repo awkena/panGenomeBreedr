@@ -119,7 +119,10 @@ code snippet below:
 library(panGenomeBreedr)
 
 # Set path to the directory where your data is located
-path1 <-  "inst/extdata/Genotyping_141.010_01.csv"
+# path1 <-  "inst/extdata/Genotyping_141.010_01.csv"
+path1 <-  system.file("extdata", "Genotyping_141.010_01.csv",
+                       package = "panGenomeBreedr",
+                      mustWork = TRUE)
 
 # Import raw data file
 file1 <- read_kasp_csv(file = path1, 
