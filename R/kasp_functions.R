@@ -32,6 +32,9 @@ read_kasp_csv <- function(file,
                           spacing = 2L,
                           data_type = c('raw', 'polished')) {
 
+  # row_tags <- match.arg(row_tags)
+  data_type <- match.arg(data_type)
+
   file <- file.path(file) # File path
 
   read_rows <- readLines(file, warn = FALSE)

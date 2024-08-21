@@ -113,10 +113,10 @@ file1 <- read_kasp_csv(file = path1,
 kasp_dat <- file1$Data
 ```
 
-The next step after importing data is to assign FAM and HEX fluorescence colors to samples based on their observed genotype calls. This step is accomplished using the `kasp_color()` function in `panGB` as shown code snippet below:  
+The next step after importing data is to assign FAM and HEX fluorescence colors to samples based on their observed genotype calls. This step is accomplished using the `kasp_color()` function in `panGB` as shown in the code snippet below:  
 
 ```{r}
-# Import raw KASP genotyping file (.csv) using the read_kasp_csv() function
+# Assign KASP fluorescence colors using the kasp_color() function
 library(panGenomeBreedr)
 
 dat1 <- kasp_color(x = kasp_dat,
@@ -136,6 +136,7 @@ After assigning the FAM and HEX colors to samples per plate, the next step is ge
 
 ```{r plate_12_qc, fig.cap = "Fig. 1. Cluster plot for Plate 12 with an overlay of predictions for positive controls."}
 # KASP QC plot for Plate 12
+library(panGenomeBreedr)
 kasp_qc_ggplot(x = dat1[12],
                     pdf = FALSE,
                     Group_id = 'Group',
@@ -148,11 +149,11 @@ kasp_qc_ggplot(x = dat1[12],
 
 Users can set the `pdf = TRUE` argument to save plots as a PDF file in a directory outside R. The `kasp_qc_ggplot()` function can generate cluster plots for multiple plates simultaneously.  
 
-To visualize predictions for positive controls to validate KASP markers, the column name containing expected genotype calls must be provided and passed to the function using `Group_id = 'Group'` argument as shown in the code snippet above. If this information is not available, set the argument `Group_id = NULL`.  
+To visualize predictions for positive controls to validate KASP markers, the column name containing expected genotype calls must be provided and passed to the function using the `Group_id = 'Group'` argument as shown in the code snippet above. If this information is not available, set the argument `Group_id = NULL`.  
 
 Users can visualize the observed genotype calls in a plate design format using the `plot_plate()` function as depicted in the code snippet below:  
 
-```{r plate_12_design, fig.cap = "Fig. 2. Observed genotype calls for samples in Plate 12 as a plate design format."}
+```{r plate_12_design, fig.cap = "Fig. 2. Observed genotype calls for samples in Plate 12 in a plate design format."}
 plot_plate(dat1[12], pdf = FALSE)
 
 ```

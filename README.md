@@ -135,11 +135,11 @@ kasp_dat <- file1$Data
 
 The next step after importing data is to assign FAM and HEX fluorescence
 colors to samples based on their observed genotype calls. This step is
-accomplished using the `kasp_color()` function in `panGB` as shown code
-snippet below:
+accomplished using the `kasp_color()` function in `panGB` as shown in
+the code snippet below:
 
 ``` r
-# Import raw KASP genotyping file (.csv) using the read_kasp_csv() function
+# Assign KASP fluorescence colors using the kasp_color() function
 library(panGenomeBreedr)
 
 dat1 <- kasp_color(x = kasp_dat,
@@ -184,6 +184,7 @@ the cluster plots for each master plate and KASP marker as shown below:
 
 ``` r
 # KASP QC plot for Plate 12
+library(panGenomeBreedr)
 kasp_qc_ggplot(x = dat1[12],
                     pdf = FALSE,
                     Group_id = 'Group',
@@ -211,8 +212,8 @@ cluster plots for multiple plates simultaneously.
 
 To visualize predictions for positive controls to validate KASP markers,
 the column name containing expected genotype calls must be provided and
-passed to the function using `Group_id = 'Group'` argument as shown in
-the code snippet above. If this information is not available, set the
+passed to the function using the `Group_id = 'Group'` argument as shown
+in the code snippet above. If this information is not available, set the
 argument `Group_id = NULL`.
 
 Users can visualize the observed genotype calls in a plate design format
@@ -225,9 +226,9 @@ plot_plate(dat1[12], pdf = FALSE)
 
 <div class="figure">
 
-<img src="man/figures/README-plate_12_design-1.png" alt="Fig. 2. Observed genotype calls for samples in Plate 12 as a plate design format." width="100%" />
+<img src="man/figures/README-plate_12_design-1.png" alt="Fig. 2. Observed genotype calls for samples in Plate 12 in a plate design format." width="100%" />
 <p class="caption">
-Fig. 2. Observed genotype calls for samples in Plate 12 as a plate
+Fig. 2. Observed genotype calls for samples in Plate 12 in a plate
 design format.
 </p>
 
