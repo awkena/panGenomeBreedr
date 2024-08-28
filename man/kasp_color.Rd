@@ -2,7 +2,7 @@
 % Please edit documentation in R/kasp_functions.R
 \name{kasp_color}
 \alias{kasp_color}
-\title{Color-code KASP genotype calls based on LGC genomics colors.}
+\title{Color-code KASP genotype calls based on LGC genomics colors for HEX and FAM.}
 \usage{
 kasp_color(
   x,
@@ -11,11 +11,12 @@ kasp_color(
   geno_call = "Call",
   uncallable = "Uncallable",
   unused = "?",
-  blank = "NTC"
+  blank = "NTC",
+  others = c("Missing", "Bad", "Dupe", "Over", "Short")
 )
 }
 \arguments{
-\item{x}{A data frame of KASP genotype calls.}
+\item{x}{A data frame of KASP genotype calls for one or multiple plates.}
 
 \item{subset}{A character value indicating the column name for taking subsets
 of \code{x} for processing; default is the `MasterPlate`.}
@@ -32,17 +33,22 @@ calls in \code{x}.}
 
 \item{blank}{A character value indicating `No Template Controls (NTC)`
 genotype calls.}
+
+\item{others}{A character vector indicating other non-genotype calls in KASP
+genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
+`'Over', 'Short'`.}
 }
 \value{
 A list object with subset unit as component data frames.
 }
 \description{
-Color-code KASP genotype calls based on LGC genomics colors.
+Color-code KASP genotype calls based on LGC genomics colors for HEX and FAM.
 }
 \details{
 This is an experimental function. The default values of some of the
 arguments in the function are based on LGC Genomics conventions including
-the color codes for FAM and HEX fluorescence.
+the color codes for FAM and HEX fluorescence. To make the plot color-blind
+friendly, the heterozygotes have been coded as gold instead of green.
 }
 \examples{
 # example code

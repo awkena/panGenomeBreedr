@@ -108,11 +108,69 @@ read_kasp_csv <- function(file,
   return(kasp_res)
 }
 
-#' Color-code KASP genotype calls based on LGC genomics colors.
+
+#' Get SNP or InDel alleles and possible genotypes from genotype calls in KASP data.
+#' @param x A character vector of KASP genotype calls in one resaction plate.
+#' @param sep A character used as separator for genotype calls, default is a
+#' colon.
+#' @param uncallable A character indicating `Uncallable` genotype calls, if present.
+#' @param unused A character indicating `?` genotype calls, if present.
+#' @param blank A character value indicating `No Template Controls (NTC)`
+#' genotype calls.
+#' @param others A character vector indicating other non-genotype calls in KASP
+#' genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
+#' `'Over', 'Short'`.
+#'
+#'@examples
+#'# example code
+#' \donttest{
+#' x <- panGenomeBreedr::kasp_dat$Call[1:96]
+#' alleles <- get_alleles(x = x)
+#' }
+#'
+#' @returns A list object with `length = 2` consisting of marker alleles and
+#' possible genotypes in each KASP reaction plate.
+#' @export
+
+
+get_alleles <- function(x,
+                        sep = ':',
+                        blank = 'NTC',
+                        uncallable = 'Uncallable',
+                        unused = '?',
+                        others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short')
+) {
+
+
+  # Empty list object to hold results
+  res <- vector(mode = 'list', length = 2)
+  names(res) <- c('alleles', 'genotypes')
+
+  # Create a character vector of all non-genotype calls
+  non_geno_call <- c(blank, uncallable, unused, others)
+
+  # Subset and sort genotype calls
+  geno_uniq <- sort(unique(x[!x %in% non_geno_call]))
+
+  alleles <- res[[1]] <- unique(unlist(strsplit(x = geno_uniq, split = sep)))
+
+  homo1 <- paste(alleles[1], alleles[1], sep = sep) # homozygous genotype 1
+  homo2 <- paste(alleles[2], alleles[2], sep = sep) # homozygous genotype 2
+  homo12 <- c(homo1, homo2)
+  het1 <- paste(alleles[1], alleles[2], sep = sep) # heterozygous genotype 1
+  het2 <- paste(alleles[2], alleles[1], sep = sep) # heterozygous genotype 2
+
+  res[[2]] <- c(homo1 = homo1, homo2 = homo2, het1 = het1, het2 = het2)
+
+
+  return(res)
+}
+
+
+#' Color-code KASP genotype calls based on LGC genomics colors for HEX and FAM.
 #' @param x A data frame of KASP genotype calls for one or multiple plates.
 #' @param subset A character value indicating the column name for taking subsets
 #' of \code{x} for processing; default is the `MasterPlate`.
-#' @param x A data frame of KASP genotype calls.
 #' @param sep A character used as separator for genotype calls, default is a
 #' colon.
 #' @param geno_call A character indicating the column name used for genotype
@@ -121,6 +179,10 @@ read_kasp_csv <- function(file,
 #' @param unused A character indicating `?` genotype calls, if present.
 #' @param blank A character value indicating `No Template Controls (NTC)`
 #' genotype calls.
+#' @param others A character vector indicating other non-genotype calls in KASP
+#' genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
+#' `'Over', 'Short'`.
+#'
 #' @returns A list object with subset unit as component data frames.
 #'
 #' @examples
@@ -139,7 +201,8 @@ read_kasp_csv <- function(file,
 #' @details
 #' This is an experimental function. The default values of some of the
 #' arguments in the function are based on LGC Genomics conventions including
-#' the color codes for FAM and HEX fluorescence.
+#' the color codes for FAM and HEX fluorescence. To make the plot color-blind
+#' friendly, the heterozygotes have been coded as gold instead of green.
 #' @export
 #'
 kasp_color <- function(x,
@@ -148,7 +211,8 @@ kasp_color <- function(x,
                        geno_call = 'Call',
                        uncallable = 'Uncallable',
                        unused = '?',
-                       blank = 'NTC') {
+                       blank = 'NTC',
+                       others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short')) {
 
   # Get subset unit from data set
   plates <- x[, subset]
@@ -168,20 +232,23 @@ kasp_color <- function(x,
     # create a color vector based on KASP geno calls
     Color <- master_plate[, geno_call]
 
-    geno_uniq <- unique(Color)
+    # Get alleles and possible genotypes using the `get_allele()` function
+    alleles_geno <- get_alleles(x = Color,
+                                sep = sep,
+                                blank = blank,
+                                uncallable = uncallable,
+                                unused = unused,
+                                others = others)
 
-    # Subset and sort genotype calls
-    geno_uniq <- sort(geno_uniq[geno_uniq != 'NTC' & geno_uniq != 'Uncallable' & geno_uniq != '?'])
-
-    alleles <- unique(unlist(strsplit(x = geno_uniq, split = sep)))
+    alleles <- alleles_geno$alleles
 
     if (length(alleles) == 2) {
 
-      homo1 <- paste(alleles[1], alleles[1], sep = sep) # homozygous genotype 1
-      homo2 <- paste(alleles[2], alleles[2], sep = sep) # homozygous genotype 2
+      homo1 <- alleles_geno$genotype[1] # homozygous genotype 1
+      homo2 <- alleles_geno$genotype[2] # homozygous genotype 2
       homo12 <- c(homo1, homo2)
-      het1 <- paste(alleles[1], alleles[2], sep = sep) # heterozygous genotype 1
-      het2 <- paste(alleles[2], alleles[1], sep = sep) # heterozygous genotype 2
+      het1 <- alleles_geno$genotype[3] # heterozygous genotype 1
+      het2 <- alleles_geno$genotype[4] # heterozygous genotype 2
 
       # Subset homozygotes
       homs <- subset(master_plate, subset = Color == homo1 | Color == homo2)
@@ -195,13 +262,14 @@ kasp_color <- function(x,
       # Assign colors based on LGC rules
       Color[Color == HEX] <- "red" # HEX homozygote
       Color[Color == FAM] <- "blue" # FAM homozygote
-      Color[Color == het1] <- "green" # Heterozygote
-      Color[Color == het2] <- "green" # Heterozygote
+      Color[Color == het1] <- "yellow2" # Heterozygote
+      Color[Color == het2] <- "yellow2" # Heterozygote
 
       # KASP FAM and HEX color coding for others
       Color[Color == uncallable] <- "darkmagenta"
-      Color[Color == unused] <- "pink"
+      Color[Color == unused] <- "salmon4"
       Color[Color == blank] <- "black"
+      Color[Color %in% others] <- "mintcream"
 
       master_plate <- cbind(master_plate, Color)
 
@@ -215,8 +283,9 @@ kasp_color <- function(x,
 
       # KASP FAM and HEX color coding for others
       Color[Color == uncallable] <- "darkmagenta"
-      Color[Color == unused] <- "pink"
+      Color[Color == unused] <- "salmon4"
       Color[Color == blank] <- "black"
+      Color[Color %in% others] <- "mintcream"
 
       master_plate <- cbind(master_plate, Color)
 
@@ -228,8 +297,9 @@ kasp_color <- function(x,
 
       # KASP FAM and HEX color coding for others
       Color[Color == uncallable] <- "darkmagenta"
-      Color[Color == unused] <- "pink"
+      Color[Color == unused] <- "salmon4"
       Color[Color == blank] <- "black"
+      Color[Color %in% others] <- "mintcream"
 
       master_plate <- cbind(master_plate, Color)
 
@@ -241,8 +311,9 @@ kasp_color <- function(x,
 
       # KASP FAM and HEX color coding for others
       Color[Color == uncallable] <- "darkmagenta"
-      Color[Color == unused] <- "pink"
+      Color[Color == unused] <- "salmon4"
       Color[Color == blank] <- "black"
+      Color[Color %in% others] <- "mintcream"
 
       master_plate <- cbind(master_plate, Color)
 
@@ -254,7 +325,6 @@ kasp_color <- function(x,
   return(res)
 
 }
-
 
 #' Normalize FAM and HEX fluorescence values between 0 and 1
 #' @param x A numeric vector of FAM or HEX fluorescence values
