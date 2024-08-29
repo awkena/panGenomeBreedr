@@ -1,4 +1,4 @@
-test_that("kasp_color works", {
+test_that("pred_status works", {
 
   set.seed(123)
   dat1 <- data.frame(DaughterPlate = rep('S000940416', time = 96),
@@ -11,11 +11,20 @@ test_that("kasp_color works", {
                                    prob = c(.325, .25, .325, .05, .05)),
                      X = runif(96),
                      Y = runif(96),
-                     SNPID = rep('snpSB00720', time = 96))
+                     SNPID = rep('snpSB00720', time = 96),
+                     Group = sample(c('A:A', 'A:T', 'T:T', '?'), size = 96,
+                                      replace = TRUE, prob = c(.325, .25, .325, .1)))
+
+   dat1$Group[dat1$MasterWell == 'H11' | dat1$MasterWell == 'H12'] <- 'NTC'
 
   dat1$Call[dat1$MasterWell == 'H11' | dat1$MasterWell == 'H12'] <- 'NTC'
 
-  dat2 <- kasp_color(dat1)
+  dat1 <- pred_status(plate = dat1,
+                      geno_call = 'Call',
+                      Group_id = 'Group',
+                      blank = 'NTC',
+                      Group_unknown = '?')
 
-  expect_equal(dim(dat2[[1]]), c(96, 9))
+  expect_equal(dim(dat1), c(96, 9))
 })
+

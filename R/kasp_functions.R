@@ -156,7 +156,6 @@ get_alleles <- function(x,
 
   homo1 <- paste(alleles[1], alleles[1], sep = sep) # homozygous genotype 1
   homo2 <- paste(alleles[2], alleles[2], sep = sep) # homozygous genotype 2
-  homo12 <- c(homo1, homo2)
   het1 <- paste(alleles[1], alleles[2], sep = sep) # heterozygous genotype 1
   het2 <- paste(alleles[2], alleles[1], sep = sep) # heterozygous genotype 2
 
@@ -164,6 +163,84 @@ get_alleles <- function(x,
 
 
   return(res)
+}
+
+
+#' Generate pch characters for cluster plots of KASP genotype calls.
+#' @param x A character vector of KASP genotype calls in one resaction plate.
+#' @param sep A character used as separator for genotype calls, default is a
+#' colon.
+#' @param uncallable A character indicating `Uncallable` genotype calls, if present.
+#' @param unused A character indicating `?` genotype calls, if present.
+#' @param blank A character value indicating `No Template Controls (NTC)`
+#' genotype calls.
+#' @param others A character vector indicating other non-genotype calls in KASP
+#' genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
+#' `'Over', 'Short'`.
+#'
+#'@examples
+#'# example code
+#' \donttest{
+#' x <- panGenomeBreedr::kasp_dat$Call[1:96]
+#' geno_pch <- kasp_pch(x = x)
+#' }
+#'
+#' @returns A `96 x 1` data frame  of pch values for possible genotypes in
+#' each KASP reaction plate.
+#' @export
+kasp_pch <- function(x,
+                     sep = ':',
+                     blank = 'NTC',
+                     uncallable = 'Uncallable',
+                     unused = '?',
+                     others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short')) {
+
+
+  # Empty integer vector to hold results
+  # res <- vector(mode = 'integer', length = nrow(x))
+
+  # Get unique elements in geno call
+  all_element <- unique(x)
+
+  # Create a character vector of all possible non-genotype calls
+  non_geno_call <- c(blank, uncallable, unused, others)
+
+  # Subset and sort real genotype calls in KASP geno calls
+  geno_uniq <- sort(unique(x[!x %in% non_geno_call]))
+
+  # Combine geno_uniq with other non-genotype calls present in KASP geno call
+  all_element <- c(geno_uniq, all_element[!all_element %in% geno_uniq])
+
+  # # Combine geno_uniq and non_geno_call
+  # all_calls <- c(geno_uniq, non_geno_call)
+  #
+  # all_element <- all_element[all_element %in% all_calls]
+
+  if (length(geno_uniq) > 0) {
+
+    pch_geno <- (21:(20 + length(geno_uniq))) # Assign pch values to geno_uniq
+    names(pch_geno) <- geno_uniq
+
+  } else {
+
+    pch_geno <- NULL
+
+  }
+
+  pch_non_geno <- c(16, 3, 4, 7:11) # pch for all possible non-geno calls
+  names(pch_non_geno) <- c(blank, uncallable, unused, others)
+
+  # Combine pch for real geno calls and non-geno calls present in KASP data
+  # This is to be used as a loopup vector for pch values
+  pch_vec <- c(pch_geno, pch_non_geno[names(pch_non_geno) %in% all_element])
+
+  dat <- data.frame(pch = x) # Create a data frame for pch geno calls
+
+  # Match geno calls to lookup vector for pch values for each geno call
+  res <- data.frame(lapply(dat, function(i) pch_vec[i]))
+
+  return(res)
+
 }
 
 
@@ -242,6 +319,14 @@ kasp_color <- function(x,
 
     alleles <- alleles_geno$alleles
 
+    # Get pch values for all geno calls using the `kasp_pch()` function
+    pch_geno <- kasp_pch(x = Color,
+                         sep = sep,
+                         blank = blank,
+                         uncallable = uncallable,
+                         unused = unused,
+                         others = others)
+
     if (length(alleles) == 2) {
 
       homo1 <- alleles_geno$genotype[1] # homozygous genotype 1
@@ -271,7 +356,7 @@ kasp_color <- function(x,
       Color[Color == blank] <- "black"
       Color[Color %in% others] <- "mintcream"
 
-      master_plate <- cbind(master_plate, Color)
+      master_plate <- cbind(master_plate, Color, pch_geno)
 
       res[[i]] <- master_plate
 
@@ -287,7 +372,7 @@ kasp_color <- function(x,
       Color[Color == blank] <- "black"
       Color[Color %in% others] <- "mintcream"
 
-      master_plate <- cbind(master_plate, Color)
+      master_plate <- cbind(master_plate, Color, pch_geno)
 
       res[[i]] <- master_plate
 
@@ -301,7 +386,7 @@ kasp_color <- function(x,
       Color[Color == blank] <- "black"
       Color[Color %in% others] <- "mintcream"
 
-      master_plate <- cbind(master_plate, Color)
+      master_plate <- cbind(master_plate, Color, pch_geno)
 
       res[[i]] <- master_plate
 
@@ -315,7 +400,7 @@ kasp_color <- function(x,
       Color[Color == blank] <- "black"
       Color[Color %in% others] <- "mintcream"
 
-      master_plate <- cbind(master_plate, Color)
+      master_plate <- cbind(master_plate, Color, pch_geno)
 
       res[[i]] <- master_plate
     }
@@ -345,6 +430,71 @@ scale_axis <- function(x) {
   norm <- (x - min(x))/(max(x) - min(x))
 
   return(norm)
+
+}
+
+#' Generate the prediction status of positive controls in a KASP assay, if present.
+#' @param plate A data frame of KASP genotype calls for one or multiple plates.
+#' @param geno_call A character indicating the column name used for genotype
+#' calls in \code{plate}.
+#' @param blank A character value indicating `No Template Controls (NTC)`
+#' genotype calls.
+#' @param Group_id A character value for the column ID indicating the predictions
+#' of the positive controls in \code{plate}.
+#' @param Group_unknown A character value representing unknown expected genotype status
+#' for samples, if present. No genotype prediction can be made for such samples.
+#' @returns A data frame with the prediction status of each sample added as a column.
+#'
+#' @details
+#' The function recodes the prediction status of each sample as follows:
+#' TRUE = prediction matches observed genotype call
+#' FALSE = prediction does not match observed genotype call
+#' Unknown = Either observed genotype call could not be made or expected genotype
+#' could not be made prior to KASP genotyping or both.
+#' Blank = NTC wells
+#'
+#'
+#' @examples
+#' \donttest{
+#' # example code
+#' library(panGenomeBreedr)
+#' # Get Plate 1
+#'
+#' dat1 <- panGenomeBreedr::beta_carotene[1:96,]
+#' dat1 <- pred_status(plate = dat1,
+#' geno_call = 'Call',
+#' Group_id = 'Group',
+#' blank = 'NTC',
+#' Group_unknown = '?')
+#' }
+#'
+#' @export
+pred_status <- function(plate,
+                        geno_call = 'Call',
+                        Group_id = 'Group',
+                        blank = 'NTC',
+                        Group_unknown = '?') {
+
+  gg <- get_alleles(x = plate[, geno_call]) # Get possible genotypes in data
+
+  df1 <- plate[plate[, geno_call] %in% gg$genotypes,] # Subset only samples with true calls
+  df2 <- plate[!plate[, geno_call] %in% gg$genotypes,] # Subset samples with non-genotype calls
+
+  # Add status for samples with true genotype calls
+  df1$status <- ifelse(df1[, geno_call] == df1[, Group_id], TRUE,
+                       ifelse(df1[, geno_call] != df1[, Group_id] &
+                                df1[, Group_id] == Group_unknown, 'Unknown', FALSE))
+
+  # Add status for samples with non-genotype calls and NTC
+  df2$status <- ifelse(df2[, geno_call] == blank, 'Blank', 'Unknown')
+
+  # rbind the two data frames df1 and df2
+  df3 <- rbind(df1, df2)
+
+  # Sort data in ascending order of chromosomes
+  df3 <- df3[order(as.numeric(rownames(df3)), decreasing = FALSE),]
+
+  return(df3)
 
 }
 

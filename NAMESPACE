@@ -2,8 +2,10 @@
 
 export(get_alleles)
 export(kasp_color)
+export(kasp_pch)
 export(kasp_qc_ggplot)
 export(plot_plate)
+export(pred_status)
 export(read_kasp_csv)
 export(scale_axis)
 import(ggplot2)
