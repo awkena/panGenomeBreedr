@@ -9,11 +9,11 @@ pred_status(
   geno_call = "Call",
   Group_id = "Group",
   blank = "NTC",
-  Group_unknown = "?"
+  Group_unknown = NULL
 )
 }
 \arguments{
-\item{plate}{A data frame of KASP genotype calls for one or multiple plates.}
+\item{plate}{A data frame of KASP genotype calls for one plate.}
 
 \item{geno_call}{A character indicating the column name used for genotype
 calls in \code{plate}.}
