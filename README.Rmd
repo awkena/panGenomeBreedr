@@ -176,7 +176,7 @@ library(panGenomeBreedr)
                   expand_axis = 0.6,
                   alpha = 0.9,
                   legend.pos.x = 0.6,
-                  legend.pos.y = 0.7)
+                  legend.pos.y = 0.75)
 ```
 Color-blind-friendly color combinations are used to visualize verified genotype predictions.
 
