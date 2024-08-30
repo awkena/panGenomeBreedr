@@ -6,12 +6,16 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-`panGenomeBreedr` (panGB) is conceptualized to be a unified platform for
-pangenome-enabled breeding that follows standardized conventions for
+`panGenomeBreedr` (`panGB`) is conceptualized to be a unified platform
+for pangenome-enabled breeding that follows standardized conventions for
 natural or casual variant analysis using pangenomes, marker design, and
-marker QC hypothesis testing. It seeks to simplify using pangenome
-resources to support plant breeding decisions during cultivar
+marker QC hypothesis testing (Figure 1). It seeks to simplify using
+pangenome resources to support plant breeding decisions during cultivar
 development.
+
+|                                                                                                                                                                                                                                                                                                                                             <img src='man/figures/workflow.png' align="center" style="width: 400px;" />                                                                                                                                                                                                                                                                                                                                             |
+|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| *Fig. 1. Imagined workflow for the `panGenomeBreedr` package. The workflow involves taking manual inputs of candidate gene(s) obtained from literature, GWAS, QTL mapping, or genomic scans. The program utilizes the input information to perform homology searches to identify orthologs/paralogs. Using pangenome resources available for your crop and SNPEFF annotations, the program will characterize mutation within the input candidate gene to identify high-impact or putative causal variants (PCV). Trait-predictive KASP markers will be designed based on the identified PCV and other marker types. The program implements the validation of designed KASP markers in a hypothesis-driven manner for both trait-predictive and background markers.* |
 
 In its current development version, `panGB` provides customizable
 functions for KASP marker QC visualization to test hypotheses on marker
@@ -98,8 +102,10 @@ following tasks:
 ### Example
 
 The following example demonstrates how to use the customizable functions
-in `panGB` to perform hypothesis testing for KASP marker QC and
-validation.
+in `panGB` to perform hypothesis testing of allelic discrimination for
+KASP marker QC and validation.
+
+#### Reading Raw KASP Files (.csv)
 
 The `read_kasp_csv()` function allows users to import raw or polished
 KASP genotyping file (.csv) into R. The function requires the path of
@@ -133,6 +139,8 @@ file1 <- read_kasp_csv(file = path1,
 kasp_dat <- file1$Data
 ```
 
+#### Assigning colors and PCH symbols for KASP cluster plotting
+
 The next step after importing data is to assign FAM and HEX fluorescence
 colors to samples based on their observed genotype calls. This step is
 accomplished using the `kasp_color()` function in `panGB` as shown in
@@ -141,32 +149,16 @@ the code snippet below:
 ``` r
 # Assign KASP fluorescence colors using the kasp_color() function
 library(panGenomeBreedr)
-
+# Create a subet variable called plates: masterplate x snpid
+  kasp_dat$plates <- paste0(kasp_dat$MasterPlate, '_',
+                                 kasp_dat$SNPID)
 dat1 <- kasp_color(x = kasp_dat,
-                    subset = 'MasterPlate',
+                    subset = 'plates',
                     sep = ':',
                     geno_call = 'Call',
                     uncallable = 'Uncallable',
                     unused = '?',
                     blank = 'NTC')
-#> Marker in Plate SE-24-0392_P01_d2 failed! 
-#>  Check genotype calls.
-#> 
-#> Marker in Plate SE-24-0392_P01_d1 failed! 
-#>  Check genotype calls.
-#> 
-#> Marker in Plate SE-24-0395_P01_d2 failed! 
-#>  Check genotype calls.
-#> 
-#> Marker in Plate SE-24-0395_P01_d1 failed! 
-#>  Check genotype calls.
-#> 
-#> Marker in Plate SE-24-0397_P01_d2 failed! 
-#>  Check genotype calls.
-#> 
-#> Marker in Plate SE-24-0397_P01_d1 failed! 
-#>  Check genotype calls.
-#> 
 ```
 
 The `kasp_color()` function requires the KASP genotype call file as a
@@ -174,61 +166,126 @@ data frame and can do bulk processing if there are multiple master
 plates. The default values for the arguments in the `kasp_color()`
 function are based on KASP annotations.
 
+The `kasp_color()` function calls the `kasp_pch()` function to
+automatically add PCH plotting symbols that can equally be used to group
+genotypic clusters on the plot.
+
+When expected genotype calls are available for positive controls in KASP
+genotyping samples, we recommend the use of the PCH symbols for grouping
+observed genotypes instead of FAM and HEX colors.
+
+The `kasp_color()` function expects that genotype calls are for diploid
+state with alleles separated by a symbol. By default KASP data are
+separated by `:` symbols.
+
 The `kasp_color()` function returns a list object with the processed
 data for each master plate as the components.
 
-After assigning the FAM and HEX colors to samples per plate, the next
-step is generate a cluster plot using the FAM and HEX scores for
-samples. The `kasp_qc_ggplot()` function in `panGB` can be used to make
-the cluster plots for each master plate and KASP marker as shown below:
+#### Cluster plot
+
+To test the hypothesis that the designed KASP marker can accurately
+discriminate between homozygotes and heterozygotes (allelic
+discrimination), a cluster plot needs to be generated.
+
+The `kasp_qc_ggplot()` and `kasp_qc_ggplot2()`functions in `panGB` can
+be used to make the cluster plots for each plate and KASP marker as
+shown below:
 
 ``` r
-# KASP QC plot for Plate 12
+# KASP QC plot for Plate 5
 library(panGenomeBreedr)
-kasp_qc_ggplot(x = dat1[12],
+kasp_qc_ggplot2(x = dat1[5],
                     pdf = FALSE,
-                    Group_id = 'Group',
+                    Group_id = NULL,
                     scale = TRUE,
                     expand_axis = 0.6,
                     alpha = 0.5,
                     legend.pos.x = 0.6,
                     legend.pos.y = 0.75)
-#> $`SE-24-0396_P01_d1`
+#> $`SE-24-1088_P01_d1_snpSB00804`
 ```
 
 <div class="figure">
 
-<img src="man/figures/README-plate_12_qc-1.png" alt="Fig. 1. Cluster plot for Plate 12 with an overlay of predictions for positive controls." width="100%" />
+<img src="man/figures/README-plate_05_qc_1-1.png" alt="Fig. 2. Cluster plot for Plate 5 using FAM and HEX colors for grouping observed genotypes." width="100%" />
 <p class="caption">
-Fig. 1. Cluster plot for Plate 12 with an overlay of predictions for
+Fig. 2. Cluster plot for Plate 5 using FAM and HEX colors for grouping
+observed genotypes.
+</p>
+
+</div>
+
+``` r
+# KASP QC plot for Plate 12
+library(panGenomeBreedr)
+ kasp_qc_ggplot2(x = dat1[5],
+                  pdf = FALSE,
+                  Group_id = 'Group',
+                  Group_unknown = '?',
+                  scale = TRUE,
+                  pred_cols = c('Blank' = 'black', 'False' = 'red',
+                                'True' = 'blue', 'Unknown' = 'yellow2'),
+                  expand_axis = 0.6,
+                  alpha = 0.9,
+                  legend.pos.x = 0.6,
+                  legend.pos.y = 0.8)
+#> $`SE-24-1088_P01_d1_snpSB00804`
+```
+
+<div class="figure">
+
+<img src="man/figures/README-plate_05_qc_2-1.png" alt="Fig. 3. Cluster plot for Plate 5 with an overlay of predictions for positive controls." width="100%" />
+<p class="caption">
+Fig. 3. Cluster plot for Plate 5 with an overlay of predictions for
 positive controls.
 </p>
 
 </div>
 
+Color-blind-friendly color combinations are used to visualize verified
+genotype predictions.
+
+In Figure 3, the three genotype classes are grouped based on plot PCH
+symbols using the FAM and HEX scores for observed genotype calls.
+
+To simplify the verified prediction overlay for the expected genotypes
+for positive controls, all possible outcomes are divided into three
+categories (TRUE, FALSE, and UNKNOWN) and color-coded to make it easier
+to visualize verified predictions.
+
+BLUE (color code for the TRUE category) means genotype prediction
+matches the observed genotype call for the sample.
+
+RED (color code for the FALSE category) means genotype prediction does
+not match the observed genotype call for the sample.
+
+YELLOW (color code for the UNKNOWN category) means three things: an
+expected genotype call could not be made before KASP genotyping, or an
+observed genotype call could not be made to verify the prediction.
+
 Users can set the `pdf = TRUE` argument to save plots as a PDF file in a
-directory outside R. The `kasp_qc_ggplot()` function can generate
-cluster plots for multiple plates simultaneously.
+directory outside R. The `kasp_qc_ggplot()` and
+`kasp_qc_ggplot2()`functions can generate cluster plots for multiple
+plates simultaneously.
 
 To visualize predictions for positive controls to validate KASP markers,
 the column name containing expected genotype calls must be provided and
 passed to the function using the `Group_id = 'Group'` argument as shown
-in the code snippet above. If this information is not available, set the
-argument `Group_id = NULL`.
-
+in the code snippets above. If this information is not available, set
+the argument `Group_id = NULL`.  
 Users can visualize the observed genotype calls in a plate design format
 using the `plot_plate()` function as depicted in the code snippet below:
 
 ``` r
-plot_plate(dat1[12], pdf = FALSE)
-#> $`SE-24-0396_P01_d1`
+plot_plate(dat1[5], pdf = FALSE)
+#> $`SE-24-1088_P01_d1_snpSB00804`
 ```
 
 <div class="figure">
 
-<img src="man/figures/README-plate_12_design-1.png" alt="Fig. 2. Observed genotype calls for samples in Plate 12 in a plate design format." width="100%" />
+<img src="man/figures/README-plate_12_design-1.png" alt="Fig. 4. Observed genotype calls for samples in Plate 12 in a plate design format." width="100%" />
 <p class="caption">
-Fig. 2. Observed genotype calls for samples in Plate 12 in a plate
+Fig. 4. Observed genotype calls for samples in Plate 12 in a plate
 design format.
 </p>
 
