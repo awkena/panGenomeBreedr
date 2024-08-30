@@ -228,7 +228,7 @@ library(panGenomeBreedr)
                   expand_axis = 0.6,
                   alpha = 0.9,
                   legend.pos.x = 0.6,
-                  legend.pos.y = 0.75)
+                  legend.pos.y = 0.7)
 #> $`SE-24-1088_P01_d1_snpSB00804`
 ```
 
