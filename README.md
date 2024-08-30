@@ -199,7 +199,7 @@ kasp_qc_ggplot2(x = dat1[5],
                     Group_id = NULL,
                     scale = TRUE,
                     expand_axis = 0.6,
-                    alpha = 0.5,
+                    alpha = 0.9,
                     legend.pos.x = 0.6,
                     legend.pos.y = 0.75)
 #> $`SE-24-1088_P01_d1_snpSB00804`
