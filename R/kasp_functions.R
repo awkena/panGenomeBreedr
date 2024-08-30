@@ -518,6 +518,105 @@ pred_status <- function(plate,
 }
 
 
+#' Generate summary of predicition for positive controls in KASP genotype data,
+#' if present
+#' @param x A list object of KASP genotype calls processed by the `kasp_color()`
+#' function.
+#' @param snp_id A character value indicating the column name for SNP IDs
+#' in \code{x}.
+#' @param blank A character value indicating `No Template Controls (NTC)`
+#' genotype calls.
+#' @param Group_id A character value for the column ID indicating the predictions
+#' of the positive controls in \code{x}.
+#' @param geno_call A character value indicating the column name for KASP genotype
+#' calls in \code{x}.
+#' @param Group_unknown A character value representing unknown expected genotype status
+#' for samples, if present. No genotype prediction can be made for such samples.
+#'
+#' @returns A list object with plates and prediction summary as components.
+#'
+#' @examples
+#' \donttest{
+#' # example code
+#' library(panGenomeBreedr)
+#' dat1 <- panGenomeBreedr::beta_carotene
+#' dat1 <- kasp_color(x = beta_carotene,
+#'                    subset = 'plates',
+#'                    sep = ':',
+#'                    geno_call = 'Call',
+#'                    uncallable = 'Uncallable',
+#'                    unused = '?',
+#'                    blank = 'NTC')
+#'
+#' dat1 <- pred_summary(x = dat1,
+#'                     snp_id = 'SNPID',
+#'                     geno_call = 'Call',
+#'                     Group_id = 'Group',
+#'                     blank = 'NTC',
+#'                     Group_unknown = '?')
+#' dat1$summ
+#' }
+#'
+#' @export
+
+pred_summary <- function(x,
+                         snp_id = 'SNPID',
+                         Group_id = NULL,
+                         blank = 'NTC',
+                         Group_unknown = '?',
+                         geno_call = 'Call') {
+
+  if (!is.null(Group_id)) {
+
+    # Get the number of plates or subset units in data input
+    nplates <- length(x)
+
+    # Get plate names
+    plate_ns <- names(x)
+
+    # Create an empty list object to hold ggplots
+    res <- vector(mode = 'list', length = nplates)
+    names(res) <- plate_ns
+
+    df <- as.data.frame(matrix(data = NA, nrow = nplates, ncol = 5))
+    colnames(df) <- c('plate', 'snp_id', 'false', 'true', 'unknown')
+
+    for (i in seq_len(nplates)) {
+      # Subset each plate
+
+      plate <- x[[i]]
+
+      df[i, 1] <- plate_ns[i]
+      df[i, 2] <- plate[, snp_id][1]
+
+      plate <- pred_status(plate = plate,
+                           geno_call = geno_call,
+                           Group_id = Group_id,
+                           blank = blank,
+                           Group_unknown = Group_unknown)
+
+      fals <- length(plate$status[plate$status == 'False'])
+      tru <- length(plate$status[plate$status == 'True'])
+      unkn <- length(plate$status[plate$status == 'Unknown'])
+
+      df[i, 3:5] <- c('False' = fals, 'True' = tru, 'Unknown' = unkn)
+
+      res[[i]] <- plate
+
+    }
+
+  } else {
+
+    stop("Provide value for the 'Group_id' argument.")
+
+  }
+
+
+  dat <- list(plates = res, summ = df)
+
+  return(dat)
+
+}
 
 #' Make KASP marker genotyping QC plot.
 #' @param x A list object of KASP genotype calls processed by the `kasp_color()`
