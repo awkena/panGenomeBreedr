@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 
 `panGenomeBreedr` (`panGB`) is conceptualized to be a unified platform for pangenome-enabled breeding that follows standardized conventions for natural or casual variant analysis using pangenomes, marker design, and marker QC hypothesis testing (Figure 1). It seeks to simplify the use of pangenome resources to support plant breeding decisions during cultivar development.  
 
-|<img src='man/figures/workflow.png' align="center" style="width: 400px; height: 200px" />|
+|<img src='man/figures/workflow.png' align="center" style="width: 600px;" />|
 |:--:| 
 | *Fig. 1. Imagined workflow for the `panGenomeBreedr` package. The workflow involves taking manual inputs of candidate gene(s) obtained from literature, GWAS, QTL mapping, or genomic scans. The program utilizes the input information to perform homology searches to identify orthologs/paralogs. Using pangenome resources available for your crop and SNPEFF annotations, the program will characterize mutation within the input candidate gene to identify high-impact or putative causal variants (PCV). Trait-predictive KASP markers will be designed based on the identified PCV and other marker types. The program implements the validation of designed KASP markers in a hypothesis-driven manner for both trait-predictive and background markers.* |. 
 
