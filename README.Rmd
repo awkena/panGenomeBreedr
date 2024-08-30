@@ -152,7 +152,7 @@ To test the hypothesis that the designed KASP marker can accurately discriminate
 The `kasp_qc_ggplot()` and `kasp_qc_ggplot2()`functions in `panGB` can be used to make the cluster plots for each plate and KASP marker as shown below:   
 
 ```{r plate_05_qc_1, fig.cap = "Fig. 2. Cluster plot for Plate 5 using FAM and HEX colors for grouping observed genotypes."}
-# KASP QC plot for Plate 5
+# KASP QC plot for Plate 05
 library(panGenomeBreedr)
 kasp_qc_ggplot2(x = dat1[5],
                     pdf = FALSE,
@@ -164,7 +164,7 @@ kasp_qc_ggplot2(x = dat1[5],
                     legend.pos.y = 0.75)
 ```
 ```{r plate_05_qc_2, fig.cap = "Fig. 3. Cluster plot for Plate 5 with an overlay of predictions for positive controls."}
-# KASP QC plot for Plate 12
+# KASP QC plot for Plate 05
 library(panGenomeBreedr)
  kasp_qc_ggplot2(x = dat1[5],
                   pdf = FALSE,

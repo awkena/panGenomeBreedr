@@ -192,7 +192,7 @@ be used to make the cluster plots for each plate and KASP marker as
 shown below:
 
 ``` r
-# KASP QC plot for Plate 5
+# KASP QC plot for Plate 05
 library(panGenomeBreedr)
 kasp_qc_ggplot2(x = dat1[5],
                     pdf = FALSE,
@@ -216,7 +216,7 @@ observed genotypes.
 </div>
 
 ``` r
-# KASP QC plot for Plate 12
+# KASP QC plot for Plate 05
 library(panGenomeBreedr)
  kasp_qc_ggplot2(x = dat1[5],
                   pdf = FALSE,
