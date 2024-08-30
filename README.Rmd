@@ -18,15 +18,15 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-`panGenomeBreedr` (`panGB`) is conceptualized to be a unified platform for pangenome-enabled breeding that follows standardized conventions for natural or casual variant analysis using pangenomes, marker design, and marker QC hypothesis testing (Figure 1). It seeks to simplify using pangenome resources to support plant breeding decisions during cultivar development.  
+`panGenomeBreedr` (`panGB`) is conceptualized to be a unified platform for pangenome-enabled breeding that follows standardized conventions for natural or casual variant analysis using pangenomes, marker design, and marker QC hypothesis testing (Figure 1). It seeks to simplify the use of pangenome resources to support plant breeding decisions during cultivar development.  
 
-|<img src='man/figures/workflow.png' align="center" style="width: 400px;" />|
+|<img src='man/figures/workflow.png' align="center" style="width: 400px; height: 200px" />|
 |:--:| 
 | *Fig. 1. Imagined workflow for the `panGenomeBreedr` package. The workflow involves taking manual inputs of candidate gene(s) obtained from literature, GWAS, QTL mapping, or genomic scans. The program utilizes the input information to perform homology searches to identify orthologs/paralogs. Using pangenome resources available for your crop and SNPEFF annotations, the program will characterize mutation within the input candidate gene to identify high-impact or putative causal variants (PCV). Trait-predictive KASP markers will be designed based on the identified PCV and other marker types. The program implements the validation of designed KASP markers in a hypothesis-driven manner for both trait-predictive and background markers.* |. 
 
-In its current development version, `panGB` provides customizable functions for KASP marker QC visualization to test hypotheses on marker validation and effectiveness. `panGB` will host a user-friendly shiny application to enable non-R users to access its functionalities outside R.
+In its current development version, `panGB` provides customizable functions for KASP marker QC visualization to test hypotheses on marker validation and effectiveness. `panGB` will host a user-friendly shiny application to enable non-R users to access its functionalities outside R. Capabilities for KASP marker design will be added soon.
 
-LGC Genomics' current visualization tool is platform-specific— the SNP Viewer program runs only on Windows, thus preventing Mac and other platform customers from utilizing it. The SNP Viewer program does not incorporate standardized conventions for visualizing the prediction of positive controls. This makes it difficult for users to validate markers conclusively using the existing tool. `panGB` provides platform-independent functionalities to users to perform hypothesis testing on KASP marker QC and validation.
+LGC Genomics' current visualization tool is platform-specific— the SNP Viewer program runs only on Windows, thus preventing Mac and other non-Windows platform customers from utilizing it. The SNP Viewer program does not incorporate standardized conventions for visualizing the prediction of positive controls to fully validate a marker. This makes it difficult for users to validate markers conclusively using the existing tool. `panGB` provides platform-independent functionalities to users to perform hypothesis testing on KASP marker QC and validation.
 
 Submit bug reports and feature suggestions, or track changes on the
 [issues page](https://github.com/awkena/panGenomeBreedr/issues).
