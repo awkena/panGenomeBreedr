@@ -195,7 +195,7 @@ Users can set the `pdf = TRUE` argument to save plots as a PDF file in a directo
 To visualize predictions for positive controls to validate KASP markers, the column name containing expected genotype calls must be provided and passed to the function using the `Group_id = 'Group'` argument as shown in the code snippets above. If this information is not available, set the argument `Group_id = NULL`.  
 Users can visualize the observed genotype calls in a plate design format using the `plot_plate()` function as depicted in the code snippet below:  
 
-```{r plate_12_design, fig.cap = "Fig. 4. Observed genotype calls for samples in Plate 12 in a plate design format."}
+```{r plate_05_design, fig.cap = "Fig. 4. Observed genotype calls for samples in Plate 12 in a plate design format."}
 plot_plate(dat1[5], pdf = FALSE)
 
 ```

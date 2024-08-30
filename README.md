@@ -283,7 +283,7 @@ plot_plate(dat1[5], pdf = FALSE)
 
 <div class="figure">
 
-<img src="man/figures/README-plate_12_design-1.png" alt="Fig. 4. Observed genotype calls for samples in Plate 12 in a plate design format." width="100%" />
+<img src="man/figures/README-plate_05_design-1.png" alt="Fig. 4. Observed genotype calls for samples in Plate 12 in a plate design format." width="100%" />
 <p class="caption">
 Fig. 4. Observed genotype calls for samples in Plate 12 in a plate
 design format.
