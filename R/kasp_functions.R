@@ -167,7 +167,7 @@ get_alleles <- function(x,
 
 
 #' Generate pch characters for cluster plots of KASP genotype calls.
-#' @param x A character vector of KASP genotype calls in one resaction plate.
+#' @param x A character vector of KASP genotype calls in one reaction plate.
 #' @param sep A character used as separator for genotype calls, default is a
 #' colon.
 #' @param uncallable A character indicating `Uncallable` genotype calls, if present.
@@ -345,6 +345,11 @@ kasp_color <- function(x,
       FAM <- homs[which.max(homs$X),][, call_col] # FAM homozygote
       HEX <- homo12[which(homo12 != FAM)] # HEX homozygote
 
+      # Recode pch symbols to be consistent with FAM and HEX genotypes
+      pch_geno$pch[Color == HEX] <- 21
+      pch_geno$pch[Color == FAM] <- 23
+      pch_geno$pch[Color == het1 | Color == het2] <- 24
+
       # Assign colors based on LGC rules
       Color[Color == HEX] <- "red" # HEX homozygote
       Color[Color == FAM] <- "blue" # FAM homozygote
@@ -356,6 +361,7 @@ kasp_color <- function(x,
       Color[Color == unused] <- "salmon4"
       Color[Color == blank] <- "black"
       Color[Color %in% others] <- "mintcream"
+
 
       master_plate <- cbind(master_plate, Color, pch_geno)
 
