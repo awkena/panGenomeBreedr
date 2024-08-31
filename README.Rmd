@@ -194,6 +194,25 @@ Users can set the `pdf = TRUE` argument to save plots as a PDF file in a directo
 
 To visualize predictions for positive controls to validate KASP markers, the column name containing expected genotype calls must be provided and passed to the function using the `Group_id = 'Group'` argument as shown in the code snippets above. If this information is not available, set the argument `Group_id = NULL`. 
 
+#### Summary of Prediction Verification in Plates
+The `pred_summary()` function produces a summary of predicted genotypes for positive controls in each reaction plate after verification as shown in the code snippet below:
+
+
+```{r}
+# Get prediction summary for all plates
+library(panGenomeBreedr)
+library(knitr)
+my_sum <- pred_summary(x = dat1,
+                         snp_id = 'SNPID',
+                         Group_id = 'Group',
+                         Group_unknown = '?',
+                         geno_call = 'Call')
+
+knitr::kable(my_sum$summ, caption = 'Table 1: Summary of verified prediction status for samples in plates', format = 'html')
+ 
+```
+  
+
 
 #### Plot Plate Design
 Users can visualize the observed genotype calls in a plate design format using the `plot_plate()` function as depicted in the code snippet below:  

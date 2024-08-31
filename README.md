@@ -274,6 +274,188 @@ passed to the function using the `Group_id = 'Group'` argument as shown
 in the code snippets above. If this information is not available, set
 the argument `Group_id = NULL`.
 
+#### Summary of Prediction Verification in Plates
+
+The `pred_summary()` function produces a summary of predicted genotypes
+for positive controls in each reaction plate after verification as shown
+in the code snippet below:
+
+``` r
+# Get prediction summary for all plates
+library(panGenomeBreedr)
+library(knitr)
+my_sum <- pred_summary(x = dat1,
+                         snp_id = 'SNPID',
+                         Group_id = 'Group',
+                         Group_unknown = '?',
+                         geno_call = 'Call')
+
+knitr::kable(my_sum$summ, caption = 'Table 1: Summary of verified prediction status for samples in plates', format = 'html')
+```
+
+<table>
+<caption>
+Table 1: Summary of verified prediction status for samples in plates
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+plate
+</th>
+<th style="text-align:left;">
+snp_id
+</th>
+<th style="text-align:right;">
+false
+</th>
+<th style="text-align:right;">
+true
+</th>
+<th style="text-align:right;">
+unverified
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+SE-24-1088_P01_d1_snpSB00800
+</td>
+<td style="text-align:left;">
+snpSB00800
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+84
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SE-24-1088_P01_d2_snpSB00800
+</td>
+<td style="text-align:left;">
+snpSB00800
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+86
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SE-24-1088_P01_d1_snpSB00803
+</td>
+<td style="text-align:left;">
+snpSB00803
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+32
+</td>
+<td style="text-align:right;">
+62
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SE-24-1088_P01_d2_snpSB00803
+</td>
+<td style="text-align:left;">
+snpSB00803
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+32
+</td>
+<td style="text-align:right;">
+62
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SE-24-1088_P01_d1_snpSB00804
+</td>
+<td style="text-align:left;">
+snpSB00804
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+31
+</td>
+<td style="text-align:right;">
+62
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SE-24-1088_P01_d2_snpSB00804
+</td>
+<td style="text-align:left;">
+snpSB00804
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+31
+</td>
+<td style="text-align:right;">
+62
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SE-24-1088_P01_d1_snpSB00805
+</td>
+<td style="text-align:left;">
+snpSB00805
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+18
+</td>
+<td style="text-align:right;">
+62
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SE-24-1088_P01_d2_snpSB00805
+</td>
+<td style="text-align:left;">
+snpSB00805
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+18
+</td>
+<td style="text-align:right;">
+62
+</td>
+</tr>
+</tbody>
+</table>
+
 #### Plot Plate Design
 
 Users can visualize the observed genotype calls in a plate design format
