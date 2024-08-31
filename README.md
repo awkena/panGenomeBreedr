@@ -63,7 +63,7 @@ required:
 
 ## Recommended packages
 
-- [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.ht%20ml):
+- [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html):
   Needed for package development and building from GitHub on Windows
   PCs.
 
@@ -105,12 +105,15 @@ The following example demonstrates how to use the customizable functions
 in `panGB` to perform hypothesis testing of allelic discrimination for
 KASP marker QC and validation.
 
-#### Reading Raw KASP Files (.csv)
+#### Reading Raw KASP Full Results Files (.csv)
 
 The `read_kasp_csv()` function allows users to import raw or polished
-KASP genotyping file (.csv) into R. The function requires the path of
-the raw file and the row tags for the different components of data in
-the raw file as arguments.
+KASP genotyping full results file (.csv) into R. The function requires
+the path of the raw file and the row tags for the different components
+of data in the raw file as arguments.
+
+For polished files, the user must extract the `Data` component of the
+full results file and save it as a csv file before import.
 
 By default, a typical unedited raw KASP data file uses the following row
 tags for genotyping data: `Statistics`, `DNA`, `SNPs`, `Scaling`,
