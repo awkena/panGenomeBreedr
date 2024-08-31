@@ -27,7 +27,7 @@ of the positive controls in \code{x}.}
 \item{blank}{A character value indicating `No Template Controls (NTC)`
 genotype calls.}
 
-\item{Group_unknown}{A character value representing unknown expected genotype status
+\item{Group_unknown}{A character value representing unverified expected genotype status
 for samples, if present. No genotype prediction can be made for such samples.}
 
 \item{geno_call}{A character value indicating the column name for KASP genotype

@@ -224,7 +224,7 @@ library(panGenomeBreedr)
                   Group_unknown = '?',
                   scale = TRUE,
                   pred_cols = c('Blank' = 'black', 'False' = 'red',
-                                'True' = 'blue', 'Unknown' = 'yellow2'),
+                                'True' = 'blue', 'Unverified' = 'yellow2'),
                   expand_axis = 0.6,
                   alpha = 0.9,
                   legend.pos.x = 0.6,
@@ -259,7 +259,7 @@ matches the observed genotype call for the sample.
 RED (color code for the FALSE category) means genotype prediction does
 not match the observed genotype call for the sample.
 
-YELLOW (color code for the UNKNOWN category) means three things: an
+YELLOW (color code for the UNVERIFIED category) means three things: an
 expected genotype call could not be made before KASP genotyping, or an
 observed genotype call could not be made to verify the prediction.
 
@@ -272,7 +272,10 @@ To visualize predictions for positive controls to validate KASP markers,
 the column name containing expected genotype calls must be provided and
 passed to the function using the `Group_id = 'Group'` argument as shown
 in the code snippets above. If this information is not available, set
-the argument `Group_id = NULL`.  
+the argument `Group_id = NULL`.
+
+#### Plot Plate Design
+
 Users can visualize the observed genotype calls in a plate design format
 using the `plot_plate()` function as depicted in the code snippet below:
 

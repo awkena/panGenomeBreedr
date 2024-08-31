@@ -24,7 +24,7 @@ of the positive controls in \code{plate}.}
 \item{blank}{A character value indicating `No Template Controls (NTC)`
 genotype calls.}
 
-\item{Group_unknown}{A character value representing unknown expected genotype status
+\item{Group_unknown}{A character value representing unknown genotype status
 for samples, if present. No genotype prediction can be made for such samples.}
 }
 \value{
@@ -37,7 +37,7 @@ Generate the prediction status of positive controls in a KASP assay, if present.
 The function recodes the prediction status of each sample as follows:
 TRUE = prediction matches observed genotype call
 FALSE = prediction does not match observed genotype call
-Unknown = Either observed genotype call could not be made or expected genotype
+Unverified = Either observed genotype call could not be made or expected genotype
 could not be made prior to KASP genotyping or both.
 Blank = NTC wells
 }

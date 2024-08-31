@@ -448,7 +448,7 @@ scale_axis <- function(x) {
 #' genotype calls.
 #' @param Group_id A character value for the column ID indicating the predictions
 #' of the positive controls in \code{plate}.
-#' @param Group_unknown A character value representing unknown expected genotype status
+#' @param Group_unknown A character value representing unknown genotype status
 #' for samples, if present. No genotype prediction can be made for such samples.
 #' @returns A data frame with the prediction status of each sample added as a column.
 #'
@@ -456,7 +456,7 @@ scale_axis <- function(x) {
 #' The function recodes the prediction status of each sample as follows:
 #' TRUE = prediction matches observed genotype call
 #' FALSE = prediction does not match observed genotype call
-#' Unknown = Either observed genotype call could not be made or expected genotype
+#' Unverified = Either observed genotype call could not be made or expected genotype
 #' could not be made prior to KASP genotyping or both.
 #' Blank = NTC wells
 #'
@@ -493,10 +493,10 @@ pred_status <- function(plate,
   # Add status for samples with true genotype calls
   df1$status <- ifelse(df1[, geno_call] == df1[, Group_id], 'True',
                        ifelse(df1[, geno_call] != df1[, Group_id] &
-                                df1[, Group_id] == Group_unknown, 'Unknown', 'False'))
+                                df1[, Group_id] == Group_unknown, 'Unverified', 'False'))
 
   # Add status for samples with non-genotype calls and NTC
-  df2$status <- ifelse(df2[, geno_call] == blank, 'Blank', 'Unknown')
+  df2$status <- ifelse(df2[, geno_call] == blank, 'Blank', 'Unverified')
 
   } else {
 
@@ -504,7 +504,7 @@ pred_status <- function(plate,
     df1$status <- ifelse(df1[, geno_call] == df1[, Group_id], 'True', 'False')
 
     # Add status for samples with non-genotype calls and NTC
-    df2$status <- ifelse(df2[, geno_call] == blank, 'Blank', 'Unknown')
+    df2$status <- ifelse(df2[, geno_call] == blank, 'Blank', 'Unverified')
 
 }
   # rbind the two data frames df1 and df2
@@ -530,7 +530,7 @@ pred_status <- function(plate,
 #' of the positive controls in \code{x}.
 #' @param geno_call A character value indicating the column name for KASP genotype
 #' calls in \code{x}.
-#' @param Group_unknown A character value representing unknown expected genotype status
+#' @param Group_unknown A character value representing unverified expected genotype status
 #' for samples, if present. No genotype prediction can be made for such samples.
 #'
 #' @returns A list object with plates and prediction summary as components.
@@ -579,7 +579,7 @@ pred_summary <- function(x,
     names(res) <- plate_ns
 
     df <- as.data.frame(matrix(data = NA, nrow = nplates, ncol = 5))
-    colnames(df) <- c('plate', 'snp_id', 'false', 'true', 'unknown')
+    colnames(df) <- c('plate', 'snp_id', 'false', 'true', 'unverified')
 
     for (i in seq_len(nplates)) {
       # Subset each plate
@@ -597,9 +597,9 @@ pred_summary <- function(x,
 
       fals <- length(plate$status[plate$status == 'False'])
       tru <- length(plate$status[plate$status == 'True'])
-      unkn <- length(plate$status[plate$status == 'Unknown'])
+      unkn <- length(plate$status[plate$status == 'Unverified'])
 
-      df[i, 3:5] <- c('False' = fals, 'True' = tru, 'Unknown' = unkn)
+      df[i, 3:5] <- c('False' = fals, 'True' = tru, 'Unverified' = unkn)
 
       res[[i]] <- plate
 
@@ -931,8 +931,8 @@ kasp_qc_ggplot <- function(x,
 #' `'Over', 'Short'`.
 #' @param Group_id A character value for the column ID indicating the predictions
 #' of the positive controls in \code{x}.
-#' @param Group_unknown A character value representing unknown expected genotype status
-#' for samples, if present. No genotype prediction could be made for such samples.
+#' @param Group_unknown A character value representing unknown genotype status for
+#' samples, if present. No genotype prediction could be made for such samples.
 #' @param pred_cols A named character vector of length = 4 of colors to be used for
 #' the prediction legend for positive controls, if present.
 #' @param scale A logical value indicating whether to scale FAM and HEX axis
@@ -1002,7 +1002,7 @@ kasp_qc_ggplot2 <- function(x,
                             Group_id = NULL,
                             Group_unknown = '?',
                             pred_cols = c('Blank' = 'black', 'False' = 'red',
-                                          'True' = 'blue', 'Unknown' = 'yellow2'),
+                                          'True' = 'blue', 'Unverified' = 'yellow2'),
                             scale = FALSE,
                             pdf = TRUE,
                             width = 6,

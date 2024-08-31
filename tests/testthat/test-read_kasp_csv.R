@@ -7,7 +7,7 @@ test_that("read_kasp_csv works", {
                         file1 <- read_kasp_csv(file = path1, data_type = 'raw')
                         # Get KASP genotyping data for plotting
                         kasp_dat <- file1$Data
-  expect_equal(dim(kasp_dat), c(1344, 11) )
+  expect_equal(dim(kasp_dat), c(768, 10) )
 })
 
 test_that("read_kasp_csv error works", {

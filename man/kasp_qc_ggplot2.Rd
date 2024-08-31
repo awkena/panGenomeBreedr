@@ -18,7 +18,7 @@ kasp_qc_ggplot2(
   others = c("Missing", "Bad", "Dupe", "Over", "Short"),
   Group_id = NULL,
   Group_unknown = "?",
-  pred_cols = c(Blank = "black", False = "red", True = "blue", Unknown = "yellow2"),
+  pred_cols = c(Blank = "black", False = "red", True = "blue", Unverified = "yellow2"),
   scale = FALSE,
   pdf = TRUE,
   width = 6,
@@ -70,8 +70,8 @@ genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
 \item{Group_id}{A character value for the column ID indicating the predictions
 of the positive controls in \code{x}.}
 
-\item{Group_unknown}{A character value representing unknown expected genotype status
-for samples, if present. No genotype prediction could be made for such samples.}
+\item{Group_unknown}{A character value representing unknown genotype status for
+samples, if present. No genotype prediction could be made for such samples.}
 
 \item{pred_cols}{A named character vector of length = 4 of colors to be used for
 the prediction legend for positive controls, if present.}
