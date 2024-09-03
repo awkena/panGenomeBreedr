@@ -22,9 +22,14 @@ BugReports: https://github.com/awkena/panGenomeBreedr/issues
 RoxygenNote: 7.3.2
 Language: en-US
 Imports: 
+    Biostrings,
+    GenomicRanges,
     ggplot2,
     gridExtra,
-    utils
+    IRanges,
+    msa,
+    utils,
+    VariantAnnotation
 Depends: 
     R (>= 4.1)
 Suggests: 
