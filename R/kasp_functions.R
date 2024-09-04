@@ -1429,7 +1429,12 @@ plot_plate <- function(x,
 #'                           plot_file = path,
 #'                           region_name = "ma1",
 #'                           maf = 0.05)
-#'  on.exit(unlink(path))
+#'
+#' # View marker alignment output from temp folder
+#' path3 <- file.path(path, list.files(path = path, "alignment_"))
+#' # system(paste0('open "', path3, '"'))
+#'
+#' on.exit(unlink(path))
 #' }
 
 #'
