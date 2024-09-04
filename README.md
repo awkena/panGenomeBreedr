@@ -498,8 +498,6 @@ If the app does not run as expected, check the following:
 
 - [Cruet Burgos](https://www.morrislab.org/people/clara-cruet-burgos)
 
-- [Samuel Abebrese](https://www.morrislab.org/people)
-
 - [Geoffrey Preston
   Morris](https://www.morrislab.org/people/geoff-morris)
 
