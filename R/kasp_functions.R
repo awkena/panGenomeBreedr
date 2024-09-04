@@ -895,8 +895,10 @@ kasp_qc_ggplot <- function(x,
 
     ggplot2::ggsave(filename = paste0(filename, ".pdf"),
                     plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
-                    device = "pdf", path = file.path(getwd()),
-                    units = "in", width = width, height = height)
+                    device = "pdf",
+                    units = "in",
+                    width = width,
+                    height = height)
 
   } else {
 
@@ -1201,8 +1203,10 @@ kasp_qc_ggplot2 <- function(x,
 
     ggplot2::ggsave(filename = paste0(filename, ".pdf"),
                     plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
-                    device = "pdf", path = file.path(getwd()),
-                    units = "in", width = width, height = height)
+                    device = "pdf",
+                    units = "in",
+                    width = width,
+                    height = height)
 
   } else {
 
@@ -1378,7 +1382,7 @@ plot_plate <- function(x,
 
     ggplot2::ggsave(filename = paste0(filename, ".pdf"),
            plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
-           device = "pdf", path = file.path(getwd()),
+           device = "pdf",
            units = "in", width = width, height = height)
 
   } else {
@@ -1872,8 +1876,11 @@ kasp_marker_design <- function(vcf_file, #path and file name of tbi index
     # Save ggplot object as a pdf device
     ggplot2::ggsave(filename = paste0('alignment_', marker_ID, '.pdf'),
                     plot = pp,
-                    device = "pdf", path = file.path(plot_file),
-                    units = "in", width = 24, height = 9)
+                    device = "pdf",
+                    path = file.path(plot_file),
+                    units = "in",
+                    width = 24,
+                    height = 9)
   }
 
   return(marker_data)
