@@ -150,6 +150,7 @@ ma1 <- kasp_marker_design(vcf_file = path2,
                            chr = "Chr02",
                            plot_draw = TRUE,
                            plot_file = path,
+                           vcf_geno_code = c('1|1', '0|1', '0|0', '.|.'),
                            region_name = "ma1",
                            maf = 0.05)
 
@@ -160,6 +161,16 @@ system(paste0('open "', path3, '"')) # Open PDF file from R
 on.exit(unlink(path)) # Clear the temp directory on exit
 
 ```
+
+In the `kasp_marker_design()` function call above, the user must specify the path to the genome sequence and vcf files using the `genome_file` and `vcf_file` arguments, respectively. The user must specify the ID for the variant in the vcf file using the `marker_ID` argument. 
+
+To save memory and enhance the computational speed, the `chr` argument can be specified to access only the chromosome sequence of the chosen variant from the genome sequence.
+
+The `vcf_geno_code` argument is used to specify the genotype coding in the vcf file -- either phased (1|1) or unphased (1/1) coding.
+
+The `plot_draw = TRUE` argument indicates the return of the alignment of the 100 bp upstream and downstream sequences to the imported reference genome as PDF file.
+
+The `plot_file` argument specifies the path to the directory where the alignment should be saved -- default is a temporary directory.  
 
 The required sequence for submission to Intertek for the designed KASp marker is shown in Table 2.
 
