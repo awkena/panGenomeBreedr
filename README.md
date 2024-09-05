@@ -62,6 +62,16 @@ required:
 - [utils](https://www.rdocumentation.org/packages/utils/versions/3.6.2):
   The R Utils Package.
 
+- [VariantAnnotation](https://bioconductor.org/packages/release/bioc/html/VariantAnnotation.html)
+
+- [Biostrings](https://bioconductor.org/packages/release/bioc/html/Biostrings.html)
+
+- [GenomicRanges](https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html)
+
+- [IRanges](https://bioconductor.org/packages/release/bioc/html/IRanges.html)
+
+- [msa](https://bioconductor.org/packages/release/bioc/html/msa.html)
+
 ## Recommended packages
 
 - [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html):
