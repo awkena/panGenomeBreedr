@@ -1763,16 +1763,16 @@ kasp_marker_design <- function(vcf_file, #path and file name of tbi index
   } else if (variant$type == 'Deletion') {
 
     #variant without anchoring base
-    var <- substr(variant$reference, start = 2, stop = nchar(variant$reference))
+    varc <- substr(variant$reference, start = 2, stop = nchar(variant$reference))
 
     #reference allele
-    reference_allele <- var
+    reference_allele <- varc
 
     #alternate allele
     alternate_allele <- '-'
 
     # intertek formatted sequence
-    intertek_sequence <- paste(upstream_sequence,"[",var,"/-","]",
+    intertek_sequence <- paste(upstream_sequence,"[", varc, "/-", "]",
                                downstream_sequence, sep = "")
 
   } else if (variant$type == 'Insertion') {
@@ -1781,13 +1781,13 @@ kasp_marker_design <- function(vcf_file, #path and file name of tbi index
     varc <- substr(variant$alternate, start = 2, stop = nchar(variant$alternate))
 
     #reference allele
-    reference_allelec <- '-'
+    reference_allele <- '-'
 
     #alternate allele
-    alternate_allele <- var
+    alternate_allele <- varc
 
     # intertek formatted sequence
-    intertek_sequence <- paste(upstream_sequence,"[-/", var,"]",
+    intertek_sequence <- paste(upstream_sequence, "[-/", varc, "]",
                                downstream_sequence, sep = "")
 
   }
