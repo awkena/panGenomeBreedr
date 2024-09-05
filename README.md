@@ -126,7 +126,7 @@ Table 1:
 
 <table>
 <caption>
-Table 1: Example vcf file containing identified variants.
+Table 1: An example vcf file for marker design.
 </caption>
 <thead>
 <tr>
@@ -388,7 +388,7 @@ marker is shown in Table 2.
 
 <table>
 <caption>
-Table 2: Intertek required sequence for a designed KASP marker.
+Table 2: Intertek required sequence for a KASP marker.
 </caption>
 <thead>
 <tr>

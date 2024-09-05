@@ -121,10 +121,16 @@ geno <- data.frame(CHROM = as.data.frame(vcf_gene@rowRanges)[,1],
                    REF = as.data.frame(ref(vcf_gene))[,1],
                    ALT = as.data.frame(alt(vcf_gene))[,3],
                    geno)
+
 rownames(geno) <- NULL
 
 library(knitr)
-knitr::kable(geno[1:5, 1:10], caption = 'Table 1: Example vcf file containing identified variants.', format = 'html', padding = 0, booktabs = TRUE)
+knitr::kable(geno[1:5, 1:10], 
+             caption = 'Table 1: An example vcf file for marker design.', 
+             format = 'html', 
+             padding = 0, 
+             booktabs = TRUE, 
+             escape = FALSE)
 ```
 
 
@@ -180,7 +186,12 @@ The required sequence for submission to Intertek for the designed KASp marker is
 
 ```{r, echo = FALSE}
 library(knitr)
-knitr::kable(ma1, caption = 'Table 2: Intertek required sequence for a designed KASP marker.', format = 'html', padding = 0, booktabs = TRUE)
+knitr::kable(ma1, 
+             caption = 'Table 2: Intertek required sequence for a KASP marker.', 
+             format = 'html', 
+             padding = 0, 
+             booktabs = TRUE, 
+             escape = FALSE)
  
 ```
 
