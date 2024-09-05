@@ -84,7 +84,7 @@ pak::pkg_install("awkena/panGenomeBreedr")
 
 ### Installing Bioconductor dependency packages
 
-`panGB` depends on a list of Bioconductor packages that may not
+`panGB` depends on a list of Bioconductor packages that may not be
 installed automatically alongside `panGB`. To manually install these
 packages, use the code snippet below:
 

@@ -78,7 +78,7 @@ pak::pkg_install("awkena/panGenomeBreedr")
 ```
 
 ### Installing Bioconductor dependency packages
-`panGB` depends on a list of Bioconductor packages that may not installed automatically alongside `panGB`. To manually install these packages, use the code snippet below:
+`panGB` depends on a list of Bioconductor packages that may not be installed automatically alongside `panGB`. To manually install these packages, use the code snippet below:
 
 ```r
 # Install and load required Bioconductor packages
@@ -124,10 +124,9 @@ geno <- data.frame(CHROM = as.data.frame(vcf_gene@rowRanges)[,1],
 rownames(geno) <- NULL
 
 library(knitr)
-knitr::kable(geno[1:5, 1:10], caption = 'Table 1: Example vcf file containing identified variants.', format = 'html')
- 
-
+knitr::kable(geno[1:5, 1:10], caption = 'Table 1: Example vcf file containing identified variants.', format = 'html', padding = 0, booktabs = TRUE)
 ```
+
 
 ```{r}
 
@@ -166,7 +165,7 @@ The required sequence for submission to Intertek for the designed KASp marker is
 
 ```{r, echo = FALSE}
 library(knitr)
-knitr::kable(ma1, caption = 'Table 2: Intertek required sequence for a designed KASP marker.', format = 'html')
+knitr::kable(ma1, caption = 'Table 2: Intertek required sequence for a designed KASP marker.', format = 'html', padding = 0, booktabs = TRUE)
  
 ```
 
@@ -308,7 +307,7 @@ my_sum <- pred_summary(x = dat1,
 
 ```{r, echo = FALSE}
 library(knitr)
-knitr::kable(my_sum$summ, caption = 'Table 3: Summary of verified prediction status for samples in plates', format = 'html')
+knitr::kable(my_sum$summ, caption = 'Table 3: Summary of verified prediction status for samples in plates', format = 'html', booktabs = TRUE)
  
 ```
   
