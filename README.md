@@ -18,12 +18,13 @@ development.
 | *Fig. 1. Imagined workflow for the `panGenomeBreedr` package. The workflow involves taking manual inputs of candidate gene(s) obtained from literature, GWAS, QTL mapping, or genomic scans. The program utilizes the input information to perform homology searches to identify orthologs/paralogs. Using pangenome resources available for your crop and SNPEFF annotations, the program will characterize mutations within the input candidate gene to identify high-impact or putative causal variants (PCV). Trait-predictive KASP markers will be designed based on the identified PCV and other marker types. The program implements the validation of designed KASP markers in a hypothesis-driven manner for both trait-predictive and background markers.* |
 
 In its current development version, `panGB` provides customizable
-functions for KASP marker QC visualization to test hypotheses on marker
-validation and effectiveness. `panGB` will host a user-friendly shiny
-application to enable non-R users to access its functionalities outside
-R. Capabilities for KASP marker design will be added soon.
+functions for **KASP marker design and validation** (Steps 2 and 3 in
+Figure 1).
 
-LGC Genomics’ current visualization tool is platform-specific— the SNP
+`panGB` will host a user-friendly shiny application to enable non-R
+users to access its functionalities outside R.
+
+LGC Genomics’ current visualization tool is platform-specific — the SNP
 Viewer program runs only on Windows, thus preventing Mac and other
 non-Windows platform customers from utilizing it. The SNP Viewer program
 does not incorporate standardized conventions for visualizing the
@@ -41,7 +42,7 @@ Submit bug reports and feature suggestions, or track changes on the
 - [Recommended packages](#recommended-packages)
 - [Installation](#installation)
 - [Usage](#usage)
-  - [Example](#example)
+  - [Examples](#examples)
 - [Troubleshooting](#troubleshooting)
 - [Authors and contributors](#authors-and-contributors)
 - [License](#license)
@@ -64,27 +65,373 @@ required:
 ## Recommended packages
 
 - [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html):
-  Needed for package development and building from GitHub on Windows
+  Needed for package development and installation from GitHub on Windows
   PCs.
 
 - [rmarkdown](https://CRAN.R-project.org/package=rmarkdown): When
-  installed, display of the project’s README.md help will be rendered
-  with R Markdown.
+  installed, display of the project’s README.md will be rendered with R
+  Markdown.
 
 ## Installation
 
-You can install the development version of panGenomeBreedr from
+You can install the development version of `panGenomeBreedr` from
 [GitHub](https://github.com/awkena/panGenomeBreedr) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("awkena/panGenomeBreedr")
+# install.packages("pak")
+pak::pkg_install("awkena/panGenomeBreedr")
 ```
 
-## Usage
+### Installing Bioconductor dependency packages
 
-`panGB` offers customizable functions for KASP marker hypothesis testing
-visualizations. These functions allow users to easily perform the
+`panGB` depends on a list of Bioconductor packages that may not
+installed automatically alongside `panGB`. To manually install these
+packages, use the code snippet below:
+
+``` r
+# Install and load required Bioconductor packages
+if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+
+  BiocManager::install(c("VariantAnnotation",
+                         "Biostrings",
+                         "GenomicRanges",
+                         "IRanges",
+                         "msa"))
+```
+
+# Usage
+
+Currently, `panGB` has functionality for KASP marker design based on
+causal variants and QC visualizations for marker validation.
+
+## Examples
+
+Here, we provide examples on how to use `panGB` to design a KASP marker
+based on a causal variant, as well as marker validation for any KASP
+marker.
+
+### KASP Marker Design
+
+The `kasp_marker_design()` function provides a simplified approach to
+designing a KASP marker based on identified causal variants.
+
+The user needs two important input data to run the
+`kasp_marker_design()`: the whole genome or specific chromosome sequence
+of the focused crop and a vcf file containing variant calls from
+putative causal variant analytical pipeline.
+
+The vcf file must contain the Chromosome ID, Position, locus ID, REF and
+ALT alleles, as well as the genotype data for samples, as shown below in
+Table 1:
+
+<table>
+<caption>
+Table 1: Example vcf file containing identified variants.
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+CHROM
+</th>
+<th style="text-align:right;">
+POS
+</th>
+<th style="text-align:left;">
+ID
+</th>
+<th style="text-align:left;">
+REF
+</th>
+<th style="text-align:left;">
+ALT
+</th>
+<th style="text-align:left;">
+IDMM
+</th>
+<th style="text-align:left;">
+ISGC
+</th>
+<th style="text-align:left;">
+ISGK
+</th>
+<th style="text-align:left;">
+ISHC
+</th>
+<th style="text-align:left;">
+ISHJ
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Chr02
+</td>
+<td style="text-align:right;">
+69197088
+</td>
+<td style="text-align:left;">
+SNP_Chr02_69197088
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Chr02
+</td>
+<td style="text-align:right;">
+69197120
+</td>
+<td style="text-align:left;">
+SNP_Chr02_69197120
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+C
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Chr02
+</td>
+<td style="text-align:right;">
+69197131
+</td>
+<td style="text-align:left;">
+SNP_Chr02_69197131
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+T
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Chr02
+</td>
+<td style="text-align:right;">
+69197209
+</td>
+<td style="text-align:left;">
+SNP_Chr02_69197209
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+T
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Chr02
+</td>
+<td style="text-align:right;">
+69197294
+</td>
+<td style="text-align:left;">
+SNP_Chr02_69197294
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+</tr>
+</tbody>
+</table>
+
+``` r
+
+# Example to design a KASP marker on a substitution variant
+# Set path to alignment output folder 
+library(panGenomeBreedr)
+path <- tempdir() # (default directory for saving alignment outputs)
+
+# Path to import sorghum genome sequence for Chromosome 2
+path1 <- "https://raw.githubusercontent.com/awkena/panGB/main/Chr02.fa.gz"
+
+# Path to import vcf file for variant calls on Chromosome 2
+path2 <-  system.file("extdata", "Sobic.002G302700_SNP_snpeff.vcf",
+                      package = "panGenomeBreedr",
+                     mustWork = TRUE)
+
+# KASP marker design for variant ID: SNP_Chr02_69200443 in vcf file
+ma1 <- kasp_marker_design(vcf_file = path2,
+                           genome_file = path1,
+                           marker_ID = "SNP_Chr02_69200443",
+                           chr = "Chr02",
+                           plot_draw = TRUE,
+                           plot_file = path,
+                           region_name = "ma1",
+                           maf = 0.05)
+#> using Gonnet
+
+# View marker alignment output from temp folder
+path3 <- file.path(path, list.files(path = path, "alignment_"))
+system(paste0('open "', path3, '"')) # Open PDF file from R
+
+on.exit(unlink(path)) # Clear the temp directory on exit
+```
+
+The required sequence for submission to Intertek for the designed KASp
+marker is shown in Table 2.
+
+<table>
+<caption>
+Table 2: Intertek required sequence for a designed KASP marker.
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+SNP_Name
+</th>
+<th style="text-align:left;">
+SNP
+</th>
+<th style="text-align:left;">
+Marker_Name
+</th>
+<th style="text-align:left;">
+Chromosome
+</th>
+<th style="text-align:right;">
+Chromosome_Position
+</th>
+<th style="text-align:left;">
+Sequence
+</th>
+<th style="text-align:left;">
+ReferenceAllele
+</th>
+<th style="text-align:left;">
+AlternativeAllele
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+SNP_Chr02_69200443
+</td>
+<td style="text-align:left;">
+Substitution
+</td>
+<td style="text-align:left;">
+ma1
+</td>
+<td style="text-align:left;">
+Chr02
+</td>
+<td style="text-align:right;">
+69200443
+</td>
+<td style="text-align:left;">
+TAGTTTGATGTTTGCCTTACAATTTGATTTGATGGCAATACCTTTTCCATTTTATCAGCATCTACACCATTTTATATCTTTGGATTAGATTTTTTTTWAA\[A/T\]AAAAAAGTAATATGTTTGTTATGTGCTTTACTCAACAAGATCTACATTTTAAATTAGCTACTTTTTACCATCTTATTTGTTTGTTGTGTGTTTTATTCAA
+</td>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:left;">
+T
+</td>
+</tr>
+</tbody>
+</table>
+
+### KASP Marker Validation
+
+The following example demonstrates how to use the customizable functions
+in `panGB` to perform hypothesis testing of allelic discrimination for
+KASP marker QC and validation.
+
+`panGB` offers customizable functions for KASP marker validation through
+hypothesis testing. These functions allow users to easily perform the
 following tasks:  
 - Import raw or polished KASP genotyping results files (.csv) into R.
 
@@ -99,13 +446,7 @@ following tasks:
 
 - Visualize plate design and randomization.
 
-### Example
-
-The following example demonstrates how to use the customizable functions
-in `panGB` to perform hypothesis testing of allelic discrimination for
-KASP marker QC and validation.
-
-#### Reading Raw KASP Full Results Files (.csv)
+### Reading Raw KASP Full Results Files (.csv)
 
 The `read_kasp_csv()` function allows users to import raw or polished
 KASP genotyping full results file (.csv) into R. The function requires
@@ -142,7 +483,7 @@ file1 <- read_kasp_csv(file = path1,
 kasp_dat <- file1$Data
 ```
 
-#### Assigning colors and PCH symbols for KASP cluster plotting
+### Assigning colors and PCH symbols for KASP cluster plotting
 
 The next step after importing data is to assign FAM and HEX fluorescence
 colors to samples based on their observed genotype calls. This step is
@@ -184,7 +525,7 @@ separated by `:` symbols.
 The `kasp_color()` function returns a list object with the processed
 data for each master plate as the components.
 
-#### Cluster plot
+### Cluster plot
 
 To test the hypothesis that the designed KASP marker can accurately
 discriminate between homozygotes and heterozygotes (allelic
@@ -277,7 +618,7 @@ passed to the function using the `Group_id = 'Group'` argument as shown
 in the code snippets above. If this information is not available, set
 the argument `Group_id = NULL`.
 
-#### Summary of Prediction Verification in Plates
+### Summary of Prediction Verification in Plates
 
 The `pred_summary()` function produces a summary of predicted genotypes
 for positive controls in each reaction plate after verification as shown
@@ -286,19 +627,16 @@ in the code snippet below:
 ``` r
 # Get prediction summary for all plates
 library(panGenomeBreedr)
-library(knitr)
 my_sum <- pred_summary(x = dat1,
                          snp_id = 'SNPID',
                          Group_id = 'Group',
                          Group_unknown = '?',
                          geno_call = 'Call')
-
-knitr::kable(my_sum$summ, caption = 'Table 1: Summary of verified prediction status for samples in plates', format = 'html')
 ```
 
 <table>
 <caption>
-Table 1: Summary of verified prediction status for samples in plates
+Table 3: Summary of verified prediction status for samples in plates
 </caption>
 <thead>
 <tr>
@@ -459,7 +797,7 @@ snpSB00805
 </tbody>
 </table>
 
-#### Plot Plate Design
+### Plot Plate Design
 
 Users can visualize the observed genotype calls in a plate design format
 using the `plot_plate()` function as depicted in the code snippet below:
