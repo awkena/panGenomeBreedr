@@ -374,10 +374,14 @@ the vcf file – either phased (1\|1) or unphased (1/1) coding.
 
 The `plot_draw = TRUE` argument indicates the return of the alignment of
 the 100 bp upstream and downstream sequences to the imported reference
-genome as PDF file.
+genome as PDF file (Figure 2).
 
 The `plot_file` argument specifies the path to the directory where the
 alignment should be saved – default is a temporary directory.
+
+|                       <img src='man/figures/alignment.png' align="center" style="width: 700px;" />                       |
+|:------------------------------------------------------------------------------------------------------------------------:|
+| *Fig. 2. Alignment of the 100 bp upstream and downstream sequences to the reference genome used for KASP marker design.* |
 
 The required sequence for submission to Intertek for the designed KASp
 marker is shown in Table 2.
@@ -571,9 +575,9 @@ kasp_qc_ggplot2(x = dat1[5],
 
 <div class="figure">
 
-<img src="man/figures/README-plate_05_qc_1-1.png" alt="Fig. 2. Cluster plot for Plate 5 using FAM and HEX colors for grouping observed genotypes." width="100%" />
+<img src="man/figures/README-plate_05_qc_1-1.png" alt="Fig. 3. Cluster plot for Plate 5 using FAM and HEX colors for grouping observed genotypes." width="100%" />
 <p class="caption">
-Fig. 2. Cluster plot for Plate 5 using FAM and HEX colors for grouping
+Fig. 3. Cluster plot for Plate 5 using FAM and HEX colors for grouping
 observed genotypes.
 </p>
 
@@ -598,24 +602,24 @@ library(panGenomeBreedr)
 
 <div class="figure">
 
-<img src="man/figures/README-plate_05_qc_2-1.png" alt="Fig. 3. Cluster plot for Plate 5 with an overlay of predictions for positive controls." width="100%" />
+<img src="man/figures/README-plate_05_qc_2-1.png" alt="Fig. 4. Cluster plot for Plate 5 with an overlay of predictions for positive controls." width="100%" />
 <p class="caption">
-Fig. 3. Cluster plot for Plate 5 with an overlay of predictions for
+Fig. 4. Cluster plot for Plate 5 with an overlay of predictions for
 positive controls.
 </p>
 
 </div>
 
 Color-blind-friendly color combinations are used to visualize verified
-genotype predictions.
+genotype predictions (Figure 3).
 
-In Figure 3, the three genotype classes are grouped based on plot PCH
+In Figure 4, the three genotype classes are grouped based on plot PCH
 symbols using the FAM and HEX scores for observed genotype calls.
 
 To simplify the verified prediction overlay for the expected genotypes
 for positive controls, all possible outcomes are divided into three
-categories (TRUE, FALSE, and UNKNOWN) and color-coded to make it easier
-to visualize verified predictions.
+categories (TRUE, FALSE, and UNVERIFIED) and color-coded to make it
+easier to visualize verified predictions.
 
 BLUE (color code for the TRUE category) means genotype prediction
 matches the observed genotype call for the sample.
@@ -641,8 +645,8 @@ the argument `Group_id = NULL`.
 ### Summary of Prediction Verification in Plates
 
 The `pred_summary()` function produces a summary of predicted genotypes
-for positive controls in each reaction plate after verification as shown
-in the code snippet below:
+for positive controls in each reaction plate after verification (Table
+3), as shown in the code snippet below:
 
 ``` r
 # Get prediction summary for all plates
@@ -820,7 +824,8 @@ snpSB00805
 ### Plot Plate Design
 
 Users can visualize the observed genotype calls in a plate design format
-using the `plot_plate()` function as depicted in the code snippet below:
+using the `plot_plate()` function as depicted in Figure 5, using the
+code snippet below:
 
 ``` r
 plot_plate(dat1[5], pdf = FALSE)
@@ -829,9 +834,9 @@ plot_plate(dat1[5], pdf = FALSE)
 
 <div class="figure">
 
-<img src="man/figures/README-plate_05_design-1.png" alt="Fig. 4. Observed genotype calls for samples in Plate 5 in a plate design format." width="100%" />
+<img src="man/figures/README-plate_05_design-1.png" alt="Fig. 5. Observed genotype calls for samples in Plate 5 in a plate design format." width="100%" />
 <p class="caption">
-Fig. 4. Observed genotype calls for samples in Plate 5 in a plate design
+Fig. 5. Observed genotype calls for samples in Plate 5 in a plate design
 format.
 </p>
 

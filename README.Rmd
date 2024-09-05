@@ -168,9 +168,13 @@ To save memory and enhance the computational speed, the `chr` argument can be sp
 
 The `vcf_geno_code` argument is used to specify the genotype coding in the vcf file -- either phased (1|1) or unphased (1/1) coding.
 
-The `plot_draw = TRUE` argument indicates the return of the alignment of the 100 bp upstream and downstream sequences to the imported reference genome as PDF file.
+The `plot_draw = TRUE` argument indicates the return of the alignment of the 100 bp upstream and downstream sequences to the imported reference genome as PDF file (Figure 2).
 
 The `plot_file` argument specifies the path to the directory where the alignment should be saved -- default is a temporary directory.  
+
+|<img src='man/figures/alignment.png' align="center" style="width: 700px;" />|
+|:--:| 
+| *Fig. 2. Alignment of the 100 bp upstream and downstream sequences to the reference genome used for KASP marker design.* |. 
 
 The required sequence for submission to Intertek for the designed KASp marker is shown in Table 2.
 
@@ -179,6 +183,7 @@ library(knitr)
 knitr::kable(ma1, caption = 'Table 2: Intertek required sequence for a designed KASP marker.', format = 'html', padding = 0, booktabs = TRUE)
  
 ```
+
 
 
 ### KASP Marker Validation
@@ -258,7 +263,7 @@ To test the hypothesis that the designed KASP marker can accurately discriminate
 
 The `kasp_qc_ggplot()` and `kasp_qc_ggplot2()`functions in `panGB` can be used to make the cluster plots for each plate and KASP marker as shown below:   
 
-```{r plate_05_qc_1, fig.cap = "Fig. 2. Cluster plot for Plate 5 using FAM and HEX colors for grouping observed genotypes."}
+```{r plate_05_qc_1, fig.cap = "Fig. 3. Cluster plot for Plate 5 using FAM and HEX colors for grouping observed genotypes."}
 # KASP QC plot for Plate 05
 library(panGenomeBreedr)
 kasp_qc_ggplot2(x = dat1[5],
@@ -271,7 +276,7 @@ kasp_qc_ggplot2(x = dat1[5],
                     legend.pos.y = 0.75)
 ```
 
-```{r plate_05_qc_2, fig.cap = "Fig. 3. Cluster plot for Plate 5 with an overlay of predictions for positive controls."}
+```{r plate_05_qc_2, fig.cap = "Fig. 4. Cluster plot for Plate 5 with an overlay of predictions for positive controls."}
 # KASP QC plot for Plate 05
 library(panGenomeBreedr)
  kasp_qc_ggplot2(x = dat1[5],
@@ -286,11 +291,11 @@ library(panGenomeBreedr)
                   legend.pos.x = 0.6,
                   legend.pos.y = 0.75)
 ```
-Color-blind-friendly color combinations are used to visualize verified genotype predictions.
+Color-blind-friendly color combinations are used to visualize verified genotype predictions (Figure 3).
 
-In Figure 3, the three genotype classes are grouped based on plot PCH symbols using the FAM and HEX scores for observed genotype calls.
+In Figure 4, the three genotype classes are grouped based on plot PCH symbols using the FAM and HEX scores for observed genotype calls.
 
-To simplify the verified prediction overlay for the expected genotypes for positive controls, all possible outcomes are divided into three categories (TRUE, FALSE, and UNKNOWN) and color-coded to make it easier to visualize verified predictions.
+To simplify the verified prediction overlay for the expected genotypes for positive controls, all possible outcomes are divided into three categories (TRUE, FALSE, and UNVERIFIED) and color-coded to make it easier to visualize verified predictions.
 
 BLUE (color code for the TRUE category) means genotype prediction matches the observed genotype call for the sample. 
 
@@ -303,7 +308,7 @@ Users can set the `pdf = TRUE` argument to save plots as a PDF file in a directo
 To visualize predictions for positive controls to validate KASP markers, the column name containing expected genotype calls must be provided and passed to the function using the `Group_id = 'Group'` argument as shown in the code snippets above. If this information is not available, set the argument `Group_id = NULL`. 
 
 ### Summary of Prediction Verification in Plates
-The `pred_summary()` function produces a summary of predicted genotypes for positive controls in each reaction plate after verification as shown in the code snippet below:
+The `pred_summary()` function produces a summary of predicted genotypes for positive controls in each reaction plate after verification (Table 3), as shown in the code snippet below:
 
 
 ```{r}
@@ -325,9 +330,9 @@ knitr::kable(my_sum$summ, caption = 'Table 3: Summary of verified prediction sta
 
 
 ### Plot Plate Design
-Users can visualize the observed genotype calls in a plate design format using the `plot_plate()` function as depicted in the code snippet below:  
+Users can visualize the observed genotype calls in a plate design format using the `plot_plate()` function as depicted in Figure 5, using the code snippet below:  
 
-```{r plate_05_design, fig.cap = "Fig. 4. Observed genotype calls for samples in Plate 5 in a plate design format."}
+```{r plate_05_design, fig.cap = "Fig. 5. Observed genotype calls for samples in Plate 5 in a plate design format."}
 plot_plate(dat1[5], pdf = FALSE)
 
 ```
