@@ -14,7 +14,7 @@ get_alleles(
 )
 }
 \arguments{
-\item{x}{A character vector of KASP genotype calls in one resaction plate.}
+\item{x}{A character vector of KASP genotype calls in one reaction plate.}
 
 \item{sep}{A character used as separator for genotype calls, default is a
 colon.}

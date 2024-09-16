@@ -110,7 +110,7 @@ read_kasp_csv <- function(file,
 
 
 #' Get SNP or InDel alleles and possible genotypes from genotype calls in KASP data.
-#' @param x A character vector of KASP genotype calls in one resaction plate.
+#' @param x A character vector of KASP genotype calls in one reaction plate.
 #' @param sep A character used as separator for genotype calls, default is a
 #' colon.
 #' @param uncallable A character indicating `Uncallable` genotype calls, if present.
@@ -1892,4 +1892,581 @@ kasp_marker_design <- function(vcf_file, #path and file name of tbi index
 
 }
 
+#' Get a summary of the number of samples per 96-well plate in a multi-plate KASP
+#' assay.
+#' @param x A data frame of KASP genotype calls for one or multiple plates.
+#' @param subset A character value indicating the column name for taking subsets
+#' of \code{x} for processing; default is the `plates`.
+#' @param snp_id A character value indicating the column name for SNP IDs
+#' in \code{x}.
+#' @param plate_id A character value indicating the column name for master plate
+#'  having the same samples in \code{x}.
+#'
+#' @returns A list object with plates and a summary of number of samples
+#' per plate as components.
+#'
+#' @examples
+#' \donttest{
+#' # example code
+#' library(panGenomeBreedr)
+#' dat1 <- panGenomeBreedr::beta_carotene
+#' dat1 <- nsamples_plate(x = dat1,
+#'                      subset = 'plates',
+#'                      snp_id = 'SNPID',
+#'                      plate_id = 'MasterPlate'
+#'                     )$summ
+#' }
+#'
+#' @export
 
+nsamples_plate <- function(x,
+                           subset = 'plates',
+                           snp_id = 'SNPID',
+                           plate_id = 'MasterPlate') {
+
+  # Get subset unit from data set
+  plates <- x[, subset]
+  plates_uniq <- unique(plates)
+
+  # Number of units or plates
+  nplates <- length(plates_uniq)
+
+  # Create an empty list object to hold ggplots
+  res <- vector(mode = 'list', length = nplates)
+  names(res) <- plates_uniq
+
+  df <- as.data.frame(matrix(data = NA, nrow = nplates, ncol = 4))
+  colnames(df) <- c( 'MasterPlate', 'SNPID' ,'plate', 'nobs')
+
+  for (i in seq_len(nplates)) {
+
+    # Subset each plate
+    plate <- x[plates == plates_uniq[i],]
+
+    df[i, 1] <- plate[, plate_id][1]
+    df[i, 2] <- plate[, snp_id][1]
+    df[i, 3] <- plates_uniq[i]
+    df[i, 4] <- nrow(plate)
+
+    res[[i]] <- plate
+
+  }
+
+  dat <- list(plates = res, summ = df)
+
+  return(dat)
+
+}
+
+
+#' Reshape KASP data to wide format for same samples genotyped with multiple KASP
+#' markers.
+#' @param x A data frame of KASP genotype calls for one or multiple plates.
+#' @param subset A character value indicating the column name for master plate
+#'  having the same samples in \code{x}.
+#' @param snp_id A character value indicating the column name for SNP IDs
+#' in \code{x}.
+#' @param idvar A character value indicating the column name for unique subject
+#' IDs of samples in \code{x}.
+#' @param geno_call A character value indicating the column name for KASP genotype
+#' calls in \code{x}.
+#' @param blank A character value indicating `No Template Controls (NTC)`
+#' genotype calls.
+#'
+#' @returns A list object with reshaped data for master plates that have the same
+#' subject IDs as the components. The components are data frames with Column 1 as
+#' the subject IDs and the rest of the columns as the number of KASP markers assayed
+#' for each master plate.
+#'
+#' @examples
+#' \donttest{
+#' # example code
+#' library(panGenomeBreedr)
+#' dat1 <- panGenomeBreedr::beta_carotene
+#' plate_wide <- kasp_reshape_wide(x = dat1,
+#'                                 subset = 'MasterPlate',
+#'                                 snp_id = 'SNPID',
+#'                                 geno_call = 'Call',
+#'                                 idvar = "SubjectID",
+#'                                 blank = 'NTC')
+#' }
+#'
+#' @importFrom stats reshape
+#'
+#' @export
+kasp_reshape_wide <- function(x,
+                              subset = 'MasterPlate',
+                              snp_id = 'SNPID',
+                              geno_call = 'Call',
+                              idvar = "SubjectID",
+                              blank = 'NTC') {
+
+
+  # Get subset unit from data set
+  plates <- x[, subset]
+  plates_uniq <- unique(plates)
+
+  # Number of units or plates
+  nplates <- length(plates_uniq)
+
+  # Create an empty list object to hold ggplots
+  res <- vector(mode = 'list', length = nplates)
+  names(res) <- plates_uniq
+
+  for (i in seq_len(nplates)) {
+
+    # Subset master plate that has the same samples
+    plate <- x[plates == plates_uniq[i], ]
+
+    # Get relevant columns
+    retain_column <- c(geno_call, idvar, snp_id)
+
+    # Use only columns that are relevant
+    plate <- plate[names(plate) %in% retain_column]
+
+    # Remove blanks before conversion
+    plate <- plate[plate[, geno_call] != blank,]
+
+    ## long to wide (direction = "wide") requires idvar and timevar at a minimum
+    plate_wide <- stats::reshape(plate,
+                                 direction = "wide",
+                                 idvar = "SubjectID",
+                                 timevar = "SNPID")
+
+    # Use original SNPIDs as names for the SNPs after conversion
+    colnames(plate_wide)[colnames(plate_wide) != idvar] <- unique(plate[, snp_id])
+
+    res[[i]] <- plate_wide
+
+  }
+
+  return(res)
+
+}
+
+#' Process reshaped KASP genotype data for heatmap plotting
+#' @param x A data frame of genotype calls.
+#' @param sample_id A string representing the column name of unique sample IDs.
+#' @param marker_start An integer indicating the column index for the start of SNP calls.
+#' @param kasp_map A data frame consisting of marker chromosome number and positions.
+#' @param map_snp_id A character value indicating the column name for SNP IDs
+#' in \code{kasp_map}.
+#' @param chr A character value for the column name for the chromosome number in
+#' \code{kasp_map}.
+#' @param chr_pos A character value for the column name for the chromosome positions
+#'  in \code{kasp_map}.
+#'
+#' @examples
+#' # example code
+#' \donttest{
+#' #' library(panGenomeBreedr)
+#' # Reshape KASP data for each master plate for the beta_carotene data
+#' plate_wide <- kasp_reshape_wide(x = beta_carotene,
+#'                                 subset = 'MasterPlate',
+#'                                 snp_id = 'SNPID',
+#'                                 geno_call = 'Call',
+#'                                 idvar = "SubjectID",
+#'                                 blank = 'NTC')
+#'
+#' # Get Master Plate 1
+#' plate1 <- plate_wide$`MWCP-PLATE-1 SE-23-2021_P01`
+#'
+#' plate1 <- plate_wide$`SE-24-1088_P01_d1`
+#'
+#' # Generate a map for the beta_carotene KASP data
+#' kasp_map <- data.frame(SNPID = unique(beta_carotene$SNPID),
+#'                        SNPID_2 = paste0('snpSB', 1:4, '|', c(800, 803, 804, 805)),
+#'                        chr = c(1:4),
+#'                        pos = c(800, 803, 804, 805))
+#'
+#' # Process Plate1 to re-order SNPs based on chrom. and position
+#' proc_plate1 <- proc_kasp(x = plate1,
+#'                          kasp_map = kasp_map,
+#'                          map_snp_id = "SNPID",
+#'                          sample_id = "SubjectID",
+#'                          marker_start = 2,
+#'                          chr = 'chr',
+#'                          chr_pos = 'pos')
+#' }
+#' @returns A list consisting of re-ordered SNPs and oredered map based on chromosome
+#' number and chromosome positions.
+#'
+#' @details
+#' This function is experimental and should only be used with reshaped KASP data.
+#' The data processing involves the following steps:
+#' 1. Transposing the data
+#' 2. Matching marker names in KASP map file with names in KASP genotype file
+#' 3. Column bind matched map for markers to the transposed data
+#' 4. Sort data in ascending order of chromosome numbers
+#' 5. Split data by chromosomes
+#' 6. Sort data in ascending order of physical positions per chromosome
+#' 7. Row bind sorted data together
+#' 8. Re-transpose data to make markers columns and samples as rows for plotting.
+#'
+#'@export
+
+proc_kasp <- function(x,
+                      sample_id = "SubjectID",
+                      marker_start = 2,
+                      kasp_map,
+                      map_snp_id,
+                      chr = 'chr',
+                      chr_pos = 'pos') {
+
+  if(missing(kasp_map)) stop("Provide map for KASP markers used!")
+  if(missing(map_snp_id)) stop("Provide column name of SNP IDs in map file!")
+
+  # Get only genotype call data without subject/sample IDs
+  if (marker_start > 1) {
+
+    geno_mat <- x[, -c(1:marker_start-1)]
+
+    # Set row names of genotype data to original names
+    # Row names must be unique for each row
+
+    # if there are no duplicates in the sample IDs
+    if (!any(duplicated(x[, sample_id]))) {
+
+      rownames(geno_mat) <- x[, sample_id]
+
+    } else {
+
+      # if there are duplicates in the sample IDs
+      # Get their index numbers
+      dups_ind <- which(duplicated(x[, sample_id]))
+
+      # Show a warning message when there duplicates in sample IDs
+      warnings(paste("There are duplicates in sample IDs:", dups_ind))
+
+      # Subset sample IDs
+      new_sample_id <- x[, sample_id]
+
+      # Rename duplicated sample IDs
+      new_sample_id[dups_ind] <- paste0(new_sample_id[dups_ind], dups_ind)
+
+      rownames(geno_mat) <- new_sample_id
+
+    }
+
+  } else if (marker_start  == 1) {
+
+    geno_mat <- x
+
+  }
+
+  # Get the number of columns in kasp map file
+  ncolumns <- ncol(kasp_map)
+
+  # Transpose imported data to make markers as rows and samples as columns
+  geno_mat <- t(geno_mat)
+
+  # Function to match SNP IDs in map file and geno file
+
+    new_snpids <- data.frame(ids = rownames(geno_mat))
+
+    # Match SNPID in geno_mat and kasp_map files
+    df1 <- merge(x = new_snpids,
+                 y = kasp_map,
+                 by.x = 'ids',
+                 by.y = map_snp_id)
+
+  # Column bind chr number and position to snp data
+  geno_mat <- cbind(df1, geno_mat)
+
+  # Sort data in ascending order of chromosomes
+  geno_mat <- geno_mat[order(geno_mat[, chr], decreasing = FALSE),]
+
+  # Sort data in ascending order of physical positions per chromosome
+  grps <- split(geno_mat, geno_mat[, chr]) # Split genotype data into chr batches
+
+  # Function to order marker positions
+  ord_pos <- function(x) {
+    x[order(x[, chr_pos], decreasing = FALSE),]
+  }
+
+  geno_mat <- lapply(grps, FUN = ord_pos)
+
+  # Row-bind sorted data for all chromosomes
+  geno_mat <- do.call(rbind, geno_mat)
+  rownames(geno_mat) <- geno_mat[, 1]
+
+  df2 <- geno_mat[, seq_len(ncolumns)]
+
+  # geno_mat <- na.omit(geno_mat) # Remove markers with missing snp calls
+  # rownames(geno_mat) <- paste0('S', geno_mat$chr,'_', geno_mat$pos)
+
+  geno_mat <- t(geno_mat[,-seq_len(ncolumns)]) # Transpose data to make markers columns
+
+  # if (marker_start > 1) {
+  #
+  #   geno_mat <- cbind(x[, c(1:marker_start-1)], geno_mat) # Add sample meta data
+  #
+  # }
+
+  res <- list(ordered_geno = geno_mat, ordered_map = df2)
+  return(res)
+}
+
+
+#' Identify SNP loci with potential genotype call errors.
+#' @param x A data frame of genotype calls where all columns are SNPs and samples
+#' as rows. Row names are unique sample names.
+#' @param rp_row An integer indication the row index of the recurrent or Parent 1.
+#' @param dp_row An integer indicating the row index of the donor or Parent 2.
+#' on failed genotype call.
+#' @param sep A character used as separator for genotype calls, default is a
+#' colon.
+#' @param uncallable A character indicating `Uncallable` genotype calls, if present.
+#' @param unused A character indicating `?` genotype calls, if present.
+#' @param blank A character value indicating `No Template Controls (NTC)`
+#' genotype calls.
+#' @param others A character vector indicating other non-genotype calls in KASP
+#' genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
+#' `'Over', 'Short'`.
+#'
+#' @examples
+#' # example code
+#' \donttest{
+#' #' library(panGenomeBreedr)
+#' # Reshape KASP data for each master plate for the beta_carotene data
+#' plate_wide <- kasp_reshape_wide(x = beta_carotene,
+#'                                 subset = 'MasterPlate',
+#'                                 snp_id = 'SNPID',
+#'                                 geno_call = 'Call',
+#'                                 idvar = "SubjectID",
+#'                                 blank = 'NTC')
+#'
+#' # Get Master Plate 1
+#' plate1 <- plate_wide$`MWCP-PLATE-1 SE-23-2021_P01`
+#'
+#' plate1 <- plate_wide$`SE-24-1088_P01_d1`
+#'
+#' # Generate a map for the beta_carotene KASP data
+#' kasp_map <- data.frame(SNPID = unique(beta_carotene$SNPID),
+#'                        SNPID_2 = paste0('snpSB', 1:4, '|', c(800, 803, 804, 805)),
+#'                        chr = c(1:4),
+#'                        pos = c(800, 803, 804, 805))
+#'
+#' # Process Plate1 to re-order SNPs based on chrom. and position
+#' proc_plate1 <- proc_kasp(x = plate1,
+#'                          kasp_map = kasp_map,
+#'                          map_snp_id = "SNPID",
+#'                          sample_id = "SubjectID",
+#'                          marker_start = 2,
+#'                          chr = 'chr',
+#'                          chr_pos = 'pos')
+#'
+#' # Check for genotype call  error for each SNP
+#' geno_mat <- geno_error(x = proc_plate1$ordered_geno,
+#'                   rp = 1,
+#'                   dp = 2,
+#'                   sep = ':')
+#' }
+#'
+#' @returns A list object with the following components:
+#' 1) column index of loci with genotype call error
+#' 2) data frame of loci with genotype call errors if present.
+#'
+#' @export
+geno_error <- function(x,
+                       rp_row,
+                       dp_row,
+                       sep = ':',
+                       blank = 'NTC',
+                       uncallable = 'Uncallable',
+                       unused = '?',
+                       others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short')
+) {
+
+  if (missing(rp_row)) stop("Parent 1 row index number is missing!")
+  if (missing(dp_row)) stop("Parent 2 row index number is missing!")
+
+  # Create a character vector of all non-genotype calls
+  non_geno_call <- c(blank, uncallable, unused, others)
+
+  # Hold column index of loci with errors
+  col_index <- c()
+
+  for (i in seq_len(ncol(x))) {
+
+    snp <- as.vector(unname(x[, i]))
+
+    # Subset and sort genotype calls
+    snp <- snp[!snp %in% non_geno_call]
+
+    # Get Alleles for recurrent and donor parents
+    rp <- as.vector(unlist(x[rp_row,]))[i] # Recurrent parent allele
+    dp <- as.vector(unlist(x[dp_row,]))[i] # Donor parent allele
+
+    # Parent genotype vector
+    par_alleles <- get_alleles(x = c(rp, dp), sep = sep)
+
+    exp_geno <- par_alleles$genotypes # Expected genotypes
+
+    geno_present <- unique(na.omit(snp)) %in% exp_geno
+
+    if (!anyNA(par_alleles$alleles) && rp == dp && any(!geno_present)) {
+
+      col_index[i] <- i
+
+    } else if (!anyNA(par_alleles$alleles) && rp != dp && any(!geno_present)) {
+
+      col_index[i] <- i
+
+    }
+
+  }
+
+  col_index <- as.vector(na.omit(col_index))
+
+  # Get SNPs with suspected errors and no errors
+  if (length(col_index) >= 1) {
+
+    geno_err <- as.data.frame(x[, col_index]) # Suspected error
+    geno_good <- as.data.frame(x[, -col_index]) # no error
+
+  } else {
+
+    geno_err <- NULL
+    geno_good <- x
+
+  }
+
+  res <- list(col_index = col_index,
+              geno_err = geno_err,
+              geno_good = geno_good)
+
+  return(res)
+
+}
+
+
+#' Convert processed KASP data to numeric genotypes
+#' @param x A data frame of n rows of genotypes and p rows of SNPs; output from
+#' `proc_kasp()` function.
+#' @param rp_row An integer indication the row index of recurrent or Parent 1.
+#' @param dp_row An integer indicating the row index of donor or Parent 2.
+#' @param sep A character used as separator for genotype calls, default is a
+#' colon.
+#' @param uncallable A character indicating `Uncallable` genotype calls, if present.
+#' @param unused A character indicating `?` genotype calls, if present.
+#' @param blank A character value indicating `No Template Controls (NTC)`
+#' genotype calls.
+#' @param others A character vector indicating other non-genotype calls in KASP
+#' genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
+#' `'Over', 'Short'`.
+#' @returns A data frame of numeric codes for agriplex data.
+#'
+#' @examples
+#' # example code
+#' \donttest{
+#' #' library(panGenomeBreedr)
+#' # Reshape KASP data for each master plate for the beta_carotene data
+#' plate_wide <- kasp_reshape_wide(x = beta_carotene,
+#'                                 subset = 'MasterPlate',
+#'                                 snp_id = 'SNPID',
+#'                                 geno_call = 'Call',
+#'                                 idvar = "SubjectID",
+#'                                 blank = 'NTC')
+#'
+#' # Get Master Plate 1
+#' plate1 <- plate_wide$`SE-24-1088_P01_d1`
+#'
+#' # Generate a map for the beta_carotene KASP data
+#' kasp_map <- data.frame(SNPID = unique(beta_carotene$SNPID),
+#'                        SNPID_2 = paste0('snpSB', 1:4, '|', c(800, 803, 804, 805)),
+#'                        chr = c(1:4),
+#'                        pos = c(800, 803, 804, 805))
+#'
+#' # Process Plate1 to re-order SNPs based on chrom. and position
+#' proc_plate1 <- proc_kasp(x = plate1,
+#'                          kasp_map = kasp_map,
+#'                          map_snp_id = "SNPID",
+#'                          sample_id = "SubjectID",
+#'                          marker_start = 2,
+#'                          chr = 'chr',
+#'                          chr_pos = 'pos')
+#'
+#' # Check for genotype call  error for each SNP
+#' geno_mat <- geno_error(x = proc_plate1$ordered_geno,
+#'                   rp = 1,
+#'                   dp = 7,
+#'                   sep = ':')
+#'
+#' # Convert to numeric format for plotting
+#' num_geno <- kasp_numeric(x = geno_mat$geno_good,
+#'                         rp_row = 1,
+#'                         dp_row = 7)
+#'
+#' }
+#'
+#' @details
+#' Re-coded as 1 if homozygous for Parent 1 allele; 0 if homozygous for Parent
+#' 2 allele, and 0.5 if heterozygous. If any of the parents SNP call is missing,
+#' it's coded as as NA. If the Parents 1 and 2 genotypes are the same for any snp,
+#' it's coded as monomorphic. Loci with progeny genotype calls different from RP
+#' and DP are coded as -2.
+#'
+#'@export
+kasp_numeric <- function(x,
+                        rp_row,
+                        dp_row,
+                        sep = ':',
+                        blank = 'NTC',
+                        uncallable = 'Uncallable',
+                        unused = '?',
+                        others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short')
+) {
+
+  if (missing(rp_row)) stop("Parent 1 row index number is missing!")
+  if (missing(dp_row)) stop("Parent 2 row index number is missing!")
+
+  # Create a character vector of all non-genotype calls
+  non_geno_call <- c(blank, uncallable, unused, others)
+
+  # Create an empty data frame to hold numeric format of genotypes
+  num_recode <- matrix(0, nrow = nrow(x), ncol = ncol(x))
+  colnames(num_recode) <- colnames(x)
+  rownames(num_recode) <- rownames(x)
+
+  for(i in seq_len(ncol(x))) {
+
+    snp <- as.vector(unname(x[, i]))
+
+    # Get Alleles for recurrent and donor parents
+    rp <- as.vector(unlist(x[rp_row,]))[i] # Recurrent parent allele
+    dp <- as.vector(unlist(x[dp_row,]))[i] # Donor parent allele
+
+    # Parent genotype vector
+    par_alleles <- get_alleles(x = c(rp, dp), sep = sep)
+
+    exp_geno <- par_alleles$genotypes # Expected genotypes
+
+    # Code loci as NA if any or all parent genotype call is NA
+    if (anyNA(par_alleles$alleles) || all(is.na(par_alleles$alleles))) {
+
+      num_recode[,i] <- NA
+
+    } else if (length(unique(na.omit(snp))) == 1) {
+
+      num_recode[,i] <- -1 # if monomorphic code as -1
+
+      # Code loci with progeny genotype calls different from RP and DP as -2
+    } else if (!anyNA(par_alleles$alleles) && rp == dp && length(unique(na.omit(snp))) > 1 ) {
+
+      num_recode[,i] <- ifelse(snp == rp, -1, -2)
+
+    } else {
+      # Recode as 1 if homozygous for RP allele; 0 if homozygous for DP allele
+      # 0.5 if heterozygous, -2 if other
+      het1 <- par_alleles$genotypes[3]
+      het2 <- par_alleles$genotypes[4]
+      num_recode[,i] <- ifelse(snp == rp, 1, ifelse(snp == dp, 0, ifelse(snp == het1 | snp == het2, 0.5, -2)))
+
+    }
+
+  }
+
+  return(num_recode)
+
+}
