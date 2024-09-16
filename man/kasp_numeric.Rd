@@ -38,7 +38,7 @@ genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
 `'Over', 'Short'`.}
 }
 \value{
-A data frame of numeric codes for agriplex data.
+A data frame of numeric codes for KASP genotype calls.
 }
 \description{
 Convert processed KASP data to numeric genotypes

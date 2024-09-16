@@ -2355,7 +2355,7 @@ geno_error <- function(x,
 #' @param others A character vector indicating other non-genotype calls in KASP
 #' genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
 #' `'Over', 'Short'`.
-#' @returns A data frame of numeric codes for agriplex data.
+#' @returns A data frame of numeric codes for KASP genotype calls.
 #'
 #' @examples
 #' # example code
