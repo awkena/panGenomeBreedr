@@ -12,7 +12,8 @@ kasp_numeric(
   blank = "NTC",
   uncallable = "Uncallable",
   unused = "?",
-  others = c("Missing", "Bad", "Dupe", "Over", "Short")
+  others = c("Missing", "Bad", "Dupe", "Over", "Short"),
+  data_type = c("kasp", "agriplex")
 )
 }
 \arguments{
@@ -36,6 +37,9 @@ genotype calls.}
 \item{others}{A character vector indicating other non-genotype calls in KASP
 genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
 `'Over', 'Short'`.}
+
+\item{data_type}{A character value indicating the data source; either `kasp` or
+`agriplex`.}
 }
 \value{
 A data frame of numeric codes for KASP genotype calls.

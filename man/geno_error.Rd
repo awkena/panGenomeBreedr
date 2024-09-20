@@ -12,7 +12,8 @@ geno_error(
   blank = "NTC",
   uncallable = "Uncallable",
   unused = "?",
-  others = c("Missing", "Bad", "Dupe", "Over", "Short")
+  others = c("Missing", "Bad", "Dupe", "Over", "Short"),
+  data_type = c("kasp", "agriplex")
 )
 }
 \arguments{
@@ -37,6 +38,9 @@ genotype calls.}
 \item{others}{A character vector indicating other non-genotype calls in KASP
 genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
 `'Over', 'Short'`.}
+
+\item{data_type}{A character value indicating the data source; either `kasp` or
+`agriplex`.}
 }
 \value{
 A list object with the following components:
@@ -80,9 +84,10 @@ proc_plate1 <- proc_kasp(x = plate1,
 
 # Check for genotype call  error for each SNP
 geno_mat <- geno_error(x = proc_plate1$ordered_geno,
-                  rp = 1,
-                  dp = 2,
-                  sep = ':')
+                  rp_row = 1,
+                  dp_row = 2,
+                  sep = ':',
+                  data_type = 'kasp')
 }
 
 }

@@ -10,7 +10,8 @@ get_alleles(
   blank = "NTC",
   uncallable = "Uncallable",
   unused = "?",
-  others = c("Missing", "Bad", "Dupe", "Over", "Short")
+  others = c("Missing", "Bad", "Dupe", "Over", "Short"),
+  data_type = c("kasp", "agriplex")
 )
 }
 \arguments{
@@ -29,6 +30,9 @@ genotype calls.}
 \item{others}{A character vector indicating other non-genotype calls in KASP
 genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
 `'Over', 'Short'`.}
+
+\item{data_type}{A character value indicating the data source; either `kasp` or
+`agriplex`.}
 }
 \value{
 A list object with `length = 2` consisting of marker alleles and
@@ -41,7 +45,7 @@ Get SNP or InDel alleles and possible genotypes from genotype calls in KASP data
 # example code
 \donttest{
 x <- panGenomeBreedr::kasp_dat$Call[1:96]
-alleles <- get_alleles(x = x)
+alleles <- get_alleles(x = x, data_type = 'kasp')
 }
 
 }

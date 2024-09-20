@@ -120,12 +120,14 @@ read_kasp_csv <- function(file,
 #' @param others A character vector indicating other non-genotype calls in KASP
 #' genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
 #' `'Over', 'Short'`.
+#' @param data_type A character value indicating the data source; either `kasp` or
+#' `agriplex`.
 #'
 #'@examples
 #'# example code
 #' \donttest{
 #' x <- panGenomeBreedr::kasp_dat$Call[1:96]
-#' alleles <- get_alleles(x = x)
+#' alleles <- get_alleles(x = x, data_type = 'kasp')
 #' }
 #'
 #' @returns A list object with `length = 2` consisting of marker alleles and
@@ -138,9 +140,11 @@ get_alleles <- function(x,
                         blank = 'NTC',
                         uncallable = 'Uncallable',
                         unused = '?',
-                        others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short')
+                        others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short'),
+                        data_type = c('kasp', 'agriplex')
 ) {
 
+  data_type <- match.arg(data_type) # Match arguments
 
   # Empty list object to hold results
   res <- vector(mode = 'list', length = 2)
@@ -154,10 +158,51 @@ get_alleles <- function(x,
 
   alleles <- res[[1]] <- unique(unlist(strsplit(x = geno_uniq, split = sep)))
 
-  homo1 <- paste(alleles[1], alleles[1], sep = sep) # homozygous genotype 1
-  homo2 <- paste(alleles[2], alleles[2], sep = sep) # homozygous genotype 2
-  het1 <- paste(alleles[1], alleles[2], sep = sep) # heterozygous genotype 1
-  het2 <- paste(alleles[2], alleles[1], sep = sep) # heterozygous genotype 2
+  if (length(alleles) == 2) {
+
+  if (data_type == 'kasp') {
+
+    homo1 <- paste(alleles[1], alleles[1], sep = sep) # homozygous genotype 1
+    homo2 <- paste(alleles[2], alleles[2], sep = sep) # homozygous genotype 2
+    het1 <- paste(alleles[1], alleles[2], sep = sep) # heterozygous genotype 1
+    het2 <- paste(alleles[2], alleles[1], sep = sep) # heterozygous genotype 2
+
+  } else {
+
+    homo1 <- paste(alleles[1]) # homozygous genotype 1
+    homo2 <- paste(alleles[2]) # homozygous genotype 2
+    het1 <- paste(alleles[1], alleles[2], sep = sep) # heterozygous genotype 1
+    het2 <- paste(alleles[2], alleles[1], sep = sep) # heterozygous genotype 2
+
+  }
+
+  } else if (length(alleles == 1)) {
+
+    if (data_type == 'kasp') {
+
+      homo1 <- homo2 <- paste(alleles[1], alleles[1], sep = sep) # homozygous genotype 1
+      het1 <- het2 <- paste(alleles[1], alleles[1], sep = sep) # heterozygous genotype 1
+
+    } else {
+
+      homo1 <- homo2 <- paste(alleles[1]) # homozygous genotype 1
+      het1 <- het2 <- paste(alleles[1], alleles[1], sep = sep) # heterozygous genotype 1
+
+    }
+
+  } else if (is.null(alleles)) {
+
+    if (data_type == 'kasp') {
+
+      homo1 <- homo2 <- het1 <- het2 <- NULL
+
+    } else {
+
+      homo1 <- homo2 <- het1 <- het2 <- NULL
+
+    }
+
+  }
 
   res[[2]] <- c(homo1 = homo1, homo2 = homo2, het1 = het1, het2 = het2)
 
@@ -316,7 +361,8 @@ kasp_color <- function(x,
                                 blank = blank,
                                 uncallable = uncallable,
                                 unused = unused,
-                                others = others)
+                                others = others,
+                                data_type = 'kasp')
 
     alleles <- alleles_geno$alleles
 
@@ -483,7 +529,7 @@ pred_status <- function(plate,
                         Group_unknown = NULL) {
 
   status <- NULL
-  gg <- get_alleles(x = plate[, geno_call]) # Get possible genotypes in data
+  gg <- get_alleles(x = plate[, geno_call], data_type = 'kasp') # Get possible genotypes in data
 
   df1 <- plate[plate[, geno_call] %in% gg$genotypes,] # Subset only samples with true calls
   df2 <- plate[!plate[, geno_call] %in% gg$genotypes,] # Subset samples with non-genotype calls
@@ -2168,7 +2214,8 @@ proc_kasp <- function(x,
     df1 <- merge(x = new_snpids,
                  y = kasp_map,
                  by.x = 'ids',
-                 by.y = map_snp_id)
+                 by.y = map_snp_id,
+                 sort = FALSE)
 
   # Column bind chr number and position to snp data
   geno_mat <- cbind(df1, geno_mat)
@@ -2223,6 +2270,8 @@ proc_kasp <- function(x,
 #' @param others A character vector indicating other non-genotype calls in KASP
 #' genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
 #' `'Over', 'Short'`.
+#' @param data_type A character value indicating the data source; either `kasp` or
+#' `agriplex`.
 #'
 #' @examples
 #' # example code
@@ -2258,9 +2307,10 @@ proc_kasp <- function(x,
 #'
 #' # Check for genotype call  error for each SNP
 #' geno_mat <- geno_error(x = proc_plate1$ordered_geno,
-#'                   rp = 1,
-#'                   dp = 2,
-#'                   sep = ':')
+#'                   rp_row = 1,
+#'                   dp_row = 2,
+#'                   sep = ':',
+#'                   data_type = 'kasp')
 #' }
 #'
 #' @returns A list object with the following components:
@@ -2275,11 +2325,14 @@ geno_error <- function(x,
                        blank = 'NTC',
                        uncallable = 'Uncallable',
                        unused = '?',
-                       others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short')
+                       others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short'),
+                       data_type = c('kasp', 'agriplex')
 ) {
 
   if (missing(rp_row)) stop("Parent 1 row index number is missing!")
   if (missing(dp_row)) stop("Parent 2 row index number is missing!")
+
+  data_type <- match.arg(data_type)
 
   # Create a character vector of all non-genotype calls
   non_geno_call <- c(blank, uncallable, unused, others)
@@ -2298,18 +2351,20 @@ geno_error <- function(x,
     rp <- as.vector(unlist(x[rp_row,]))[i] # Recurrent parent allele
     dp <- as.vector(unlist(x[dp_row,]))[i] # Donor parent allele
 
-    # Parent genotype vector
-    par_alleles <- get_alleles(x = c(rp, dp), sep = sep)
+    par_geno <- c(rp, dp) # Parents genotype
 
-    exp_geno <- par_alleles$genotypes # Expected genotypes
+    # Expected genotype vector
+    exp_geno <- get_alleles(x = par_geno, sep = sep, data_type = data_type)$genotypes
+
+    #exp_geno <- par_alleles$genotypes # Expected genotypes
 
     geno_present <- unique(na.omit(snp)) %in% exp_geno
 
-    if (!anyNA(par_alleles$alleles) && rp == dp && any(!geno_present)) {
+    if (!anyNA(par_geno) && rp == dp && any(!geno_present)) {
 
       col_index[i] <- i
 
-    } else if (!anyNA(par_alleles$alleles) && rp != dp && any(!geno_present)) {
+    } else if (!anyNA(par_geno) && rp != dp && any(!geno_present)) {
 
       col_index[i] <- i
 
@@ -2355,6 +2410,9 @@ geno_error <- function(x,
 #' @param others A character vector indicating other non-genotype calls in KASP
 #' genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
 #' `'Over', 'Short'`.
+#' @param data_type A character value indicating the data source; either `kasp` or
+#' `agriplex`.
+#'
 #' @returns A data frame of numeric codes for KASP genotype calls.
 #'
 #' @examples
@@ -2415,14 +2473,21 @@ kasp_numeric <- function(x,
                         blank = 'NTC',
                         uncallable = 'Uncallable',
                         unused = '?',
-                        others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short')
+                        others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short'),
+                        data_type = c('kasp', 'agriplex')
 ) {
 
   if (missing(rp_row)) stop("Parent 1 row index number is missing!")
   if (missing(dp_row)) stop("Parent 2 row index number is missing!")
 
+  data_type <- match.arg(data_type)
+
   # Create a character vector of all non-genotype calls
   non_geno_call <- c(blank, uncallable, unused, others)
+
+  # Get Alleles for recurrent and donor parents
+  rp <- as.vector(unlist(x[rp_row,])) # Recurrent parent allele
+  dp <- as.vector(unlist(x[dp_row,])) # Donor parent allele
 
   # Create an empty data frame to hold numeric format of genotypes
   num_recode <- matrix(0, nrow = nrow(x), ncol = ncol(x))
@@ -2433,17 +2498,18 @@ kasp_numeric <- function(x,
 
     snp <- as.vector(unname(x[, i]))
 
-    # Get Alleles for recurrent and donor parents
-    rp <- as.vector(unlist(x[rp_row,]))[i] # Recurrent parent allele
-    dp <- as.vector(unlist(x[dp_row,]))[i] # Donor parent allele
+    # Subset and sort genotype calls
+    snp <- snp[!snp %in% non_geno_call]
+
+    par_geno <- c(rp[i], dp[i])
 
     # Parent genotype vector
-    par_alleles <- get_alleles(x = c(rp, dp), sep = sep)
+    exp_geno <- get_alleles(x = par_geno, sep = sep, data_type = data_type)$genotypes
 
-    exp_geno <- par_alleles$genotypes # Expected genotypes
+    # exp_geno <- par_alleles$genotypes # Expected genotypes
 
     # Code loci as NA if any or all parent genotype call is NA
-    if (anyNA(par_alleles$alleles) || all(is.na(par_alleles$alleles))) {
+    if (anyNA(par_geno) || all(is.na(par_geno))) {
 
       num_recode[,i] <- NA
 
@@ -2452,21 +2518,73 @@ kasp_numeric <- function(x,
       num_recode[,i] <- -1 # if monomorphic code as -1
 
       # Code loci with progeny genotype calls different from RP and DP as -2
-    } else if (!anyNA(par_alleles$alleles) && rp == dp && length(unique(na.omit(snp))) > 1 ) {
+    } else if (!anyNA(par_geno) && rp[i] == dp[i] && length(unique(na.omit(snp))) > 1 ) {
 
-      num_recode[,i] <- ifelse(snp == rp, -1, -2)
+      num_recode[,i] <- ifelse(snp == rp[i], -1, -2)
 
     } else {
       # Recode as 1 if homozygous for RP allele; 0 if homozygous for DP allele
       # 0.5 if heterozygous, -2 if other
-      het1 <- par_alleles$genotypes[3]
-      het2 <- par_alleles$genotypes[4]
-      num_recode[,i] <- ifelse(snp == rp, 1, ifelse(snp == dp, 0, ifelse(snp == het1 | snp == het2, 0.5, -2)))
+      het1 <- exp_geno[3]
+      het2 <- exp_geno[4]
+      num_recode[,i] <- ifelse(snp == rp[i], 1, ifelse(snp == dp[i], 0, ifelse(snp == het1 | snp == het2, 0.5, -2)))
 
     }
 
   }
 
   return(num_recode)
+
+}
+
+
+#' Parse marker names with a common pattern containing chromosome numbers and
+#' positions into a map file.
+#' @param x A character vector containing the original marker names to be parsed.
+#' @param sep A character value that serves as a unique separator between chromosome
+#' positions and other components of the marker name; default value is an underscore.
+#' @param prefix A character value that represents a common pattern in marker
+#' names that precedes the chromome number; the default value is `S`.
+#'
+#' @returns A data frame of map file consisting of the original marker names,
+#' chromosome numbers and positions.
+#' # example code
+#' \donttest{
+#' library(panGenomeBreedr)
+#' snps <- paste0('S', 1:10, '_', 101:110)
+#' map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
+#' }
+#'
+#' @details
+#' The marker names to be parsed into a map file must contain the chromosome numbers
+#' and their positions
+#'
+#'
+#' @export
+#'
+parse_marker_ns <- function(x,
+                            sep = '_',
+                            prefix = 'S') {
+
+  # Throw up errors if separator and prefix are not common to all marker names
+  if (all(grepl(sep, x)) == FALSE) stop('The separator is not common to all marker names!')
+  if (all(grepl(prefix, x)) == FALSE) stop('The prefix is not common to all marker names!')
+
+  # Parse marker names to extract chromosome numbers and physical positions
+  df <- t(as.data.frame(strsplit(x, sep)))
+  df <- as.data.frame(df)
+  colnames(df) <- c('chr', 'pos')
+
+  # Get chromosome numbers
+  df$chr <- as.numeric(gsub(prefix, "", df$chr))
+
+  # Convert marker positions to numeric values
+  df$pos <- as.numeric(df$pos)
+
+  # Column bind original SNP IDs with df
+  df <- cbind(snpid = x, df)
+  rownames(df) <- NULL
+
+  return(df)
 
 }

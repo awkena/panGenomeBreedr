@@ -5,7 +5,7 @@ test_that("get_alleles works", {
                 replace = TRUE,
                 prob = c(.325, .25, .325, .05, .05))
 
-  allele_geno <- get_alleles(x = Call)
+  allele_geno <- get_alleles(x = Call, data_type = 'kasp')
 
   expect_equal(allele_geno$alleles, c('A', 'T'))
   expect_equal(allele_geno$genotypes, c(homo1 = 'A:A',
