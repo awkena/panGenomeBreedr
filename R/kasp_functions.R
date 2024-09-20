@@ -2501,7 +2501,7 @@ kasp_numeric <- function(x,
     snp <- as.vector(unname(x[, i]))
 
     # Subset and sort genotype calls
-    snp <- snp[!snp %in% non_geno_call]
+    # snp <- snp[!snp %in% non_geno_call]
 
     par_geno <- c(rp[i], dp[i])
 
