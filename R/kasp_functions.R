@@ -2399,8 +2399,10 @@ geno_error <- function(x,
 #' Convert processed KASP data to numeric genotypes
 #' @param x A data frame of n rows of genotypes and p rows of SNPs; output from
 #' `proc_kasp()` function.
-#' @param rp_row An integer indication the row index of recurrent or Parent 1.
-#' @param dp_row An integer indicating the row index of donor or Parent 2.
+#' @param rp_row An integer or character value indicating the row index or name
+#' of the recurrent or Parent 1.
+#' @param dp_row An integer or character value indicating the row index or name
+#' of donor or Parent 2.
 #' @param sep A character used as separator for genotype calls, default is a
 #' colon.
 #' @param uncallable A character indicating `Uncallable` genotype calls, if present.

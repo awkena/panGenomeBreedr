@@ -20,9 +20,11 @@ kasp_numeric(
 \item{x}{A data frame of n rows of genotypes and p rows of SNPs; output from
 `proc_kasp()` function.}
 
-\item{rp_row}{An integer indication the row index of recurrent or Parent 1.}
+\item{rp_row}{An integer or character value indicating the row index or name
+of the recurrent or Parent 1.}
 
-\item{dp_row}{An integer indicating the row index of donor or Parent 2.}
+\item{dp_row}{An integer or character value indicating the row index or name
+of donor or Parent 2.}
 
 \item{sep}{A character used as separator for genotype calls, default is a
 colon.}
