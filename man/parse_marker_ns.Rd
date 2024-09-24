@@ -19,12 +19,6 @@ names that precedes the chromome number; the default value is `S`.}
 \value{
 A data frame of map file consisting of the original marker names,
 chromosome numbers and positions.
-# example code
-\donttest{
-library(panGenomeBreedr)
-snps <- paste0('S', 1:10, '_', 101:110)
-map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
-}
 }
 \description{
 Parse marker names with a common pattern containing chromosome numbers and
@@ -33,4 +27,13 @@ positions into a map file.
 \details{
 The marker names to be parsed into a map file must contain the chromosome numbers
 and their positions
+}
+\examples{
+# example code
+\donttest{
+library(panGenomeBreedr)
+snps <- paste0('S', 1:10, '_', 101:110)
+map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
+}
+
 }

@@ -2550,6 +2550,8 @@ kasp_numeric <- function(x,
 #'
 #' @returns A data frame of map file consisting of the original marker names,
 #' chromosome numbers and positions.
+#'
+#' @examples
 #' # example code
 #' \donttest{
 #' library(panGenomeBreedr)
