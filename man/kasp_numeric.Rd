@@ -57,11 +57,14 @@ it's coded as monomorphic. Loci with progeny genotype calls different from RP
 and DP are coded as -2.
 }
 \examples{
-# example code
+
 \donttest{
-#' library(panGenomeBreedr)
+ # example code
+library(panGenomeBreedr)
+
 # Reshape KASP data for each master plate for the beta_carotene data
-plate_wide <- kasp_reshape_wide(x = beta_carotene,
+dat1 <- panGenomeBreedr::beta_carotene
+plate_wide <- kasp_reshape_wide(x = dat1,
                                 subset = 'MasterPlate',
                                 snp_id = 'SNPID',
                                 geno_call = 'Call',
@@ -71,31 +74,11 @@ plate_wide <- kasp_reshape_wide(x = beta_carotene,
 # Get Master Plate 1
 plate1 <- plate_wide$`SE-24-1088_P01_d1`
 
-# Generate a map for the beta_carotene KASP data
-kasp_map <- data.frame(SNPID = unique(beta_carotene$SNPID),
-                       SNPID_2 = paste0('snpSB', 1:4, '|', c(800, 803, 804, 805)),
-                       chr = c(1:4),
-                       pos = c(800, 803, 804, 805))
-
-# Process Plate1 to re-order SNPs based on chrom. and position
-proc_plate1 <- proc_kasp(x = plate1,
-                         kasp_map = kasp_map,
-                         map_snp_id = "SNPID",
-                         sample_id = "SubjectID",
-                         marker_start = 2,
-                         chr = 'chr',
-                         chr_pos = 'pos')
-
-# Check for genotype call  error for each SNP
-geno_mat <- geno_error(x = proc_plate1$ordered_geno,
-                  rp = 1,
-                  dp = 7,
-                  sep = ':')
-
 # Convert to numeric format for plotting
-num_geno <- kasp_numeric(x = geno_mat$geno_good,
+num_geno <- kasp_numeric(x = plate1[,-1],
                         rp_row = 1,
-                        dp_row = 7)
+                        dp_row = 7,
+                        data_type = 'kasp')
 
 }
 

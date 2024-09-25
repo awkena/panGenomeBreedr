@@ -20,10 +20,11 @@ geno_error(
 \item{x}{A data frame of genotype calls where all columns are SNPs and samples
 as rows. Row names are unique sample names.}
 
-\item{rp_row}{An integer indication the row index of the recurrent or Parent 1.}
+\item{rp_row}{An integer or character value indication the row index or name
+of the recurrent or Parent 1.}
 
-\item{dp_row}{An integer indicating the row index of the donor or Parent 2.
-on failed genotype call.}
+\item{dp_row}{An integer or character value indicating the row index or name
+of the donor or Parent 2.}
 
 \item{sep}{A character used as separator for genotype calls, default is a
 colon.}
@@ -53,9 +54,10 @@ Identify SNP loci with potential genotype call errors.
 \examples{
 # example code
 \donttest{
-#' library(panGenomeBreedr)
+library(panGenomeBreedr)
 # Reshape KASP data for each master plate for the beta_carotene data
-plate_wide <- kasp_reshape_wide(x = beta_carotene,
+dat1 <- panGenomeBreedr::beta_carotene
+plate_wide <- kasp_reshape_wide(x = dat1,
                                 subset = 'MasterPlate',
                                 snp_id = 'SNPID',
                                 geno_call = 'Call',
@@ -63,29 +65,12 @@ plate_wide <- kasp_reshape_wide(x = beta_carotene,
                                 blank = 'NTC')
 
 # Get Master Plate 1
-plate1 <- plate_wide$`MWCP-PLATE-1 SE-23-2021_P01`
-
 plate1 <- plate_wide$`SE-24-1088_P01_d1`
 
-# Generate a map for the beta_carotene KASP data
-kasp_map <- data.frame(SNPID = unique(beta_carotene$SNPID),
-                       SNPID_2 = paste0('snpSB', 1:4, '|', c(800, 803, 804, 805)),
-                       chr = c(1:4),
-                       pos = c(800, 803, 804, 805))
-
-# Process Plate1 to re-order SNPs based on chrom. and position
-proc_plate1 <- proc_kasp(x = plate1,
-                         kasp_map = kasp_map,
-                         map_snp_id = "SNPID",
-                         sample_id = "SubjectID",
-                         marker_start = 2,
-                         chr = 'chr',
-                         chr_pos = 'pos')
-
 # Check for genotype call  error for each SNP
-geno_mat <- geno_error(x = proc_plate1$ordered_geno,
+geno_mat <- geno_error(x = plate1[,-1],
                   rp_row = 1,
-                  dp_row = 2,
+                  dp_row = 7,
                   sep = ':',
                   data_type = 'kasp')
 }

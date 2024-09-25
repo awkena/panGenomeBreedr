@@ -26,12 +26,16 @@ positions into a map file.
 }
 \details{
 The marker names to be parsed into a map file must contain the chromosome numbers
-and their positions
+and their positions with a common separator, as well as a common pattern preceding
+the marker names. For instance, `S1_101` and `S2_102` have `S` as the common
+pattern preceding the marker names, `1` and `2` as the chromosome numbers, `101`
+and `102` as the positions, and `_` as the separator.
 }
 \examples{
-# example code
 \donttest{
+# example code
 library(panGenomeBreedr)
+
 snps <- paste0('S', 1:10, '_', 101:110)
 map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
 }

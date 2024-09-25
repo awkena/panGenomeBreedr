@@ -52,11 +52,12 @@ The data processing involves the following steps:
 8. Re-transpose data to make markers columns and samples as rows for plotting.
 }
 \examples{
-# example code
 \donttest{
-#' library(panGenomeBreedr)
+# example code
+library(panGenomeBreedr)
+dat1 <- panGenomeBreedr::beta_carotene
 # Reshape KASP data for each master plate for the beta_carotene data
-plate_wide <- kasp_reshape_wide(x = beta_carotene,
+plate_wide <- kasp_reshape_wide(x = dat1,
                                 subset = 'MasterPlate',
                                 snp_id = 'SNPID',
                                 geno_call = 'Call',
@@ -64,8 +65,6 @@ plate_wide <- kasp_reshape_wide(x = beta_carotene,
                                 blank = 'NTC')
 
 # Get Master Plate 1
-plate1 <- plate_wide$`MWCP-PLATE-1 SE-23-2021_P01`
-
 plate1 <- plate_wide$`SE-24-1088_P01_d1`
 
 # Generate a map for the beta_carotene KASP data
