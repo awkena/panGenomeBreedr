@@ -564,7 +564,7 @@ pred_status <- function(plate,
 }
 
 
-#' Generate summary of predicition for positive controls in KASP genotype data,
+#' Generate summary of prediction for positive controls in KASP genotype data,
 #' if present
 #' @param x A list object of KASP genotype calls processed by the `kasp_color()`
 #' function.
@@ -578,6 +578,8 @@ pred_status <- function(plate,
 #' calls in \code{x}.
 #' @param Group_unknown A character value representing unverified expected genotype status
 #' for samples, if present. No genotype prediction can be made for such samples.
+#' @param rate_out A logical value indicating whether to return raw counts or
+#' proportions of generated prediction summary.
 #'
 #' @returns A list object with plates and prediction summary as components.
 #'
@@ -610,7 +612,8 @@ pred_summary <- function(x,
                          Group_id = NULL,
                          blank = 'NTC',
                          Group_unknown = '?',
-                         geno_call = 'Call') {
+                         geno_call = 'Call',
+                         rate_out = FALSE) {
 
   if (!is.null(Group_id)) {
 
@@ -620,7 +623,7 @@ pred_summary <- function(x,
     # Get plate names
     plate_ns <- names(x)
 
-    # Create an empty list object to hold ggplots
+    # Create an empty list object to hold data for each plate
     res <- vector(mode = 'list', length = nplates)
     names(res) <- plate_ns
 
@@ -647,6 +650,12 @@ pred_summary <- function(x,
 
       df[i, 3:5] <- c('False' = fals, 'True' = tru, 'Unverified' = unkn)
 
+      if (rate_out == TRUE) {
+
+        df <- cbind(df[,1:2], round(df[,3:5]/rowSums(df[,3:5], na.rm = TRUE), 2))
+
+      }
+
       res[[i]] <- plate
 
     }
@@ -656,7 +665,6 @@ pred_summary <- function(x,
     stop("Provide value for the 'Group_id' argument.")
 
   }
-
 
   dat <- list(plates = res, summ = df)
 

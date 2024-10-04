@@ -2,7 +2,7 @@
 % Please edit documentation in R/kasp_functions.R
 \name{pred_summary}
 \alias{pred_summary}
-\title{Generate summary of predicition for positive controls in KASP genotype data,
+\title{Generate summary of prediction for positive controls in KASP genotype data,
 if present}
 \usage{
 pred_summary(
@@ -11,7 +11,8 @@ pred_summary(
   Group_id = NULL,
   blank = "NTC",
   Group_unknown = "?",
-  geno_call = "Call"
+  geno_call = "Call",
+  rate_out = FALSE
 )
 }
 \arguments{
@@ -32,12 +33,15 @@ for samples, if present. No genotype prediction can be made for such samples.}
 
 \item{geno_call}{A character value indicating the column name for KASP genotype
 calls in \code{x}.}
+
+\item{rate_out}{A logical value indicating whether to return raw counts or
+proportions of generated prediction summary.}
 }
 \value{
 A list object with plates and prediction summary as components.
 }
 \description{
-Generate summary of predicition for positive controls in KASP genotype data,
+Generate summary of prediction for positive controls in KASP genotype data,
 if present
 }
 \examples{
