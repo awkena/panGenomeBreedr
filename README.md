@@ -13,8 +13,8 @@ pangenomes, marker design, and marker QC hypothesis testing (Figure 1).
 It seeks to simplify and enhance the use of pangenome resources in
 cultivar development.
 
-|                                                                                                                                                                                                                                                                                                                                                         <img src='man/figures/workflow.png' align="center" style="width: 700px;" />                                                                                                                                                                                                                                                                                                                                                          |
-|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| <img src='man/figures/workflow.png' align="center" style="width: 700px;" /> |
+|:--:|
 | *Fig. 1. Imagined workflow for the `panGenomeBreedr` package for pangenome-enabled breeding. To develop trait-predictive, causal variant markers, the program takes manual inputs of candidate gene(s) and available pangenome resources for any crop. The program utilizes the input information to perform homology searches to identify orthologs/paralogs. The program, then, characterizes mutations within the input candidate gene to identify high-impact or putative causal variants (PCV). Identifying PCVs allows the program to design Trait-predictive markers. The program implements the validation of designed markers in a hypothesis-driven manner. The program can equally design other types of markers such as precision-introgression markers and background markers.* |
 
 In its current development version, `panGB` provides customizable
@@ -389,8 +389,8 @@ genome as PDF file (Figure 2).
 The `plot_file` argument specifies the path to the directory where the
 alignment should be saved – default is a temporary directory.
 
-|                       <img src='man/figures/alignment.png' align="center" style="width: 700px;" />                       |
-|:------------------------------------------------------------------------------------------------------------------------:|
+| <img src='man/figures/alignment.png' align="center" style="width: 700px;" /> |
+|:--:|
 | *Fig. 2. Alignment of the 100 bp upstream and downstream sequences to the reference genome used for KASP marker design.* |
 
 The required sequence for submission to Intertek for the designed KASp
@@ -662,10 +662,11 @@ for positive controls in each reaction plate after verification (Table
 # Get prediction summary for all plates
 library(panGenomeBreedr)
 my_sum <- pred_summary(x = dat1,
-                         snp_id = 'SNPID',
-                         Group_id = 'Group',
-                         Group_unknown = '?',
-                         geno_call = 'Call')
+                       snp_id = 'SNPID',
+                       Group_id = 'Group',
+                       Group_unknown = '?',
+                       geno_call = 'Call',
+                       rate_out = TRUE)
 ```
 
 <table>
@@ -700,13 +701,13 @@ SE-24-1088_P01_d1_snpSB00800
 snpSB00800
 </td>
 <td style="text-align:right;">
-4
+0.04
 </td>
 <td style="text-align:right;">
-6
+0.06
 </td>
 <td style="text-align:right;">
-84
+0.90
 </td>
 </tr>
 <tr>
@@ -717,13 +718,13 @@ SE-24-1088_P01_d2_snpSB00800
 snpSB00800
 </td>
 <td style="text-align:right;">
-2
+0.02
 </td>
 <td style="text-align:right;">
-6
+0.06
 </td>
 <td style="text-align:right;">
-86
+0.92
 </td>
 </tr>
 <tr>
@@ -734,13 +735,13 @@ SE-24-1088_P01_d1_snpSB00803
 snpSB00803
 </td>
 <td style="text-align:right;">
-0
+0.00
 </td>
 <td style="text-align:right;">
-32
+0.34
 </td>
 <td style="text-align:right;">
-62
+0.66
 </td>
 </tr>
 <tr>
@@ -751,13 +752,13 @@ SE-24-1088_P01_d2_snpSB00803
 snpSB00803
 </td>
 <td style="text-align:right;">
-0
+0.00
 </td>
 <td style="text-align:right;">
-32
+0.34
 </td>
 <td style="text-align:right;">
-62
+0.66
 </td>
 </tr>
 <tr>
@@ -768,13 +769,13 @@ SE-24-1088_P01_d1_snpSB00804
 snpSB00804
 </td>
 <td style="text-align:right;">
-1
+0.01
 </td>
 <td style="text-align:right;">
-31
+0.33
 </td>
 <td style="text-align:right;">
-62
+0.66
 </td>
 </tr>
 <tr>
@@ -785,13 +786,13 @@ SE-24-1088_P01_d2_snpSB00804
 snpSB00804
 </td>
 <td style="text-align:right;">
-1
+0.01
 </td>
 <td style="text-align:right;">
-31
+0.33
 </td>
 <td style="text-align:right;">
-62
+0.66
 </td>
 </tr>
 <tr>
@@ -802,13 +803,13 @@ SE-24-1088_P01_d1_snpSB00805
 snpSB00805
 </td>
 <td style="text-align:right;">
-14
+0.15
 </td>
 <td style="text-align:right;">
-18
+0.19
 </td>
 <td style="text-align:right;">
-62
+0.66
 </td>
 </tr>
 <tr>
@@ -819,17 +820,48 @@ SE-24-1088_P01_d2_snpSB00805
 snpSB00805
 </td>
 <td style="text-align:right;">
-14
+0.15
 </td>
 <td style="text-align:right;">
-18
+0.19
 </td>
 <td style="text-align:right;">
-62
+0.66
 </td>
 </tr>
 </tbody>
 </table>
+
+The output of the `pred_summary()` function can be visualized as bar
+plots using the `pred_summary_plot()` function as shown in the code
+snippet below:
+
+``` r
+# Get prediction summary for all plates
+library(panGenomeBreedr)
+my_sum <- my_sum$summ
+my_sum <- my_sum[my_sum$snp_id == 'snpSB00804',]
+
+ pred_summary_plot(x = my_sum,
+                    pdf = FALSE,
+                    pred_cols = c('false' = 'red', 'true' = 'blue',
+                                  'unverified' = 'orange2'),
+                    alpha = 1,
+                    text_size = 12,
+                    width = 6,
+                    height = 6,
+                    angle = 45)
+#> $snpSB00804
+```
+
+<div class="figure">
+
+<img src="man/figures/README-barplot-1.png" alt="Fig. 5. Match/Mismatch rate of predictions for positive controls." width="100%" />
+<p class="caption">
+Fig. 5. Match/Mismatch rate of predictions for positive controls.
+</p>
+
+</div>
 
 ### Plot Plate Design
 
@@ -844,9 +876,9 @@ plot_plate(dat1[5], pdf = FALSE)
 
 <div class="figure">
 
-<img src="man/figures/README-plate_05_design-1.png" alt="Fig. 5. Observed genotype calls for samples in Plate 5 in a plate design format." width="100%" />
+<img src="man/figures/README-plate_05_design-1.png" alt="Fig. 6. Observed genotype calls for samples in Plate 5 in a plate design format." width="100%" />
 <p class="caption">
-Fig. 5. Observed genotype calls for samples in Plate 5 in a plate design
+Fig. 6. Observed genotype calls for samples in Plate 5 in a plate design
 format.
 </p>
 
