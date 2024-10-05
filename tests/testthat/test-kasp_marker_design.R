@@ -1,6 +1,10 @@
 
 test_that("kasp_marker_design works", {
-  path1 <- "https://raw.githubusercontent.com/awkena/panGB/main/Chr02.fa.gz"
+ path1 <- "https://raw.githubusercontent.com/awkena/panGB/main/Chr02.fa.gz"
+
+  # path1 <-  system.file("extdata", "Chr02.fa.gz",
+  #                      package = "panGenomeBreedr",
+  #                      mustWork = TRUE)
   path2 <-  system.file("extdata", "Sobic.002G302700_SNP_snpeff.vcf",
                         package = "panGenomeBreedr",
                         mustWork = TRUE)
@@ -14,6 +18,7 @@ test_that("kasp_marker_design works", {
                             chr = "Chr02",
                             plot_draw = TRUE,
                             region_name = "ma1",
+                            plot_file = path,
                             maf = 0.05)
 
 

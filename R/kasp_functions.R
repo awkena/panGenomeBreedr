@@ -142,7 +142,7 @@ get_alleles <- function(x,
                         unused = '?',
                         others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short'),
                         data_type = c('kasp', 'agriplex')
-) {
+                        ) {
 
   data_type <- match.arg(data_type) # Match arguments
 
@@ -1472,6 +1472,9 @@ plot_plate <- function(x,
 #'# Example to design a KASP marker on a substitution variant
 #' path <- tempdir()
 #' path1 <- "https://raw.githubusercontent.com/awkena/panGB/main/Chr02.fa.gz"
+#' #path1 <-  system.file("extdata", "Chr02.fa.gz",
+#'                      #package = "panGenomeBreedr",
+#'                      #mustWork = TRUE)
 #' path2 <-  system.file("extdata", "Sobic.002G302700_SNP_snpeff.vcf",
 #'                      package = "panGenomeBreedr",
 #'                      mustWork = TRUE)
@@ -2573,5 +2576,155 @@ parse_marker_ns <- function(x,
   rownames(df) <- NULL
 
   return(df)
+
+}
+
+#' Create decision support bar plots of match vs. mismatch rates of KASP markers that had
+#'  predictions for positive controls.
+#' @param x A data frame object of prediction summaries of KASP markers
+#' returned by the `pred_summary()` function.
+#' @param pdf A logical value indicating whether to save plot as a pdf graphic
+#' device when TRUE or output plot in R when FALSE.
+#' @param pred_cols A named character vector of length = 3 of colors to be used for
+#' the prediction status legend for positive controls.
+#' @param filename A character value for path or file name for saving pdf.
+#' @param alpha A numeric value between 0 and 1 for modifying the
+#' opacity of colors.
+#' @param text_size A numeric value for setting text size.
+#' @param width A numeric value for the width of pdf device.
+#' @param height A numeric value for the height of pdf device.
+#' @param angle A numeric value for setting the angle placement for text on the
+#' axis.
+#' @param ... Other valid arguments that can be passed to ggplot2.
+#'
+#' @returns A graphic object or ggplot.
+#'
+#' @examples
+#' \donttest{
+#' # example code
+#' library(panGenomeBreedr)
+#' dat1 <- panGenomeBreedr::beta_carotene
+#' my_sum <- kasp_color(x = dat1,
+#'                         subset = 'plates',
+#'                         sep = ':',
+#'                         geno_call = 'Call',
+#'                         uncallable = 'Uncallable',
+#'                         unused = '?',
+#'                         blank = 'NTC') |>
+#'
+#' pred_summary(snp_id = 'SNPID',
+#'                Group_id = 'Group',
+#'                Group_unknown = '?',
+#'                geno_call = 'Call',
+#'                rate_out = TRUE)
+#'
+#' pred_summary_plot(x = my_sum$summ,
+#'                   pdf = FALSE,
+#'                   pred_cols = c('false' = 'red', 'true' = 'blue',
+#'                                 'unverified' = 'orange2'),
+#'                   alpha = 1,
+#'                   text_size = 12,
+#'                   width = 6,
+#'                   height = 6,
+#'                   angle = 45)
+#' }
+#'
+#' @import ggplot2
+#' @importFrom stats reshape
+#'
+#' @export
+
+pred_summary_plot <- function(x,
+                              pdf = FALSE,
+                              pred_cols = c('false' = 'red', 'true' = 'blue',
+                                            'unverified' = 'orange2'),
+                              filename = 'pred_summary_barplot',
+                              alpha = 1,
+                              text_size = 12,
+                              width = 6,
+                              height = 6,
+                              angle = 45,
+                              ...) {
+
+  # Create NULL variables for plate, snp_id and status
+  plate <- snp_id <- status <- counts <- NULL
+
+  # Check if input data contains these five column names:
+  # plate, snp_id, false, true, unverified, if FALSE, stop
+
+  if (!all(c('plate', 'snp_id', 'false', 'true', 'unverified') %in% colnames(x))) {
+
+    stop('Input data frame is not an output of the `pred_summary()` function')
+
+  }
+
+  ## Convert from Wide to long (direction = "long")
+  my_sum <- stats::reshape(x,
+                           direction = "long",
+                           idvar = c("plate"),
+                           v.names = "counts",
+                           timevar = 'status',
+                           times = c('false', 'true', 'unverified'),
+                           varying = c('false', 'true', 'unverified')
+  )
+
+  snps <- unique(my_sum$snp_id)
+  plate_ns <- unique(my_sum$plate)
+
+  # Create an empty list object to hold ggplots
+  gg_plts <- vector(mode = 'list', length = length(snps))
+  names(gg_plts) <- snps
+
+  for (i in snps) {
+
+    sub_dat <- my_sum[which(my_sum$snp_id == i),]
+
+    plt <- ggplot2::ggplot(sub_dat, ggplot2::aes(x = status, y = counts,
+                                                 fill = status)) +
+      ggplot2::geom_bar(position = "stack", stat = "identity") +
+      ggplot2::theme_bw() +
+      ggplot2::scale_y_continuous(limits = c(c(0, 1)), labels = function(x) paste0(x*100)) +
+      ggplot2::scale_fill_manual(values = ggplot2::alpha(pred_cols, alpha),
+                                 labels = c('Mismatch', 'Match', 'Unverified')) +
+      ggplot2::facet_wrap(ggplot2::vars(plate, snp_id)) +
+      ggplot2::labs(title = paste('Match/mismatch rates of markers'),
+                    x = "Prediction status", y = "Rate (%)") +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = angle,
+                                                         vjust = 1,
+                                                         hjust = 1),
+                     axis.line = ggplot2::element_line(linewidth = 0.2),
+                     plot.title = ggplot2::element_text(hjust = 0.5,
+                                                        face = 'bold',
+                                                        size = text_size),
+                     axis.text = ggplot2::element_text(size  = text_size,
+                                                       face = 'bold',
+                                                       color = 'black'),
+                     axis.title = ggplot2::element_text(size  = text_size + 4,
+                                                        face = 'bold',
+                                                        color = 'black'),
+                     legend.text = ggplot2::element_text(size  = text_size,
+                                                         color = 'black'),
+                     legend.title = ggplot2::element_text(size  = text_size,
+                                                          color = 'black',
+                                                          face = 'bold'))
+
+    gg_plts[[i]] <- plt
+
+  }
+
+  if (pdf == TRUE) {
+
+    ggplot2::ggsave(filename = paste0(filename, ".pdf"),
+                    plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
+                    device = "pdf",
+                    units = "in",
+                    width = width,
+                    height = height)
+
+  } else {
+
+    return(gg_plts)
+
+  }
 
 }
