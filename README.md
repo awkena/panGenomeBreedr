@@ -837,7 +837,7 @@ plots using the `pred_summary_plot()` function as shown in the code
 snippet below:
 
 ``` r
-# Get prediction summary for all plates
+# Get prediction summary for snp:snpSB00804
 library(panGenomeBreedr)
 my_sum <- my_sum$summ
 my_sum <- my_sum[my_sum$snp_id == 'snpSB00804',]
@@ -856,9 +856,9 @@ my_sum <- my_sum[my_sum$snp_id == 'snpSB00804',]
 
 <div class="figure">
 
-<img src="man/figures/README-barplot-1.png" alt="Fig. 5. Match/Mismatch rate of predictions for positive controls." width="100%" />
+<img src="man/figures/README-barplot-1.png" alt="Fig. 5. Match/Mismatch rate of predictions for snp: snpSB00804." width="100%" />
 <p class="caption">
-Fig. 5. Match/Mismatch rate of predictions for positive controls.
+Fig. 5. Match/Mismatch rate of predictions for snp: snpSB00804.
 </p>
 
 </div>

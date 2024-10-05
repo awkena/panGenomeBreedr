@@ -352,8 +352,8 @@ knitr::kable(my_sum$summ, caption = 'Table 3: Summary of verified prediction sta
 
 The output of the `pred_summary()` function can be visualized as bar plots using the `pred_summary_plot()` function as shown in the code snippet below:
 
-```{r barplot, fig.cap = "Fig. 5. Match/Mismatch rate of predictions for positive controls."}
-# Get prediction summary for all plates
+```{r barplot, fig.cap = "Fig. 5. Match/Mismatch rate of predictions for snp: snpSB00804."}
+# Get prediction summary for snp:snpSB00804
 library(panGenomeBreedr)
 my_sum <- my_sum$summ
 my_sum <- my_sum[my_sum$snp_id == 'snpSB00804',]
