@@ -84,11 +84,14 @@ required:
 
 ## Installation
 
+First, ensure all existing packages are up to date.
+
 You can install the development version of `panGenomeBreedr` from
 [GitHub](https://github.com/awkena/panGenomeBreedr) with:
 
 ``` r
-# install.packages("pak")
+if (!require("pak")) install.packages("pak")
+
 pak::pkg_install("awkena/panGenomeBreedr")
 ```
 
