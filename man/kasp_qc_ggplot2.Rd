@@ -18,7 +18,7 @@ kasp_qc_ggplot2(
   others = c("Missing", "Bad", "Dupe", "Over", "Short"),
   Group_id = NULL,
   Group_unknown = "?",
-  pred_cols = c(Blank = "black", False = "red", True = "blue", Unverified = "yellow2"),
+  pred_cols = c(Blank = "black", False = "red", True = "blue", Unverified = "orange2"),
   scale = FALSE,
   pdf = TRUE,
   width = 6,

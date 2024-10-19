@@ -305,6 +305,8 @@ kasp_pch <- function(x,
 #' @param others A character vector indicating other non-genotype calls in KASP
 #' genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
 #' `'Over', 'Short'`.
+#' @param assign_cols A named character vector of `length = 3` for assigning colors
+#' to the FAM, HEX and heterozygous genotype groups.
 #'
 #' @returns A list object with subset unit as component data frames.
 #'
@@ -335,7 +337,8 @@ kasp_color <- function(x,
                        uncallable = 'Uncallable',
                        unused = '?',
                        blank = 'NTC',
-                       others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short')) {
+                       others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short'),
+                       assign_cols = c(FAM = 'blue', HEX = 'red', het = 'orange2')) {
 
   # Get subset unit from data set
   plates <- x[, subset]
@@ -397,10 +400,10 @@ kasp_color <- function(x,
       pch_geno$pch[Color == het1 | Color == het2] <- 24
 
       # Assign colors based on LGC rules
-      Color[Color == HEX] <- "red" # HEX homozygote
-      Color[Color == FAM] <- "blue" # FAM homozygote
-      Color[Color == het1] <- "yellow2" # Heterozygote
-      Color[Color == het2] <- "yellow2" # Heterozygote
+      Color[Color == HEX] <- assign_cols['HEX'] # HEX homozygote
+      Color[Color == FAM] <- assign_cols['FAM'] # FAM homozygote
+      Color[Color == het1] <- assign_cols['het'] # Heterozygote
+      Color[Color == het2] <- assign_cols['het'] # Heterozygote
 
       # KASP FAM and HEX color coding for others
       Color[Color == uncallable] <- "darkmagenta"
@@ -417,7 +420,7 @@ kasp_color <- function(x,
     } else if (length(alleles) == 1) {
 
       homo1 <- paste(alleles[1], alleles[1], sep = sep) # homozygous genotype 1
-      Color[Color == homo1] <- "blue" # Homozygous 1
+      Color[Color == homo1] <- assign_cols['FAM'] # Homozygous 1
 
       # KASP FAM and HEX color coding for others
       Color[Color == uncallable] <- "darkmagenta"
@@ -1058,7 +1061,7 @@ kasp_qc_ggplot2 <- function(x,
                             Group_id = NULL,
                             Group_unknown = '?',
                             pred_cols = c('Blank' = 'black', 'False' = 'red',
-                                          'True' = 'blue', 'Unverified' = 'yellow2'),
+                                          'True' = 'blue', 'Unverified' = 'orange2'),
                             scale = FALSE,
                             pdf = TRUE,
                             width = 6,

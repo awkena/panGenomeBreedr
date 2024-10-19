@@ -12,7 +12,8 @@ kasp_color(
   uncallable = "Uncallable",
   unused = "?",
   blank = "NTC",
-  others = c("Missing", "Bad", "Dupe", "Over", "Short")
+  others = c("Missing", "Bad", "Dupe", "Over", "Short"),
+  assign_cols = c(FAM = "blue", HEX = "red", het = "orange2")
 )
 }
 \arguments{
@@ -37,6 +38,9 @@ genotype calls.}
 \item{others}{A character vector indicating other non-genotype calls in KASP
 genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
 `'Over', 'Short'`.}
+
+\item{assign_cols}{A named character vector of `length = 3` for assigning colors
+to the FAM, HEX and heterozygous genotype groups.}
 }
 \value{
 A list object with subset unit as component data frames.
