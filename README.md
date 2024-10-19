@@ -13,9 +13,9 @@ pangenomes, marker design, and marker QC hypothesis testing (Figure 1).
 It seeks to simplify and enhance the use of pangenome resources in
 cultivar development.
 
-| <img src='man/figures/workflow.png' align="center" style="width: 700px;" /> |
+| <img src='man/figures/workflow.png' align="center" style="width: 800px;" /> |
 |:--:|
-| *Fig. 1. Imagined workflow for the `panGenomeBreedr` package for pangenome-enabled breeding. To develop trait-predictive, causal variant markers, the program takes manual inputs of candidate gene(s) and available pangenome resources for any crop. The program utilizes the input information to perform homology searches to identify orthologs/paralogs. The program, then, characterizes mutations within the input candidate gene to identify high-impact or putative causal variants (PCV). Identifying PCVs allows the program to design Trait-predictive markers. The program implements the validation of designed markers in a hypothesis-driven manner. The program can equally design other types of markers such as precision-introgression markers and background markers.* |
+| *Fig. 1. Imagined workflow for the `panGenomeBreedr` package for pangenome-enabled breeding. To develop trait-predictive, functional markers, the program takes manual inputs of candidate gene(s) and available pangenome resources for any crop. The program utilizes the input information to perform homology searches to identify orthologs/paralogs. The program, then, characterizes mutations within the input candidate gene to identify high-impact or putative causal variants (PCV). Identifying PCVs allows the program to design functional trait-predictive markers. The program implements the validation of designed markers in a hypothesis-driven manner. The program can equally design other types of markers such as precision-introgression markers and background markers.* |
 
 In its current development version, `panGB` provides customizable
 functions for **KASP marker design and validation** (Steps 2 and 3 in
