@@ -539,7 +539,9 @@ dat1 <- kasp_color(x = kasp_dat,
                     geno_call = 'Call',
                     uncallable = 'Uncallable',
                     unused = '?',
-                    blank = 'NTC')
+                    blank = 'NTC',
+                   assign_cols = c(FAM = "blue", HEX = "gold" , 
+                                   het = "forestgreen"))
 ```
 
 The `kasp_color()` function requires the KASP genotype call file as a
@@ -604,8 +606,8 @@ library(panGenomeBreedr)
                   Group_id = 'Group',
                   Group_unknown = '?',
                   scale = TRUE,
-                  pred_cols = c('Blank' = 'black', 'False' = 'red',
-                                'True' = 'blue', 'Unverified' = 'yellow2'),
+                  pred_cols = c('Blank' = 'black', 'False' = 'firebrick3',
+                              'True' = 'cornflowerblue', 'Unverified' = 'beige'),
                   expand_axis = 0.6,
                   alpha = 0.9,
                   legend.pos.x = 0.6,
@@ -847,8 +849,8 @@ my_sum <- my_sum[my_sum$snp_id == 'snpSB00804',]
 
  pred_summary_plot(x = my_sum,
                     pdf = FALSE,
-                    pred_cols = c('false' = 'red', 'true' = 'blue',
-                                  'unverified' = 'orange2'),
+                    pred_cols = c('false' = 'firebrick3', 'true' = 'cornflowerblue',
+                                  'unverified' = 'beige'),
                     alpha = 1,
                     text_size = 12,
                     width = 6,
