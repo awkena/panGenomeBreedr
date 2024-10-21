@@ -33,8 +33,8 @@ in \code{kasp_map}.}
 in \code{kasp_map}.}
 }
 \value{
-A list consisting of re-ordered SNPs and oredered map based on chromosome
-number and chromosome positions.
+A list of two components consisting of re-ordered SNPs and map based
+on chromosome numbers and positions.
 }
 \description{
 Process reshaped KASP genotype data for heatmap plotting

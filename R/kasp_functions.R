@@ -2147,8 +2147,8 @@ kasp_reshape_wide <- function(x,
 #'                          chr = 'chr',
 #'                          chr_pos = 'pos')
 #' }
-#' @returns A list consisting of re-ordered SNPs and oredered map based on chromosome
-#' number and chromosome positions.
+#' @returns A list of two components consisting of re-ordered SNPs and map based
+#' on chromosome numbers and positions.
 #'
 #' @details
 #' This function is experimental and should only be used with reshaped KASP data.
