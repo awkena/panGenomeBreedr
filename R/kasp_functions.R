@@ -2789,6 +2789,7 @@ pred_summary_plot <- function(x,
 #'               map_file = map_file)
 #' }
 #'
+#' @importFrom reshape2 melt
 #' @export
 
 gg_dat <- function(num_mat,
