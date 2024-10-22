@@ -2449,7 +2449,7 @@ geno_error <- function(x,
 #' @details
 #' Re-coded as 1 if homozygous for Parent 1 allele; 0 if homozygous for Parent
 #' 2 allele, and 0.5 if heterozygous. If any of the parents SNP call is missing,
-#' it's coded as as NA. If the Parents 1 and 2 genotypes are the same for any snp,
+#' it's coded as as -5. If the Parents 1 and 2 genotypes are the same for any snp,
 #' it's coded as monomorphic. Loci with progeny genotype calls different from RP
 #' and DP are coded as -2.
 #'
@@ -2499,7 +2499,7 @@ kasp_numeric <- function(x,
     # Code loci as NA if any or all parent genotype call is NA
     if (anyNA(par_geno) || all(is.na(par_geno))) {
 
-      num_recode[,i] <- NA
+      num_recode[,i] <- -5
 
     } else if (length(unique(na.omit(snp))) == 1) {
 
