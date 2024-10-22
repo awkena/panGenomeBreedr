@@ -27,6 +27,7 @@ Imports:
     gridExtra,
     IRanges,
     msa,
+    reshape2,
     stats,
     utils,
     VariantAnnotation

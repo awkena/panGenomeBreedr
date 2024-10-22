@@ -2738,3 +2738,86 @@ pred_summary_plot <- function(x,
   }
 
 }
+
+#' Convert data matrix for genotypes to a long format data frame.
+#' @param num_mat A numeric or character data matrix with marker IDs as columns
+#' and sample IDs as row names.
+#' @param map_file A data frame of map file consisting of SNP IDs and their
+#' chromosome numbers and positions as columns.
+#' @param pos A character value indicating the column name for chromosome
+#' positions in map file.
+#'
+#' @returns A long format data frame object.
+#'
+#' @examples
+#' \donttest{
+#'  # example code
+#' library(panGenomeBreedr)
+#' # Set path to the directory where your data is located
+#' path1 <-  system.file("extdata", "agriplex_dat.csv",
+#'                       package = "panGenomeBreedr",
+#'                       mustWork = TRUE)
+#'
+#' # Import raw Agriplex data file
+#' geno <- read.csv(file = path1, header = TRUE, colClasses = c("character"))
+#'
+#' # Parse snp ids to generate a map file
+#' snps <- colnames(geno)[-c(1:6)] # Get snp ids
+#' map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
+#'
+#' # Process genotype data to re-order SNPs based on chromosome and positions
+#' stg5 <- proc_kasp(x = geno[geno$Batch == 3,], # stg5 NILs
+#'                   kasp_map = map_file,
+#'                   map_snp_id = "snpid",
+#'                   sample_id = "Genotype",
+#'                   marker_start = 7,
+#'                   chr = 'chr',
+#'                   chr_pos = 'pos')
+#'
+#' map_file <- stg5$ordered_map # Ordered map
+#' stg5 <- stg5$ordered_geno # Ordered geno
+#'
+#' # Convert to numeric format for plotting
+#' num_geno <- kasp_numeric(x = stg5,
+#'                          rp_row = 1, # Recurrent parent row ID
+#'                          dp_row = 3, # Donor parent row ID
+#'                          sep = ' / ',
+#'                          data_type = 'agriplex')
+#'
+#'  # Convert num_geno to a long format data frame
+#'  df <- gg_dat(num_mat = num_geno,
+#'               map_file = map_file)
+#' }
+#'
+#' @export
+
+gg_dat <- function(num_mat,
+                   map_file,
+                   pos = 'pos'
+) {
+
+  if(missing(num_mat)) stop("Provide numeric matrix of genotypes.")
+  if(missing(map_file)) stop("Provide map_file of SNP IDs.")
+
+  # Convert from numeric to characters
+  dat <- apply(num_mat, 2, as.character, simplify = TRUE)
+  colnames(dat) <- map_file[, pos] # Rename column names using positions
+  rownames(dat) <- rownames(num_mat) # Add sample IDs as row names
+
+  # Transform the matrix into long format
+  df <- reshape2::melt(dat)
+
+  # Rename columns
+  colnames(df) <- c("x", "y", "value")
+
+  # Sort data in ascending order of chromosomes
+  df <- df[order(df[, 'y'], decreasing = FALSE),]
+
+  # Convert x and y to factors
+  df$x <- factor(df$x, levels = rev(unique((df$x))))
+  df$y <- factor(df$y, levels = unique((df$y)))
+
+  return(df)
+
+}
+

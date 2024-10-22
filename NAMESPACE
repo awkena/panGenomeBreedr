@@ -2,6 +2,7 @@
 
 export(geno_error)
 export(get_alleles)
+export(gg_dat)
 export(kasp_color)
 export(kasp_marker_design)
 export(kasp_numeric)
