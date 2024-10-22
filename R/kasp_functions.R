@@ -2521,6 +2521,13 @@ kasp_numeric <- function(x,
 
   }
 
+  if (any(is.na(as.vector(num_recode)))) {
+
+    num_geno[is.na(as.vector(num_recode))] <- -5
+
+  }
+
+
   return(num_recode)
 
 }
