@@ -2221,12 +2221,12 @@ proc_kasp <- function(x,
 
   # Function to match SNP IDs in map file and geno file
 
-    new_snpids <- data.frame(ids = rownames(geno_mat))
+    new_snpids <- data.frame(snpid = rownames(geno_mat))
 
     # Match SNPID in geno_mat and kasp_map files
     df1 <- merge(x = new_snpids,
                  y = kasp_map,
-                 by.x = 'ids',
+                 by.x = 'snpid',
                  by.y = map_snp_id,
                  sort = FALSE)
 
@@ -2744,8 +2744,12 @@ pred_summary_plot <- function(x,
 #' and sample IDs as row names.
 #' @param map_file A data frame of map file consisting of SNP IDs and their
 #' chromosome numbers and positions as columns.
-#' @param pos A character value indicating the column name for chromosome
+#' @param map_pos A character value indicating the column name for chromosome
 #' positions in map file.
+#' @param map_snp_ids A character value indicating the column name for SNP IDs
+#' in \code{map_file}.
+#' @param map_chr A character value indicating the column name for chromosome IDs
+#' in \code{map_file}.
 #'
 #' @returns A long format data frame object.
 #'
@@ -2794,29 +2798,57 @@ pred_summary_plot <- function(x,
 
 gg_dat <- function(num_mat,
                    map_file,
-                   pos = 'pos'
+                   map_pos = 'pos',
+                   map_snp_ids = 'snpid',
+                   map_chr = 'chr'
 ) {
 
   if(missing(num_mat)) stop("Provide numeric matrix of genotypes.")
   if(missing(map_file)) stop("Provide map_file of SNP IDs.")
 
+  # Get column names of numeric matrix
+  colns <- data.frame(snpid = colnames(num_mat))
+
+  # Match SNPID in num_mat and map files
+  map_new <- merge(x = colns,
+                   y = map_file,
+                   by.x = 'snpid',
+                   by.y = map_snp_ids,
+                   sort = FALSE)
+
   # Convert from numeric to characters
   dat <- apply(num_mat, 2, as.character, simplify = TRUE)
-  colnames(dat) <- map_file[, pos] # Rename column names using positions
+  #colnames(dat) <- map_new[, map_pos] # Rename column names using positions
   rownames(dat) <- rownames(num_mat) # Add sample IDs as row names
 
   # Transform the matrix into long format
   df <- reshape2::melt(dat)
 
   # Rename columns
-  colnames(df) <- c("x", "y", "value")
+  colnames(df) <- c("x", "snpid", "value")
+
+  # Merge melted data and map files
+  df <- merge(x = df,
+              y = map_new,
+              by.x = 'snpid',
+              by.y = map_snp_ids,
+              sort = FALSE)
 
   # Sort data in ascending order of chromosomes
-  df <- df[order(df[, 'y'], decreasing = FALSE),]
+  df <- df[order(df[, map_chr], decreasing = FALSE),]
 
-  # Convert x and y to factors
-  df$x <- factor(df$x, levels = rev(unique((df$x))))
-  df$y <- factor(df$y, levels = unique((df$y)))
+  # Sort data in ascending order of physical positions per chromosome
+  grps <- split(df, df[, map_chr]) # Split genotype data into chr batches
+
+  # Function to order marker positions
+  ord_pos <- function(x) {
+    x[order(x[, map_pos], decreasing = FALSE),]
+  }
+
+  df <- lapply(grps, FUN = ord_pos)
+
+  # Row-bind sorted data for all chromosomes
+  df <- do.call(rbind, df)
 
   return(df)
 

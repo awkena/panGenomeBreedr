@@ -4,7 +4,13 @@
 \alias{gg_dat}
 \title{Convert data matrix for genotypes to a long format data frame.}
 \usage{
-gg_dat(num_mat, map_file, pos = "pos")
+gg_dat(
+  num_mat,
+  map_file,
+  map_pos = "pos",
+  map_snp_ids = "snpid",
+  map_chr = "chr"
+)
 }
 \arguments{
 \item{num_mat}{A numeric or character data matrix with marker IDs as columns
@@ -13,8 +19,14 @@ and sample IDs as row names.}
 \item{map_file}{A data frame of map file consisting of SNP IDs and their
 chromosome numbers and positions as columns.}
 
-\item{pos}{A character value indicating the column name for chromosome
+\item{map_pos}{A character value indicating the column name for chromosome
 positions in map file.}
+
+\item{map_snp_ids}{A character value indicating the column name for SNP IDs
+in \code{map_file}.}
+
+\item{map_chr}{A character value indicating the column name for chromosome IDs
+in \code{map_file}.}
 }
 \value{
 A long format data frame object.
