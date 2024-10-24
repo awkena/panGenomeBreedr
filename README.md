@@ -1832,7 +1832,7 @@ col <- c('-1' = 'grey70',
         '0.5' = 'yellow',
         '1' = 'coral1')
 
-labels <- c("Mono", "Missing", "DP", "Het", "RP")
+labels <- c("Monomorphic", "Missing", "BTx642", "Heterozygous", "BTx623")
 
 ggplot2::ggplot(df, ggplot2::aes(x = as.factor(pos), y = x, fill = value)) +
   ggplot2::geom_tile(lwd = 2, linetype = 1) +
