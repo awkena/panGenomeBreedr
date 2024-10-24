@@ -642,7 +642,7 @@ matches the observed genotype call for the sample.
 RED (color code for the FALSE category) means genotype prediction does
 not match the observed genotype call for the sample.
 
-YELLOW (color code for the UNVERIFIED category) means three things: an
+BEIGE (color code for the UNVERIFIED category) means three things: an
 expected genotype call could not be made before KASP genotyping, or an
 observed genotype call could not be made to verify the prediction.
 
@@ -885,6 +885,980 @@ plot_plate(dat1[5], pdf = FALSE)
 <p class="caption">
 Fig. 6. Observed genotype calls for samples in Plate 5 in a plate design
 format.
+</p>
+
+</div>
+
+# Other Breeder-Centered Functionalities in panGB
+
+`panGB` provides additional functionalities to test hypotheses on the
+success of trait introgression pipelines and crosses.
+
+Users can easily generate heatmaps that compare the genetic background
+of parents to progenies to ascertain if a target locus was successfully
+introgressed or check for the hybridity of F1s. These plots also allow
+users to get a visual insight into the amount of parent germplasm
+recovered in progenies.  
+To produce these plots, one needs to have either polymorphic low or
+mid-density marker data from service providers such as KASP, Agriplex
+and DArTag.
+
+## Working with Agriplex Mid-Density Marker Data
+
+Agriplex data is structurally different from KASP or DArTag data in
+terms of genotype call coding and formatting. Agriplex uses `' / '` as a
+separator for genotype calls for heterozygotes, and uses single
+nucleotides to represent homozygous SNP calls.
+
+## Creating Heatmaps with `panGB`
+
+To exemplify the steps for creating heatmap, we will use a mid-density
+marker data for three groups of near-isogenic lines (NILs) and their
+parents. The NILs and their parents were genotyped using the Agriplex
+platform. Each NIL group was genotyped using 2421 markers.
+
+The imported data frame has the markers as columns and genotyped samples
+as rows. It comes with some meta data about the samples. Marker names
+are informative: chromosome number and position coordinates are embedded
+in the marker names (`Eg. S1_778962: chr = 1, pos = 779862`).
+
+``` r
+
+# Set path to the directory where your data is located
+path1 <-  system.file("extdata", "agriplex_dat.csv",
+                       package = "panGenomeBreedr",
+                      mustWork = TRUE)
+
+# Import raw Agriplex data file
+geno <- read.csv(file = path1, header = TRUE, colClasses = c("character")) # genotype calls
+
+library(knitr)
+knitr::kable(geno[1:6, 1:10], caption = 'Table 4: Agriplex data format', format = 'html', booktabs = TRUE)
+```
+
+<table>
+<caption>
+Table 4: Agriplex data format
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Plate.name
+</th>
+<th style="text-align:left;">
+Well
+</th>
+<th style="text-align:left;">
+Sample_ID
+</th>
+<th style="text-align:left;">
+Batch
+</th>
+<th style="text-align:left;">
+Genotype
+</th>
+<th style="text-align:left;">
+Status
+</th>
+<th style="text-align:left;">
+S1_778962
+</th>
+<th style="text-align:left;">
+S1_1019896
+</th>
+<th style="text-align:left;">
+S1_1613105
+</th>
+<th style="text-align:left;">
+S1_1954298
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+RHODES_PLATE1
+</td>
+<td style="text-align:left;">
+D04
+</td>
+<td style="text-align:left;">
+NIL_1
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+RTx430a
+</td>
+<td style="text-align:left;">
+Recurrent parent
+</td>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+A
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RHODES_PLATE1
+</td>
+<td style="text-align:left;">
+F04
+</td>
+<td style="text-align:left;">
+NIL_2
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+RTx430b
+</td>
+<td style="text-align:left;">
+Recurrent parent
+</td>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+A
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RHODES_PLATE1
+</td>
+<td style="text-align:left;">
+G04
+</td>
+<td style="text-align:left;">
+NIL_3
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+IRAT204a
+</td>
+<td style="text-align:left;">
+Donor parent
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+C
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+A
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RHODES_PLATE1
+</td>
+<td style="text-align:left;">
+A05
+</td>
+<td style="text-align:left;">
+NIL_4
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+IRAT204b
+</td>
+<td style="text-align:left;">
+Donor Parent
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+C
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+A
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RHODES_PLATE1
+</td>
+<td style="text-align:left;">
+D07
+</td>
+<td style="text-align:left;">
+NIL_5
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+RMES1+\|+\_1
+</td>
+<td style="text-align:left;">
+NIL+
+</td>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+A
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RHODES_PLATE1
+</td>
+<td style="text-align:left;">
+F08
+</td>
+<td style="text-align:left;">
+NIL_6
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+RMES1+\|+\_2
+</td>
+<td style="text-align:left;">
+NIL+
+</td>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+A
+</td>
+</tr>
+</tbody>
+</table>
+
+To create a heatmap that compares the genetic background of parents and
+NILs across all marker, we need to process the raw Agriplex data into a
+numeric format for plotting. The panGB package has customizable data
+wrangling functions for KASP, Agriplex, and DArTag data.
+
+Since our imported Agriplex data has informative SNP IDs, we can use the
+`parse_marker_ns()` function to generate a map file, which can be passed
+to the `proc_kasp()` function to order the SNP markers according to
+their chromosome numbers and positions.
+
+The `kasp_numeric()` function converts the output of the `proc_kasp()`
+function into a numeric format for heatmap plotting.
+
+The next step would be to melt the numeric output matrix of the
+`kasp_numeric()` function into a tidy format for plotting.
+
+``` r
+
+# Parse snp ids to generate a map file
+library(panGenomeBreedr)
+snps <- colnames(geno)[-c(1:6)] # Get snp ids
+map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
+
+# Process genotype data to re-order SNPs based on chromosome and positions
+stg5 <- proc_kasp(x = geno[geno$Batch == 3,], # stg5 NILs
+                  kasp_map = map_file,
+                  map_snp_id = "snpid",
+                  sample_id = "Genotype",
+                  marker_start = 7,
+                  chr = 'chr',
+                  chr_pos = 'pos')
+
+map_file <- stg5$ordered_map # Ordered map
+stg5 <- stg5$ordered_geno # Ordered geno
+
+# Convert to numeric format for plotting
+num_geno <- kasp_numeric(x = stg5,
+                         rp_row = 1, # Recurrent parent row ID
+                         dp_row = 3, # Donor parent row ID
+                         sep = ' / ',
+                         data_type = 'agriplex')
+
+library(knitr)
+knitr::kable(num_geno[, 1:8], caption = 'Table 5: Agriplex data converted to a numeric format.', format = 'html', booktabs = TRUE)
+```
+
+<table>
+<caption>
+Table 5: Agriplex data converted to a numeric format.
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+S1_328467
+</th>
+<th style="text-align:right;">
+S1_402592
+</th>
+<th style="text-align:right;">
+S1_778962
+</th>
+<th style="text-align:right;">
+S1_825853
+</th>
+<th style="text-align:right;">
+S1_1019896
+</th>
+<th style="text-align:right;">
+S1_1218846
+</th>
+<th style="text-align:right;">
+S1_1613105
+</th>
+<th style="text-align:right;">
+S1_1727150
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+BTx623a
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BTx623b
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BTx642a
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BTx642b
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Stg5+\|+\_1
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Stg5+\|+\_2
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Stg5-\|-\_1
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Stg5-\|-\_2
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Stg5-\|-\_3
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+</tbody>
+</table>
+
+``` r
+
+# Get tidy format data for heatmap plotting
+df <- gg_dat(num_mat = num_geno,
+             map_file = map_file)
+
+knitr::kable(df[1:10,], caption = 'Table 6: Conversion from numeric matrix format to a tidy format.', format = 'html', booktabs = TRUE)
+```
+
+<table>
+<caption>
+Table 6: Conversion from numeric matrix format to a tidy format.
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+snpid
+</th>
+<th style="text-align:left;">
+x
+</th>
+<th style="text-align:left;">
+value
+</th>
+<th style="text-align:right;">
+chr
+</th>
+<th style="text-align:right;">
+pos
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+1.1
+</td>
+<td style="text-align:left;">
+S1_328467
+</td>
+<td style="text-align:left;">
+BTx623a
+</td>
+<td style="text-align:left;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+328467
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.2
+</td>
+<td style="text-align:left;">
+S1_328467
+</td>
+<td style="text-align:left;">
+BTx623b
+</td>
+<td style="text-align:left;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+328467
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.3
+</td>
+<td style="text-align:left;">
+S1_328467
+</td>
+<td style="text-align:left;">
+BTx642a
+</td>
+<td style="text-align:left;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+328467
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.4
+</td>
+<td style="text-align:left;">
+S1_328467
+</td>
+<td style="text-align:left;">
+BTx642b
+</td>
+<td style="text-align:left;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+328467
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.5
+</td>
+<td style="text-align:left;">
+S1_328467
+</td>
+<td style="text-align:left;">
+Stg5+\|+\_1
+</td>
+<td style="text-align:left;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+328467
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.6
+</td>
+<td style="text-align:left;">
+S1_328467
+</td>
+<td style="text-align:left;">
+Stg5+\|+\_2
+</td>
+<td style="text-align:left;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+328467
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.7
+</td>
+<td style="text-align:left;">
+S1_328467
+</td>
+<td style="text-align:left;">
+Stg5-\|-\_1
+</td>
+<td style="text-align:left;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+328467
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.8
+</td>
+<td style="text-align:left;">
+S1_328467
+</td>
+<td style="text-align:left;">
+Stg5-\|-\_2
+</td>
+<td style="text-align:left;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+328467
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.9
+</td>
+<td style="text-align:left;">
+S1_328467
+</td>
+<td style="text-align:left;">
+Stg5-\|-\_3
+</td>
+<td style="text-align:left;">
+-1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+328467
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.10
+</td>
+<td style="text-align:left;">
+S1_402592
+</td>
+<td style="text-align:left;">
+BTx623a
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+402592
+</td>
+</tr>
+</tbody>
+</table>
+
+All is now set to generate the heatmap using the `cross_qc_ggplot()`
+function, as shown in the code snippet below:
+
+``` r
+
+# Get prediction summary for snp:snpSB00804
+library(panGenomeBreedr)
+# Create a heatmap that compares the parents to progenies
+cross_qc_ggplot(x = df,
+                snp_ids = 'snpid',
+                geno_ids = 'x',
+                chr = 'chr',
+                chr_pos = 'pos',
+                value = 'value',
+                parents = c('BTx623', 'BTx642'),
+                group_sz = 5L,
+                pdf = FALSE,
+                legend_title = 'Heatmap_key',
+                alpha = 0.8,
+                text_size = 14)
+#> $Batch1
+```
+
+<div class="figure">
+
+<img src="man/figures/README-heatmap1-1.png" alt="Fig. 6. A heatmap that compares the genetic background of parents and NIL progenies for stg5 across all markers." width="100%" />
+<p class="caption">
+Fig. 6. A heatmap that compares the genetic background of parents and
+NIL progenies for stg5 across all markers.
+</p>
+
+</div>
+
+Users must specify the IDs for the two parents using the `parents`
+argument. In the code snippet above, the recurrent parent is `BTx623`
+and the donor parent for the *stg5* locus is `BTx642`.
+
+The `group_sz` argument must be specified to plot the heatmap in batches
+of progenies to avoid cluttering the plot with many observations.
+
+Users can set the `pdf = TRUE` argument to save plots as a PDF file in a
+directory outside R.
+
+To test the hypothesis that *stg5* NIL development was effective, we can
+generate a heatmap that zooms into the location of *stg5* on Chromosome
+1, as shown below:.
+
+``` r
+
+###########################################################################
+# stg5 NILs -- first 30 markers on Chr 1
+stg5_ch1 <- num_geno[, map_file$chr == 1][,1:30] # Subset data
+
+# Get map for subset data
+stg5_ch1_map <- map_file[map_file$chr == 1,][1:30,]
+
+# Get tidy format data for heatmap plotting
+df <- gg_dat(num_mat = stg5_ch1,
+             map_file = stg5_ch1_map)
+
+# Re-order levels of the sample ids before plotting
+df$x <- factor(df$x, levels = rev(unique(df$x)))
+
+# Heatmap plot using ggplot2
+if (!require('ggplot2')) install.packages('ggplot2')
+#> Loading required package: ggplot2
+
+main <- 'Stg5_NILs_Chr_1' # Legend title
+
+# Markers positions delimiting stg5 locus on chr 1
+stg5_pos <- c(start = 1019896, end = 1613105)
+
+# Blue = Missing; coral1 = RP; yellow = Het; purple = DP; grey70 = Mono
+col <- c('-1' = 'grey70',
+         '-5' = 'blue',
+        '0' = 'purple',
+        '0.5' = 'yellow',
+        '1' = 'coral1')
+
+labels <- c("Mono", "Missing", "DP", "Het", "RP")
+
+ggplot2::ggplot(df, ggplot2::aes(x = as.factor(pos), y = x, fill = value)) +
+  ggplot2::geom_tile(lwd = 2, linetype = 1) +
+  ggplot2::scale_fill_manual( values = col, label = labels, name = main) +
+  ggplot2::geom_vline(xintercept = as.character(stg5_pos), linetype = 2, 
+                      lwd = 2, col = 'black') +
+  ggplot2::xlab('Marker position (bp)') +
+  ggplot2::expand_limits(y = c(1, length(unique(df$x)) + 0.8)) +
+  ggplot2::theme(axis.text.y = ggplot2::element_text(size = 14),
+        axis.text.x = ggplot2::element_text(angle = -90, hjust = 0, size = 12),
+        axis.title.x = ggplot2::element_text(size = 14),
+        axis.title.y = ggplot2::element_blank(),
+        panel.background = ggplot2::element_blank(),
+        legend.text = ggplot2::element_text(size = 14),
+        legend.title = ggplot2::element_text(size = 14)) +
+  ggplot2::geom_hline(yintercept = c(as.numeric(df$x) + .5, .5),
+             col = 'white', lwd = 2) +
+  ggplot2::geom_text(ggplot2::aes(x = 6, y = 9.65, label = 'stg5'), size = 5)
+```
+
+<div class="figure">
+
+<img src="man/figures/README-heatmap2-1.png" alt="Fig. 7. Heatmap comparing the genetic background of parents to NILs on Chr1." width="100%" />
+<p class="caption">
+Fig. 7. Heatmap comparing the genetic background of parents to NILs on
+Chr1.
 </p>
 
 </div>
