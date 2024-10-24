@@ -2854,3 +2854,226 @@ gg_dat <- function(num_mat,
 
 }
 
+
+#' Create a heatmap to visualize and compare the genetic genetic backgrounds of
+#' genotypes/lines.
+#' @param x A data frame object obtained by melting a numeric matrix of genotype
+#' calls. It must contain the marker IDs, sample IDs, chromosome IDs and positions,
+#' as well as the values for the numeric codes.
+#' @param snp_ids A character value indicating the column name for marker IDs
+#' in \code{x}.
+#' @param geno_ids A character value indicating the column name for sample or
+#' genotype IDs in \code{x}.
+#' @param chr A character value indicating the column name for chromosome IDs
+#' in \code{x}.
+#' @param chr_pos A character value indicating the column name for chromosome
+#' positions in \code{x}.
+#' @param value A character value indicating the column name for the values for
+#' the numeric codes in \code{x}.
+#' @param parents A character vector of length = 2 for the IDs of parents.
+#' @param group_sz A positive integer value indicating the batch size for progenies
+#' to include in heatmap.
+#' @param pdf A logical value indicating whether to save plot as a pdf graphic
+#' device when TRUE or output plot in R when FALSE.
+#' @param filename A character value for path or file name for saving pdf.
+#' @param legend_title A character value for specifying plot legend title.
+#' @param alpha A numeric value between 0 and 1 for modifying the
+#' opacity of colors.
+#' @param text_size A numeric value for setting text size.
+#' @param width A numeric value for the width of pdf device.
+#' @param height A numeric value for the height of pdf device.
+#' @param ... Other valid arguments that can be passed to ggplot2.
+#'
+#' @return A graphic object or ggplot.
+#'
+#' @examples
+#' \donttest{
+#' # example code
+#' library(panGenomeBreedr)
+#'
+#' # Set path to the directory where your data is located
+#' path1 <-  system.file("extdata", "agriplex_dat.csv",
+#'                       package = "panGenomeBreedr",
+#'                       mustWork = TRUE)
+#'
+#' # Import raw Agriplex data file
+#' geno <- read.csv(file = path1, header = TRUE, colClasses = c("character"))
+#'
+#' # Get map file by parsing SNP IDs
+#' snps <- colnames(geno)[-c(1:6)] # Get snp ids
+#' map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
+#'
+#' # Process genotype data to re-order SNPs based on chromosome and positions
+#' stg5 <- proc_kasp(x = geno[geno$Batch == 3,], # stg5 NILs
+#'                   kasp_map = map_file,
+#'                   map_snp_id = "snpid",
+#'                   sample_id = "Genotype",
+#'                   marker_start = 7,
+#'                   chr = 'chr',
+#'                   chr_pos = 'pos')
+#'
+#' map_file <- stg5$ordered_map # Ordered map
+#' stg5 <- stg5$ordered_geno # Ordered geno
+#'
+#' # Convert to numeric format for plotting
+#' num_geno <- kasp_numeric(x = stg5,
+#'                          rp_row = 1, # Recurrent parent row ID
+#'                          dp_row = 3, # Donor parent row ID
+#'                          sep = ' / ',
+#'                          data_type = 'agriplex')
+#'
+#' # Melt num_geno into a tidy data frame
+#' df <- gg_dat(num_mat = num_geno,
+#'              map_file = map_file,
+#'              map_pos = 'pos',
+#'              map_chr = 'chr',
+#'              map_snp_ids = 'snpid')
+#'
+#' # Create a heatmap that compares the parents to progenies
+#' cross_qc_ggplot(x = df,
+#'                 snp_ids = 'snpid',
+#'                 geno_ids = 'x',
+#'                 chr = 'chr',
+#'                 chr_pos = 'pos',
+#'                 value = 'value',
+#'                 parents = c('BTx623', 'BTx642'),
+#'                 group_sz = 5L,
+#'                 pdf = FALSE,
+#'                 filename = 'background_heatmap',
+#'                 legend_title = 'Heatmap_key',
+#'                 alpha = 0.8,
+#'                 text_size = 14,
+#'                 width = 12,
+#'                 height = 10)
+#' }
+#'
+#' @export
+cross_qc_ggplot <- function(x,
+                            snp_ids = 'snpid',
+                            geno_ids = 'x',
+                            chr = 'chr',
+                            chr_pos = 'pos',
+                            value = 'value',
+                            parents,
+                            group_sz = 10L,
+                            pdf = FALSE,
+                            filename = 'background_heatmap',
+                            legend_title = 'Heatmap_key',
+                            alpha = 1,
+                            text_size = 12,
+                            width = 10.5,
+                            height = 8.5,
+                            ...){
+
+  if (missing(x)) stop("Please provide a melted data frame for the `x` argument.")
+  if (!inherits(x, what = 'data.frame')) stop("Argument `x` must be a data frame object.")
+  if (missing(parents)) stop("Please provide the value for the 'parents' argument.")
+  if (length(parents) != 2) stop("The `parents` argument must be a character vector of length = 2.")
+
+  snpid <- NULL # Define snpid as a global variable
+
+  # Rebuild input data frame with standardized column names
+  df <- data.frame(snpid = x[, snp_ids],
+                   x = x[, geno_ids],
+                   value = x[, value],
+                   chr = x[, chr],
+                   pos = x[, chr_pos])
+
+  # Convert chr column to a character if it is numeric
+  if (inherits(df[, chr], what = 'numeric')) {
+
+    df[, chr] <- sprintf('Chr%02s', df[, chr])
+    df[, chr] <- factor(df[, chr], levels = unique(df[, chr]))
+
+  }
+
+  # Subet parents data
+  parent_dat <- rbind(df[grepl(parents[1], df$x, fixed = TRUE),],
+                      df[grepl(parents[2], df$x, fixed = TRUE),])
+
+  # Subet progeny data
+  progeny_dat <- df[!df$x %in% parent_dat$x,]
+
+  # Set parameters for plotting progenies in batches
+  nprog <- length(unique(df$x)) - length(unique(parent_dat$x)) # Number of progenies
+
+  # Define start and end of batches
+  Batches_end <- c(rep(group_sz, floor(nprog/group_sz)), nprog %% group_sz)
+  Batches_end <- cumsum(Batches_end[Batches_end > 0])
+  Batches_start <- c(1, 1 + Batches_end[-length(Batches_end)])
+
+  nbatches <- length(Batches_start) # Number of batches to plot
+
+  # Create an empty list object to hold ggplots
+  gg_plts <- vector(mode = 'list', length = nbatches)
+  names(gg_plts) <- paste0('Batch', seq_len(nbatches))
+
+  # Color and labels for plotting
+  # Black = NAs; coral1 = RP; gold = Het; purple = DP; grey70 = Mono;
+  # cornflowerblue = geno_error
+  heatmap_col <- c('-5' = 'black',
+                   '-2' = 'cornflowerblue',
+                   '-1' = 'grey80',
+                   '0' = 'purple2',
+                   '0.5' = 'gold',
+                   '1' = 'coral2')
+
+  labels <- c('-5' = "Missing",
+              '-2' = 'Error',
+              '-1' = "Monomorphic",
+              '0' = "Parent_2",
+              '0.5' = "Heterozygous",
+              '1' = "Parent_1")
+
+  for(i in seq_len(nbatches)) {
+
+    # Subset data for each batch for plotting
+    batch_prog <- unique(progeny_dat$x)[Batches_start[i]:Batches_end[i]]
+    grp <- rbind(parent_dat, progeny_dat[progeny_dat$x %in% batch_prog,])
+
+    # Re-order levels of the sample ids
+    grp$x <- factor(grp$x, levels = rev(unique(grp$x)))
+    grp$snpid <- factor(grp$snpid, levels = unique(grp$snpid))
+
+    plt <- ggplot2::ggplot(grp, ggplot2::aes(x = snpid, y = x, fill = value)) +
+      ggplot2::geom_tile(lwd = 2, linetype = 1) +
+      ggplot2::scale_fill_manual( values = ggplot2::alpha(heatmap_col, alpha),
+                                  label = labels, name = legend_title) +
+      ggplot2::labs(x = 'Chromosome',
+                    title = paste("Heatmap for parents + progeny Batch", i)) +
+      ggplot2::theme(axis.text.y = ggplot2::element_text(size = text_size),
+                     axis.text.x = ggplot2::element_blank(),
+                     axis.title.x = ggplot2::element_text(size = text_size, face = 'bold'),
+                     axis.title.y = ggplot2::element_blank(),
+                     panel.background = ggplot2::element_blank(),
+                     plot.title = ggplot2::element_text(size = text_size, face = 'bold'),
+                     legend.text = ggplot2::element_text(size = text_size),
+                     legend.title = ggplot2::element_text(size = text_size, face = 'bold'),
+                     axis.ticks.x = ggplot2::element_blank(),
+                     strip.background = ggplot2::element_blank(),
+                     strip.text = ggplot2::element_text(size = text_size)) +
+      ggplot2::geom_hline(yintercept = c(as.numeric(grp$x) + .5, .5),
+                          col = 'white', lwd = 2.5) +
+      ggplot2::facet_wrap(ggplot2::vars(chr), ncol = length(unique(grp$chr)),
+                          nrow = 1, strip.position =  'bottom', scales = 'free_x')
+
+    gg_plts[[i]] <- plt
+
+  } # End of the loop
+
+  if (pdf == TRUE) {
+
+    ggplot2::ggsave(filename = paste0(filename, ".pdf"),
+                    plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
+                    device = "pdf",
+                    units = "in",
+                    width = width,
+                    height = height)
+
+  } else {
+
+    return(gg_plts)
+
+  }
+
+}
