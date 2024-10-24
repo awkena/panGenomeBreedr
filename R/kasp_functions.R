@@ -3021,9 +3021,9 @@ cross_qc_ggplot <- function(x,
   labels <- c('-5' = "Missing",
               '-2' = 'Error',
               '-1' = "Monomorphic",
-              '0' = "Parent_2",
+              '0' = parents[2],
               '0.5' = "Heterozygous",
-              '1' = "Parent_1")
+              '1' = parents[1])
 
   for(i in seq_len(nbatches)) {
 
