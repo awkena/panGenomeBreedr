@@ -1778,10 +1778,10 @@ cross_qc_ggplot(x = df,
 
 <div class="figure">
 
-<img src="man/figures/README-heatmap1-1.png" alt="Fig. 6. A heatmap that compares the genetic background of parents and NIL progenies for stg5 across all markers." width="100%" />
+<img src="man/figures/README-heatmap1-1.png" alt="Fig. 6. A heatmap that compares the genetic background of parents and stg5 NIL progenies across all markers." width="100%" />
 <p class="caption">
 Fig. 6. A heatmap that compares the genetic background of parents and
-NIL progenies for stg5 across all markers.
+stg5 NIL progenies across all markers.
 </p>
 
 </div>

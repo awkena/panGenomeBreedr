@@ -466,7 +466,7 @@ knitr::kable(df[1:10,], caption = 'Table 6: Conversion from numeric matrix forma
 All is now set to generate the heatmap using the `cross_qc_ggplot()` function, as shown in the code snippet below:  
 
 
-```{r heatmap1, fig.cap = "Fig. 6. A heatmap that compares the genetic background of parents and NIL progenies for stg5 across all markers.", fig.width=12, fig.height=8.5}
+```{r heatmap1, fig.cap = "Fig. 6. A heatmap that compares the genetic background of parents and stg5 NIL progenies across all markers.", fig.width=12, fig.height=8.5}
 
 # Get prediction summary for snp:snpSB00804
 library(panGenomeBreedr)
