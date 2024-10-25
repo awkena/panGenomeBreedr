@@ -1182,11 +1182,14 @@ their chromosome numbers and positions.
 
 The `kasp_numeric()` function converts the output of the `proc_kasp()`
 function into a numeric format (Table 5). The re-coding to numeric
-format is done as follows:  
-*`Homozygous for Parent 1 allele = 1`.
-*`Homozygous for Parent 2 allele = 0`. *`Heterozygous = 0.5`.
-*`Monomorphic loci = -1`. *`Loci with a suspected genotype error = -2`.
-*`Loci with at least one missing parental or any other genotype = -5`.
+format is done as follows:
+
+- Homozygous for Parent 1 allele = 1.
+- Homozygous for Parent 2 allele = 0.
+- Heterozygous = 0.5.
+- Monomorphic loci = -1.
+- Loci with a suspected genotype error = -2.
+- Loci with at least one missing parental or any other genotype = -5.
 
 The next step would be to melt the numeric output matrix of the
 `kasp_numeric()` function into a long tidy format using the `ggdat()`
@@ -1839,7 +1842,7 @@ stg5_pos <- c(start = 1019896, end = 1613105)
 col <- c('-1' = 'grey70',
          '-5' = 'blue',
         '0' = 'purple2',
-        '0.5' = 'yellow',
+        '0.5' = 'gold',
         '1' = 'coral2')
 
 labels <- c("Monomorphic", "Missing", "BTx642", "Heterozygous", "BTx623")
