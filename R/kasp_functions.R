@@ -2877,6 +2877,9 @@ gg_dat <- function(num_mat,
 #' device when TRUE or output plot in R when FALSE.
 #' @param filename A character value for path or file name for saving pdf.
 #' @param legend_title A character value for specifying plot legend title.
+#' @param col_mapping A character vector of length = 6 for heatmap color mapping.
+#' @param col_labels A character vector of length = 6 for labels corresponding to
+#' the color mapping.
 #' @param alpha A numeric value between 0 and 1 for modifying the
 #' opacity of colors.
 #' @param text_size A numeric value for setting text size.
@@ -2959,6 +2962,8 @@ cross_qc_ggplot <- function(x,
                             pdf = FALSE,
                             filename = 'background_heatmap',
                             legend_title = 'Heatmap_key',
+                            col_mapping,
+                            col_labels,
                             alpha = 1,
                             text_size = 12,
                             width = 10.5,
@@ -3011,19 +3016,29 @@ cross_qc_ggplot <- function(x,
   # Color and labels for plotting
   # Black = NAs; coral1 = RP; gold = Het; purple = DP; grey70 = Mono;
   # cornflowerblue = geno_error
-  heatmap_col <- c('-5' = 'black',
-                   '-2' = 'cornflowerblue',
-                   '-1' = 'grey80',
-                   '0' = 'purple2',
-                   '0.5' = 'gold',
-                   '1' = 'coral2')
 
-  labels <- c('-5' = "Missing",
-              '-2' = 'Error',
-              '-1' = "Monomorphic",
-              '0' = parents[2],
-              '0.5' = "Heterozygous",
-              '1' = parents[1])
+  if (missing(col_mapping)) {
+
+    col_mapping <- c('-5' = 'black',
+                     '-2' = 'cornflowerblue',
+                     '-1' = 'grey80',
+                     '0' = 'purple2',
+                     '0.5' = 'gold',
+                     '1' = 'coral2')
+
+  }
+
+  if (missing(col_labels)) {
+
+    col_labels <- c('-5' = "Missing",
+                    '-2' = 'Error',
+                    '-1' = "Monomorphic",
+                    '0' = parents[2],
+                    '0.5' = "Heterozygous",
+                    '1' = parents[1])
+
+
+  }
 
   for(i in seq_len(nbatches)) {
 
@@ -3037,8 +3052,8 @@ cross_qc_ggplot <- function(x,
 
     plt <- ggplot2::ggplot(grp, ggplot2::aes(x = snpid, y = x, fill = value)) +
       ggplot2::geom_tile(lwd = 2, linetype = 1) +
-      ggplot2::scale_fill_manual( values = ggplot2::alpha(heatmap_col, alpha),
-                                  label = labels, name = legend_title) +
+      ggplot2::scale_fill_manual( values = ggplot2::alpha(col_mapping, alpha),
+                                  label = col_labels, name = legend_title) +
       ggplot2::labs(x = 'Chromosome',
                     title = paste("Heatmap for parents + progeny Batch", i)) +
       ggplot2::theme(axis.text.y = ggplot2::element_text(size = text_size),

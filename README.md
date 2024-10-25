@@ -914,8 +914,8 @@ nucleotides to represent homozygous SNP calls.
 
 To exemplify the steps for creating heatmap, we will use a mid-density
 marker data for three groups of near-isogenic lines (NILs) and their
-parents. The NILs and their parents were genotyped using the Agriplex
-platform. Each NIL group was genotyped using 2421 markers.
+parents (Table 4). The NILs and their parents were genotyped using the
+Agriplex platform. Each NIL group was genotyped using 2421 markers.
 
 The imported data frame has the markers as columns and genotyped samples
 as rows. It comes with some meta data about the samples. Marker names
@@ -1171,9 +1171,9 @@ A
 </table>
 
 To create a heatmap that compares the genetic background of parents and
-NILs across all marker, we need to process the raw Agriplex data into a
-numeric format for plotting. The panGB package has customizable data
-wrangling functions for KASP, Agriplex, and DArTag data.
+NILs across all markers, we need to first process the raw Agriplex data
+into a numeric format. The panGB package has customizable data wrangling
+functions for KASP, Agriplex, and DArTag data.
 
 Since our imported Agriplex data has informative SNP IDs, we can use the
 `parse_marker_ns()` function to generate a map file, which can be passed
@@ -1181,10 +1181,17 @@ to the `proc_kasp()` function to order the SNP markers according to
 their chromosome numbers and positions.
 
 The `kasp_numeric()` function converts the output of the `proc_kasp()`
-function into a numeric format for heatmap plotting.
+function into a numeric format (Table 5). The re-coding to numeric
+format is done as follows:  
+*`Homozygous for Parent 1 allele = 1`.
+*`Homozygous for Parent 2 allele = 0`. *`Heterozygous = 0.5`.
+*`Monomorphic loci = -1`. *`Loci with a suspected genotype error = -2`.
+*`Loci with at least one missing parental or any other genotype = -5`.
 
 The next step would be to melt the numeric output matrix of the
-`kasp_numeric()` function into a tidy format for plotting.
+`kasp_numeric()` function into a long tidy format using the `ggdat()`
+function. This last conversion is necessary to allow us to use the
+`ggplot2` package for heatmap plotting.
 
 ``` r
 
@@ -1753,8 +1760,8 @@ BTx623a
 </tbody>
 </table>
 
-All is now set to generate the heatmap using the `cross_qc_ggplot()`
-function, as shown in the code snippet below:
+All is now set to generate the heatmap (Figure 6) using the
+`cross_qc_ggplot()` function, as shown in the code snippet below:
 
 ``` r
 
@@ -1771,7 +1778,7 @@ cross_qc_ggplot(x = df,
                 group_sz = 5L,
                 pdf = FALSE,
                 legend_title = 'Heatmap_key',
-                alpha = 0.8,
+                alpha = 1,
                 text_size = 14)
 #> $Batch1
 ```
@@ -1786,6 +1793,9 @@ stg5 NIL progenies across all markers.
 
 </div>
 
+The `cross_qc_ggplot()` function is a wrapper for functions in the
+`ggplot2` package.
+
 Users must specify the IDs for the two parents using the `parents`
 argument. In the code snippet above, the recurrent parent is `BTx623`
 and the donor parent for the *stg5* locus is `BTx642`.
@@ -1797,8 +1807,8 @@ Users can set the `pdf = TRUE` argument to save plots as a PDF file in a
 directory outside R.
 
 To test the hypothesis that *stg5* NIL development was effective, we can
-generate a heatmap that zooms into the location of *stg5* on Chromosome
-1, as shown below:.
+generate a heatmap (Figure 7) that zooms into the location of *stg5* on
+Chromosome 1, as shown below:
 
 ``` r
 
@@ -1828,9 +1838,9 @@ stg5_pos <- c(start = 1019896, end = 1613105)
 # Blue = Missing; coral1 = RP; yellow = Het; purple = DP; grey70 = Mono
 col <- c('-1' = 'grey70',
          '-5' = 'blue',
-        '0' = 'purple',
+        '0' = 'purple2',
         '0.5' = 'yellow',
-        '1' = 'coral1')
+        '1' = 'coral2')
 
 labels <- c("Monomorphic", "Missing", "BTx642", "Heterozygous", "BTx623")
 

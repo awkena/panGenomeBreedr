@@ -17,6 +17,8 @@ cross_qc_ggplot(
   pdf = FALSE,
   filename = "background_heatmap",
   legend_title = "Heatmap_key",
+  col_mapping,
+  col_labels,
   alpha = 1,
   text_size = 12,
   width = 10.5,
@@ -55,6 +57,11 @@ device when TRUE or output plot in R when FALSE.}
 \item{filename}{A character value for path or file name for saving pdf.}
 
 \item{legend_title}{A character value for specifying plot legend title.}
+
+\item{col_mapping}{A character vector of length = 6 for heatmap color mapping.}
+
+\item{col_labels}{A character vector of length = 6 for labels corresponding to
+the color mapping.}
 
 \item{alpha}{A numeric value between 0 and 1 for modifying the
 opacity of colors.}
