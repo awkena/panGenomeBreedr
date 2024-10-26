@@ -3128,8 +3128,8 @@ rm_mono <- function(mydata) {
 
   }
 
-  # Check for monomorphic loci
-  mono_check <- apply(mydata, 2, function(x) length(unique(x)) > 1)
+  # Check for monomorphic loci without NAs
+  mono_check <- apply(mydata, 2, function(x) length(unique(x[!is.na(x)])) > 1)
 
   # Remove monomorphic loci
   new_data <- mydata[,mono_check]
