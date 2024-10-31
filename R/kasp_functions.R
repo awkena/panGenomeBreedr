@@ -3301,3 +3301,52 @@ calc_rpp_bc <- function(x,
 }
 
 
+#' Compute theoretical RPP values for any specified backcross generation.
+#' @param bc_gen A positive integer value indicating the backcross generation.
+#' @param rpp2n A logical value indicating whether to compute theoretical RPP
+#' values for the F1 all BC generations up to \code{bc_gen}.
+#'
+#' @returns A named vector of theoretical RPP values.
+#'
+#' @examples
+#' # example code
+#' # Calculate theoretical RPP values up to BC5
+#' rpp_values <- calc_rpp_exp(bc_gen = 5, rpp2n = TRUE)
+#'
+#' @export
+
+calc_rpp_exp <- function(bc_gen = 1,
+                         rpp2n = FALSE) {
+
+  # Coerce input gen into an integer
+  bc_gen <- as.integer(bc_gen)
+
+  if (bc_gen < 0) stop('Input a positve integer for the `bc_gen` argument.')
+
+  # Loop over each generation and calculate RPP
+  if (rpp2n == TRUE ) {
+
+    if (bc_gen > 0) {
+
+      # Create a vector to store RPP values for each generation
+      rpp_values <- numeric(bc_gen + 1)
+
+      for (n in 0:bc_gen) {
+        rpp_values[n + 1] <- round(1 - 0.5^(n + 1), 4)
+      }
+
+      names(rpp_values) <- c('F1', paste0('bc', 1:bc_gen))
+
+    } else stop('BC generation must be greater than zero.!')
+
+  } else {
+
+    rpp_values <- round(1 - 0.5^(bc_gen + 1), 4)
+    names(rpp_values) <- paste0('bc', bc_gen)
+
+  }
+
+
+  return(rpp_values)
+}
+
