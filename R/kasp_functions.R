@@ -2893,40 +2893,22 @@ gg_dat <- function(num_mat,
 #' \donttest{
 #' # example code
 #' library(panGenomeBreedr)
+#' # Create a numeric matrix of genotype scores for 10 markers and 5 samples
+#' num_dat <- matrix(c(rep(1, 10), rep(0, 10),
+#'                     1, 1, 0.5, 1, 1, 1, 1, 1, 0, 1,
+#'                     1, 1, 0, 1, 1, 1, 1, 1, 1, 1,
+#'                     1, 1, 0, 1, 1, 1, 1, 1, 1, 0.5 ),
+#'                   byrow = TRUE, ncol = 10)
 #'
-#' # Set path to the directory where your data is located
-#' path1 <-  system.file("extdata", "agriplex_dat.csv",
-#'                       package = "panGenomeBreedr",
-#'                       mustWork = TRUE)
-#'
-#' # Import raw Agriplex data file
-#' geno <- read.csv(file = path1, header = TRUE, colClasses = c("character"))
+#' rownames(num_dat) <- c('rp', 'dp', paste0('bc1_', 1:3))
+#' colnames(num_dat) <- paste0('S1', '_', c(floor(seq(1000, 10000, len = 8)),
+#'                                          15000, 20000))
 #'
 #' # Get map file by parsing SNP IDs
-#' snps <- colnames(geno)[-c(1:6)] # Get snp ids
-#' map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
-#'
-#' # Process genotype data to re-order SNPs based on chromosome and positions
-#' stg5 <- proc_kasp(x = geno[geno$Batch == 3,], # stg5 NILs
-#'                   kasp_map = map_file,
-#'                   map_snp_id = "snpid",
-#'                   sample_id = "Genotype",
-#'                   marker_start = 7,
-#'                   chr = 'chr',
-#'                   chr_pos = 'pos')
-#'
-#' map_file <- stg5$ordered_map # Ordered map
-#' stg5 <- stg5$ordered_geno # Ordered geno
-#'
-#' # Convert to numeric format for plotting
-#' num_geno <- kasp_numeric(x = stg5,
-#'                          rp_row = 1, # Recurrent parent row ID
-#'                          dp_row = 3, # Donor parent row ID
-#'                          sep = ' / ',
-#'                          data_type = 'agriplex')
+#' map_file <- parse_marker_ns(colnames(num_dat))
 #'
 #' # Melt num_geno into a tidy data frame
-#' df <- gg_dat(num_mat = num_geno,
+#' df <- gg_dat(num_mat = num_dat,
 #'              map_file = map_file,
 #'              map_pos = 'pos',
 #'              map_chr = 'chr',
@@ -2939,15 +2921,13 @@ gg_dat <- function(num_mat,
 #'                 chr = 'chr',
 #'                 chr_pos = 'pos',
 #'                 value = 'value',
-#'                 parents = c('BTx623', 'BTx642'),
-#'                 group_sz = 5L,
+#'                 parents = c('rp', 'dp'),
+#'                 group_sz = 3L,
 #'                 pdf = FALSE,
-#'                 filename = 'background_heatmap',
 #'                 legend_title = 'Heatmap_key',
 #'                 alpha = 0.8,
-#'                 text_size = 14,
-#'                 width = 12,
-#'                 height = 10)
+#'                 text_size = 14)
+#'
 #' }
 #'
 #' @export
@@ -3137,3 +3117,187 @@ rm_mono <- function(mydata) {
   return(new_data)
 
 }
+
+#' Calculate the proportion of recurrent parent background (RPP) fully recovered
+#' in backcross progenies.
+#' @param x A numeric matrix of marker genotypes for backcross progenies and recurrent
+#' parent. Markers are columns and samples are rows.
+#' @param map_file A data frame of map file consisting of marker IDs and their
+#' chromosome numbers and positions as columns.
+#' @param map_pos A character value indicating the column name for chromosome
+#' positions in map file.
+#' @param map_snp_ids A character value indicating the column name for SNP IDs
+#' in \code{map_file}.
+#' @param map_chr A character value indicating the column name for chromosome IDs
+#' in \code{map_file}.
+#' @param rp An integer or character value indicating the row index or sample ID
+#' for the recurrent parent. if `NULL` the sample on the first row of \code{x} is
+#' used as the recurrent parent.
+#' @param rp_num_code A numeric value indicating the coding for the recurrent parent
+#' marker background in \code{x}.
+#' @param na_code A value indicating missing data in \code{x}.
+#' @param weighted A logical value indicating whether RPP values should be weighted
+#' or not.
+#'
+#' @details
+#' The weighted RPP is computed as the sum of the product of relative distance
+#' weighting of markers and genotype scores that match the recurrent parent.
+#' Marker weights are obtained as half the normalized ratio of the physical
+#' distance between marker `i` and marker `i+1` to the total distance for all
+#' ordered markers on a chromosome.
+#'
+#' The computation excludes heterozygous loci and only considers chromosome regions
+#' fully recovered as recurrent parent genetic background.
+#'
+#' @returns A data frame object comprising the RPP of sample IDs.
+#'
+#' @examples
+#' \donttest{
+#' # example code
+#' library(panGenomeBreedr)
+#' # Create a numeric matrix of genotype scores for 10 markers and 5 samples
+#' num_dat <- matrix(c(rep(1, 10), rep(0, 10),
+#'                     1, 1, 0.5, 1, 1, 1, 1, 1, 0, 1,
+#'                     1, 1, 0, 1, 1, 1, 1, 1, 1, 1,
+#'                     1, 1, 0, 1, 1, 1, 1, 1, 1, 0.5 ),
+#'                   byrow = TRUE, ncol = 10)
+#'
+#' rownames(num_dat) <- c('rp', 'dp', paste0('bc1_', 1:3))
+#' colnames(num_dat) <- paste0('S1', '_', c(floor(seq(1000, 10000, len = 8)),
+#'                                          15000, 20000))
+#'
+#' # Get map file by parsing SNP IDs
+#' map_file <- parse_marker_ns(colnames(num_dat))
+#'
+#' # Calculate weighted RPP
+#' rpp <- calc_rpp_bc(x = num_dat,
+#'                       map_file = map_file,
+#'                       map_chr = 'chr',
+#'                       map_pos = 'pos',
+#'                       map_snp_ids = 'snpid',
+#'                       rp = 1,
+#'                       rp_num_code = 1,
+#'                       weighted = TRUE)
+#' }
+#'
+#' @importFrom stats weighted.mean
+#'
+#' @export
+#'
+calc_rpp_bc <- function(x,
+                        map_file,
+                        map_chr = 'chr',
+                        map_pos = 'pos',
+                        map_snp_ids = 'snpid',
+                        rp = NULL,
+                        rp_num_code = 1,
+                        na_code = NA,
+                        weighted = TRUE){
+
+  if(missing(x)) stop("Provide numeric matrix of genotypes.")
+  if(missing(map_file)) stop("Provide map_file of marker IDs.")
+
+  # If RP is not defined use the first row as the recurrent parent
+  if (is.null(rp)){
+    rp <- 1
+  }
+
+  # Remove markers where RP is missing
+  if (!is.na(na_code)) {
+
+    x[rp,][which(x[rp,] == na_code)] <- NA
+
+  }
+
+  num_mat <- x[,!is.na(x[rp,])]
+
+
+  # Function for computing weights
+  cal_wt <- function(ordered_pos) {
+
+    # Calculate the number of markers
+    nmarkers <- length(ordered_pos)
+
+    # Calculate distances between adjacent markers
+    bp_dist <- diff(ordered_pos)
+
+    # Calculate relative weights
+    total_dist <- sum(bp_dist, na.rm = TRUE)
+    segment_wts <- bp_dist / total_dist
+
+    # Empty numeric vector to hold wt values
+    wts <- numeric(nmarkers)
+
+    # First marker: assign half of the first segment wt
+    wts[1] <- segment_wts[1] / 2
+
+    # Middle markers: average adjacent segment wts
+    for (i in 2:(nmarkers - 1)) {
+      wts[i] <- (segment_wts[i - 1] + segment_wts[i]) / 2
+    }
+
+    # Last marker: assign half of the last segment wt
+    wts[nmarkers] <- segment_wts[(nmarkers-1)] / 2
+
+    return(wts)
+
+  }
+
+  # Calculate weights for markers
+  if (weighted == TRUE) {
+
+    # Get column names of numeric matrix
+    colns <- data.frame(snpid = colnames(num_mat))
+
+    # Match marker IDs in num_mat and map files
+    map_new <- merge(x = colns,
+                     y = map_file,
+                     by.x = 'snpid',
+                     by.y = map_snp_ids,
+                     sort = FALSE)
+
+    # Sort data in ascending order of chromosomes in map file
+    map_new <- map_new[order(map_new[, map_chr], decreasing = FALSE),]
+
+    # Sort data in ascending order of physical positions per chromosome
+    grps <- split(map_new, map_new[, map_chr]) # Split genotype data into chr batches
+
+    # Function to order marker positions
+    ord_pos <- function(x) {
+      x[order(x[, map_pos], decreasing = FALSE),]
+    }
+
+    grps <- lapply(grps, FUN = ord_pos)
+
+    # Row-bind sorted data for all chromosomes
+    map_new <- do.call(rbind, grps)
+
+    wts <- unlist(lapply( split(map_new[, map_pos], map_new[, map_chr]),
+                          FUN = cal_wt))
+  }
+
+
+  # Proportion of fully recovered RP background
+  # x refers to each row in input numeric matrix
+  cal_rpp <- function(x) {
+
+    if (weighted == TRUE) {
+
+      stats::weighted.mean(x == rp_num_code, wts, na.rm = TRUE)
+
+    } else {
+
+      mean(x == rp_num_code, na.rm = TRUE) # Unweighted
+
+    }
+
+  }
+
+  rpp_df <- data.frame(sample_id = rownames(num_mat),
+                       rpp = round(apply(num_mat, 1, FUN = cal_rpp), 2))
+
+  return(rpp_df)
+
+}
+
+
