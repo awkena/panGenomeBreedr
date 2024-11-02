@@ -7,11 +7,10 @@ genotypes/lines.}
 \usage{
 cross_qc_ggplot(
   x,
+  map_file,
   snp_ids = "snpid",
-  geno_ids = "x",
   chr = "chr",
   chr_pos = "pos",
-  value = "value",
   parents,
   group_sz = 10L,
   pdf = FALSE,
@@ -27,24 +26,19 @@ cross_qc_ggplot(
 )
 }
 \arguments{
-\item{x}{A data frame object obtained by melting a numeric matrix of genotype
-calls. It must contain the marker IDs, sample IDs, chromosome IDs and positions,
-as well as the values for the numeric codes.}
+\item{x}{A numeric matrix with marker IDs as columns and sample IDs as row names.}
+
+\item{map_file}{A data frame of map file consisting of SNP IDs and their
+chromosome numbers and positions as columns.}
 
 \item{snp_ids}{A character value indicating the column name for marker IDs
 in \code{x}.}
-
-\item{geno_ids}{A character value indicating the column name for sample or
-genotype IDs in \code{x}.}
 
 \item{chr}{A character value indicating the column name for chromosome IDs
 in \code{x}.}
 
 \item{chr_pos}{A character value indicating the column name for chromosome
 positions in \code{x}.}
-
-\item{value}{A character value indicating the column name for the values for
-the numeric codes in \code{x}.}
 
 \item{parents}{A character vector of length = 2 for the IDs of parents.}
 
@@ -99,17 +93,10 @@ colnames(num_dat) <- paste0('S1', '_', c(floor(seq(1000, 10000, len = 8)),
 # Get map file by parsing SNP IDs
 map_file <- parse_marker_ns(colnames(num_dat))
 
-# Melt num_geno into a tidy data frame
-df <- gg_dat(num_mat = num_dat,
-             map_file = map_file,
-             map_pos = 'pos',
-             map_chr = 'chr',
-             map_snp_ids = 'snpid')
-
 # Create a heatmap that compares the parents to progenies
-cross_qc_ggplot(x = df,
+cross_qc_ggplot(x = num_dat,
+                map_file = map_file,
                 snp_ids = 'snpid',
-                geno_ids = 'x',
                 chr = 'chr',
                 chr_pos = 'pos',
                 value = 'value',

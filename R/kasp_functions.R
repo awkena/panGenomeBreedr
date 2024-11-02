@@ -2818,6 +2818,7 @@ gg_dat <- function(num_mat,
 
   # Convert from numeric to characters
   dat <- apply(num_mat, 2, as.character, simplify = TRUE)
+
   #colnames(dat) <- map_new[, map_pos] # Rename column names using positions
   rownames(dat) <- rownames(num_mat) # Add sample IDs as row names
 
@@ -2857,19 +2858,15 @@ gg_dat <- function(num_mat,
 
 #' Create a heatmap to visualize and compare the genetic genetic backgrounds of
 #' genotypes/lines.
-#' @param x A data frame object obtained by melting a numeric matrix of genotype
-#' calls. It must contain the marker IDs, sample IDs, chromosome IDs and positions,
-#' as well as the values for the numeric codes.
+#' @param x A numeric matrix with marker IDs as columns and sample IDs as row names.
+#' @param map_file A data frame of map file consisting of SNP IDs and their
+#' chromosome numbers and positions as columns.
 #' @param snp_ids A character value indicating the column name for marker IDs
 #' in \code{x}.
-#' @param geno_ids A character value indicating the column name for sample or
-#' genotype IDs in \code{x}.
 #' @param chr A character value indicating the column name for chromosome IDs
 #' in \code{x}.
 #' @param chr_pos A character value indicating the column name for chromosome
 #' positions in \code{x}.
-#' @param value A character value indicating the column name for the values for
-#' the numeric codes in \code{x}.
 #' @param parents A character vector of length = 2 for the IDs of parents.
 #' @param group_sz A positive integer value indicating the batch size for progenies
 #' to include in heatmap.
@@ -2907,17 +2904,10 @@ gg_dat <- function(num_mat,
 #' # Get map file by parsing SNP IDs
 #' map_file <- parse_marker_ns(colnames(num_dat))
 #'
-#' # Melt num_geno into a tidy data frame
-#' df <- gg_dat(num_mat = num_dat,
-#'              map_file = map_file,
-#'              map_pos = 'pos',
-#'              map_chr = 'chr',
-#'              map_snp_ids = 'snpid')
-#'
 #' # Create a heatmap that compares the parents to progenies
-#' cross_qc_ggplot(x = df,
+#' cross_qc_ggplot(x = num_dat,
+#'                 map_file = map_file,
 #'                 snp_ids = 'snpid',
-#'                 geno_ids = 'x',
 #'                 chr = 'chr',
 #'                 chr_pos = 'pos',
 #'                 value = 'value',
@@ -2932,11 +2922,10 @@ gg_dat <- function(num_mat,
 #'
 #' @export
 cross_qc_ggplot <- function(x,
+                            map_file,
                             snp_ids = 'snpid',
-                            geno_ids = 'x',
                             chr = 'chr',
                             chr_pos = 'pos',
-                            value = 'value',
                             parents,
                             group_sz = 10L,
                             pdf = FALSE,
@@ -2950,19 +2939,21 @@ cross_qc_ggplot <- function(x,
                             height = 8.5,
                             ...){
 
-  if (missing(x)) stop("Please provide a melted data frame for the `x` argument.")
-  if (!inherits(x, what = 'data.frame')) stop("Argument `x` must be a data frame object.")
+  if (missing(x)) stop("Please provide a numeric matrix for the `x` argument.")
+  if (!inherits(x, what = 'matrix')) stop("Argument `x` must be a matrix object.")
+  if (missing(map_file)) stop("Please provide a map file for the `map_file` argument.")
+  if (!inherits(map_file, what = 'data.frame')) stop("Argument `map_file` must be a data.frame object.")
   if (missing(parents)) stop("Please provide the value for the 'parents' argument.")
   if (length(parents) != 2) stop("The `parents` argument must be a character vector of length = 2.")
 
-  snpid <- NULL # Define snpid as a global variable
+  # Melt x into a data frame
+  df <- gg_dat(num_mat = x,
+               map_file = map_file,
+               map_pos = chr_pos,
+               map_chr = chr,
+               map_snp_ids = snp_ids)
 
-  # Rebuild input data frame with standardized column names
-  df <- data.frame(snpid = x[, snp_ids],
-                   x = x[, geno_ids],
-                   value = x[, value],
-                   chr = x[, chr],
-                   pos = x[, chr_pos])
+  snpid <- value  <- NULL # Define snpid as a global variable
 
   # Convert chr column to a character if it is numeric
   if (inherits(df[, chr], what = 'numeric')) {
@@ -2972,11 +2963,11 @@ cross_qc_ggplot <- function(x,
 
   }
 
-  # Subet parents data
+  # Subset parents data
   parent_dat <- rbind(df[grepl(parents[1], df$x, fixed = TRUE),],
                       df[grepl(parents[2], df$x, fixed = TRUE),])
 
-  # Subet progeny data
+  # Subset progeny data
   progeny_dat <- df[!df$x %in% parent_dat$x,]
 
   # Set parameters for plotting progenies in batches
@@ -3016,18 +3007,17 @@ cross_qc_ggplot <- function(x,
                     '0' = parents[2],
                     '0.5' = "Heterozygous",
                     '1' = parents[1])
-
-
   }
 
   for(i in seq_len(nbatches)) {
 
     # Subset data for each batch for plotting
-    batch_prog <- unique(progeny_dat$x)[Batches_start[i]:Batches_end[i]]
+    batch_prog <- sort(unique(progeny_dat$x))[Batches_start[i]:Batches_end[i]]
     grp <- rbind(parent_dat, progeny_dat[progeny_dat$x %in% batch_prog,])
 
     # Re-order levels of the sample ids
-    grp$x <- factor(grp$x, levels = rev(unique(grp$x)))
+    grp$x <- factor(grp$x, levels = rev(c(sort(unique(parent_dat$x)),
+                                          sort(unique(batch_prog)))))
     grp$snpid <- factor(grp$snpid, levels = unique(grp$snpid))
 
     plt <- ggplot2::ggplot(grp, ggplot2::aes(x = snpid, y = x, fill = value)) +
