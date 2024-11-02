@@ -3346,7 +3346,156 @@ calc_rpp_exp <- function(bc_gen = 1,
 
   }
 
-
   return(rpp_values)
+
 }
 
+
+#' Visualize computed RPP values for BC progenies as a bar plot.
+#' @param rpp_df A data frame containing the computed RPP values for each BC progeny.
+#' @param rpp_col A character value indicating the column name of RPP values in
+#' \code{rpp_df}.
+#' @param rpp_sample_id A character value indicating the column name of progeny IDs
+#' in \code{rpp_df}.
+#' @param bc_gen An integer value indicating the BC generation for the progenies
+#' \code{rpp_df}. This value is used to compute the nominal RPP values, if
+#' \code{rpp_threshold} `= NULL`.
+#' @param rpp_threshold A numeric value between  0 and 1 indicating the RPP
+#' threshold for selecting BC progenies.
+#' @param thresh_line_col A character value indicating the color of the threshold
+#' line.
+#' @param show_above_thresh A logical value indicating whether to subset \code{rpp_df}
+#' to show only lines that have RPP values greater or equal to the desired RPP
+#' threshold. Only the subset lines will be shown on the plot.
+#' @param text_size A numeric value for setting text size.
+#' @param text_scale_fct A numeric value for scaling text size. The default value
+#' is `20\%` of \code{text_size}.
+#' @param alpha A numeric value between 0 and 1 for modifying the
+#' opacity of colors.
+#' @param bar_width A numeric value for setting the width of plot bars.
+#' @param bar_col A character value for setting the color to fill plot bars.
+#' @param aspect_ratio A numeric value for setting the aspect ratio of the bar plot.
+#' @param pdf A logical value indicating whether to save plot as a pdf graphic
+#' device when TRUE or output plot in R when FALSE.
+#' @param filename A character value for path or file name for saving pdf.
+#' @param width A numeric value for the width of pdf device.
+#' @param height A numeric value for the height of pdf device.
+#'
+#' @returns A graphical or ggplot object.
+#'
+#' @examples
+#' \donttest{
+#' # example code
+#' library(panGenomeBreedr)
+#'
+#' # Observed RPP values
+#' rpp_df <- data.frame(sample_id = c('rp', 'dp', paste0('bc3_', 1:8)),
+#'                      rpp = c(1, 0, round(seq(0.75, 0.97, len = 8), 2)))
+#'
+#' # Generate bar plot for RPP values
+#' rpp_barplot(rpp_df,
+#'             rpp_threshold = 0.85,
+#'             text_size = 18,
+#'             text_scale_fct = 0.1,
+#'             alpha = 0.9,
+#'             bar_width = 0.5,
+#'             aspect_ratio = 0.5,
+#'             pdf = FALSE)
+#' }
+#'
+#' @export
+rpp_barplot <- function(rpp_df,
+                        rpp_col = 'rpp',
+                        rpp_sample_id = 'sample_id',
+                        bc_gen = NULL,
+                        rpp_threshold = NULL,
+                        thresh_line_col = 'coral2',
+                        show_above_thresh = FALSE,
+                        text_size = 15,
+                        text_scale_fct = 0.2,
+                        alpha = 0.5,
+                        bar_width = 0.5,
+                        bar_col = 'cornflowerblue',
+                        aspect_ratio = 0.5,
+                        pdf = FALSE,
+                        filename = 'rpp_barplot',
+                        width = 8,
+                        height = 6) {
+
+  # Set global variables
+  sample_id <- rpp <- NULL
+
+  # Rebuild input data frame with standardized column names
+  rpp_df <- data.frame(sample_id = rpp_df[, rpp_sample_id], rpp = rpp_df[, rpp_col])
+  rpp_df$sample_id <- factor(rpp_df$sample_id, levels = rev(unique(rpp_df$sample_id )))
+
+  # Subset to show only lines that have RPP above the desired RPP threshold
+  if (show_above_thresh == TRUE) {
+
+    rpp_df <- rpp_df[rpp_df[,rpp_col] >= rpp_threshold,]
+
+  }
+
+  # Use nominal RPP value as threshold if its value is NULL
+  # Or set to 0.9 if both bc_gen and threshold value are NULL
+  if (is.null(rpp_threshold)) {
+
+    if (!is.null(bc_gen)) {
+
+      rpp_threshold <- calc_rpp_exp(bc_gen)
+
+    } else rpp_threshold <- 0.9
+
+  }
+
+  plt <- ggplot2::ggplot(rpp_df, ggplot2::aes(x = rpp, y = sample_id)) +
+
+    ggplot2::geom_bar(position = 'dodge',
+                      stat = "identity",
+                      width = bar_width,
+                      color = ggplot2::alpha(bar_col, alpha),
+                      fill = ggplot2::alpha(bar_col, alpha)) +
+    ggplot2::geom_text(ggplot2::aes(x = .5, label = ifelse(rpp >= rpp_threshold, rpp * 100, "")),
+                       color = 'black',
+                       size = (text_size*bar_width)/(text_scale_fct*text_size)) +
+
+    ggplot2::scale_x_continuous(limits = c(c(0, 1)), labels = function(x) paste0(x*100)) +
+
+    ggplot2::geom_vline(xintercept = rpp_threshold, color = thresh_line_col, lwd = 2, lty = 2) +
+
+    ggplot2::labs(title = paste('Recurrent parent genome recovery in progenies'),
+                  x = "Observed RPP (%)", y = "Line") +
+
+    ggplot2::theme(axis.text.x = ggplot2::element_text(size = text_size),
+                   aspect.ratio = aspect_ratio,
+                   plot.background = ggplot2::element_blank(),
+                   panel.background = ggplot2::element_blank(),
+                   axis.line = ggplot2::element_line(linewidth = 0.2),
+                   plot.title = ggplot2::element_text(hjust = 0.5,
+                                                      face = 'bold',
+                                                      size = text_size),
+                   axis.text = ggplot2::element_text(size  = text_size,
+                                                     color = 'black'),
+                   axis.title = ggplot2::element_text(size  = text_size,
+                                                      face = 'bold',
+                                                      color = 'black'))
+
+  # Save plt as a pdf file
+  if (pdf == TRUE) {
+
+    plt <- list(plt)
+
+    ggplot2::ggsave(filename = paste0(filename, ".pdf"),
+                    plot = gridExtra::marrangeGrob(plt, nrow = 1, ncol = 1),
+                    device = "pdf",
+                    units = "in",
+                    width = width,
+                    height = height)
+  } else {
+
+    return(plt)
+
+  }
+
+
+}
