@@ -1692,12 +1692,15 @@ distance between adjacent markers, the weights can be calculated as
 follows:
 
 1.  **For the first marker** $i = 1$:
+
     $$w_1 = \frac{d_1}{2 \sum_{j=1}^{n-1} d_j}$$
 
 2.  **For a middle marker** $1 < i < n$:
+
     $$w_i = \frac{d_{i-1} + d_i}{2 \sum_{j=1}^{n-1} d_j}$$
 
 3.  **For the last marker** $i = n$:
+
     $$w_n = \frac{d_{n-1}}{2 \sum_{j=1}^{n-1} d_j}$$
 
 where: - $d_i$ is the distance between marker $i$ and marker $i+1$, -

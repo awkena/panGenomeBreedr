@@ -585,13 +585,16 @@ The `calc_rpp_bc()` function in `panGB` provides two algorithms for computing th
 ### Weighted RPP computation in panGenomeBreedr
 Let $w_i$ represent the weight for marker $i$, based on the relative distances to its adjacent markers. For a set of markers with positions $p_1, p_2, \ldots, p_n$, where $d_i = p_{i+1} - p_i$ represents the distance between adjacent markers, the weights can be calculated as follows:
 
-1. **For the first marker** $i = 1$:
+1. **For the first marker** $i = 1$:  
+
    $$w_1 = \frac{d_1}{2 \sum_{j=1}^{n-1} d_j}$$
 
-2. **For a middle marker** $1 < i < n$:
+2. **For a middle marker** $1 < i < n$:  
+
    $$w_i = \frac{d_{i-1} + d_i}{2 \sum_{j=1}^{n-1} d_j}$$
 
-3. **For the last marker** $i = n$:
+3. **For the last marker** $i = n$:  
+
    $$w_n = \frac{d_{n-1}}{2 \sum_{j=1}^{n-1} d_j}$$
 
 where:
@@ -599,7 +602,7 @@ where:
 - $sum_{j=1}^{n-1} d_j$ is the total distance across all segments, used for normalization.  
 
 
-Let $RPP$ represent the Recurrent Parent Proportion based on relative distance weighting. If $w_i$ is the weight for each marker $i$, and $m_i$ represents whether marker $i$ matches the recurrent parent $m_i = 1$ if it matches, $m_i = 0$ otherwise), then the weighted RPP is calculated as:
+Let $RPP$ represent the Recurrent Parent Proportion based on relative distance weighting. If $w_i$ is the weight for each marker $i$, and $m_i$ represents whether marker $i$ matches the recurrent parent $m_i = 1$ if it matches, $m_i = 0$ otherwise), then the weighted RPP is calculated as:  
 
 $$\text{RPP}_{\text{weighted}} = \sum_{i=1}^n w_i \cdot m_i$$
 
