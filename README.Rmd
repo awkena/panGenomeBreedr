@@ -565,6 +565,7 @@ rpp <- calc_rpp_bc(x = num_geno,
                    map_snp_ids = 'snpid',
                    rp = 1,
                    rp_num_code = 1,
+                   na_code = -5,
                    weighted = TRUE)
 
 # Generate bar plot for RPP values
