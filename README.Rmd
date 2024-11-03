@@ -507,7 +507,7 @@ knitr::kable(num_geno[, 1:8], caption = 'Table 6: Agriplex data converted to a n
 All is now set to generate the heatmap (Figure 6) using the `cross_qc_ggplot()` function, as shown in the code snippet below:  
 
 
-```{r heatmap1, fig.cap = "Fig. 6. A heatmap that compares the genetic background of parents and stg5 NIL progenies across all markers.", fig.width=12, fig.height=8.5}
+```{r heatmap1, fig.cap = "Fig. 6. A heatmap that compares the genetic background of parents and stg5 NIL progenies across all markers.", fig.width=12.5, fig.height=8.5}
 
 # Get prediction summary for snp:snpSB00804
 library(panGenomeBreedr)
@@ -540,7 +540,7 @@ Users can set the `pdf = TRUE` argument to save plots as a PDF file in a directo
 ## Trait Introgression Hypothesis Testing
 To test the hypothesis that the *stg5* NIL development was effective, we can use the `cross_qc_annotate()`  function to generate a heatmap (Figure 7) with an annotation of the position of the *stg5* locus on Chr 1, as shown below:  
 
-```{r heatmap2, fig.cap = "Fig. 7. Heatmap annotation of the *stg5* locus on Chr 1.", fig.width=12.5, fig.height=6.5}
+```{r heatmap2, fig.cap = "Fig. 7. Heatmap annotation of the stg5 locus on Chr 1.", fig.width=12.5, fig.height=6.5}
 
 ###########################################################################
 # Subset data for the first 30 markers on Chr 1

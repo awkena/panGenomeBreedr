@@ -1742,9 +1742,9 @@ cross_qc_annotate(x = stg5_ch1,
 
 <div class="figure">
 
-<img src="man/figures/README-heatmap2-1.png" alt="Fig. 7. Heatmap annotation of the *stg5* locus on Chr 1." width="100%" />
+<img src="man/figures/README-heatmap2-1.png" alt="Fig. 7. Heatmap annotation of the stg5 locus on Chr 1." width="100%" />
 <p class="caption">
-Fig. 7. Heatmap annotation of the *stg5* locus on Chr 1.
+Fig. 7. Heatmap annotation of the stg5 locus on Chr 1.
 </p>
 
 </div>
