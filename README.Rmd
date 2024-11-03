@@ -597,7 +597,8 @@ Let $w_i$ represent the weight for marker $i$, based on the relative distances t
 
    $$w_n = \frac{d_{n-1}}{2 \sum_{j=1}^{n-1} d_j}$$
 
-where:
+where:  
+
 - $d_i$ is the distance between marker $i$ and marker $i+1$,
 - $sum_{j=1}^{n-1} d_j$ is the total distance across all segments, used for normalization.  
 
@@ -606,7 +607,12 @@ Let $RPP$ represent the Recurrent Parent Proportion based on relative distance w
 
 $$RPP_{weighted} = \sum_{i=1}^n w_i\cdot m_i$$
 
-where:
+The unweighted RPP is calculated without the use of the weights, where each marker is equally weighted.  
+
+$$RPP_{unweighted} = \sum_{i=1}^n m_i$$
+
+where:  
+
 - $w_i$ is the weight of marker $i$, calculated based on the relative distance it covers,
 - $m_i$ is the match indicator for marker $i$ (1 if matching the recurrent parent, 0 otherwise),
 - $n$ is the total number of markers.

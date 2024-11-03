@@ -1703,9 +1703,11 @@ follows:
 
     $$w_n = \frac{d_{n-1}}{2 \sum_{j=1}^{n-1} d_j}$$
 
-where: - $d_i$ is the distance between marker $i$ and marker $i+1$, -
-$sum_{j=1}^{n-1} d_j$ is the total distance across all segments, used
-for normalization.
+where:
+
+- $d_i$ is the distance between marker $i$ and marker $i+1$,
+- $sum_{j=1}^{n-1} d_j$ is the total distance across all segments, used
+  for normalization.
 
 Let $RPP$ represent the Recurrent Parent Proportion based on relative
 distance weighting. If $w_i$ is the weight for each marker $i$, and
@@ -1715,10 +1717,18 @@ calculated as:
 
 $$RPP_{weighted} = \sum_{i=1}^n w_i\cdot m_i$$
 
-where: - $w_i$ is the weight of marker $i$, calculated based on the
-relative distance it covers, - $m_i$ is the match indicator for marker
-$i$ (1 if matching the recurrent parent, 0 otherwise), - $n$ is the
-total number of markers.
+The unweighted RPP is calculated without the use of the weights, where
+each marker is equally weighted.
+
+$$RPP_{unweighted} = \sum_{i=1}^n m_i$$
+
+where:
+
+- $w_i$ is the weight of marker $i$, calculated based on the relative
+  distance it covers,
+- $m_i$ is the match indicator for marker $i$ (1 if matching the
+  recurrent parent, 0 otherwise),
+- $n$ is the total number of markers.
 
 This formula provides the sum of the weighted contributions from each
 marker, representing the proportion of the recurrent parent genome in
