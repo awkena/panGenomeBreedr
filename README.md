@@ -39,10 +39,21 @@ Submit bug reports and feature suggestions, or track changes on the
 # Table of contents
 
 - [Requirements](#requirements)
-- [Recommended packages](#recommended-packages)
+- [Recommended packages](#recommended-packages)  
 - [Installation](#installation)
 - [Usage](#usage)
-  - [Examples](#examples)
+- [Examples](#examples)
+  - [KASP Marker Design](#kasp-marker-design)
+  - [KASP Marker Validation](#kasp-marker-validation)
+- [Other Breeder-Centered Functionalities in
+  panGB](#other-breeder-centered-functionalities-in-pangb)
+  - [Creating Heatmaps with `panGB`](#creating-heatmaps-with-pangb)
+  - [Trait Introgression Hypothesis
+    Testing](#trait-introgression-hypothesis-testing)
+  - [Decision Support for Marker-Assisted Backcrossing in
+    `panGB`](#decision-support-for-marker-assisted-backcrossing-in-pangb)
+  - [Weighted RPP computation in
+    panGB](#weighted-rpp-computation-in-pangb)
 - [Troubleshooting](#troubleshooting)
 - [Authors and contributors](#authors-and-contributors)
 - [License](#license)
@@ -61,6 +72,10 @@ required:
 
 - [utils](https://www.rdocumentation.org/packages/utils/versions/3.6.2):
   The R Utils Package.
+
+- [stats](https://www.rdocumentation.org/packages/stats/versions/3.6.2)
+
+- [reshape2](https://cran.r-project.org/web/packages/reshape2/index.html)
 
 - [VariantAnnotation](https://bioconductor.org/packages/release/bioc/html/VariantAnnotation.html)
 
@@ -898,10 +913,13 @@ Users can easily generate heatmaps that compare the genetic background
 of parents to progenies to ascertain if a target locus was successfully
 introgressed or check for the hybridity of F1s. These plots also allow
 users to get a visual insight into the amount of parent germplasm
-recovered in progenies.  
-To produce these plots, one needs to have either polymorphic low or
-mid-density marker data from service providers such as KASP, Agriplex
-and DArTag.
+recovered in progenies.
+
+To produce these plots, users must have either polymorphic low or
+mid-density marker data and a map file for the markers. **The map file
+must contain the marker IDs, their chromosome numbers and positions**.
+
+`panGB`can handle data from KASP, Agriplex and DArTag service providers.
 
 ## Working with Agriplex Mid-Density Marker Data
 
@@ -910,7 +928,7 @@ terms of genotype call coding and formatting. Agriplex uses `' / '` as a
 separator for genotype calls for heterozygotes, and uses single
 nucleotides to represent homozygous SNP calls.
 
-## Creating Heatmaps with `panGB`
+## Creating Heatmaps with panGB
 
 To exemplify the steps for creating heatmap, we will use a mid-density
 marker data for three groups of near-isogenic lines (NILs) and their
@@ -1179,12 +1197,14 @@ The `rm_mono()` function can be used to filter out all monomorphic loci
 from the data.
 
 Since our imported Agriplex data has informative SNP IDs, we can use the
-`parse_marker_ns()` function to generate a map file, which can be passed
-to the `proc_kasp()` function to order the SNP markers according to
-their chromosome numbers and positions.
+`parse_marker_ns()` function to generate a map file (Table 5) for the
+markers.  
+The generated map file is then passed to the `proc_kasp()` function to
+order the SNP markers according to their chromosome numbers and
+positions.
 
 The `kasp_numeric()` function converts the output of the `proc_kasp()`
-function into a numeric format (Table 5). The re-coding to numeric
+function into a numeric format (Table 6). The re-coding to numeric
 format is done as follows:
 
 - Homozygous for Parent 1 allele = 1.
@@ -1209,8 +1229,118 @@ stg5 <- rm_mono(stg5)
 # Parse snp ids to generate a map file
 snps <- colnames(stg5) # Get snp ids
 map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
+```
 
+<table>
+<caption>
+Table 5: Map file for the imported Agriplex data.
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+snpid
+</th>
+<th style="text-align:right;">
+chr
+</th>
+<th style="text-align:right;">
+pos
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+S1_778962
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+778962
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+S1_1613105
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1613105
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+S1_1954298
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1954298
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+S1_1985365
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1985365
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+S1_3751888
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+3751888
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+S1_13156348
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+13156348
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+S1_15905614
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+15905614
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+S1_18104582
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+18104582
+</td>
+</tr>
+</tbody>
+</table>
 
+``` r
 # Process genotype data to re-order SNPs based on chromosome and positions
 stg5 <- proc_kasp(x = stg5,
                   kasp_map = map_file,
@@ -1229,14 +1359,11 @@ num_geno <- kasp_numeric(x = stg5_ord,
                          dp_row = 3,
                          sep = ' / ',
                          data_type = 'agriplex')
-
-library(knitr)
-knitr::kable(num_geno[, 1:8], caption = 'Table 5: Agriplex data converted to a numeric format.', format = 'html', booktabs = TRUE)
 ```
 
 <table>
 <caption>
-Table 5: Agriplex data converted to a numeric format.
+Table 6: Agriplex data converted to a numeric format.
 </caption>
 <thead>
 <tr>
@@ -1579,10 +1706,12 @@ of progenies to avoid cluttering the plot with many observations.
 Users can set the `pdf = TRUE` argument to save plots as a PDF file in a
 directory outside R.
 
-To test the hypothesis that *stg5* NIL development was effective, we can
-use the `cross_qc_annotate()` function to generate a heatmap (Figure 7)
-with an annotation of the position of the *stg5* locus on Chromosome 1,
-as shown below:
+## Trait Introgression Hypothesis Testing
+
+To test the hypothesis that the *stg5* NIL development was effective, we
+can use the `cross_qc_annotate()` function to generate a heatmap (Figure
+7) with an annotation of the position of the *stg5* locus on Chr 1, as
+shown below:
 
 ``` r
 
@@ -1594,14 +1723,14 @@ stg5_ch1 <- num_geno[, map_file_ord$chr == 1][,1:30]
 stg5_ch1_map <- map_file_ord[map_file_ord$chr == 1,][1:30,]
 
 # Annotate a heatmap to show the stg5 locus on Chr 1
-# The locus is between positions 0.98 - 1.7 Mbp on Chr 1
+# The locus is between positions 0.98 - 1.8 Mbp on Chr 1
 cross_qc_annotate(x = stg5_ch1,
                   map_file = stg5_ch1_map,
                   snp_ids = 'snpid',
                   chr = 'chr',
                   chr_pos = 'pos',
                   parents = c("BTx623", "BTx642"),
-                  trait_pos = list(stg5 = c(start = .98e6, end = 1.85e6)),
+                  trait_pos = list(stg5 = c(start = .98e6, end = 1.8e6)),
                   text_scale_fct = 0.3,
                   group_sz = 5L,
                   pdf = FALSE,
@@ -1613,32 +1742,42 @@ cross_qc_annotate(x = stg5_ch1,
 
 <div class="figure">
 
-<img src="man/figures/README-heatmap2-1.png" alt="Fig. 7. Heatmap comparing the genetic background of parents to NILs on Chr1." width="100%" />
+<img src="man/figures/README-heatmap2-1.png" alt="Fig. 7. Heatmap annotation of the *stg5* locus on Chr 1." width="100%" />
 <p class="caption">
-Fig. 7. Heatmap comparing the genetic background of parents to NILs on
-Chr1.
+Fig. 7. Heatmap annotation of the *stg5* locus on Chr 1.
 </p>
 
 </div>
 
-In the code snippet above, the `trait_pos` argument was used to specify
-the position of the target locus (*stg5*) on chromosome one. Users can
-specify the positions of multiple target loci as components of a list
-object for annotation.
+In the code snippet above, the numeric matrix of genotype calls and its
+associated map file are required.
 
-In Figure 7, the color intensity correlates positively the marker
-density or coverage, thus, areas with no color (white vertical gaps)
+The recurrent and donor parents must be specified using the `parents`
+argument.
+
+The `snp_ids, chr, and chr_pos` arguments can be used to specify the
+column names for marker IDs, chromosome number and positions in the
+attached map file.  
+The `trait_pos` argument was used to specify the position of the target
+locus (*stg5*) on chromosome one. Users can specify the positions of
+multiple target loci as components of a list object for annotation.
+
+In Figure 7, the color intensity correlates positively with the marker
+density or coverage. Thus, areas with no color (white vertical gaps)
 depicts gaps in the marker coverage in the data.
 
-## Decision Support for Marker-Assisted Backcrossing in `panGB`
+## Decision Support for Marker-Assisted Backcrossing in panGB
 
 Users can use the `calc_rpp_bc()` function in `panGB` to calculate the
 proportion of recurrent parent background (RPP) fully recovered in
 backcross progenies.
 
+In the computation, partially regions are ignored, hence, heterozygous
+scores are not used.
+
 The output for he `calc_rpp_bc()` function can be passed to the
 `rpp_barplot()` function to visualize the computed RPP values for
-progenies as a bar plot. Users can specify an RPP threshold for easily
+progenies as a bar plot. Users can specify an RPP threshold to easily
 identify lines that have RPP values above or equal to the defined RPP
 threshold on the bar plot.
 
@@ -1681,16 +1820,18 @@ Fig. 8. Computed RPP values for the stg5 NILs.
 The `calc_rpp_bc()` function in `panGB` provides two algorithms for
 computing the observed RPP values: weighted and unweighted RPP values.
 We recommend the use of the weighted algorithm to account for
-differences in the marker coverage across the genome. The algorithm for
-the weighted RPP values is explained below.
+differences in the marker coverage across the genome.
 
-### Weighted RPP computation in panGenomeBreedr
+The algorithm for the weighted RPP values is explained below.
+
+### Weighted RPP Computation in panGB
 
 Let $w_i$ represent the weight for marker $i$, based on the relative
-distances to its adjacent markers. For a set of markers with positions
-$p_1, p_2, \ldots, p_n$, where $d_i = p_{i+1} - p_i$ represents the
-distance between adjacent markers, the weights can be calculated as
-follows:
+distances to its adjacent markers.
+
+For a set of markers with positions $p_1, p_2, \ldots, p_n$, where
+$d_i = p_{i+1} - p_i$ represents the distance between adjacent markers,
+the weights can be calculated as follows:
 
 1.  **For the first marker** $i = 1$:
 
@@ -1718,8 +1859,8 @@ calculated as:
 
 $$RPP_{weighted} = \sum_{i=1}^n w_i\cdot m_i$$
 
-The unweighted RPP is calculated without the use of the weights, where
-each marker is equally weighted.
+The unweighted RPP is calculated without the use of the weights as
+follows:
 
 $$RPP_{unweighted} = \sum_{i=1}^n m_i$$
 
@@ -1741,18 +1882,28 @@ If the package does not run as expected, check the following:
 
 - Was the package properly installed?
 
+- Do you have the required dependencies installed?
+
 - Were any warnings or error messages returned during package
   installation?
 
-- Do you have the required dependencies installed?
-
-- Are all packages up to date?
+- Are all packages up to date before installing panGB?
 
 # Authors and contributors
 
 - [Alexander Wireko Kena](https://www.github.com/awkena)
 
 - [Cruet Burgos](https://www.morrislab.org/people/clara-cruet-burgos)
+
+- [Linly Banda](https://www.biofortificationlab.org/people/linly-banda)
+
+- [Jacques
+  Faye](https://sites.google.com/site/morrislaboratory/people/jacques-faye)
+
+- [Fanna Maina](https://www.morrislab.org/people/fanna-maina)
+
+- [Terry
+  Felderhoff](https://www.agronomy.k-state.edu/about/people/faculty/felderhoff-terry/)
 
 - [Geoffrey Preston
   Morris](https://www.morrislab.org/people/geoff-morris)
