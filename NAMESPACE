@@ -2,6 +2,7 @@
 
 export(calc_rpp_bc)
 export(calc_rpp_exp)
+export(cross_qc_annotate)
 export(cross_qc_ggplot)
 export(geno_error)
 export(get_alleles)

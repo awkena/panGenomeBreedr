@@ -3489,3 +3489,254 @@ rpp_barplot <- function(rpp_df,
 
 
 }
+
+
+#' Annotate a heatmap to show introgressed loci positions.
+#' @inheritParams cross_qc_ggplot
+#' @param trait_pos A list object where the components correspond to the start and
+#' end positions of trait loci to annotate on the heapmap.
+#' @param text_scale_fct A numeric value for scaling text size. The default value
+#' is `50\%` of the defined text size.
+#'
+#' @return A graphic object or ggplot.
+#'
+#' @examples
+#' \donttest{
+#' # example code
+#' library(panGenomeBreedr)
+#' # Create a numeric matrix of genotype scores for 10 markers and 5 samples
+#' num_dat <- matrix(c(rep(1, 10), rep(0, 10),
+#'                     1, 1, 0.5, 1, 1, 1, 1, 1, 0, 1,
+#'                     1, 1, 0, 1, 1, 1, 1, 1, 1, 1,
+#'                     1, 1, 0, 1, 1, 1, 1, 1, 1, 0.5 ),
+#'                   byrow = TRUE, ncol = 10)
+#'
+#' rownames(num_dat) <- c('rp', 'dp', paste0('bc1_', 1:3))
+#' colnames(num_dat) <- paste0('S1', '_', c(floor(seq(1000, 10000, len = 8)),
+#'                                          15000, 20000))
+#'
+#' # Get map file by parsing SNP IDs
+#' map_file <- parse_marker_ns(colnames(num_dat))
+#'
+#' # Annotate a heatmap to show trait loci positions
+#' cross_qc_annotate(x = num_dat,
+#'                 map_file = map_file,
+#'                 snp_ids = 'snpid',
+#'                 chr = 'chr',
+#'                 chr_pos = 'pos',
+#'                 parents = c('rp', 'dp'),
+#'                 trait_pos = list(loc1 = c(start = 2900, end = 4200),
+#'                 loc2 = c(start = 14200, end = 15800)),
+#'                 text_scale_fct = 0.5,
+#'                 group_sz = 3L,
+#'                 pdf = FALSE,
+#'                 legend_title = 'BC1',
+#'                 alpha = 0.8,
+#'                 text_size = 15)
+#'
+#' }
+#'
+#' @export
+cross_qc_annotate <- function(x,
+                              map_file,
+                              snp_ids = 'snpid',
+                              chr = 'chr',
+                              chr_pos = 'pos',
+                              parents,
+                              trait_pos,
+                              group_sz = 10L,
+                              pdf = FALSE,
+                              filename = 'background_heatmap',
+                              legend_title = 'Heatmap_key',
+                              col_mapping,
+                              col_labels,
+                              alpha = 0.9,
+                              text_size = 12,
+                              text_scale_fct = 0.5,
+                              width = 10.5,
+                              height = 8.5,
+                              ...) {
+
+  if (missing(x)) stop("Please provide a numeric matrix for the `x` argument.")
+  if (!inherits(x, what = 'matrix')) stop("Argument `x` must be a matrix object.")
+  if (missing(map_file)) stop("Please provide a map file for the `map_file` argument.")
+  if (!inherits(map_file, what = 'data.frame')) stop("Argument `map_file` must be a data.frame object.")
+  if (missing(parents)) stop("Please provide the value for the 'parents' argument.")
+  if (length(parents) != 2) stop("The `parents` argument must be a character vector of length = 2.")
+  if (missing(trait_pos)) stop("Please provide a trait positions for the `trait_pos` argument.")
+  if (!inherits(trait_pos, what = 'list')) stop("Argument `trait_pos` must be a list object.")
+
+  snpid <- value <- map_dist <- pos  <- NULL # Define global variables
+
+  # Sort data in ascending order of chromosomes
+  map_file <- map_file[order(map_file[, chr], decreasing = FALSE),]
+
+  # Sort data in ascending order of physical positions per chromosome
+  grps <- split(map_file, map_file[, chr]) # Split genotype data into chr batches
+
+  # Function to order marker positions
+  ord_pos <- function(x) {
+    x[order(x[, chr_pos], decreasing = FALSE),]
+  }
+
+  map_file <- lapply(grps, FUN = ord_pos)
+
+  # Row-bind sorted data for all chromosomes
+  map_file <- do.call(rbind, map_file)
+
+  # Calculate inter-marker distances and add it to map file
+  map_dist <- lapply(split(map_file[, chr_pos], map_file[, chr]), FUN = diff)
+
+  map_dist <- unlist(lapply(map_dist, FUN = function(x) c(0, x)))
+
+  map_file <- cbind(map_file, map_dist = map_dist)
+
+  # Melt x into a data frame
+  df <- gg_dat(num_mat = x,
+               map_file = map_file,
+               map_pos = chr_pos,
+               map_chr = chr,
+               map_snp_ids = snp_ids)
+
+  # Subset parents data
+  parent_dat <- rbind(df[grepl(parents[1], df$x, fixed = TRUE),],
+                      df[grepl(parents[2], df$x, fixed = TRUE),])
+
+  # Subset progeny data
+  progeny_dat <- df[!df$x %in% parent_dat$x,]
+
+  # Set parameters for plotting progenies in batches
+  nprog <- length(unique(df$x)) - length(unique(parent_dat$x)) # Number of progenies
+
+  # Define start and end of batches
+  Batches_end <- c(rep(group_sz, floor(nprog/group_sz)), nprog %% group_sz)
+  Batches_end <- cumsum(Batches_end[Batches_end > 0])
+  Batches_start <- c(1, 1 + Batches_end[-length(Batches_end)])
+
+  nbatches <- length(Batches_start) # Number of batches to plot
+
+  # Create an empty list object to hold ggplots
+  gg_plts <- vector(mode = 'list', length = nbatches)
+  names(gg_plts) <- paste0('Batch', seq_len(nbatches))
+
+  # Color and labels for plotting
+  # Black = NAs; coral1 = RP; gold = Het; purple = DP; grey70 = Mono;
+  # cornflowerblue = geno_error
+
+  if (missing(col_mapping)) {
+
+    col_mapping <- c('-5' = 'black',
+                     '-2' = 'cornflowerblue',
+                     '-1' = 'grey80',
+                     '0' = 'purple2',
+                     '0.5' = 'gold',
+                     '1' = 'coral2')
+
+  }
+
+  if (missing(col_labels)) {
+
+    col_labels <- c('-5' = "Missing",
+                    '-2' = 'Error',
+                    '-1' = "Monomorphic",
+                    '0' = parents[2],
+                    '0.5' = "Heterozygous",
+                    '1' = parents[1])
+  }
+
+
+  # Annotate plot to show loci positions
+  annotate_loc <- function(gg_obj, trait_pos) {
+
+    # Get trait locus names if present, else generate names to use
+    if (!is.null(names(trait_pos))) {
+
+      pos_ns <- names(trait_pos)
+
+    } else {
+
+      pos_ns <- paste0('loc', 1:length(trait_pos))
+
+    }
+
+    gg_obj <- gg_obj
+
+    for (i in seq_len(length(pos_ns))) {
+
+      mid_pos <- mean(trait_pos[[i]], na.rm = TRUE)
+      locus_ns <- pos_ns[i]
+
+      gg_obj <- gg_obj +
+        ggplot2::geom_vline(xintercept = trait_pos[[i]], linetype = 2,
+                            lwd = 2, col = 'black') +
+        ggplot2::geom_text(x = mid_pos,
+                           y = length(unique(grp$x)) + 0.65,
+                           label = locus_ns,
+                           size = text_size/(text_scale_fct*text_size))
+    }
+
+    return(gg_obj)
+
+  }
+
+  for(i in seq_len(nbatches)) {
+
+    # Subset data for each batch for plotting
+    batch_prog <- sort(unique(progeny_dat$x))[Batches_start[i]:Batches_end[i]]
+    grp <- rbind(parent_dat, progeny_dat[progeny_dat$x %in% batch_prog,])
+
+    # Re-order levels of the sample ids
+    grp$x <- factor(grp$x, levels = rev(c(sort(unique(parent_dat$x)),
+                                          sort(unique(batch_prog)))))
+
+    grp$snpid <- factor(grp$snpid, levels = unique(grp$snpid))
+
+    # Plot heat map
+    plt <- ggplot2::ggplot(grp, ggplot2::aes(x = pos, y = x, fill = value,
+                                             width = map_dist)) +
+      ggplot2::geom_tile(lwd = 1, linetype = 1) +
+      ggplot2::geom_rug(ggplot2::aes(x = pos),
+                        sides = "b", length = grid::unit(0.02, "npc")) +
+      ggplot2::scale_fill_manual( values = ggplot2::alpha(col_mapping, alpha),
+                                  label = col_labels,
+                                  name = legend_title) +
+
+      ggplot2::xlab('Marker position (Mbp)') +
+      ggplot2::scale_x_continuous(labels = function(x) paste0(x/1e6)) +
+      ggplot2::expand_limits(y = c(1, length(unique(grp$x)) + 0.8)) +
+      ggplot2::theme(axis.text.y = ggplot2::element_text(size = text_size,
+                                                         face = 'bold'),
+                     axis.ticks.length.y = ggplot2::unit(0.25, 'cm'),
+                     axis.text.x = ggplot2::element_text(angle = 0, hjust = 0,
+                                                         size = text_size),
+                     axis.title.x = ggplot2::element_text(size = text_size,
+                                                          face = 'bold'),
+                     axis.title.y = ggplot2::element_blank(),
+                     panel.background = ggplot2::element_blank(),
+                     legend.text = ggplot2::element_text(size = text_size),
+                     legend.title = ggplot2::element_text(size = text_size)) +
+      ggplot2::geom_hline(yintercept = c(as.numeric(grp$x) + .5, .5),
+                          col = 'white', lwd = 2.5)
+
+    # Annotate heatmap to show locus positions
+    plt <- annotate_loc(gg_obj = plt, trait_pos)
+
+    gg_plts[[i]] <- plt
+
+  } # End of the loop
+
+  if (pdf == TRUE) {
+
+    ggplot2::ggsave(filename = paste0(filename, ".pdf"),
+                    plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
+                    device = "pdf",
+                    units = "in",
+                    width = width,
+                    height = height)
+  } else {
+
+    return(gg_plts)
+
+  }
+
+}
