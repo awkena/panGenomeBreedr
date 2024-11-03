@@ -1594,15 +1594,15 @@ stg5_ch1 <- num_geno[, map_file_ord$chr == 1][,1:30]
 stg5_ch1_map <- map_file_ord[map_file_ord$chr == 1,][1:30,]
 
 # Annotate a heatmap to show the stg5 locus on Chr 1
-# The locus is between positions 1 - 1.7 Mbp on Chr 1
+# The locus is between positions 0.98 - 1.7 Mbp on Chr 1
 cross_qc_annotate(x = stg5_ch1,
                   map_file = stg5_ch1_map,
                   snp_ids = 'snpid',
                   chr = 'chr',
                   chr_pos = 'pos',
                   parents = c("BTx623", "BTx642"),
-                  trait_pos = list(stg5 = c(start = 1e6, end = 1.7e6)),
-                  text_scale_fct = 0.2,
+                  trait_pos = list(stg5 = c(start = .98e6, end = 1.8e6)),
+                  text_scale_fct = 0.3,
                   group_sz = 5L,
                   pdf = FALSE,
                   legend_title = 'Stg5_NILs',
@@ -1627,8 +1627,8 @@ specify the positions of multiple target loci as components of a list
 object for annotation.
 
 In Figure 7, the color intensity correlates positively the marker
-density or coverage, thus, areas with no color (white gaps) depicts gaps
-in the marker coverage in the data.
+density or coverage, thus, areas with no color (white vertical gaps)
+depicts gaps in the marker coverage in the data.
 
 ## Decision Support for Marker-Assisted Backcrossing in `panGB`
 
