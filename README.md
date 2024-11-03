@@ -1175,6 +1175,9 @@ NILs across all markers, we need to first process the raw Agriplex data
 into a numeric format. The panGB package has customizable data wrangling
 functions for KASP, Agriplex, and DArTag data.
 
+The `rm_mono()` function can be used to filter out all monomorphic loci
+from the data.
+
 Since our imported Agriplex data has informative SNP IDs, we can use the
 `parse_marker_ns()` function to generate a map file, which can be passed
 to the `proc_kasp()` function to order the SNP markers according to
@@ -1191,34 +1194,39 @@ format is done as follows:
 - Loci with a suspected genotype error = -2.
 - Loci with at least one missing parental or any other genotype = -5.
 
-The next step would be to melt the numeric output matrix of the
-`kasp_numeric()` function into a long tidy format using the `ggdat()`
-function. This last conversion is necessary to allow us to use the
-`ggplot2` package for heatmap plotting.
-
 ``` r
 
 # Parse snp ids to generate a map file
 library(panGenomeBreedr)
-snps <- colnames(geno)[-c(1:6)] # Get snp ids
+
+# Data for stg5 NILs
+stg5 <- geno[geno$Batch == 3, -c(1:6)] 
+rownames(stg5) <- geno$Genotype[17:25]
+
+# Remove monomorphic loci from data
+stg5 <- rm_mono(stg5)
+
+# Parse snp ids to generate a map file
+snps <- colnames(stg5) # Get snp ids
 map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
 
+
 # Process genotype data to re-order SNPs based on chromosome and positions
-stg5 <- proc_kasp(x = geno[geno$Batch == 3,], # stg5 NILs
+stg5 <- proc_kasp(x = stg5,
                   kasp_map = map_file,
                   map_snp_id = "snpid",
                   sample_id = "Genotype",
-                  marker_start = 7,
+                  marker_start = 1,
                   chr = 'chr',
                   chr_pos = 'pos')
 
-map_file <- stg5$ordered_map # Ordered map
-stg5 <- stg5$ordered_geno # Ordered geno
+map_file_ord <- stg5$ordered_map # Ordered map
+stg5_ord <- stg5$ordered_geno # ordered geno
 
 # Convert to numeric format for plotting
-num_geno <- kasp_numeric(x = stg5,
-                         rp_row = 1, # Recurrent parent row ID
-                         dp_row = 3, # Donor parent row ID
+num_geno <- kasp_numeric(x = stg5_ord,
+                         rp_row = 1,
+                         dp_row = 3,
                          sep = ' / ',
                          data_type = 'agriplex')
 
@@ -1235,9 +1243,6 @@ Table 5: Agriplex data converted to a numeric format.
 <th style="text-align:left;">
 </th>
 <th style="text-align:right;">
-S1_328467
-</th>
-<th style="text-align:right;">
 S1_402592
 </th>
 <th style="text-align:right;">
@@ -1245,9 +1250,6 @@ S1_778962
 </th>
 <th style="text-align:right;">
 S1_825853
-</th>
-<th style="text-align:right;">
-S1_1019896
 </th>
 <th style="text-align:right;">
 S1_1218846
@@ -1258,6 +1260,12 @@ S1_1613105
 <th style="text-align:right;">
 S1_1727150
 </th>
+<th style="text-align:right;">
+S1_1954298
+</th>
+<th style="text-align:right;">
+S1_1985365
+</th>
 </tr>
 </thead>
 <tbody>
@@ -1266,9 +1274,6 @@ S1_1727150
 BTx623a
 </td>
 <td style="text-align:right;">
--1
-</td>
-<td style="text-align:right;">
 1
 </td>
 <td style="text-align:right;">
@@ -1278,7 +1283,10 @@ BTx623a
 1
 </td>
 <td style="text-align:right;">
--1
+1
+</td>
+<td style="text-align:right;">
+1
 </td>
 <td style="text-align:right;">
 1
@@ -1295,9 +1303,6 @@ BTx623a
 BTx623b
 </td>
 <td style="text-align:right;">
--1
-</td>
-<td style="text-align:right;">
 1
 </td>
 <td style="text-align:right;">
@@ -1307,7 +1312,10 @@ BTx623b
 1
 </td>
 <td style="text-align:right;">
--1
+1
+</td>
+<td style="text-align:right;">
+1
 </td>
 <td style="text-align:right;">
 1
@@ -1324,9 +1332,6 @@ BTx623b
 BTx642a
 </td>
 <td style="text-align:right;">
--1
-</td>
-<td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
@@ -1336,7 +1341,10 @@ BTx642a
 0
 </td>
 <td style="text-align:right;">
--1
+0
+</td>
+<td style="text-align:right;">
+0
 </td>
 <td style="text-align:right;">
 0
@@ -1353,9 +1361,6 @@ BTx642a
 BTx642b
 </td>
 <td style="text-align:right;">
--1
-</td>
-<td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
@@ -1365,7 +1370,10 @@ BTx642b
 0
 </td>
 <td style="text-align:right;">
--1
+0
+</td>
+<td style="text-align:right;">
+0
 </td>
 <td style="text-align:right;">
 0
@@ -1382,9 +1390,6 @@ BTx642b
 Stg5+\|+\_1
 </td>
 <td style="text-align:right;">
--1
-</td>
-<td style="text-align:right;">
 1
 </td>
 <td style="text-align:right;">
@@ -1394,7 +1399,10 @@ Stg5+\|+\_1
 0
 </td>
 <td style="text-align:right;">
--1
+0
+</td>
+<td style="text-align:right;">
+0
 </td>
 <td style="text-align:right;">
 0
@@ -1411,9 +1419,6 @@ Stg5+\|+\_1
 Stg5+\|+\_2
 </td>
 <td style="text-align:right;">
--1
-</td>
-<td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
@@ -1423,13 +1428,16 @@ Stg5+\|+\_2
 0
 </td>
 <td style="text-align:right;">
--1
-</td>
-<td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
 0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
 </td>
 <td style="text-align:right;">
 1
@@ -1440,9 +1448,6 @@ Stg5+\|+\_2
 Stg5-\|-\_1
 </td>
 <td style="text-align:right;">
--1
-</td>
-<td style="text-align:right;">
 1
 </td>
 <td style="text-align:right;">
@@ -1452,7 +1457,10 @@ Stg5-\|-\_1
 1
 </td>
 <td style="text-align:right;">
--1
+1
+</td>
+<td style="text-align:right;">
+1
 </td>
 <td style="text-align:right;">
 1
@@ -1469,9 +1477,6 @@ Stg5-\|-\_1
 Stg5-\|-\_2
 </td>
 <td style="text-align:right;">
--1
-</td>
-<td style="text-align:right;">
 1
 </td>
 <td style="text-align:right;">
@@ -1481,7 +1486,10 @@ Stg5-\|-\_2
 1
 </td>
 <td style="text-align:right;">
--1
+1
+</td>
+<td style="text-align:right;">
+1
 </td>
 <td style="text-align:right;">
 1
@@ -1498,7 +1506,13 @@ Stg5-\|-\_2
 Stg5-\|-\_3
 </td>
 <td style="text-align:right;">
--1
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
 </td>
 <td style="text-align:right;">
 1
@@ -1510,254 +1524,10 @@ Stg5-\|-\_3
 1
 </td>
 <td style="text-align:right;">
--1
-</td>
-<td style="text-align:right;">
 1
 </td>
 <td style="text-align:right;">
 1
-</td>
-<td style="text-align:right;">
-1
-</td>
-</tr>
-</tbody>
-</table>
-
-``` r
-
-# Get tidy format data for heatmap plotting
-df <- gg_dat(num_mat = num_geno,
-             map_file = map_file)
-
-knitr::kable(df[1:10,], caption = 'Table 6: Conversion from numeric matrix format to a tidy format.', format = 'html', booktabs = TRUE)
-```
-
-<table>
-<caption>
-Table 6: Conversion from numeric matrix format to a tidy format.
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-</th>
-<th style="text-align:left;">
-snpid
-</th>
-<th style="text-align:left;">
-x
-</th>
-<th style="text-align:left;">
-value
-</th>
-<th style="text-align:right;">
-chr
-</th>
-<th style="text-align:right;">
-pos
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-1.1
-</td>
-<td style="text-align:left;">
-S1_328467
-</td>
-<td style="text-align:left;">
-BTx623a
-</td>
-<td style="text-align:left;">
--1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-328467
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-1.2
-</td>
-<td style="text-align:left;">
-S1_328467
-</td>
-<td style="text-align:left;">
-BTx623b
-</td>
-<td style="text-align:left;">
--1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-328467
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-1.3
-</td>
-<td style="text-align:left;">
-S1_328467
-</td>
-<td style="text-align:left;">
-BTx642a
-</td>
-<td style="text-align:left;">
--1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-328467
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-1.4
-</td>
-<td style="text-align:left;">
-S1_328467
-</td>
-<td style="text-align:left;">
-BTx642b
-</td>
-<td style="text-align:left;">
--1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-328467
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-1.5
-</td>
-<td style="text-align:left;">
-S1_328467
-</td>
-<td style="text-align:left;">
-Stg5+\|+\_1
-</td>
-<td style="text-align:left;">
--1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-328467
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-1.6
-</td>
-<td style="text-align:left;">
-S1_328467
-</td>
-<td style="text-align:left;">
-Stg5+\|+\_2
-</td>
-<td style="text-align:left;">
--1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-328467
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-1.7
-</td>
-<td style="text-align:left;">
-S1_328467
-</td>
-<td style="text-align:left;">
-Stg5-\|-\_1
-</td>
-<td style="text-align:left;">
--1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-328467
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-1.8
-</td>
-<td style="text-align:left;">
-S1_328467
-</td>
-<td style="text-align:left;">
-Stg5-\|-\_2
-</td>
-<td style="text-align:left;">
--1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-328467
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-1.9
-</td>
-<td style="text-align:left;">
-S1_328467
-</td>
-<td style="text-align:left;">
-Stg5-\|-\_3
-</td>
-<td style="text-align:left;">
--1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-328467
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-1.10
-</td>
-<td style="text-align:left;">
-S1_402592
-</td>
-<td style="text-align:left;">
-BTx623a
-</td>
-<td style="text-align:left;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-402592
 </td>
 </tr>
 </tbody>
@@ -1771,18 +1541,18 @@ All is now set to generate the heatmap (Figure 6) using the
 # Get prediction summary for snp:snpSB00804
 library(panGenomeBreedr)
 # Create a heatmap that compares the parents to progenies
-cross_qc_ggplot(x = df,
+cross_qc_ggplot(x = num_geno,
+                map_file = map_file_ord,
                 snp_ids = 'snpid',
-                geno_ids = 'x',
                 chr = 'chr',
                 chr_pos = 'pos',
-                value = 'value',
-                parents = c('BTx623', 'BTx642'),
+                parents = c("BTx623", "BTx642"),
                 group_sz = 5L,
                 pdf = FALSE,
-                legend_title = 'Heatmap_key',
-                alpha = 1,
-                text_size = 14)
+                filename = 'background_heatmap',
+                legend_title = 'stg5_NILs',
+                alpha = 0.9,
+                text_size = 15)
 #> $Batch1
 ```
 
@@ -1810,60 +1580,35 @@ Users can set the `pdf = TRUE` argument to save plots as a PDF file in a
 directory outside R.
 
 To test the hypothesis that *stg5* NIL development was effective, we can
-generate a heatmap (Figure 7) that zooms into the location of *stg5* on
-Chromosome 1, as shown below:
+use the `cross_qc_annotate()` function to generate a heatmap (Figure 7)
+with an annotation of the position of the *stg5* locus on Chromosome 1,
+as shown below:
 
 ``` r
 
 ###########################################################################
-# stg5 NILs -- first 30 markers on Chr 1
-stg5_ch1 <- num_geno[, map_file$chr == 1][,1:30] # Subset data
+# Subset data for the first 30 markers on Chr 1
+stg5_ch1 <- num_geno[, map_file_ord$chr == 1][,1:30] 
 
-# Get map for subset data
-stg5_ch1_map <- map_file[map_file$chr == 1,][1:30,]
+# Get the map file for subset data
+stg5_ch1_map <- map_file_ord[map_file_ord$chr == 1,][1:30,]
 
-# Get tidy format data for heatmap plotting
-df <- gg_dat(num_mat = stg5_ch1,
-             map_file = stg5_ch1_map)
-
-# Re-order levels of the sample ids before plotting
-df$x <- factor(df$x, levels = rev(unique(df$x)))
-
-# Heatmap plot using ggplot2
-if (!require('ggplot2')) install.packages('ggplot2')
-#> Loading required package: ggplot2
-
-main <- 'Stg5_NILs_Chr_1' # Legend title
-
-# Markers positions delimiting stg5 locus on chr 1
-stg5_pos <- c(start = 1019896, end = 1613105)
-
-# Blue = Missing; coral1 = RP; yellow = Het; purple = DP; grey70 = Mono
-col <- c('-1' = 'grey70',
-         '-5' = 'blue',
-        '0' = 'purple2',
-        '0.5' = 'gold',
-        '1' = 'coral2')
-
-labels <- c("Monomorphic", "Missing", "BTx642", "Heterozygous", "BTx623")
-
-ggplot2::ggplot(df, ggplot2::aes(x = as.factor(pos), y = x, fill = value)) +
-  ggplot2::geom_tile(lwd = 2, linetype = 1) +
-  ggplot2::scale_fill_manual( values = col, label = labels, name = main) +
-  ggplot2::geom_vline(xintercept = as.character(stg5_pos), linetype = 2, 
-                      lwd = 2, col = 'black') +
-  ggplot2::xlab('Marker position (bp)') +
-  ggplot2::expand_limits(y = c(1, length(unique(df$x)) + 0.8)) +
-  ggplot2::theme(axis.text.y = ggplot2::element_text(size = 14),
-        axis.text.x = ggplot2::element_text(angle = -90, hjust = 0, size = 12),
-        axis.title.x = ggplot2::element_text(size = 14),
-        axis.title.y = ggplot2::element_blank(),
-        panel.background = ggplot2::element_blank(),
-        legend.text = ggplot2::element_text(size = 14),
-        legend.title = ggplot2::element_text(size = 14)) +
-  ggplot2::geom_hline(yintercept = c(as.numeric(df$x) + .5, .5),
-             col = 'white', lwd = 2) +
-  ggplot2::geom_text(ggplot2::aes(x = 6, y = 9.65, label = 'stg5'), size = 5)
+# Annotate a heatmap to show the stg5 locus on Chr 1
+# The locus is between positions 1 - 1.7 Mbp on Chr 1
+cross_qc_annotate(x = stg5_ch1,
+                  map_file = stg5_ch1_map,
+                  snp_ids = 'snpid',
+                  chr = 'chr',
+                  chr_pos = 'pos',
+                  parents = c("BTx623", "BTx642"),
+                  trait_pos = list(stg5 = c(start = 1e6, end = 1.7e6)),
+                  text_scale_fct = 0.2,
+                  group_sz = 5L,
+                  pdf = FALSE,
+                  legend_title = 'Stg5_NILs',
+                  alpha = 0.9,
+                  text_size = 15)
+#> $Batch1
 ```
 
 <div class="figure">
@@ -1876,9 +1621,109 @@ Chr1.
 
 </div>
 
+In the code snippet above, the `trait_pos` argument was used to specify
+the position of the target locus (*stg5*) on chromosome one. Users can
+specify the positions of multiple target loci as components of a list
+object for annotation.
+
+In Figure 7, the color intensity correlates positively the marker
+density or coverage, thus, areas with no color (white gaps) depicts gaps
+in the marker coverage in the data.
+
+## Decision Support for Marker-Assisted Backcrossing in `panGB`
+
+Users can use the `calc_rpp_bc()` function in `panGB` to calculate the
+proportion of recurrent parent background (RPP) fully recovered in
+backcross progenies.
+
+The output for he `calc_rpp_bc()` function can be passed to the
+`rpp_barplot()` function to visualize the computed RPP values for
+progenies as a bar plot. Users can specify an RPP threshold for easily
+identify lines that have RPP values above or equal to the defined RPP
+threshold on the bar plot.
+
+We can compute and visualize the observed RPP values for the *stg5* NILs
+across all polymorphic loci as shown in the code snippet below:
+
+``` r
+
+# Calculate weighted RPP
+rpp <- calc_rpp_bc(x = num_geno,
+                   map_file = map_file_ord,
+                   map_chr = 'chr',
+                   map_pos = 'pos',
+                   map_snp_ids = 'snpid',
+                   rp = 1,
+                   rp_num_code = 1,
+                   weighted = TRUE)
+
+# Generate bar plot for RPP values
+rpp_barplot(rpp_df = rpp,
+            rpp_threshold = 0.93,
+            text_size = 18,
+            text_scale_fct = 0.1,
+            alpha = 0.9,
+            bar_width = 0.5,
+            aspect_ratio = 0.5,
+            pdf = FALSE)
+```
+
+<div class="figure">
+
+<img src="man/figures/README-barplot_rpp1-1.png" alt="Fig. 8. Computed RPP values for the stg5 NILs." width="100%" />
+<p class="caption">
+Fig. 8. Computed RPP values for the stg5 NILs.
+</p>
+
+</div>
+
+The `calc_rpp_bc()` function in `panGB` provides two algorithms for
+computing the observed RPP values: weighted and unweighted RPP values.
+We recommend the use of the weighted algorithm to account for
+differences in the marker coverage across the genome. The algorithm for
+the weighted RPP values is explained below.
+
+### Weighted RPP computation in panGenomeBreedr
+
+Let $w_i$ represent the weight for marker $i$, based on the relative
+distances to its adjacent markers. For a set of markers with positions
+$p_1, p_2, \ldots, p_n$, where $d_i = p_{i+1} - p_i$ represents the
+distance between adjacent markers, the weights can be calculated as
+follows:
+
+1.  **For the first marker** $i = 1$:
+    $$w_1 = \frac{d_1}{2 \sum_{j=1}^{n-1} d_j}$$
+
+2.  **For a middle marker** $1 < i < n$:
+    $$w_i = \frac{d_{i-1} + d_i}{2 \sum_{j=1}^{n-1} d_j}$$
+
+3.  **For the last marker** $i = n$:
+    $$w_n = \frac{d_{n-1}}{2 \sum_{j=1}^{n-1} d_j}$$
+
+where: - $d_i$ is the distance between marker $i$ and marker $i+1$, -
+$sum_{j=1}^{n-1} d_j$ is the total distance across all segments, used
+for normalization.
+
+Let $RPP$ represent the Recurrent Parent Proportion based on relative
+distance weighting. If $w_i$ is the weight for each marker $i$, and
+$m_i$ represents whether marker $i$ matches the recurrent parent
+$m_i = 1$ if it matches, $m_i = 0$ otherwise), then the weighted RPP is
+calculated as:
+
+$$\text{RPP}_{\text{weighted}} = \sum_{i=1}^n w_i \cdot m_i$$
+
+where: - $w_i$ is the weight of marker $i$, calculated based on the
+relative distance it covers, - $m_i$ is the match indicator for marker
+$i$ (1 if matching the recurrent parent, 0 otherwise), - $n$ is the
+total number of markers.
+
+This formula provides the sum of the weighted contributions from each
+marker, representing the proportion of the recurrent parent genome in
+the individual.
+
 ## Troubleshooting
 
-If the app does not run as expected, check the following:
+If the package does not run as expected, check the following:
 
 - Was the package properly installed?
 
