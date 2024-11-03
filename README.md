@@ -1713,7 +1713,7 @@ $m_i$ represents whether marker $i$ matches the recurrent parent
 $m_i = 1$ if it matches, $m_i = 0$ otherwise), then the weighted RPP is
 calculated as:
 
-$$\text{RPP}_{\text{weighted}} = \sum_{i=1}^n w_i \cdot m_i$$
+$$RPP_{weighted} = \sum_{i=1}^n w_i\cdot m_i$$
 
 where: - $w_i$ is the weight of marker $i$, calculated based on the
 relative distance it covers, - $m_i$ is the match indicator for marker
