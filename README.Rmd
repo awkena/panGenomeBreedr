@@ -511,7 +511,7 @@ Users can set the `pdf = TRUE` argument to save plots as a PDF file in a directo
 
 To test the hypothesis that *stg5* NIL development was effective, we can use the `cross_qc_annotate()`  function to generate a heatmap (Figure 7) with an annotation of the position of the *stg5* locus on Chromosome 1, as shown below:  
 
-```{r heatmap2, fig.cap = "Fig. 7. Heatmap comparing the genetic background of parents to NILs on Chr1.", fig.width=10.5, fig.height=6.5}
+```{r heatmap2, fig.cap = "Fig. 7. Heatmap comparing the genetic background of parents to NILs on Chr1.", fig.width=12.5, fig.height=6.5}
 
 ###########################################################################
 # Subset data for the first 30 markers on Chr 1
@@ -528,7 +528,7 @@ cross_qc_annotate(x = stg5_ch1,
                   chr = 'chr',
                   chr_pos = 'pos',
                   parents = c("BTx623", "BTx642"),
-                  trait_pos = list(stg5 = c(start = .98e6, end = 1.8e6)),
+                  trait_pos = list(stg5 = c(start = .98e6, end = 1.85e6)),
                   text_scale_fct = 0.3,
                   group_sz = 5L,
                   pdf = FALSE,
