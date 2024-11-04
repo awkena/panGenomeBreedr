@@ -1835,20 +1835,20 @@ the weights can be calculated as follows:
 
 1.  **For the first marker** $i = 1$:
 
-    $$w_1 = \frac{d_1}{2 \sum_{j=1}^{n-1} d_j}$$
+    $$w_1 = \frac{d_1}{2 \sum_{i=1}^{n-1} d_i}$$
 
 2.  **For a middle marker** $1 < i < n$:
 
-    $$w_i = \frac{d_{i-1} + d_i}{2 \sum_{j=1}^{n-1} d_j}$$
+    $$w_i = \frac{d_{i-1} + d_i}{2 \sum_{i=1}^{n-1} d_i}$$
 
 3.  **For the last marker** $i = n$:
 
-    $$w_n = \frac{d_{n-1}}{2 \sum_{j=1}^{n-1} d_j}$$
+    $$w_n = \frac{d_{n-1}}{2 \sum_{i=1}^{n-1} d_i}$$
 
 where:
 
 - $d_i$ is the distance between marker $i$ and marker $i+1$,
-- $sum_{j=1}^{n-1} d_j$ is the total distance across all segments, used
+- $sum_{i=1}^{n-1} d_i$ is the total distance across all segments, used
   for normalization.
 
 Let $RPP$ represent the Recurrent Parent Proportion based on relative
