@@ -649,7 +649,7 @@ $$RPP_{weighted} = \sum_{i=1}^n w_i\cdot m_i$$
 
 The unweighted RPP is calculated without the use of the weights as follows:    
 
-$$RPP_{unweighted} = \sum_{i=1}^n m_i$$
+$$RPP_{unweighted} = \frac{\sum_{i=1}^n m_i} n$$
 
 where:  
 
