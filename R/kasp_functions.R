@@ -3740,3 +3740,111 @@ cross_qc_annotate <- function(x,
   }
 
 }
+
+
+#' Simulate raw SNP loci for any chromosome with or without LD.
+#' @param nsnp An integer value specifying the number of SNPs to simulate.
+#' @param nobs An integer value specifying the number of individuals to simulate.
+#' @param chr An integer value specifying the chromosome number.
+#' @param start An integer value specifying the position of the first SNP.
+#' @param end An integer value specifying the position of the last SNP.
+#' @param sep A separator for deriving the genotypes.
+#' @param add_LD A logical value indicating whether to simulate SNPs in LD or not.
+#' @param LD_range A numeric vector of `length = 2` indicating the range of LD
+#' between SNPs, if \code{add_LD} = TRUE.
+#'
+#' @returns A data frame with the simulated SNPs as the columns and individuals
+#' as rows.
+#'
+#' @examples
+#' # example code
+#' # Simulate data for 20 snp and 100 individuals on chr 1
+#' geno_data <- sim_snp_dat(nsnp = 20,
+#'                      nobs = 100,
+#'                      chr = 1,
+#'                      start = 1000,
+#'                      end = 20000,
+#'                      add_LD = TRUE,
+#'                      LD_range = c(0.2, 1))
+#'
+#' @importFrom Matrix nearPD
+#' @importFrom MASS mvrnorm
+#' @importFrom stats quantile
+#'
+#' @export
+sim_snp_dat <- function(nsnp = 10L,
+                        nobs = 100L,
+                        chr = 1L,
+                        start = 1000L,
+                        end = 20000L,
+                        sep = '/',
+                        add_LD = FALSE,
+                        LD_range = NULL) {
+
+  # Get bi-allelic SNPs
+  get_allele <- replicate(nsnp, sample(c('A', 'C', 'G', 'T'), size = 2,
+                                       replace = FALSE), simplify = FALSE)
+
+  # Function to get genotype data for bi-allelic SNPs
+  get_geno <- function(x) {
+
+    geno <- expand.grid(x, x)[-3,]
+    geno <- paste0(geno[,1], sep, geno[,2])
+
+    # Genotypes for 100 individuals
+    geno_dat <- sample(geno, size = nobs, replace = TRUE)
+
+  }
+
+  # Simulate genotypes
+  dat <- lapply(get_allele, FUN = get_geno)
+
+  # Add SNP IDs consisting of the chr number and position
+  names(dat) <- paste0('S', chr, '_', floor(seq(start, end, len = nsnp)))
+
+  # Make a data frame from list object
+  dat <- as.data.frame(do.call(cbind, dat))
+  rownames(dat) <- sprintf('ind_%03s', 1:nobs) # Assign row names
+
+  if (add_LD == TRUE) {
+
+    if (is.null(LD_range)) LD_range <- c(0.5, 1)
+
+    # Create correlation matrix
+    ld_range <- round(seq(LD_range[2], LD_range[1], len = nsnp^2), 2)
+
+    # Make cor_mat symmetric
+    cor_mat <- matrix(ld_range, nrow = nsnp, byrow = FALSE)
+    cor_mat[upper.tri(cor_mat)] <- t(cor_mat)[upper.tri(cor_mat)]
+    diag(cor_mat) <- 1
+
+    # Convert the cor_mat to the nearest positive-definite matrix
+    cor_mat <- as.matrix(Matrix::nearPD(cor_mat)$mat)
+
+    mean_vector <- rep(0, nsnp)
+
+    num_data <- MASS::mvrnorm(nobs, mu = mean_vector, Sigma = cor_mat)
+
+    snp_dat <- data.frame(matrix(0, nrow = nobs, ncol = nsnp))
+
+    for (i in seq_len(nsnp)) {
+
+      snp_dat[,i] <- cut(num_data[,i],
+                         breaks = stats::quantile(num_data[,i], probs = c(0, 0.25, 0.75, 1)),
+                         labels = sort(unique(dat[,i])),
+                         include.lowest = TRUE)
+    }
+
+    # Make a data frame from list object
+    snp_dat <- apply(snp_dat, 2, as.character)
+    colnames(snp_dat) <- colnames(dat)
+    snp_dat <- as.data.frame(snp_dat)
+    rownames(snp_dat) <- rownames(dat) # Assign row names
+    dat <- snp_dat
+
+  }
+
+  return(dat)
+
+}
+
