@@ -3767,9 +3767,8 @@ cross_qc_annotate <- function(x,
 #'                      add_LD = TRUE,
 #'                      LD_range = c(0.2, 1))
 #'
-#' @importFrom Matrix nearPD
-#' @importFrom MASS mvrnorm
 #' @importFrom stats quantile
+#' @importFrom stats rnorm
 #'
 #' @export
 sim_snp_dat <- function(nsnp = 10L,
@@ -3782,69 +3781,69 @@ sim_snp_dat <- function(nsnp = 10L,
                         LD_range = NULL) {
 
   # Get bi-allelic SNPs
-  get_allele <- replicate(nsnp, sample(c('A', 'C', 'G', 'T'), size = 2,
-                                       replace = FALSE), simplify = FALSE)
+  alleles <- replicate(nsnp, sample(c('A', 'C', 'G', 'T'), size = 2, replace = FALSE),
+                       simplify = FALSE)
 
-  # Function to get genotype data for bi-allelic SNPs
-  get_geno <- function(x) {
+  # Vectorized creation of genotypes for each SNP
+  genotypes <- lapply(alleles, function(x) {
+    geno <- expand.grid(x, x)[-3, ]
+    paste0(geno[, 1], sep, geno[, 2])
+  })
 
-    geno <- expand.grid(x, x)[-3,]
-    geno <- paste0(geno[,1], sep, geno[,2])
+  # Generate random genotypes for individuals
+  dat <- as.data.frame(matrix(unlist(lapply(genotypes, sample, nobs, replace = TRUE)),
+                              ncol = nsnp, byrow = FALSE))
 
-    # Genotypes for 100 individuals
-    geno_dat <- sample(geno, size = nobs, replace = TRUE)
+  if (add_LD) {
+    if (is.null(LD_range)) LD_range <- c(0, 1)
 
-  }
+    # Create a Toeplitz correlation matrix
+    ld_range <- seq(LD_range[2], LD_range[1], len = nsnp)
+    cor_mat <- stats::toeplitz(ld_range)
 
-  # Simulate genotypes
-  dat <- lapply(get_allele, FUN = get_geno)
+    # Add a small value to the diagonal to ensure positive-definiteness
+    cor_mat <- cor_mat + diag(rep(1e-6, nsnp))
 
-  # Add SNP IDs consisting of the chr number and position
-  names(dat) <- paste0('S', chr, '_', floor(seq(start, end, len = nsnp)))
+    # # Simulate data with LD structure using rmvnorm
+    # num_data <- mvtnorm::rmvnorm(nobs, mean = rep(0, nsnp), sigma = cor_mat)
 
-  # Make a data frame from list object
-  dat <- as.data.frame(do.call(cbind, dat))
-  rownames(dat) <- sprintf('ind_%03s', 1:nobs) # Assign row names
+    # Perform Cholesky decomposition on cor_mat -- faster
+    chol_mat <- chol(cor_mat)
 
-  if (add_LD == TRUE) {
+    # Generate standard normal random values
+    nor_var <- matrix(stats::rnorm(nobs * nsnp), nobs, nsnp)
 
-    if (is.null(LD_range)) LD_range <- c(0.5, 1)
+    # Apply Cholesky factor to introduce correlation
+    num_data <- nor_var %*% chol_mat
 
-    # Create correlation matrix
-    ld_range <- round(seq(LD_range[2], LD_range[1], len = nsnp^2), 2)
+    # Pre-compute quantile breaks -- vectorized
+    quantile_breaks <- t(apply(num_data, 2, function(col) {
+      stats::quantile(col, probs = c(0, 0.25, 0.75, 1))
+    }))
 
-    # Make cor_mat symmetric
-    cor_mat <- matrix(ld_range, nrow = nsnp, byrow = FALSE)
-    cor_mat[upper.tri(cor_mat)] <- t(cor_mat)[upper.tri(cor_mat)]
-    diag(cor_mat) <- 1
-
-    # Convert the cor_mat to the nearest positive-definite matrix
-    cor_mat <- as.matrix(Matrix::nearPD(cor_mat)$mat)
-
-    mean_vector <- rep(0, nsnp)
-
-    num_data <- MASS::mvrnorm(nobs, mu = mean_vector, Sigma = cor_mat)
-
-    snp_dat <- data.frame(matrix(0, nrow = nobs, ncol = nsnp))
-
-    for (i in seq_len(nsnp)) {
-
-      snp_dat[,i] <- cut(num_data[,i],
-                         breaks = stats::quantile(num_data[,i], probs = c(0, 0.25, 0.75, 1)),
-                         labels = sort(unique(dat[,i])),
-                         include.lowest = TRUE)
+    # Function to re-code correlated numeric matrix to a character matrix
+    recode_dat <- function(column, labels, breaks) {
+      cut(column,
+          breaks = breaks,
+          labels = labels,
+          include.lowest = TRUE)
     }
 
-    # Make a data frame from list object
-    snp_dat <- apply(snp_dat, 2, as.character)
-    colnames(snp_dat) <- colnames(dat)
-    snp_dat <- as.data.frame(snp_dat)
-    rownames(snp_dat) <- rownames(dat) # Assign row names
-    dat <- snp_dat
+    # mapply by using quantile_breaks and genotypes
+    dat <- as.data.frame(mapply(recode_dat,
+                                split(num_data, col(num_data)),
+                                genotypes,
+                                split(quantile_breaks, row(quantile_breaks))))
+
+    dat <- dat[, sample(names(dat))]
 
   }
 
-  return(dat)
+  # Set SNP names
+  names(dat) <- paste0('S', chr, '_', floor(seq(start, end, len = nsnp)))
+  rownames(dat) <- sprintf('ind_%03s', 1:nobs)
 
+  return(dat)
 }
+
 

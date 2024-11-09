@@ -30,8 +30,6 @@ Imports:
     ggplot2,
     gridExtra,
     IRanges,
-    MASS,
-    Matrix,
     msa,
     reshape2,
     stats,
