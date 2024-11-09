@@ -13,7 +13,7 @@ kasp_color(
   unused = "?",
   blank = "NTC",
   others = c("Missing", "Bad", "Dupe", "Over", "Short"),
-  assign_cols = c(FAM = "blue", HEX = "red", het = "orange2")
+  assign_cols = c(FAM = "blue", HEX = "gold", het = "forestgreen")
 )
 }
 \arguments{

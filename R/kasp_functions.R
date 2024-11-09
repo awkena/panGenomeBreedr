@@ -338,7 +338,7 @@ kasp_color <- function(x,
                        unused = '?',
                        blank = 'NTC',
                        others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short'),
-                       assign_cols = c(FAM = 'blue', HEX = 'red', het = 'orange2')) {
+                       assign_cols = c(FAM = "blue", HEX = "gold" , het = "forestgreen")) {
 
   # Get subset unit from data set
   plates <- x[, subset]
@@ -351,7 +351,18 @@ kasp_color <- function(x,
   res <- vector(mode = 'list', length = nplates)
   names(res) <- plates_uniq
 
+  # Function to assign colors to non-genotype calls
+  assign_colors <- function(Color) {
+    Color[Color == uncallable] <- "darkmagenta"
+    Color[Color == unused] <- "salmon4"
+    Color[Color == blank] <- "black"
+    Color[Color %in% others] <- "mintcream"
+
+    return(Color)
+  }
+
   for (i in seq_len(nplates)) {
+
     # Subset each master plate
     master_plate <- x[plates == plates_uniq[i],]
 
@@ -366,7 +377,6 @@ kasp_color <- function(x,
                                 unused = unused,
                                 others = others,
                                 data_type = 'kasp')
-
     alleles <- alleles_geno$alleles
 
     # Get pch values for all geno calls using the `kasp_pch()` function
@@ -378,94 +388,45 @@ kasp_color <- function(x,
                          others = others)
 
     if (length(alleles) == 2) {
+      homo1 <- alleles_geno$genotype[1]
+      homo2 <- alleles_geno$genotype[2]
+      het1 <- alleles_geno$genotype[3]
+      het2 <- alleles_geno$genotype[4]
 
-      homo1 <- alleles_geno$genotype[1] # homozygous genotype 1
-      homo2 <- alleles_geno$genotype[2] # homozygous genotype 2
-      homo12 <- c(homo1, homo2)
-      het1 <- alleles_geno$genotype[3] # heterozygous genotype 1
-      het2 <- alleles_geno$genotype[4] # heterozygous genotype 2
+      # FAM homozygote
+      FAM <- ifelse(master_plate[which.max(master_plate$X), geno_call] == homo1, homo1, homo2)
 
-      # Subset homozygotes
-      homs <- subset(master_plate, subset = Color == homo1 | Color == homo2)
-
-      # Get the column index of the genotype calls
-      call_col <- which(colnames(master_plate) == geno_call)
-
-      FAM <- homs[which.max(homs$X),][, call_col] # FAM homozygote
-      HEX <- homo12[which(homo12 != FAM)] # HEX homozygote
+      # HEX homozygote
+      HEX <- ifelse(FAM == homo1, homo2, homo1)
 
       # Recode pch symbols to be consistent with FAM and HEX genotypes
       pch_geno$pch[Color == HEX] <- 21
       pch_geno$pch[Color == FAM] <- 23
-      pch_geno$pch[Color == het1 | Color == het2] <- 24
+      pch_geno$pch[Color %in% c(het1, het2)] <- 24
 
       # Assign colors based on LGC rules
-      Color[Color == HEX] <- assign_cols['HEX'] # HEX homozygote
-      Color[Color == FAM] <- assign_cols['FAM'] # FAM homozygote
-      Color[Color == het1] <- assign_cols['het'] # Heterozygote
-      Color[Color == het2] <- assign_cols['het'] # Heterozygote
-
-      # KASP FAM and HEX color coding for others
-      Color[Color == uncallable] <- "darkmagenta"
-      Color[Color == unused] <- "salmon4"
-      Color[Color == blank] <- "black"
-      Color[Color %in% others] <- "mintcream"
-
-
-      master_plate <- cbind(master_plate, Color, pch_geno)
-
-      res[[i]] <- master_plate
-
+      Color[Color == HEX] <- assign_cols['HEX']
+      Color[Color == FAM] <- assign_cols['FAM']
+      Color[Color %in% c(het1, het2)] <- assign_cols['het']
 
     } else if (length(alleles) == 1) {
+      Color[Color == paste(alleles[1], alleles[1], sep = sep)] <- assign_cols['FAM']
 
-      homo1 <- paste(alleles[1], alleles[1], sep = sep) # homozygous genotype 1
-      Color[Color == homo1] <- assign_cols['FAM'] # Homozygous 1
-
-      # KASP FAM and HEX color coding for others
-      Color[Color == uncallable] <- "darkmagenta"
-      Color[Color == unused] <- "salmon4"
-      Color[Color == blank] <- "black"
-      Color[Color %in% others] <- "mintcream"
-
-      master_plate <- cbind(master_plate, Color, pch_geno)
-
-      res[[i]] <- master_plate
-
-    } else if (length(alleles) == 0){
-
-      message(cat(paste('Marker in Plate', plates_uniq[i], 'failed! \n', 'Check genotype calls.')))
-
-      # KASP FAM and HEX color coding for others
-      Color[Color == uncallable] <- "darkmagenta"
-      Color[Color == unused] <- "salmon4"
-      Color[Color == blank] <- "black"
-      Color[Color %in% others] <- "mintcream"
-
-      master_plate <- cbind(master_plate, Color, pch_geno)
-
-      res[[i]] <- master_plate
+    } else if (length(alleles) == 0) {
+      message(paste('Marker in Plate', plates_uniq[i], 'failed! Check genotype calls.'))
 
     } else {
-
-      message(cat(paste('Marker in Plate', plates_uniq[i], 'is multi-allelic! \n', 'Check genotype calls.')))
-
-      # KASP FAM and HEX color coding for others
-      Color[Color == uncallable] <- "darkmagenta"
-      Color[Color == unused] <- "salmon4"
-      Color[Color == blank] <- "black"
-      Color[Color %in% others] <- "mintcream"
-
-      master_plate <- cbind(master_plate, Color, pch_geno)
-
-      res[[i]] <- master_plate
+      message(paste('Marker in Plate', plates_uniq[i], 'is multi-allelic! Check genotype calls.'))
     }
 
+    Color <- assign_colors(Color)
+    master_plate <- cbind(master_plate, Color, pch_geno)
+    res[[i]] <- master_plate
   }
 
   return(res)
-
 }
+
 
 #' Normalize FAM and HEX fluorescence values between 0 and 1
 #' @param x A numeric vector of FAM or HEX fluorescence values
