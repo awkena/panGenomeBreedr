@@ -3835,6 +3835,7 @@ sim_snp_dat <- function(nsnp = 10L,
                                 genotypes,
                                 split(quantile_breaks, row(quantile_breaks))))
 
+    # Reshuffle columns randomly
     dat <- dat[, sample(names(dat))]
 
   }
