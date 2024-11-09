@@ -51,8 +51,7 @@ Color-code KASP genotype calls based on LGC genomics colors for HEX and FAM.
 \details{
 This is an experimental function. The default values of some of the
 arguments in the function are based on LGC Genomics conventions including
-the color codes for FAM and HEX fluorescence. To make the plot color-blind
-friendly, the heterozygotes have been coded as gold instead of green.
+the color codes for FAM and HEX fluorescence.
 }
 \examples{
 # example code
