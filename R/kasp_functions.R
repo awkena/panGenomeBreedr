@@ -2234,20 +2234,8 @@ proc_kasp <- function(x,
   geno_mat <- cbind(df1, geno_mat)
 
   # Sort data in ascending order of chromosomes
-  geno_mat <- geno_mat[order(geno_mat[, chr], decreasing = FALSE),]
+  geno_mat <- order_markers(geno_mat, chr_col = chr, pos_col = chr_pos)
 
-  # Sort data in ascending order of physical positions per chromosome
-  grps <- split(geno_mat, geno_mat[, chr]) # Split genotype data into chr batches
-
-  # Function to order marker positions
-  ord_pos <- function(x) {
-    x[order(x[, chr_pos], decreasing = FALSE),]
-  }
-
-  geno_mat <- lapply(grps, FUN = ord_pos)
-
-  # Row-bind sorted data for all chromosomes
-  geno_mat <- do.call(rbind, geno_mat)
   rownames(geno_mat) <- geno_mat[, 1]
 
   df2 <- geno_mat[, seq_len(ncolumns)]
@@ -2257,13 +2245,8 @@ proc_kasp <- function(x,
 
   geno_mat <- t(geno_mat[,-seq_len(ncolumns)]) # Transpose data to make markers columns
 
-  # if (marker_start > 1) {
-  #
-  #   geno_mat <- cbind(x[, c(1:marker_start-1)], geno_mat) # Add sample meta data
-  #
-  # }
-
   res <- list(ordered_geno = geno_mat, ordered_map = df2)
+
   return(res)
 }
 
@@ -2836,20 +2819,7 @@ gg_dat <- function(num_mat,
               sort = FALSE)
 
   # Sort data in ascending order of chromosomes
-  df <- df[order(df[, map_chr], decreasing = FALSE),]
-
-  # Sort data in ascending order of physical positions per chromosome
-  grps <- split(df, df[, map_chr]) # Split genotype data into chr batches
-
-  # Function to order marker positions
-  ord_pos <- function(x) {
-    x[order(x[, map_pos], decreasing = FALSE),]
-  }
-
-  df <- lapply(grps, FUN = ord_pos)
-
-  # Row-bind sorted data for all chromosomes
-  df <- do.call(rbind, df)
+  df <- order_markers(df, chr_col = map_chr, pos_col = map_pos)
 
   return(df)
 
@@ -3246,21 +3216,8 @@ calc_rpp_bc <- function(x,
                      by.y = map_snp_ids,
                      sort = FALSE)
 
-    # Sort data in ascending order of chromosomes in map file
-    map_new <- map_new[order(map_new[, map_chr], decreasing = FALSE),]
-
-    # Sort data in ascending order of physical positions per chromosome
-    grps <- split(map_new, map_new[, map_chr]) # Split genotype data into chr batches
-
-    # Function to order marker positions
-    ord_pos <- function(x) {
-      x[order(x[, map_pos], decreasing = FALSE),]
-    }
-
-    grps <- lapply(grps, FUN = ord_pos)
-
-    # Row-bind sorted data for all chromosomes
-    map_new <- do.call(rbind, grps)
+    # # Sort data in ascending order of chromosomes in map file
+    map_new <- order_markers(map_new, chr_col = map_chr, pos_col = map_pos)
 
     wts <- unlist(lapply( split(map_new[, map_pos], map_new[, map_chr]),
                           FUN = cal_wt))
@@ -3569,20 +3526,7 @@ cross_qc_annotate <- function(x,
   snpid <- value <- map_dist <- pos  <- NULL # Define global variables
 
   # Sort data in ascending order of chromosomes
-  map_file <- map_file[order(map_file[, chr], decreasing = FALSE),]
-
-  # Sort data in ascending order of physical positions per chromosome
-  grps <- split(map_file, map_file[, chr]) # Split genotype data into chr batches
-
-  # Function to order marker positions
-  ord_pos <- function(x) {
-    x[order(x[, chr_pos], decreasing = FALSE),]
-  }
-
-  map_file <- lapply(grps, FUN = ord_pos)
-
-  # Row-bind sorted data for all chromosomes
-  map_file <- do.call(rbind, map_file)
+  map_file <- order_markers(map_file, chr_col = chr, pos_col = chr_pos)
 
   # Calculate inter-marker distances and add it to map file
   map_dist <- lapply(split(map_file[, chr_pos], map_file[, chr]), FUN = diff)
@@ -3848,3 +3792,48 @@ sim_snp_dat <- function(nsnp = 10L,
 }
 
 
+#' Order marker IDs based on their chromosome numbers and positions in ascending
+#' order.
+#' @param x A data frame object for a map file or marker data file.
+#' @param chr_col A character value indicating the column name for chromosome IDs
+#' in \code{x}.
+#' @param pos_col A character value indicating the column name for chromosome
+#' positions in \code{x}.
+#' @returns A data frame object of the same dimension as \code{x}.
+#'
+#' @examples
+#' # example code
+#' map_file <- data.frame(snpid = paste0('S', rep(1:2, 5), '_', 1001:1005),
+#'                        chr = rep(1:2, 5),
+#'                        pos = rep(1001:1005, 2))
+#'
+#' # Order map file
+#' map_file <- order_markers(x = map_file,
+#'                           chr_col = 'chr',
+#'                           pos_col = 'pos')
+#'
+#' @export
+order_markers <- function(x,
+                          chr_col = 'chr',
+                          pos_col = 'pos') {
+
+  # Sort data in ascending order of chromosomes
+  dat <- x[order(x[, chr_col], decreasing = FALSE),]
+
+  # Split genotype data into chr batches
+  grps <- split(dat, dat[, chr_col])
+
+  # Function to order marker positions
+  ord_pos <- function(x) {
+    x[order(x[, pos_col], decreasing = FALSE),]
+  }
+
+  # Sort data in ascending order of physical positions per chromosome
+  dat <- lapply(grps, FUN = ord_pos)
+
+  # Row-bind sorted data for all chromosomes
+  dat <- do.call(rbind, dat)
+
+  return(dat)
+
+}
