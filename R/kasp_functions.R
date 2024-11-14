@@ -3485,29 +3485,49 @@ cross_qc_annotate <- function(x,
 
   map_file <- cbind(map_file, map_dist = map_dist)
 
-  # Melt x into a data frame
-  df <- gg_dat(num_mat = x,
-               map_file = map_file,
-               map_pos = chr_pos,
-               map_chr = chr,
-               map_snp_ids = snp_ids)
-
   # Subset parents data
-  parent_dat <- rbind(df[grepl(parents[1], df$x, fixed = TRUE),],
-                      df[grepl(parents[2], df$x, fixed = TRUE),])
+  parent_dat <- rbind(x[which(rownames(x) == parents[1]),],
+                      x[which(rownames(x) == parents[2]),])
+  rownames(parent_dat) <- parents
+
+  # Melt x into a data frame
+  parent_dat <- gg_dat(num_mat = parent_dat,
+                       map_file = map_file,
+                       map_pos = chr_pos,
+                       map_chr = chr,
+                       map_snp_ids = snp_ids)
 
   # Subset progeny data
-  progeny_dat <- df[!df$x %in% parent_dat$x,]
+  progeny_dat <- x[!rownames(x) %in% unique(parent_dat$x),]
 
-  # Set parameters for plotting progenies in batches
-  nprog <- length(unique(df$x)) - length(unique(parent_dat$x)) # Number of progenies
+  # Create an index to split by
+  grp_index <- rep(1:ceiling(nrow(progeny_dat) / group_sz), each = group_sz,
+                   length.out = nrow(progeny_dat))
 
-  # Define start and end of batches
-  Batches_end <- c(rep(group_sz, floor(nprog/group_sz)), nprog %% group_sz)
-  Batches_end <- cumsum(Batches_end[Batches_end > 0])
-  Batches_start <- c(1, 1 + Batches_end[-length(Batches_end)])
+  # Split data frame into list of smaller data frames
+  batches <- split(as.data.frame(progeny_dat), grp_index)
 
-  nbatches <- length(Batches_start) # Number of batches to plot
+  batches <- lapply(batches, FUN = function(x) {
+
+    progeny_dat <- gg_dat(num_mat = x,
+                          map_file = map_file,
+                          map_pos = chr_pos,
+                          map_chr = chr,
+                          map_snp_ids = snp_ids)
+
+    grp <- rbind(parent_dat, progeny_dat)
+
+    # Re-order levels of the sample ids
+    grp$x <- factor(grp$x, levels = rev(c(sort(unique(parent_dat$x)),
+                                          sort(unique(progeny_dat$x)))))
+    grp$snpid <- factor(grp$snpid, levels = unique(grp$snpid))
+
+    grp
+
+
+  })
+
+  nbatches <- length(batches) # Number of batches to plot
 
   # Create an empty list object to hold ggplots
   gg_plts <- vector(mode = 'list', length = nbatches)
@@ -3575,16 +3595,7 @@ cross_qc_annotate <- function(x,
 
   for(i in seq_len(nbatches)) {
 
-    # Subset data for each batch for plotting
-    batch_prog <- sort(unique(progeny_dat$x))[Batches_start[i]:Batches_end[i]]
-    grp <- rbind(parent_dat, progeny_dat[progeny_dat$x %in% batch_prog,])
-
-    # Re-order levels of the sample ids
-    grp$x <- factor(grp$x, levels = rev(c(sort(unique(parent_dat$x)),
-                                          sort(unique(batch_prog)))))
-
-    grp$snpid <- factor(grp$snpid, levels = unique(grp$snpid))
-
+    grp <- batches[[i]]
     # Plot heat map
     plt <- ggplot2::ggplot(grp, ggplot2::aes(x = pos, y = x, fill = value,
                                              width = map_dist)) +
