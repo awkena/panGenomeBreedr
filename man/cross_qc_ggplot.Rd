@@ -12,7 +12,7 @@ cross_qc_ggplot(
   chr = "chr",
   chr_pos = "pos",
   parents,
-  group_sz = 10L,
+  group_sz = nrow(x) - 2,
   pdf = FALSE,
   filename = "background_heatmap",
   legend_title = "Heatmap_key",
