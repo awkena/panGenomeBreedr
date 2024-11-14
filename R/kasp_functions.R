@@ -2259,6 +2259,7 @@ proc_kasp <- function(x,
 #' 2) data frame of loci with genotype call errors if present.
 #'
 #' @export
+
 geno_error <- function(x,
                        rp_row,
                        dp_row,
@@ -2267,78 +2268,54 @@ geno_error <- function(x,
                        uncallable = 'Uncallable',
                        unused = '?',
                        others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short'),
-                       data_type = c('kasp', 'agriplex')
-) {
+                       data_type = c('kasp', 'agriplex')) {
 
   if (missing(rp_row)) stop("Parent 1 row index number is missing!")
   if (missing(dp_row)) stop("Parent 2 row index number is missing!")
 
   data_type <- match.arg(data_type)
-
-  # Create a character vector of all non-genotype calls
   non_geno_call <- c(blank, uncallable, unused, others)
 
-  # Hold column index of loci with errors
-  col_index <- c()
+  # Extract recurrent and donor parent alleles in advance
+  rp <- as.character(unlist(x[rp_row, ]))
+  dp <- as.character(unlist(x[dp_row, ]))
+
+  # Col_index with logical values for faster subsetting
+  col_index <- logical(ncol(x))
 
   for (i in seq_len(ncol(x))) {
-
-    snp <- as.vector(unname(x[, i]))
-
-    # Subset and sort genotype calls
+    snp <- x[[i]]
     snp <- snp[!snp %in% non_geno_call]
 
-    # Get Alleles for recurrent and donor parents
-    rp <- as.vector(unlist(x[rp_row,]))[i] # Recurrent parent allele
-    dp <- as.vector(unlist(x[dp_row,]))[i] # Donor parent allele
-
-    par_geno <- c(rp, dp) # Parents genotype
-
-    # Expected genotype vector
+    # Get expected genotypes based on recurrent and donor parent alleles
+    par_geno <- c(rp[i], dp[i])
     exp_geno <- get_alleles(x = par_geno, sep = sep, data_type = data_type)$genotypes
-
-    #exp_geno <- par_alleles$genotypes # Expected genotypes
 
     geno_present <- unique(na.omit(snp)) %in% exp_geno
 
-    if (!anyNA(par_geno) && rp == dp && any(!geno_present)) {
-
-      col_index[i] <- i
-
-    } else if (!anyNA(par_geno) && rp != dp && any(!geno_present)) {
-
-      col_index[i] <- i
-
-    }
-
+    # Mark column as error if genotype present does not match expected genotypes
+    col_index[i] <- !anyNA(par_geno) && ((rp[i] == dp[i] && any(!geno_present)) ||
+                                           (rp[i] != dp[i] && any(!geno_present)))
   }
 
-  col_index <- as.vector(na.omit(col_index))
-
-  # Get SNPs with suspected errors and no errors
-  if (length(col_index) >= 1) {
-
-    geno_err <- as.data.frame(x[, col_index]) # Suspected error
+  # Subset columns based on col_index
+  if (any(col_index)) {
+    geno_err <- as.data.frame(x[, which(col_index)])
     colnames(geno_err) <- colnames(x)[col_index]
-    rownames(geno_err) <- rownames(x)
+  } else NULL
 
-    geno_good <- as.data.frame(x[, -col_index]) # no error
-    colnames(geno_good) <- colnames(x)[-col_index]
-    rownames(geno_good) <- rownames(x)
+  if (any(!col_index)) {
+    geno_good <- as.data.frame(x[, which(!col_index)])
+    colnames(geno_good) <- colnames(x)[which(!col_index)]
+  } else x
 
-  } else {
-
-    geno_err <- NULL
-    geno_good <- x
-
-  }
-
-  res <- list(col_index = col_index,
-              geno_err = geno_err,
-              geno_good = geno_good)
+  res <- list(
+    col_index = which(col_index),
+    geno_err = geno_err,
+    geno_good = geno_good
+  )
 
   return(res)
-
 }
 
 
