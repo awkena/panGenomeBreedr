@@ -2,8 +2,8 @@
 % Please edit documentation in R/kasp_functions.R
 \name{parse_marker_ns}
 \alias{parse_marker_ns}
-\title{Parse marker names with a common pattern containing chromosome numbers and
-positions into a map file.}
+\title{Parse marker names of Hapmap format with a common pattern containing chromosome
+numbers and positions into a map file.}
 \usage{
 parse_marker_ns(x, sep = "_", prefix = "S")
 }
@@ -14,15 +14,15 @@ parse_marker_ns(x, sep = "_", prefix = "S")
 positions and other components of the marker name; default value is an underscore.}
 
 \item{prefix}{A character value that represents a common pattern in marker
-names that precedes the chromome number; the default value is `S`.}
+names that precedes the chromosome number; the default value is `S`.}
 }
 \value{
 A data frame of map file consisting of the original marker names,
 chromosome numbers and positions.
 }
 \description{
-Parse marker names with a common pattern containing chromosome numbers and
-positions into a map file.
+Parse marker names of Hapmap format with a common pattern containing chromosome
+numbers and positions into a map file.
 }
 \details{
 The marker names to be parsed into a map file must contain the chromosome numbers

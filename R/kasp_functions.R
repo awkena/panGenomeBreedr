@@ -2451,13 +2451,13 @@ kasp_numeric <- function(x,
 }
 
 
-#' Parse marker names with a common pattern containing chromosome numbers and
-#' positions into a map file.
+#' Parse marker names of Hapmap format with a common pattern containing chromosome
+#' numbers and positions into a map file.
 #' @param x A character vector containing the original marker names to be parsed.
 #' @param sep A character value that serves as a unique separator between chromosome
 #' positions and other components of the marker name; default value is an underscore.
 #' @param prefix A character value that represents a common pattern in marker
-#' names that precedes the chromome number; the default value is `S`.
+#' names that precedes the chromosome number; the default value is `S`.
 #'
 #' @returns A data frame of map file consisting of the original marker names,
 #' chromosome numbers and positions.
@@ -2484,9 +2484,10 @@ parse_marker_ns <- function(x,
                             sep = '_',
                             prefix = 'S') {
 
-  # Throw up errors if separator and prefix are not common to all marker names
-  if (all(grepl(sep, x)) == FALSE) stop('The separator is not common to all marker names!')
-  if (all(grepl(prefix, x)) == FALSE) stop('The prefix is not common to all marker names!')
+  # Throw up an error if all marker names are not of the Hapmap format
+  format_check <- paste0('^', prefix, '\\d+', sep, '\\d+$')
+
+  if (any(!grepl(format_check, x))) stop('All marker names must be of the Hapmap format!')
 
   # Parse marker names to extract chromosome numbers and physical positions
   df <- t(as.data.frame(strsplit(x, sep)))
