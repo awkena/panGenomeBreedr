@@ -12,7 +12,7 @@ cross_qc_annotate(
   chr_pos = "pos",
   parents,
   trait_pos,
-  group_sz = 10L,
+  group_sz = nrow(x) - 2,
   pdf = FALSE,
   filename = "background_heatmap",
   legend_title = "Heatmap_key",

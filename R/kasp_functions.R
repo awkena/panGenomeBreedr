@@ -2107,8 +2107,8 @@ kasp_reshape_wide <- function(x,
 #'                          chr = 'chr',
 #'                          chr_pos = 'pos')
 #' }
-#' @returns A list of two components consisting of re-ordered SNPs and map based
-#' on chromosome numbers and positions.
+#' @returns A data frame object of re-ordered SNPs based on chromosome numbers
+#' and positions.
 #'
 #' @details
 #' This function is experimental and should only be used with reshaped KASP data.
@@ -2198,16 +2198,14 @@ proc_kasp <- function(x,
 
   rownames(geno_mat) <- geno_mat[, 1]
 
-  df2 <- geno_mat[, seq_len(ncolumns)]
-
-  # geno_mat <- na.omit(geno_mat) # Remove markers with missing snp calls
-  # rownames(geno_mat) <- paste0('S', geno_mat$chr,'_', geno_mat$pos)
+  #df2 <- geno_mat[, seq_len(ncolumns)]
 
   geno_mat <- t(geno_mat[,-seq_len(ncolumns)]) # Transpose data to make markers columns
 
-  res <- list(ordered_geno = geno_mat, ordered_map = df2)
+  # res <- list(ordered_geno = geno_mat, ordered_map = df2)
 
-  return(res)
+  return(geno_mat)
+
 }
 
 
@@ -2677,39 +2675,22 @@ pred_summary_plot <- function(x,
 #' \donttest{
 #'  # example code
 #' library(panGenomeBreedr)
-#' # Set path to the directory where your data is located
-#' path1 <-  system.file("extdata", "agriplex_dat.csv",
-#'                       package = "panGenomeBreedr",
-#'                       mustWork = TRUE)
+#' # Create a numeric matrix of genotype scores for 10 markers and 5 samples
+#' num_dat <- matrix(c(rep(1, 10), rep(0, 10),
+#'                     1, 1, 0.5, 1, 1, 1, 1, 1, 0, 1,
+#'                     1, 1, 0, 1, 1, 1, 1, 1, 1, 1,
+#'                     1, 1, 0, 1, 1, 1, 1, 1, 1, 0.5 ),
+#'                   byrow = TRUE, ncol = 10)
 #'
-#' # Import raw Agriplex data file
-#' geno <- read.csv(file = path1, header = TRUE, colClasses = c("character"))
+#' rownames(num_dat) <- c('rp', 'dp', paste0('bc1_', 1:3))
+#' colnames(num_dat) <- paste0('S1', '_', c(floor(seq(1000, 10000, len = 8)),
+#'                                          15000, 20000))
 #'
-#' # Parse snp ids to generate a map file
-#' snps <- colnames(geno)[-c(1:6)] # Get snp ids
-#' map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
-#'
-#' # Process genotype data to re-order SNPs based on chromosome and positions
-#' stg5 <- proc_kasp(x = geno[geno$Batch == 3,], # stg5 NILs
-#'                   kasp_map = map_file,
-#'                   map_snp_id = "snpid",
-#'                   sample_id = "Genotype",
-#'                   marker_start = 7,
-#'                   chr = 'chr',
-#'                   chr_pos = 'pos')
-#'
-#' map_file <- stg5$ordered_map # Ordered map
-#' stg5 <- stg5$ordered_geno # Ordered geno
-#'
-#' # Convert to numeric format for plotting
-#' num_geno <- kasp_numeric(x = stg5,
-#'                          rp_row = 1, # Recurrent parent row ID
-#'                          dp_row = 3, # Donor parent row ID
-#'                          sep = ' / ',
-#'                          data_type = 'agriplex')
+#' # Get map file by parsing SNP IDs
+#' map_file <- parse_marker_ns(colnames(num_dat))
 #'
 #'  # Convert num_geno to a long format data frame
-#'  df <- gg_dat(num_mat = num_geno,
+#'  df <- gg_dat(num_mat = num_dat,
 #'               map_file = map_file)
 #' }
 #'
@@ -3451,7 +3432,7 @@ cross_qc_annotate <- function(x,
                               chr_pos = 'pos',
                               parents,
                               trait_pos,
-                              group_sz = 10L,
+                              group_sz = nrow(x)-2,
                               pdf = FALSE,
                               filename = 'background_heatmap',
                               legend_title = 'Heatmap_key',

@@ -38,39 +38,22 @@ Convert data matrix for genotypes to a long format data frame.
 \donttest{
  # example code
 library(panGenomeBreedr)
-# Set path to the directory where your data is located
-path1 <-  system.file("extdata", "agriplex_dat.csv",
-                      package = "panGenomeBreedr",
-                      mustWork = TRUE)
+# Create a numeric matrix of genotype scores for 10 markers and 5 samples
+num_dat <- matrix(c(rep(1, 10), rep(0, 10),
+                    1, 1, 0.5, 1, 1, 1, 1, 1, 0, 1,
+                    1, 1, 0, 1, 1, 1, 1, 1, 1, 1,
+                    1, 1, 0, 1, 1, 1, 1, 1, 1, 0.5 ),
+                  byrow = TRUE, ncol = 10)
 
-# Import raw Agriplex data file
-geno <- read.csv(file = path1, header = TRUE, colClasses = c("character"))
+rownames(num_dat) <- c('rp', 'dp', paste0('bc1_', 1:3))
+colnames(num_dat) <- paste0('S1', '_', c(floor(seq(1000, 10000, len = 8)),
+                                         15000, 20000))
 
-# Parse snp ids to generate a map file
-snps <- colnames(geno)[-c(1:6)] # Get snp ids
-map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
-
-# Process genotype data to re-order SNPs based on chromosome and positions
-stg5 <- proc_kasp(x = geno[geno$Batch == 3,], # stg5 NILs
-                  kasp_map = map_file,
-                  map_snp_id = "snpid",
-                  sample_id = "Genotype",
-                  marker_start = 7,
-                  chr = 'chr',
-                  chr_pos = 'pos')
-
-map_file <- stg5$ordered_map # Ordered map
-stg5 <- stg5$ordered_geno # Ordered geno
-
-# Convert to numeric format for plotting
-num_geno <- kasp_numeric(x = stg5,
-                         rp_row = 1, # Recurrent parent row ID
-                         dp_row = 3, # Donor parent row ID
-                         sep = ' / ',
-                         data_type = 'agriplex')
+# Get map file by parsing SNP IDs
+map_file <- parse_marker_ns(colnames(num_dat))
 
  # Convert num_geno to a long format data frame
- df <- gg_dat(num_mat = num_geno,
+ df <- gg_dat(num_mat = num_dat,
               map_file = map_file)
 }
 

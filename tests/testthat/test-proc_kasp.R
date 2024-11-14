@@ -28,6 +28,6 @@ test_that("proc_kasp works", {
                            chr_pos = 'pos')
 
 
-  expect_equal(dim(proc_plate1$ordered_geno), c(94, 4))
+  expect_equal(dim(proc_plate1), c(94, 4))
 
 })
