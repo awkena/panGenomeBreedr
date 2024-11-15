@@ -3780,3 +3780,124 @@ order_markers <- function(x,
   return(dat)
 
 }
+
+
+#' Format marker names to comply with the Hapmap convention.
+#' @param x A character vector of marker IDs to be formated.
+#' @param map_file A data frame of map file consisting of marker IDs and their
+#' chromosome numbers and positions as columns.
+#' @param snpid_col A character value indicating the column name for marker IDs
+#' in \code{map_file}.
+#' @param chr_col A character value indicating the column name for chromosome IDs
+#' in \code{map_file}.
+#' @param pos_col A character value indicating the column name for chromosome
+#' positions in \code{map_file}.
+#' @param kasp_prefix A character value indicating the KASP marker prefix for the
+#' crop species.
+#' @param scaffold_prefix A character value indicating the KASP marker prefix for
+#' the crop species.
+#' @returns A character vector of markers names formated to comply with the Hapmap
+#' format.
+#'
+#' @examples
+#' \donttest{
+#' # example code
+#' library(panGenomeBreedr)
+#'
+#' # Marker IDs
+#' snps <- c('snpSB00072', 'snpSB00106', 'snpSB00109', 'Sbv3.1_01_68028666I',
+#'           'Sbv3.1_02_67884158W')
+#'
+#' # Map file for SNPs
+#' map_file <- data.frame(snpid = snps,
+#'                        chr = c(2, 5, 5, 1, 2),
+#'                        pos = c(61811307, 838874, 1730282, NA, NA))
+#'
+#' # Format marker IDs to hapmap format
+#' ns_new <- hapmap_ns_fmt(x = snps,
+#'                         map_file = map_file,
+#'                         snpid_col = 'snpid',
+#'                         chr_col = 'chr',
+#'                         pos_col = 'pos',
+#'                         kasp_prefix = 'snpSB',
+#'                         scaffold_prefix = 'Sbv')
+#' }
+#'
+#' @details
+#' This is an experimental function, so use it with caution. It can be used to
+#' create marker IDs that can easily be parsed into a map file using the
+#' `parse_marker_ns()` function. The function may not format all inputted marker
+#' names in \code{x}.
+#'
+#' @export
+#'
+hapmap_ns_fmt <- function(x,
+                          map_file,
+                          snpid_col = 'SNP_name',
+                          chr_col = 'chr',
+                          pos_col = 'pos',
+                          kasp_prefix = 'snpSB',
+                          scaffold_prefix = 'Sbv') {
+
+  snpid_new <- NULL
+
+  # Format checks
+  kasp_check <- paste0('^', kasp_prefix, '\\d+$')
+  scaffold_check <- paste0('^', scaffold_prefix, '\\d+\\.\\d+_\\d{2}_\\d+\\w$')
+
+  # Check if SNP ID is of the format "snpSB00072"; if TRUE, format using the
+  # imported map data to the hapmap format: S(chr)(_)(pos): S1_100000
+  if (any(grepl(kasp_check, x))) {
+
+    # Get SNPs from map_dat with IDs that can not be parsed
+    map_df <- map_file[grepl(kasp_check, map_file[, snpid_col]),]
+
+    # Match SNPID in geno and df
+    map_df <- merge(x = data.frame(snpid = x),
+                    y = map_df,
+                    by.x = 'snpid',
+                    by.y = snpid_col,
+                    sort = FALSE)
+
+    # Add a new SNP name that can be parsed
+    map_df$snpid_new <- paste0('S', map_df[,chr_col], '_', map_df[,pos_col])
+
+    # Update SNP IDs in dartag data
+    x[x %in% map_df$snpid] <- map_df$snpid_new
+
+  }
+
+  # Check if SNP ID is of the format "Sbv3.1_01_68028666I"; if TRUE,
+  # extract the chr number and position from it
+  # "Sbv<number>.<number>_<chr>_<pos><variant_type>
+  if (any(grepl(scaffold_check, x))) {
+
+    # Extract all SNPs with this format: "Sbv3.1_01_68028666I"
+    snp_vec <- x[grepl(scaffold_check, x)]
+
+    # Extract the chromosome number
+    get_chr <- as.numeric(sub(".*_(\\d{2})_.*", "\\1", snp_vec))
+
+    # Extract the chromosome position
+    get_pos <- as.numeric(sub(".*_\\d{2}_(\\d+).*", "\\1", snp_vec))
+
+    # Update SNP IDs in dartag data
+    x[grepl(scaffold_check, x)] <- paste0('S', get_chr, '_', get_pos)
+  }
+
+  # Check if all SNP IDs in geno are of the hapmap format
+  if(any(!grepl('^S\\d+_\\d+$', x))) {
+
+    unformatted <- x[!grepl('^S\\d+_\\d+$', x)]
+
+    warning_msg <- paste(length(unformatted), 'markers:',
+                         paste0(unformatted, collapse = ', '),
+                         'were not formatted!')
+
+    warning(warning_msg)
+
+  }
+
+  return(x)
+
+}
