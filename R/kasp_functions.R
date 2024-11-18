@@ -2300,7 +2300,7 @@ geno_error <- function(x,
   if (any(col_index)) {
     geno_err <- as.data.frame(x[, which(col_index)])
     colnames(geno_err) <- colnames(x)[col_index]
-  } else NULL
+  } else geno_err <- NULL
 
   if (any(!col_index)) {
     geno_good <- as.data.frame(x[, which(!col_index)])
