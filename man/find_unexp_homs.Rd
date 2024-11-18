@@ -19,6 +19,9 @@ A list object with the following components:
 2) data frame of loci with expected genotype calls for artificial heterozygotes.
 }
 \description{
+Find loci with unexpected homozygous genotype calls for artificial heterozygotes.
+}
+\details{
 Artificial heterozygotes are expected to show heterozygosity at polymorphic
 loci between parents.Use this wrapper function to detect loci which did not
 follow this prediction.

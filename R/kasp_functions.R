@@ -3904,14 +3904,14 @@ hapmap_ns_fmt <- function(x,
 }
 
 #' Find loci with unexpected homozygous genotype calls for artificial heterozygotes.
-#' @description
-#' Artificial heterozygotes are expected to show heterozygosity at polymorphic
-#' loci between parents.Use this wrapper function to detect loci which did not
-#' follow this prediction.
-#'
 #' @param x A data matrix or frame with markers as columns and samples as rows.
 #' @param rp_row,dp_row An integer or character value indicating the row index
 #' or name of Parent 1 and 2.
+#'
+#' @details
+#' Artificial heterozygotes are expected to show heterozygosity at polymorphic
+#' loci between parents.Use this wrapper function to detect loci which did not
+#' follow this prediction.
 #'
 #' @returns A list object with the following components:
 #' 1) data frame of loci with unexpected genotype calls artificial heterozygotes
