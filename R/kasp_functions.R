@@ -2253,8 +2253,8 @@ proc_kasp <- function(x,
 #' }
 #'
 #' @returns A list object with the following components:
-#' 1) column index of loci with genotype call error
-#' 2) data frame of loci with genotype call errors if present.
+#' 1) data frame of loci with genotype call errors if present.
+#' 2) data frame of loci with genotype no errors.
 #'
 #' @export
 
@@ -2278,7 +2278,7 @@ geno_error <- function(x,
   rp <- as.character(unlist(x[rp_row, ]))
   dp <- as.character(unlist(x[dp_row, ]))
 
-  # Col_index with logical values for faster subsetting
+  # Col_index with logical values
   col_index <- logical(ncol(x))
 
   for (i in seq_len(ncol(x))) {
@@ -2298,20 +2298,21 @@ geno_error <- function(x,
 
   # Subset columns based on col_index
   if (any(col_index)) {
+
     geno_err <- as.data.frame(x[, which(col_index)])
     colnames(geno_err) <- colnames(x)[col_index]
+
   } else geno_err <- NULL
 
   if (any(!col_index)) {
+
     geno_good <- as.data.frame(x[, which(!col_index)])
     colnames(geno_good) <- colnames(x)[which(!col_index)]
-  } else x
 
-  res <- list(
-    col_index = which(col_index),
-    geno_err = geno_err,
-    geno_good = geno_good
-  )
+  } else geno_good <- x
+
+  res <- list(geno_err = geno_err,
+              geno_good = geno_good)
 
   return(res)
 }
@@ -3901,3 +3902,221 @@ hapmap_ns_fmt <- function(x,
   return(x)
 
 }
+
+#' Find loci with unexpected homozygous genotype calls for artificial heterozygotes.
+#' @description
+#' Artificial heterozygotes are expected to show heterozygosity at polymorphic
+#' loci between parents.Use this wrapper function to detect loci which did not
+#' follow this prediction.
+#'
+#' @param x A data matrix or frame with markers as columns and samples as rows.
+#' @param rp_row,dp_row An integer or character value indicating the row index
+#' or name of Parent 1 and 2.
+#'
+#' @returns A list object with the following components:
+#' 1) data frame of loci with unexpected genotype calls artificial heterozygotes
+#'  if present.
+#' 2) data frame of loci with expected genotype calls for artificial heterozygotes.
+#'
+#' @examples
+#' # example code
+#' library(panGenomeBreedr)
+#' # Marker data
+#' dat <- data.frame(snp1 = c('C:C', 'A:A', 'C:A', 'C:A'),
+#'                   snp2 = c('C:C', '-:-', 'C:C', 'C:C'),
+#'                   snp3 = c('T:T', 'C:C', 'C:T', 'C:T'),
+#'                   snp4 = c('G:G', '-:-', 'G:-', 'G:G'),
+#'                   snp5 = c('T:T', 'A:A', 'T:A', 'T:A'),
+#'                   row.names = c('rp', 'dp', 'art_het1', 'art_het2'))
+#'
+#' # Check for unexpected homozygous genotypes
+#' homs_unexp <- find_unexp_homs(x = dat,
+#'                               rp_row = 1,
+#'                               dp_row = 2)$geno_unexp
+#'
+#' @export
+#'
+find_unexp_homs <- function(x,
+                            rp_row,
+                            dp_row) {
+
+  if (missing(rp_row)) stop("Parent 1 row index number is missing!")
+  if (missing(dp_row)) stop("Parent 2 row index number is missing!")
+
+  # Extract recurrent and donor parent data
+  par_geno <- rbind(x[rp_row, ], x[dp_row, ])
+
+  # Extract data for artificial hets
+  prog_geno <- x[-c(rp_row, dp_row), ]
+
+  # Check for unexpected
+  col_index <- sapply(seq_len(ncol(x)), function(i) {
+    any(prog_geno[, i] == par_geno[1, i]) | any(prog_geno[, i] == par_geno[2, i])
+  })
+
+  # Subset columns based on col_index
+  if (any(col_index)) {
+
+    geno_unexp <- as.data.frame(x[, col_index, drop = FALSE])
+    colnames(geno_unexp) <- colnames(x)[col_index]
+
+  } else geno_unexp <- NULL
+
+  if (any(!col_index)) {
+
+    geno_exp <- as.data.frame(x[, !col_index])
+    colnames(geno_exp) <- colnames(x)[!col_index]
+
+  } else geno_exp <- x
+
+  res <- list(geno_unexp = geno_unexp,
+              geno_exp = geno_exp)
+
+  return(res)
+
+}
+
+
+#' Identify and subset InDel markers from a marker panel.
+#' @inheritParams find_unexp_homs
+#' @param sep A character used as separator for genotype calls, default is a
+#' colon.
+#' @param indel_sym A character value that indicates the symbols for a deletion.
+#'
+#' @returns A list object with the following components:
+#' 1) data frame of InDel loci in marker panel if present.
+#' 2) data frame of non-InDel markers in marker panel.
+#'
+#' @examples
+#' # example code
+#' library(panGenomeBreedr)
+#'
+#' # Marker data
+#' dat <- data.frame(snp1 = c('C:C', 'A:A', 'C:A', 'C:A'),
+#'                   snp2 = c('C:C', '-:-', 'C:C', 'C:C'),
+#'                   snp3 = c('T:T', 'C:C', 'C:T', 'C:T'),
+#'                   snp4 = c('G:G', '-:-', 'G:-', 'G:G'),
+#'                   snp5 = c('T:T', 'A:A', 'T:A', 'T:A'),
+#'                   row.names = c('rp', 'dp', 'art_het1', 'art_het2'))
+#'
+#' # Find InDel loci
+#' geno_indel <- find_indels(x = dat,
+#'                           rp_row = 1,
+#'                           dp_row = 2)$geno_indel
+#'
+#'
+#' @export
+
+find_indels  <- function(x,
+                         rp_row,
+                         dp_row,
+                         indel_sym = '-',
+                         sep = ':') {
+
+  if (missing(rp_row)) stop("Parent 1 row index number is missing!")
+  if (missing(dp_row)) stop("Parent 2 row index number is missing!")
+
+  # Extract recurrent and donor parent data
+  par_dat <- rbind(x[rp_row,], x[dp_row,])
+
+  # Pattern search for heterozygous genotype
+  regexp <- paste0('^', indel_sym, '\\', sep, '\\', indel_sym, '$')
+
+  # Col_index with logical values
+  col_index <- apply(par_dat, 2, FUN = function(x) any(grepl(regexp, x)))
+
+  # Subset columns based on col_index
+  if (any(col_index)) {
+
+    geno_indel <- as.data.frame(x[, col_index])
+    colnames(geno_indel) <- colnames(x)[col_index]
+
+  } else geno_indel <- NULL
+
+
+  if (any(!col_index)) {
+
+    geno_non_indel <- as.data.frame(x[, !col_index])
+    colnames(geno_non_indel) <- colnames(x)[!col_index]
+
+  } else geno_non_indel <- x
+
+  res <- list(geno_indel = geno_indel,
+              geno_non_indel = geno_non_indel)
+
+  return(res)
+
+
+}
+
+
+#' Identify and subset loci with any parent missing genotype.
+#' @inheritParams find_unexp_homs
+#' @param na_code A value indicating missing data in \code{x}.
+#'
+#' @returns A list object with the following components:
+#' 1) data frame of loci with at least one parent genotype missing, if present.
+#' 2) data frame of loci with all parent genotype present.
+#'
+#' @examples
+#' # example code
+#' library(panGenomeBreedr)
+#'
+#' # Marker data
+#' dat <- data.frame(snp1 = c('C:C', 'A:A', 'C:A', 'C:A'),
+#'                   snp2 = c('C:C', NA, 'C:C', 'C:C'),
+#'                   snp3 = c(NA, 'C:C', 'C:T', 'C:T'),
+#'                   snp4 = c('G:G', '-:-', 'G:-', 'G:G'),
+#'                   snp5 = c('T:T', 'A:A', 'T:A', 'T:A'),
+#'                   row.names = c('rp', 'dp', 'ind_1', 'ind_2'))
+#'
+#' # Find loci with at least one missing parent genotype
+#' par_miss <- parent_missing(x = dat,
+#'                           rp_row = 1,
+#'                           dp_row = 2)$par_missing
+#'
+#' @export
+parent_missing  <- function(x,
+                            rp_row,
+                            dp_row,
+                            na_code = NA) {
+
+  if (missing(rp_row)) stop("Parent 1 row index number is missing!")
+  if (missing(dp_row)) stop("Parent 2 row index number is missing!")
+
+  # Replace na_code with NAs in marker data
+  if (!is.na(na_code)) {
+
+    x[x == na_code] <- NA
+
+  }
+
+  # Subset parent marker data
+  par_dat <- rbind(x[rp_row,], x[dp_row,])
+
+  # Col_index with logical values
+  col_index <- apply(par_dat, 2, FUN = function(x) anyNA(x))
+
+  # Subset columns based on col_index
+  if (any(col_index)) {
+
+    par_missing <- as.data.frame(x[, col_index])
+    colnames(par_missing) <- colnames(x)[col_index]
+
+  } else par_missing <- NULL
+
+  if (any(!col_index)) {
+
+    par_present <- as.data.frame(x[, !col_index])
+    colnames(par_present) <- colnames(x)[!col_index]
+
+  } else geno_non_indel <- x
+
+  res <- list(par_missing = par_missing,
+              par_present = par_present)
+
+  return(res)
+
+}
+
+

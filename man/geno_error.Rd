@@ -45,8 +45,8 @@ genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
 }
 \value{
 A list object with the following components:
-1) column index of loci with genotype call error
-2) data frame of loci with genotype call errors if present.
+1) data frame of loci with genotype call errors if present.
+2) data frame of loci with genotype no errors.
 }
 \description{
 Identify SNP loci with potential genotype call errors.
