@@ -4077,10 +4077,85 @@ parent_missing  <- function(x,
     par_present <- as.data.frame(x[, !col_index])
     colnames(par_present) <- colnames(x)[!col_index]
 
-  } else geno_non_indel <- x
+  } else par_present <- x
 
   res <- list(par_missing = par_missing,
               par_present = par_present)
+
+  return(res)
+
+}
+
+
+#' Identify and subset loci with any heterozygous parent genotype.
+#' @inheritParams find_indels
+#'
+#' @returns A list object with the following components:
+#' 1) data frame of loci with at least one hetrozygous parent genotype, if present.
+#' 2) data frame of loci with all homozygous parent genotype.
+#'
+#' @examples
+#' # example code
+#' library(panGenomeBreedr)
+#'
+#' # Marker data
+#' dat <- data.frame(snp1 = c('C:A', 'A:A', 'C:A', 'C:A'),
+#'                   snp2 = c('C:C', 'G:G', 'C:C', 'C:C'),
+#'                   snp3 = c('C:T', 'C:C', 'C:T', 'C:T'),
+#'                   snp4 = c('G:G', '-:-', 'G:-', 'G:G'),
+#'                   snp5 = c('T:T', 'A:A', 'T:A', 'T:A'),
+#'                   row.names = c('rp', 'dp', 'ind_1', 'ind_2'))
+#'
+#' # Find loci with at least one heterozygous parent genotype
+#' par_het <- parent_het(x = dat,
+#'                       rp_row = 1,
+#'                       dp_row = 2,
+#'                       sep = ':')$par_het
+#'
+#' @export
+parent_het  <- function(x,
+                        rp_row,
+                        dp_row,
+                        sep = ':') {
+
+  if (missing(rp_row)) stop("Parent 1 row index number is missing!")
+  if (missing(dp_row)) stop("Parent 2 row index number is missing!")
+
+  # Subset parent marker data
+  par_dat <- rbind(x[rp_row,], x[dp_row,])
+
+  # Check if parent is heterozygous
+  is_het <- function(x) {
+
+    # Split the genotype into alleles
+    alleles <- unlist(strsplit(x, sep))
+
+    # Check if the alleles are different
+    return(length(unique(alleles)) == 2)
+
+  }
+
+  # Col_index with logical values
+  col_index <- apply(par_dat, MARGIN = c(1, 2), FUN = is_het)
+  col_index <- apply(col_index, MARGIN = 2, FUN = function(x) any(x))
+
+  # Subset columns based on col_index
+  if (any(col_index)) {
+
+    par_het <- as.data.frame(x[, col_index])
+    colnames(par_het) <- colnames(x)[col_index]
+
+  } else par_het <- NULL
+
+  if (any(!col_index)) {
+
+    par_hom <- as.data.frame(x[, !col_index])
+    colnames(par_hom) <- colnames(x)[!col_index]
+
+  } else par_hom <- x
+
+  res <- list(par_het = par_het,
+              par_hom = par_hom)
 
   return(res)
 
