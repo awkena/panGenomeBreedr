@@ -4,17 +4,7 @@
 \alias{kasp_numeric}
 \title{Convert processed KASP data to numeric genotypes}
 \usage{
-kasp_numeric(
-  x,
-  rp_row,
-  dp_row,
-  sep = ":",
-  blank = "NTC",
-  uncallable = "Uncallable",
-  unused = "?",
-  others = c("Missing", "Bad", "Dupe", "Over", "Short"),
-  data_type = c("kasp", "agriplex")
-)
+kasp_numeric(x, rp_row, dp_row, sep = ":", data_type = c("kasp", "agriplex"))
 }
 \arguments{
 \item{x}{A data frame of n rows of genotypes and p rows of SNPs; output from
@@ -28,17 +18,6 @@ of donor or Parent 2.}
 
 \item{sep}{A character used as separator for genotype calls, default is a
 colon.}
-
-\item{blank}{A character value indicating `No Template Controls (NTC)`
-genotype calls.}
-
-\item{uncallable}{A character indicating `Uncallable` genotype calls, if present.}
-
-\item{unused}{A character indicating `?` genotype calls, if present.}
-
-\item{others}{A character vector indicating other non-genotype calls in KASP
-genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
-`'Over', 'Short'`.}
 
 \item{data_type}{A character value indicating the data source; either `kasp` or
 `agriplex`.}

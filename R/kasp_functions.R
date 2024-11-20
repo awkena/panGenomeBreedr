@@ -113,36 +113,33 @@ read_kasp_csv <- function(file,
 #' @param x A character vector of KASP genotype calls in one reaction plate.
 #' @param sep A character used as separator for genotype calls, default is a
 #' colon.
-#' @param uncallable A character indicating `Uncallable` genotype calls, if present.
-#' @param unused A character indicating `?` genotype calls, if present.
-#' @param blank A character value indicating `No Template Controls (NTC)`
-#' genotype calls.
-#' @param others A character vector indicating other non-genotype calls in KASP
-#' genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
-#' `'Over', 'Short'`.
 #' @param data_type A character value indicating the data source; either `kasp` or
 #' `agriplex`.
 #'
 #'@examples
-#'# example code
+#' # example code
 #' \donttest{
-#' x <- panGenomeBreedr::kasp_dat$Call[1:96]
+#' # Simulate a typical KASP genotype call
+#' set.seed(123)
+#' x <- sample(c("A:A", "A:-", "-:-", "Uncallable", "?"),
+#'             size = 96,
+#'             replace = TRUE)
+#'
+#' # Assign NTC wells
+#' x[c(88, 96)] <- 'NTC'
+#'
+#' # Get alleles and expected genotypes
 #' alleles <- get_alleles(x = x, data_type = 'kasp')
 #' }
 #'
 #' @returns A list object with `length = 2` consisting of marker alleles and
-#' possible genotypes in each KASP reaction plate.
+#' possible genotypes in \code{x}.
 #' @export
-
-
+#'
 get_alleles <- function(x,
                         sep = ':',
-                        blank = 'NTC',
-                        uncallable = 'Uncallable',
-                        unused = '?',
-                        others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short'),
                         data_type = c('kasp', 'agriplex')
-                        ) {
+) {
 
   data_type <- match.arg(data_type) # Match arguments
 
@@ -150,31 +147,28 @@ get_alleles <- function(x,
   res <- vector(mode = 'list', length = 2)
   names(res) <- c('alleles', 'genotypes')
 
-  # Create a character vector of all non-genotype calls
-  non_geno_call <- c(blank, uncallable, unused, others)
-
   # Subset and sort genotype calls
-  geno_uniq <- sort(unique(x[!x %in% non_geno_call]))
+  geno_uniq <- sort(unique(x[grepl("^[AGCT-]", x)]))
 
   alleles <- res[[1]] <- unique(unlist(strsplit(x = geno_uniq, split = sep)))
 
   if (length(alleles) == 2) {
 
-  if (data_type == 'kasp') {
+    if (data_type == 'kasp') {
 
-    homo1 <- paste(alleles[1], alleles[1], sep = sep) # homozygous genotype 1
-    homo2 <- paste(alleles[2], alleles[2], sep = sep) # homozygous genotype 2
-    het1 <- paste(alleles[1], alleles[2], sep = sep) # heterozygous genotype 1
-    het2 <- paste(alleles[2], alleles[1], sep = sep) # heterozygous genotype 2
+      homo1 <- paste(alleles[1], alleles[1], sep = sep) # homozygous genotype 1
+      homo2 <- paste(alleles[2], alleles[2], sep = sep) # homozygous genotype 2
+      het1 <- paste(alleles[1], alleles[2], sep = sep) # heterozygous genotype 1
+      het2 <- paste(alleles[2], alleles[1], sep = sep) # heterozygous genotype 2
 
-  } else {
+    } else {
 
-    homo1 <- paste(alleles[1]) # homozygous genotype 1
-    homo2 <- paste(alleles[2]) # homozygous genotype 2
-    het1 <- paste(alleles[1], alleles[2], sep = sep) # heterozygous genotype 1
-    het2 <- paste(alleles[2], alleles[1], sep = sep) # heterozygous genotype 2
+      homo1 <- paste(alleles[1]) # homozygous genotype 1
+      homo2 <- paste(alleles[2]) # homozygous genotype 2
+      het1 <- paste(alleles[1], alleles[2], sep = sep) # heterozygous genotype 1
+      het2 <- paste(alleles[2], alleles[1], sep = sep) # heterozygous genotype 2
 
-  }
+    }
 
   } else if (length(alleles == 1)) {
 
@@ -371,10 +365,6 @@ kasp_color <- function(x,
     # Get alleles and possible genotypes using the `get_allele()` function
     alleles_geno <- get_alleles(x = Color,
                                 sep = sep,
-                                blank = blank,
-                                uncallable = uncallable,
-                                unused = unused,
-                                others = others,
                                 data_type = 'kasp')
     alleles <- alleles_geno$alleles
 
@@ -2218,13 +2208,6 @@ proc_kasp <- function(x,
 #' of the donor or Parent 2.
 #' @param sep A character used as separator for genotype calls, default is a
 #' colon.
-#' @param uncallable A character indicating `Uncallable` genotype calls, if present.
-#' @param unused A character indicating `?` genotype calls, if present.
-#' @param blank A character value indicating `No Template Controls (NTC)`
-#' genotype calls.
-#' @param others A character vector indicating other non-genotype calls in KASP
-#' genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
-#' `'Over', 'Short'`.
 #' @param data_type A character value indicating the data source; either `kasp` or
 #' `agriplex`.
 #'
@@ -2262,17 +2245,12 @@ geno_error <- function(x,
                        rp_row,
                        dp_row,
                        sep = ':',
-                       blank = 'NTC',
-                       uncallable = 'Uncallable',
-                       unused = '?',
-                       others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short'),
                        data_type = c('kasp', 'agriplex')) {
 
   if (missing(rp_row)) stop("Parent 1 row index number is missing!")
   if (missing(dp_row)) stop("Parent 2 row index number is missing!")
 
   data_type <- match.arg(data_type)
-  non_geno_call <- c(blank, uncallable, unused, others)
 
   # Extract recurrent and donor parent alleles in advance
   rp <- as.character(unlist(x[rp_row, ]))
@@ -2283,7 +2261,7 @@ geno_error <- function(x,
 
   for (i in seq_len(ncol(x))) {
     snp <- x[[i]]
-    snp <- snp[!snp %in% non_geno_call]
+    snp <- snp[grepl("^[AGCT-]", snp)]
 
     # Get expected genotypes based on recurrent and donor parent alleles
     par_geno <- c(rp[i], dp[i])
@@ -2327,13 +2305,6 @@ geno_error <- function(x,
 #' of donor or Parent 2.
 #' @param sep A character used as separator for genotype calls, default is a
 #' colon.
-#' @param uncallable A character indicating `Uncallable` genotype calls, if present.
-#' @param unused A character indicating `?` genotype calls, if present.
-#' @param blank A character value indicating `No Template Controls (NTC)`
-#' genotype calls.
-#' @param others A character vector indicating other non-genotype calls in KASP
-#' genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
-#' `'Over', 'Short'`.
 #' @param data_type A character value indicating the data source; either `kasp` or
 #' `agriplex`.
 #'
@@ -2377,10 +2348,6 @@ kasp_numeric <- function(x,
                         rp_row,
                         dp_row,
                         sep = ':',
-                        blank = 'NTC',
-                        uncallable = 'Uncallable',
-                        unused = '?',
-                        others = c('Missing', 'Bad', 'Dupe', 'Over', 'Short'),
                         data_type = c('kasp', 'agriplex')
                         ) {
 
@@ -2390,7 +2357,7 @@ kasp_numeric <- function(x,
   data_type <- match.arg(data_type)
 
   # Create a character vector of all non-genotype calls
-  non_geno_call <- c(blank, uncallable, unused, others)
+  #non_geno_call <- c(blank, uncallable, unused, others)
 
   # Get Alleles for recurrent and donor parents
   rp <- as.vector(unlist(x[rp_row,])) # Recurrent parent allele

@@ -4,15 +4,7 @@
 \alias{get_alleles}
 \title{Get SNP or InDel alleles and possible genotypes from genotype calls in KASP data.}
 \usage{
-get_alleles(
-  x,
-  sep = ":",
-  blank = "NTC",
-  uncallable = "Uncallable",
-  unused = "?",
-  others = c("Missing", "Bad", "Dupe", "Over", "Short"),
-  data_type = c("kasp", "agriplex")
-)
+get_alleles(x, sep = ":", data_type = c("kasp", "agriplex"))
 }
 \arguments{
 \item{x}{A character vector of KASP genotype calls in one reaction plate.}
@@ -20,23 +12,12 @@ get_alleles(
 \item{sep}{A character used as separator for genotype calls, default is a
 colon.}
 
-\item{blank}{A character value indicating `No Template Controls (NTC)`
-genotype calls.}
-
-\item{uncallable}{A character indicating `Uncallable` genotype calls, if present.}
-
-\item{unused}{A character indicating `?` genotype calls, if present.}
-
-\item{others}{A character vector indicating other non-genotype calls in KASP
-genotype calls, if present. These may include `'Missing', 'Bad', 'Dupe'`,
-`'Over', 'Short'`.}
-
 \item{data_type}{A character value indicating the data source; either `kasp` or
 `agriplex`.}
 }
 \value{
 A list object with `length = 2` consisting of marker alleles and
-possible genotypes in each KASP reaction plate.
+possible genotypes in \code{x}.
 }
 \description{
 Get SNP or InDel alleles and possible genotypes from genotype calls in KASP data.
@@ -44,7 +25,16 @@ Get SNP or InDel alleles and possible genotypes from genotype calls in KASP data
 \examples{
 # example code
 \donttest{
-x <- panGenomeBreedr::kasp_dat$Call[1:96]
+# Simulate a typical KASP genotype call
+set.seed(123)
+x <- sample(c("A:A", "A:-", "-:-", "Uncallable", "?"),
+            size = 96,
+            replace = TRUE)
+
+# Assign NTC wells
+x[c(88, 96)] <- 'NTC'
+
+# Get alleles and expected genotypes
 alleles <- get_alleles(x = x, data_type = 'kasp')
 }
 

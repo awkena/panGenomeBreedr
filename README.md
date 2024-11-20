@@ -411,7 +411,7 @@ alignment should be saved – default is a temporary directory.
 |:--:|
 | *Fig. 2. Alignment of the 100 bp upstream and downstream sequences to the reference genome used for KASP marker design.* |
 
-The required sequence for submission to Intertek for the designed KASp
+The required sequence for submission to Intertek for the designed KASP
 marker is shown in Table 2.
 
 <table>
@@ -1229,6 +1229,9 @@ stg5 <- rm_mono(stg5)
 # Parse snp ids to generate a map file
 snps <- colnames(stg5) # Get snp ids
 map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
+
+# order markers in map file
+map_file <- order_markers(x = map_file)
 ```
 
 <table>
@@ -1237,6 +1240,8 @@ Table 5: Map file for the imported Agriplex data.
 </caption>
 <thead>
 <tr>
+<th style="text-align:left;">
+</th>
 <th style="text-align:left;">
 snpid
 </th>
@@ -1251,6 +1256,23 @@ pos
 <tbody>
 <tr>
 <td style="text-align:left;">
+1.317
+</td>
+<td style="text-align:left;">
+S1_402592
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+402592
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.1
+</td>
+<td style="text-align:left;">
 S1_778962
 </td>
 <td style="text-align:right;">
@@ -1261,6 +1283,37 @@ S1_778962
 </td>
 </tr>
 <tr>
+<td style="text-align:left;">
+1.633
+</td>
+<td style="text-align:left;">
+S1_825853
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+825853
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.318
+</td>
+<td style="text-align:left;">
+S1_1218846
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1218846
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.2
+</td>
 <td style="text-align:left;">
 S1_1613105
 </td>
@@ -1273,6 +1326,23 @@ S1_1613105
 </tr>
 <tr>
 <td style="text-align:left;">
+1.319
+</td>
+<td style="text-align:left;">
+S1_1727150
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1727150
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.3
+</td>
+<td style="text-align:left;">
 S1_1954298
 </td>
 <td style="text-align:right;">
@@ -1284,6 +1354,9 @@ S1_1954298
 </tr>
 <tr>
 <td style="text-align:left;">
+1.4
+</td>
+<td style="text-align:left;">
 S1_1985365
 </td>
 <td style="text-align:right;">
@@ -1291,50 +1364,6 @@ S1_1985365
 </td>
 <td style="text-align:right;">
 1985365
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-S1_3751888
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-3751888
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-S1_13156348
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-13156348
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-S1_15905614
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-15905614
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-S1_18104582
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-18104582
 </td>
 </tr>
 </tbody>
@@ -1350,11 +1379,8 @@ stg5 <- proc_kasp(x = stg5,
                   chr = 'chr',
                   chr_pos = 'pos')
 
-map_file_ord <- stg5$ordered_map # Ordered map
-stg5_ord <- stg5$ordered_geno # ordered geno
-
 # Convert to numeric format for plotting
-num_geno <- kasp_numeric(x = stg5_ord,
+num_geno <- kasp_numeric(x = stg5,
                          rp_row = 1,
                          dp_row = 3,
                          sep = ' / ',
@@ -1669,12 +1695,11 @@ All is now set to generate the heatmap (Figure 6) using the
 library(panGenomeBreedr)
 # Create a heatmap that compares the parents to progenies
 cross_qc_ggplot(x = num_geno,
-                map_file = map_file_ord,
+                map_file = map_file,
                 snp_ids = 'snpid',
                 chr = 'chr',
                 chr_pos = 'pos',
-                parents = c("BTx623", "BTx642"),
-                group_sz = 5L,
+                parents = c("BTx623a", "BTx642a"),
                 pdf = FALSE,
                 filename = 'background_heatmap',
                 legend_title = 'stg5_NILs',
@@ -1717,10 +1742,10 @@ shown below:
 
 ###########################################################################
 # Subset data for the first 30 markers on Chr 1
-stg5_ch1 <- num_geno[, map_file_ord$chr == 1][,1:30] 
+stg5_ch1 <- num_geno[, map_file$chr == 1][,1:30] 
 
 # Get the map file for subset data
-stg5_ch1_map <- map_file_ord[map_file_ord$chr == 1,][1:30,]
+stg5_ch1_map <- parse_marker_ns(colnames(stg5_ch1))
 
 # Annotate a heatmap to show the stg5 locus on Chr 1
 # The locus is between positions 0.98 - 1.8 Mbp on Chr 1
@@ -1729,10 +1754,9 @@ cross_qc_annotate(x = stg5_ch1,
                   snp_ids = 'snpid',
                   chr = 'chr',
                   chr_pos = 'pos',
-                  parents = c("BTx623", "BTx642"),
+                  parents = c("BTx623a", "BTx642a"),
                   trait_pos = list(stg5 = c(start = .98e6, end = 1.8e6)),
                   text_scale_fct = 0.3,
-                  group_sz = 5L,
                   pdf = FALSE,
                   legend_title = 'Stg5_NILs',
                   alpha = 0.9,
@@ -1788,7 +1812,7 @@ across all polymorphic loci as shown in the code snippet below:
 
 # Calculate weighted RPP
 rpp <- calc_rpp_bc(x = num_geno,
-                   map_file = map_file_ord,
+                   map_file = map_file,
                    map_chr = 'chr',
                    map_pos = 'pos',
                    map_snp_ids = 'snpid',

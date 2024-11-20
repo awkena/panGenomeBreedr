@@ -206,7 +206,7 @@ The `plot_file` argument specifies the path to the directory where the alignment
 |:--:| 
 | *Fig. 2. Alignment of the 100 bp upstream and downstream sequences to the reference genome used for KASP marker design.* |. 
 
-The required sequence for submission to Intertek for the designed KASp marker is shown in Table 2.
+The required sequence for submission to Intertek for the designed KASP marker is shown in Table 2.
 
 ```{r, echo = FALSE}
 library(knitr)
@@ -465,6 +465,9 @@ stg5 <- rm_mono(stg5)
 snps <- colnames(stg5) # Get snp ids
 map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
 
+# order markers in map file
+map_file <- order_markers(x = map_file)
+
 ```
 
 ```{r, echo=FALSE}
@@ -485,11 +488,8 @@ stg5 <- proc_kasp(x = stg5,
                   chr = 'chr',
                   chr_pos = 'pos')
 
-map_file_ord <- stg5$ordered_map # Ordered map
-stg5_ord <- stg5$ordered_geno # ordered geno
-
 # Convert to numeric format for plotting
-num_geno <- kasp_numeric(x = stg5_ord,
+num_geno <- kasp_numeric(x = stg5,
                          rp_row = 1,
                          dp_row = 3,
                          sep = ' / ',
@@ -513,12 +513,11 @@ All is now set to generate the heatmap (Figure 6) using the `cross_qc_ggplot()` 
 library(panGenomeBreedr)
 # Create a heatmap that compares the parents to progenies
 cross_qc_ggplot(x = num_geno,
-                map_file = map_file_ord,
+                map_file = map_file,
                 snp_ids = 'snpid',
                 chr = 'chr',
                 chr_pos = 'pos',
-                parents = c("BTx623", "BTx642"),
-                group_sz = 5L,
+                parents = c("BTx623a", "BTx642a"),
                 pdf = FALSE,
                 filename = 'background_heatmap',
                 legend_title = 'stg5_NILs',
@@ -544,10 +543,10 @@ To test the hypothesis that the *stg5* NIL development was effective, we can use
 
 ###########################################################################
 # Subset data for the first 30 markers on Chr 1
-stg5_ch1 <- num_geno[, map_file_ord$chr == 1][,1:30] 
+stg5_ch1 <- num_geno[, map_file$chr == 1][,1:30] 
 
 # Get the map file for subset data
-stg5_ch1_map <- map_file_ord[map_file_ord$chr == 1,][1:30,]
+stg5_ch1_map <- parse_marker_ns(colnames(stg5_ch1))
 
 # Annotate a heatmap to show the stg5 locus on Chr 1
 # The locus is between positions 0.98 - 1.8 Mbp on Chr 1
@@ -556,10 +555,9 @@ cross_qc_annotate(x = stg5_ch1,
                   snp_ids = 'snpid',
                   chr = 'chr',
                   chr_pos = 'pos',
-                  parents = c("BTx623", "BTx642"),
+                  parents = c("BTx623a", "BTx642a"),
                   trait_pos = list(stg5 = c(start = .98e6, end = 1.8e6)),
                   text_scale_fct = 0.3,
-                  group_sz = 5L,
                   pdf = FALSE,
                   legend_title = 'Stg5_NILs',
                   alpha = 0.9,
@@ -594,7 +592,7 @@ We can compute and visualize the observed RPP values for the *stg5* NILs across 
 
 # Calculate weighted RPP
 rpp <- calc_rpp_bc(x = num_geno,
-                   map_file = map_file_ord,
+                   map_file = map_file,
                    map_chr = 'chr',
                    map_pos = 'pos',
                    map_snp_ids = 'snpid',
