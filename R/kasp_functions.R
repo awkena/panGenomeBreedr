@@ -2112,7 +2112,7 @@ kasp_reshape_wide <- function(x,
 #' 7. Row bind sorted data together
 #' 8. Re-transpose data to make markers columns and samples as rows for plotting.
 #'
-#'@export
+#' @export
 
 proc_kasp <- function(x,
                       sample_id = "SubjectID",
@@ -2215,22 +2215,19 @@ proc_kasp <- function(x,
 #' # example code
 #' \donttest{
 #' library(panGenomeBreedr)
-#' # Reshape KASP data for each master plate for the beta_carotene data
-#' dat1 <- panGenomeBreedr::beta_carotene
-#' plate_wide <- kasp_reshape_wide(x = dat1,
-#'                                 subset = 'MasterPlate',
-#'                                 snp_id = 'SNPID',
-#'                                 geno_call = 'Call',
-#'                                 idvar = "SubjectID",
-#'                                 blank = 'NTC')
 #'
-#' # Get Master Plate 1
-#' plate1 <- plate_wide$`SE-24-1088_P01_d1`
+#' # Marker data with errors in snp1 and snp4
+#' dat <- data.frame(snp1 = c('C:A', 'A:A', 'C:A', 'C:T'),
+#'                   snp2 = c('C:C', 'G:G', 'C:C', 'C:C'),
+#'                   snp3 = c('C:T', 'C:C', 'C:T', 'C:T'),
+#'                   snp4 = c('G:G', '-:-', 'G:-', 'G:A'),
+#'                   snp5 = c('T:T', 'A:A', 'T:A', 'T:A'),
+#'                   row.names = c('rp', 'dp', 'ind_1', 'ind_2'))
 #'
 #' # Check for genotype call  error for each SNP
-#' geno_mat <- geno_error(x = plate1[,-1],
+#' geno_mat <- geno_error(x = dat,
 #'                   rp_row = 1,
-#'                   dp_row = 7,
+#'                   dp_row = 2,
 #'                   sep = ':',
 #'                   data_type = 'kasp')
 #' }
@@ -2240,7 +2237,7 @@ proc_kasp <- function(x,
 #' 2) data frame of loci with genotype no errors.
 #'
 #' @export
-
+#'
 geno_error <- function(x,
                        rp_row,
                        dp_row,
@@ -2252,27 +2249,32 @@ geno_error <- function(x,
 
   data_type <- match.arg(data_type)
 
-  # Extract recurrent and donor parent alleles in advance
-  rp <- as.character(unlist(x[rp_row, ]))
-  dp <- as.character(unlist(x[dp_row, ]))
+  # Subset parent marker data
+  par_dat <- rbind(x[rp_row,], x[dp_row,])
 
-  # Col_index with logical values
-  col_index <- logical(ncol(x))
+  # Extract data for progenies as a list
+  prog_dat <- as.list(as.data.frame(x[-c(rp_row, dp_row), ]))
 
-  for (i in seq_len(ncol(x))) {
-    snp <- x[[i]]
-    snp <- snp[grepl("^[AGCT-]", snp)]
+  # Get possible genotypes based on parent alleles
+  get_geno <- function(x) {
 
-    # Get expected genotypes based on recurrent and donor parent alleles
-    par_geno <- c(rp[i], dp[i])
-    exp_geno <- get_alleles(x = par_geno, sep = sep, data_type = data_type)$genotypes
+    get_alleles(x, sep = sep, data_type = data_type)$genotypes
 
-    geno_present <- unique(na.omit(snp)) %in% exp_geno
-
-    # Mark column as error if genotype present does not match expected genotypes
-    col_index[i] <- !anyNA(par_geno) && ((rp[i] == dp[i] && any(!geno_present)) ||
-                                           (rp[i] != dp[i] && any(!geno_present)))
   }
+
+  exp_geno <- apply(par_dat, MARGIN = 2, FUN = get_geno)
+
+  exp_geno <- as.list(as.data.frame(exp_geno))
+
+  # Find markers with errors
+  snp_error <- function(x, y) {
+
+    any(!x %in% y)
+
+  }
+
+  # Check each progeny genotype against the set of possible genotypes
+  col_index <- mapply(FUN = snp_error, prog_dat, exp_geno)
 
   # Subset columns based on col_index
   if (any(col_index)) {
@@ -2294,7 +2296,6 @@ geno_error <- function(x,
 
   return(res)
 }
-
 
 #' Convert processed KASP data to numeric genotypes
 #' @param x A data frame of n rows of genotypes and p rows of SNPs; output from
@@ -3913,7 +3914,7 @@ find_unexp_homs <- function(x,
   # Extract recurrent and donor parent data
   par_geno <- rbind(x[rp_row, ], x[dp_row, ])
 
-  # Extract data for artificial hets
+  # Extract data for progenies
   prog_geno <- x[-c(rp_row, dp_row), ]
 
   # Check for unexpected
