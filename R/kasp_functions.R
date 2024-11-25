@@ -4232,7 +4232,6 @@ parent_poly <- function(x,
 
   }
 
-
   # Extract recurrent and donor parent data as a character vector
   par_1 <- unlist(x[rp_row,])
   par_2 <- unlist(x[dp_row,])
