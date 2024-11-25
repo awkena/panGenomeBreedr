@@ -4,7 +4,7 @@
 \alias{parent_het}
 \title{Identify and subset loci with any heterozygous parent genotype.}
 \usage{
-parent_het(x, rp_row, dp_row, sep = ":")
+parent_het(x, rp_row, dp_row, sep = ":", na_code = NA)
 }
 \arguments{
 \item{x}{A data matrix or frame with markers as columns and samples as rows.}
@@ -14,6 +14,8 @@ or name of Parent 1 and 2.}
 
 \item{sep}{A character used as separator for genotype calls, default is a
 colon.}
+
+\item{na_code}{A value indicating missing data in \code{x}.}
 }
 \value{
 A list object with the following components:

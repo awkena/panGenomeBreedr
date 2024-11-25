@@ -4,13 +4,15 @@
 \alias{find_unexp_homs}
 \title{Find loci with unexpected homozygous genotype calls for artificial heterozygotes.}
 \usage{
-find_unexp_homs(x, rp_row, dp_row)
+find_unexp_homs(x, rp_row, dp_row, na_code = NA)
 }
 \arguments{
 \item{x}{A data matrix or frame with markers as columns and samples as rows.}
 
 \item{rp_row, dp_row}{An integer or character value indicating the row index
 or name of Parent 1 and 2.}
+
+\item{na_code}{A value indicating missing data in \code{x}.}
 }
 \value{
 A list object with the following components:

@@ -3875,6 +3875,7 @@ hapmap_ns_fmt <- function(x,
 #' @param x A data matrix or frame with markers as columns and samples as rows.
 #' @param rp_row,dp_row An integer or character value indicating the row index
 #' or name of Parent 1 and 2.
+#' @inheritParams parent_missing
 #'
 #' @details
 #' Artificial heterozygotes are expected to show heterozygosity at polymorphic
@@ -3906,10 +3907,19 @@ hapmap_ns_fmt <- function(x,
 #'
 find_unexp_homs <- function(x,
                             rp_row,
-                            dp_row) {
+                            dp_row,
+                            na_code = NA) {
 
   if (missing(rp_row)) stop("Parent 1 row index number is missing!")
   if (missing(dp_row)) stop("Parent 2 row index number is missing!")
+
+  # Replace na_code with NAs in marker data
+  if (!is.na(na_code)) {
+
+    x[x == na_code] <- NA
+
+  }
+
 
   # Extract recurrent and donor parent data
   par_geno <- rbind(x[rp_row, ], x[dp_row, ])
@@ -3947,6 +3957,7 @@ find_unexp_homs <- function(x,
 
 #' Identify and subset InDel markers from a marker panel.
 #' @inheritParams find_unexp_homs
+#' @inheritParams parent_missing
 #' @param sep A character used as separator for genotype calls, default is a
 #' colon.
 #' @param indel_sym A character value that indicates the symbols for a deletion.
@@ -3979,10 +3990,18 @@ find_indels  <- function(x,
                          rp_row,
                          dp_row,
                          indel_sym = '-',
-                         sep = ':') {
+                         sep = ':',
+                         na_code = NA) {
 
   if (missing(rp_row)) stop("Parent 1 row index number is missing!")
   if (missing(dp_row)) stop("Parent 2 row index number is missing!")
+
+  # Replace na_code with NAs in marker data
+  if (!is.na(na_code)) {
+
+    x[x == na_code] <- NA
+
+  }
 
   # Extract recurrent and donor parent data
   par_dat <- rbind(x[rp_row,], x[dp_row,])
@@ -4090,6 +4109,7 @@ parent_missing  <- function(x,
 
 #' Identify and subset loci with any heterozygous parent genotype.
 #' @inheritParams find_indels
+#' @inheritParams parent_missing
 #'
 #' @returns A list object with the following components:
 #' 1) data frame of loci with at least one hetrozygous parent genotype, if present.
@@ -4117,10 +4137,18 @@ parent_missing  <- function(x,
 parent_het  <- function(x,
                         rp_row,
                         dp_row,
-                        sep = ':') {
+                        sep = ':',
+                        na_code = NA) {
 
   if (missing(rp_row)) stop("Parent 1 row index number is missing!")
   if (missing(dp_row)) stop("Parent 2 row index number is missing!")
+
+  # Replace na_code with NAs in marker data
+  if (!is.na(na_code)) {
+
+    x[x == na_code] <- NA
+
+  }
 
   # Subset parent marker data
   par_dat <- rbind(x[rp_row,], x[dp_row,])
@@ -4163,3 +4191,72 @@ parent_het  <- function(x,
 }
 
 
+#' Select polymorphic loci between two parents in a marker panel.
+#' @inheritParams find_indels
+#'
+#' @examples
+#' # example code
+#'
+#' # Marker data
+#' dat <- data.frame(snp1 = c('C:C', 'A:A', 'C:A', 'C:A'),
+#'                   snp2 = c('C:C', 'C:C', 'C:C', 'C:C'),
+#'                   snp3 = c('T:T', 'C:C', 'C:T', 'C:T'),
+#'                   snp4 = c('G:G', '-:-', 'G:-', 'G:G'),
+#'                   snp5 = c('T:T', 'T:T', 'T:A', 'T:A'),
+#'                   row.names = c('rp', 'dp', 'art_het1', 'art_het2'))
+#'
+#' # Find polymorphic loci
+#' poly_loci <- parent_poly(x = dat,
+#'                          rp_row = 1,
+#'                          dp_row = 2,
+#'                          sep = ':')
+#'
+#' @returns A data matrix or frame object of polymorphic loci between two parental
+#' lines.
+#'
+#' @export
+#'
+parent_poly <- function(x,
+                        rp_row,
+                        dp_row,
+                        sep = ':',
+                        na_code = NA) {
+
+  if (missing(rp_row)) stop("Parent 1 row index number is missing!")
+  if (missing(dp_row)) stop("Parent 2 row index number is missing!")
+
+  # Replace na_code with NAs in marker data
+  if (!is.na(na_code)) {
+
+    x[x == na_code] <- NA
+
+  }
+
+
+  # Extract recurrent and donor parent data as a character vector
+  par_1 <- unlist(x[rp_row,])
+  par_2 <- unlist(x[dp_row,])
+
+  is_poly <- function(x) {
+
+    # Get unique alleles for each parent
+    al_p1 <- unique(unlist(strsplit(par_1[x], sep)))
+    al_p2 <- unique(unlist(strsplit(par_2[x], sep)))
+
+    # Check if intersect between parent alleles is less than their union
+    # TRUE is polymorphic and FALSE if monomorphic
+    length(intersect(al_p1, al_p2)) < length(union(al_p1, al_p2))
+  }
+
+  # Get the number of markers in x
+  ncols <- ncol(x)
+
+  # Check if parents are different at each SNP locus
+  poly_loci <- sapply(seq_len(ncols), FUN = is_poly)
+
+  # Filter loci to only polymorphic ones
+  poly_genos <- x[, poly_loci, drop = FALSE]
+
+  return(poly_genos)
+
+}
