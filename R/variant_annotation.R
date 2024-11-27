@@ -122,7 +122,7 @@ create_tabix_bash <- function(slurm_par = c(nodes = 1,
   pkgs <- c("# Loading required modules",
             "",
             "# htslib",
-            "# module load htslib",
+            "module load htslib",
             "",
             "# bcftools",
             "module load bcftools",
@@ -218,6 +218,7 @@ create_tabix_bash <- function(slurm_par = c(nodes = 1,
   bash_script <- c(shebang, slurm, readme, candidate_gene, tabix_res_out,
                    pkgs, gff_dir, extract_region, snpeff_snp_vcf, snpeff_indel_vcf)
 
+  # Save tabix bash file in bash_out_path
   writeLines(bash_script, file.path(bash_out_path, filename))
 
 }
