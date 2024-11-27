@@ -83,7 +83,7 @@ create_tabix_bash <- function(slurm_par = c(nodes = 1,
              sprintf("#SBATCH --mem=%s", slurm_par[3]),
              sprintf("#SBATCH --time=%s", slurm_par[4]),
              sprintf("#SBATCH --partition=%s", slurm_par[5]),
-             sprintf("#SBATCH  --error==%s", slurm_par[6]),
+             sprintf("#SBATCH  --error=%s", slurm_par[6]),
              "",
              "")
 
@@ -131,6 +131,17 @@ create_tabix_bash <- function(slurm_par = c(nodes = 1,
             "module load samtools",
             "",
             "")
+
+  # Set environment variables
+  env_var <- c("",
+               "# Set environment variables",
+               "export PATH=/usr/local/bin:$PATH",
+               "export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH",
+               "",
+               "# Optional: Log loaded modules and environment variables for debugging",
+               "module list",
+               "env | grep -E 'PATH|LD_LIBRARY_PATH'",
+               "")
 
   # 7. Path to gff file
   gff_dir <- c("#----------------------------------------------------------------------------------------#",
@@ -216,7 +227,8 @@ create_tabix_bash <- function(slurm_par = c(nodes = 1,
 
   # Write the script to the output file
   bash_script <- c(shebang, slurm, readme, candidate_gene, tabix_res_out,
-                   pkgs, gff_dir, extract_region, snpeff_snp_vcf, snpeff_indel_vcf)
+                   pkgs, env_var, gff_dir, extract_region, snpeff_snp_vcf,
+                   snpeff_indel_vcf)
 
   # Save tabix bash file in bash_out_path
   writeLines(bash_script, file.path(bash_out_path, filename))

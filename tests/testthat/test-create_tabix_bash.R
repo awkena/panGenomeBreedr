@@ -32,7 +32,7 @@ test_that("create_tabix_bash works", {
   # Read the bash file into R
   tabix_content <- readLines(tabix_script)
   expect_true(length(list.files(path = ".", pattern = "\\.sh$")) > 0)
-  expect_equal(length(tabix_content), 107)
+  expect_equal(length(tabix_content), 117)
   on.exit(unlink(path))
 
 })
