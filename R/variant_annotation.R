@@ -1,5 +1,5 @@
 #' Create a tabix bash file to run on HPC cluster
-#' @param slurm_par A named character vector of `length = 5`, indicating SLURM job
+#' @param slurm_par A named character vector of `length = 6`, indicating SLURM job
 #' parameters for submitting jobs to a computing cluster managed by a SLURM
 #' workload manager. It must be specified in this order: number of compute nodes,
 #' number of tasks, the amount of memory per CPU core, the maximum runtime
@@ -37,11 +37,7 @@
 #' path2 <- "/pl/active/Morris_CSU/Sorghum_Genetic_Data/Sbicolor_v5.1"
 #' vcf_path <- file.path(path2, 'VCF_update_data_nov/imputed_data_snpeff')
 #'
-#' create_tabix_bash(slurm_par = c(nodes = 1,
-#'                                 ntasks = 1,
-#'                                 mem = '1G',
-#'                                 time ='00:05:00'),
-#'                   cand_gene_id = 'Sobic.003G421300',
+#' create_tabix_bash(cand_gene_id = 'Sobic.003G421300',
 #'                   tabix_output_path = "/scratch/alpine/awkena@colostate.edu/ssh_try/",
 #'                   gff_path = gff_path,
 #'                   vcf_path = vcf_path,
@@ -63,7 +59,8 @@ create_tabix_bash <- function(slurm_par = c(nodes = 1,
                                             ntasks = 1,
                                             mem = '1G',
                                             time ='00:05:00',
-                                            partition = 'amilan'),
+                                            partition = 'amilan',
+                                            error = 'tabix_test.err'),
                               cand_gene_id = 'Sobic.003G421300',
                               tabix_output_path,
                               gff_path,
@@ -86,6 +83,7 @@ create_tabix_bash <- function(slurm_par = c(nodes = 1,
              sprintf("#SBATCH --mem=%s", slurm_par[3]),
              sprintf("#SBATCH --time=%s", slurm_par[4]),
              sprintf("#SBATCH --partition=%s", slurm_par[5]),
+             sprintf("#SBATCH  --error==%s", slurm_par[6]),
              "",
              "")
 
