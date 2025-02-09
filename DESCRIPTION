@@ -32,6 +32,8 @@ Imports:
     IRanges,
     msa,
     reshape2,
+    Rsamtools,
+    rtracklayer,
     stats,
     utils,
     VariantAnnotation
