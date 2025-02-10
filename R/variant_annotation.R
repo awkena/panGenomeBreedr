@@ -263,11 +263,41 @@ create_tabix_bash <- function(slurm_par = c(nodes = 1,
 #'
 #' @examples
 #' # example code
+#' \donttest{
 #' library(panGenomeBreedr)
 #'
-#' # Read the bash file into R
-#' tabix_content <- readLines(tabix_script)
-#' print(tabix_content)
+#' # Work from the tempdir
+#' vcf_dir <- tempdir()
+#'
+#' # Google drive link to gff3 file
+#' flink1 <- "https://drive.google.com/file/d/1XjYyJ2JLywbbniIU6oUIIxAmEBKfmHpz/view?usp=sharing"
+#'
+#' # Download gff3 file to tempdir()
+#' gff3 <- folder_download_gd(drive_link = flink1,
+#'                            output_path = vcf_dir,
+#'                            is.folder = FALSE)
+#'
+#' # Google drive link to indel snpEff annotated vcf file on Chr05
+#' flink2 <- "https://drive.google.com/file/d/1LiOeDsfIwbsCuHbw9rCJ1FLOZqICTrfs/view?usp=sharing"
+#'
+#' # Download indel snpEff annotated vcf file to tempdir()
+#' vcf_file_indel <- folder_download_gd(drive_link = flink2,
+#'                                      output_path = vcf_dir,
+#'                                      is.folder = FALSE)
+#' # View downloaded files in tempdir
+#' # list.files(vcf_dir)
+#'
+#' # InDel variant extraction for lgs1 (Sobic.005G213600)
+#' extract_variant(cand_gene_id = 'Sobic.005G213600',
+#'                 gff_path = gff3,
+#'                 vcf_dir = vcf_dir,
+#'                 vcf_file = basename(vcf_file_indel),
+#'                 output_path = vcf_dir,
+#'                 outfile_suffix = 'lgs_variants_indel')
+#'
+#' # Clean tempdir after variant extraction
+#' # unlink(vcf_dir, recursive = TRUE)
+#' }
 #'
 #' @importFrom rtracklayer import
 #' @importFrom GenomicRanges GRanges
@@ -383,16 +413,19 @@ get_google_id <- function(drive_link, is.folder = TRUE) {
 #' @param drive_link A character value indicating the shareable Google Drive link.
 #' @param output_path A character value indicating the path to a directory for
 #' saving downloaded files.
-#'#' @param is.folder A logical value indicating if link is for a folder or file.
+#' @param is.folder A logical value indicating if link is for a folder or file.
 #' Set to `FALSE` if link is for a shareable file.
 #'
 #' @examples
 #' # example code
+#' \donttest{
 #' library(panGenomeBreedr)
-#' folder_link <- "https://drive.google.com/drive/folders/1BotxaUb5emlrtgo473db3gDTUCLzKi70?usp=sharing"
-#' folder_path <- folder_download_gd(drive_link = folder_link)
+#' f_link <- "https://drive.google.com/drive/folders/1BotxaUb5emlrtgo473db3gDTUCLzKi70?usp=sharing"
+#' folder_path <- folder_download_gd(drive_link = f_link)
+#' }
 #'
-#' @returns Path to directory containing downloaded from Google Drive.
+#' @returns A list or vector containing the path to directory containing downloaded
+#' files from Google Drive.
 #'
 #' @importFrom googledrive drive_get as_id drive_ls drive_download drive_deauth drive_user drive_get
 #' @export
@@ -405,9 +438,6 @@ folder_download_gd <- function(drive_link,
   googledrive::drive_deauth()
   googledrive::drive_user()
 
-  get_wd <- getwd() # Get current working directory
-
-
   if (is.folder) {
 
     # Get folder ID from shareable link
@@ -419,20 +449,22 @@ folder_download_gd <- function(drive_link,
 
     if(!dir.exists(dir)) dir.create(dir)
 
-    # Set new directory as new working directory
-    if(dir.exists(dir)) setwd(dir)
-
     # List all files in the google drive folder
     files <- googledrive::drive_ls(p_file)
 
-    sapply(files$id , googledrive::drive_download, overwrite = TRUE)
+    # File names to be downloaded
+    file_ids <- as.list(files$id)
 
-    return(dir)
+    # Paths to save files to be downloaded
+    paths <- as.list(file.path(dir, files$name))
+
+    # Download all files to dir
+    mapply(googledrive::drive_download, file_ids, paths,
+           MoreArgs = list(overwrite = TRUE))
+
+    return(paths)
 
   } else {
-
-    # Set working directory to output_path
-    setwd(output_path)
 
     # Get file ID from shareable link
     file_id <- get_google_id(drive_link = drive_link, is.folder = FALSE)
@@ -442,13 +474,10 @@ folder_download_gd <- function(drive_link,
     # Create a directory using the same folder ID in Google Drive
     dir <- file.path(output_path, unlist(p_file[,'name']))
 
-    googledrive::drive_download(p_file, overwrite = TRUE)
+    googledrive::drive_download(p_file, overwrite = TRUE, path = dir)
 
     return(dir)
 
   }
 
-  on.exit(setwd(get_wd)) # Set working directory back to what it was
-
 }
-

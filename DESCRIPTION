@@ -28,6 +28,7 @@ Imports:
     Biostrings,
     GenomicRanges,
     ggplot2,
+    googledrive,
     gridExtra,
     IRanges,
     msa,

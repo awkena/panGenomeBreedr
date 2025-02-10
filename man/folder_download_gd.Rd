@@ -10,20 +10,24 @@ folder_download_gd(drive_link, output_path = tempdir(), is.folder = TRUE)
 \item{drive_link}{A character value indicating the shareable Google Drive link.}
 
 \item{output_path}{A character value indicating the path to a directory for
-saving downloaded files.
-#' @param is.folder A logical value indicating if link is for a folder or file.
+saving downloaded files.}
+
+\item{is.folder}{A logical value indicating if link is for a folder or file.
 Set to `FALSE` if link is for a shareable file.}
 }
 \value{
-Path to directory containing downloaded from Google Drive.
+A list or vector containing the path to directory containing downloaded
+files from Google Drive.
 }
 \description{
 Download files in a shared Google Drive folder without restrictions.
 }
 \examples{
 # example code
+\donttest{
 library(panGenomeBreedr)
-folder_link <- "https://drive.google.com/drive/folders/1BotxaUb5emlrtgo473db3gDTUCLzKi70?usp=sharing"
-folder_path <- folder_download_gd(drive_link = folder_link)
+f_link <- "https://drive.google.com/drive/folders/1BotxaUb5emlrtgo473db3gDTUCLzKi70?usp=sharing"
+folder_path <- folder_download_gd(drive_link = f_link)
+}
 
 }

@@ -49,10 +49,40 @@ components: a common prefix, chromosome tag and a common suffix.
 }
 \examples{
 # example code
+\donttest{
 library(panGenomeBreedr)
 
-# Read the bash file into R
-tabix_content <- readLines(tabix_script)
-print(tabix_content)
+# Work from the tempdir
+vcf_dir <- tempdir()
+
+# Google drive link to gff3 file
+flink1 <- "https://drive.google.com/file/d/1XjYyJ2JLywbbniIU6oUIIxAmEBKfmHpz/view?usp=sharing"
+
+# Download gff3 file to tempdir()
+gff3 <- folder_download_gd(drive_link = flink1,
+                           output_path = vcf_dir,
+                           is.folder = FALSE)
+
+# Google drive link to indel snpEff annotated vcf file on Chr05
+flink2 <- "https://drive.google.com/file/d/1LiOeDsfIwbsCuHbw9rCJ1FLOZqICTrfs/view?usp=sharing"
+
+# Download indel snpEff annotated vcf file to tempdir()
+vcf_file_indel <- folder_download_gd(drive_link = flink2,
+                                     output_path = vcf_dir,
+                                     is.folder = FALSE)
+# View downloaded files in tempdir
+# list.files(vcf_dir)
+
+# InDel variant extraction for lgs1 (Sobic.005G213600)
+extract_variant(cand_gene_id = 'Sobic.005G213600',
+                gff_path = gff3,
+                vcf_dir = vcf_dir,
+                vcf_file = basename(vcf_file_indel),
+                output_path = vcf_dir,
+                outfile_suffix = 'lgs_variants_indel')
+
+# Clean tempdir after variant extraction
+# unlink(vcf_dir, recursive = TRUE)
+}
 
 }
