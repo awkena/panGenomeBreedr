@@ -105,9 +105,10 @@ You can install the development version of `panGenomeBreedr` from
 [GitHub](https://github.com/awkena/panGenomeBreedr) with:
 
 ``` r
-if (!require("pak")) install.packages("pak")
+# Install panGenomeBreedr
+if (!require("devtools")) install.packages("devtools")
 
-pak::pkg_install("awkena/panGenomeBreedr")
+devtools::install_github("awkena/panGenomeBreedr", upgrade = TRUE)
 ```
 
 ### Installing Bioconductor dependency packages
