@@ -1604,3 +1604,135 @@ parent_poly <- function(x,
   return(poly_genos)
 
 }
+
+
+#' Identify lines that possess favorable alleles for target loci using trait
+#' predictive markers.
+#' @param geno_data A data frame or matrix with lines as rows and markers as columns.
+#' @param fore_marker_info A data frame of meta data for the trait-predicitve markers
+#' consisting of marker names, favorable and alternate alleles as variables.
+#' @param fore_marker_col A character value specifying the column name for trait-predictive
+#' markers in \code{fore_marker_info}.
+#' @param fav_allele_col A character value specifying the column name for favorable
+#' allele in \code{fore_marker_info}.
+#' @param alt_allele_col A character value specifying the column name for alternate
+#' allele in \code{fore_marker_info}.
+#' @param select_type A character value of one of three options: `homo` to select
+#' lines that are homyzygous for the favroable allele; `hetero` to select lines
+#' that are heterozygous; and `both` to select both favorable homozygotes and
+#' heterozygotes.
+#' @param sep A character value representing the separator used for genotype calling.
+#' @param threshold A positive integer value indicating the minimum number of
+#' favorable allele counts across mutltiple trait-predicitve markers a line must
+#' possess before it is selected. The default is set to the number of trait-predictive
+#' markers in \code{fore_marker_info}
+#'
+#' @returns A data frame of selected lines that meet minimum threshold value.
+#'
+#' @examples
+#' \donttest{
+#' # example code
+#' library(panGenomeBreedr)
+#'
+#' # Marker genotype data
+#' geno <- data.frame(SNP1 = c("A:A", "A:G", "G:G", "A:A"),
+#'                    SNP2 = c("C:C", "C:T", "T:T", "C:T"),
+#'                    SNP3 = c("G:G", "G:G", "A:G", "A:A"),
+#'                    row.names = c("Line1", "Line2", "Line3", "Line4"))
+#'
+#' # Trait predictive markers meta data
+#' marker_info <- data.frame(qtl_markers = paste0('SNP', 1:3),
+#'                           fav_alleles = c('A', 'C', 'G'),
+#'                           alt_alleles = c('G', 'T', 'A'))
+#'
+#' # Select lines where genotype is either homozygous for favorable alleles at all loci
+#' foreground_select(geno_data = geno,
+#'                   fore_marker_info = marker_info,
+#'                   fore_marker_col = 'qtl_markers',
+#'                   fav_allele_col = 'fav_alleles',
+#'                   alt_allele_col = 'alt_alleles',
+#'                   select_type = "homo")
+#'
+#' }
+#'
+#' @export
+#'
+foreground_select <- function(geno_data,
+                              fore_marker_info,
+                              fore_marker_col,
+                              fav_allele_col,
+                              alt_allele_col,
+                              select_type = c("homo", "hetero", "both"),
+                              sep = ":",
+                              threshold = nrow(fore_marker_info)) {
+
+  # Throw up error if the threshold value is greater than the number of QTL markers
+  if (threshold > nrow(fore_marker_info)) {
+    stop('The threshold value is greater than the number of QTL loci.')
+  }
+
+  out_type <- match.arg(select_type) # Check for output type
+
+  # Get line names
+  lines <- rownames(geno_data)
+
+  # QTL marker names
+  qtl_loci <- fore_marker_info[, fore_marker_col]
+
+  # Get favorite alleles for QTL markers
+  fav_alleles <- fore_marker_info[, fav_allele_col]
+  alt_alleles <- fore_marker_info[, alt_allele_col]
+
+  # Empty matrix to hold results
+  res_mat <- matrix(FALSE, nrow = nrow(geno_data), ncol = length(qtl_loci))
+
+  # Check if QTL marker names are present in marker data
+  if (!all(qtl_loci %in% colnames(geno_data))) {
+
+    stop(paste(qtl_loci[!qtl_loci %in% colnames(geno_data)], 'not found in marker genotype data.'))
+
+  }
+
+  for (qtl in seq_len(length(qtl_loci))) {
+
+    marker <- qtl_loci[qtl]
+
+    # Subset favorite and alternate alleles
+    fav_al <- fav_alleles[qtl]
+    alt_al <- alt_alleles[qtl]
+
+    if (!marker %in% colnames(geno_data)) next
+
+    genos <- geno_data[[marker]]
+
+    homo_fav <- paste0(fav_al, sep, fav_al)
+    het1 <- paste0(fav_al, sep, alt_al)
+    het2 <- paste0(alt_al, sep, fav_al)
+
+    if (select_type == "homo") {
+
+      res_mat[, qtl] <- genos == homo_fav
+
+    } else if (select_type == "hetero") {
+
+      res_mat[, qtl] <- genos == het1 | genos == het2
+
+    } else if (select_type == "both") {
+
+      res_mat[, qtl] <- genos == homo_fav | genos == het1 | genos == het2
+
+    }
+
+  }
+
+  # Get the number of counts for loci with favorable alleles
+  fav_count <- rowSums(res_mat, na.rm = TRUE)
+
+  res_df <- data.frame(line = lines, fav_count = fav_count)
+
+  # Select lines that meet minimum threshold for fvorable counts
+  selected <- res_df[res_df$fav_count >= threshold,]
+
+  return(selected)
+
+}
