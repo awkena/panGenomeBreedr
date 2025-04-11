@@ -12,14 +12,14 @@ foreground_select(
   fav_allele_col,
   alt_allele_col,
   select_type = c("homo", "hetero", "both"),
-  sep = ":",
-  threshold = nrow(fore_marker_info)
+  sep = ":"
 )
 }
 \arguments{
-\item{geno_data}{A data frame or matrix with lines as rows and markers as columns.}
+\item{geno_data}{A data frame or matrix of marker genotype data with lines as
+rows and markers as columns.}
 
-\item{fore_marker_info}{A data frame of meta data for the trait-predicitve markers
+\item{fore_marker_info}{A data frame of meta data for the trait-predictive markers
 consisting of marker names, favorable and alternate alleles as variables.}
 
 \item{fore_marker_col}{A character value specifying the column name for trait-predictive
@@ -32,19 +32,15 @@ allele in \code{fore_marker_info}.}
 allele in \code{fore_marker_info}.}
 
 \item{select_type}{A character value of one of three options: `homo` to select
-lines that are homyzygous for the favroable allele; `hetero` to select lines
+lines that are homozygous for the favorable allele; `hetero` to select lines
 that are heterozygous; and `both` to select both favorable homozygotes and
 heterozygotes.}
 
 \item{sep}{A character value representing the separator used for genotype calling.}
-
-\item{threshold}{A positive integer value indicating the minimum number of
-favorable allele counts across mutltiple trait-predicitve markers a line must
-possess before it is selected. The default is set to the number of trait-predictive
-markers in \code{fore_marker_info}}
 }
 \value{
-A data frame of selected lines that meet minimum threshold value.
+A binary data frame conversion of the original marker genotype data
+for presence(1s) and absence(0s) of favorable alleles of target loci.
 }
 \description{
 Identify lines that possess favorable alleles for target loci using trait
