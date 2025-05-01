@@ -38,7 +38,7 @@ parse_marker_ns <- function(x,
   if (any(!grepl(format_check, x))) stop('All marker names must be of the Hapmap format!')
 
   # Parse marker names to extract chromosome numbers and physical positions
-  df <- t(as.data.frame(strsplit(x, sep)))
+  df <- t(as.data.frame(strsplit(x, sep, fixed = TRUE)))
   df <- as.data.frame(df)
   colnames(df) <- c('chr', 'pos')
 
@@ -1724,7 +1724,7 @@ foreground_select <- function(geno_data,
 
   res_mat <- as.data.frame(apply(res_mat, 2, as.integer))
 
-  dimnames(res_mat) <- list(rownames(geno_data), colnames(geno_data))
+  dimnames(res_mat) <- list(rownames(geno_data), qtl_loci)
 
   # Select lines that meet minimum threshold for favorable counts
   # selected <- res_df[res_df$fav_count >= threshold,]
