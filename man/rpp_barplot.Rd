@@ -6,7 +6,7 @@
 \usage{
 rpp_barplot(
   rpp_df,
-  rpp_col = "rpp",
+  rpp_col = "total_rpp",
   rpp_sample_id = "sample_id",
   bc_gen = NULL,
   rpp_threshold = NULL,
@@ -87,6 +87,7 @@ rpp_df <- data.frame(sample_id = c('rp', 'dp', paste0('bc3_', 1:8)),
 
 # Generate bar plot for RPP values
 rpp_barplot(rpp_df,
+            rpp_col = 'rpp',
             rpp_threshold = 0.85,
             text_size = 18,
             text_scale_fct = 0.1,

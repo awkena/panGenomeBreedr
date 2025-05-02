@@ -24,6 +24,6 @@ test_that("calc_rpp_bc works", {
                      rp_num_code = 1,
                      weighted = TRUE)
 
-  expect_equal(dim(rpp), c(5, 2))
+  expect_equal(dim(rpp), c(5, 3))
 
 })

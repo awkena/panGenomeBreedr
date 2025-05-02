@@ -13,6 +13,7 @@ calc_rpp_bc(
   map_snp_ids = "snpid",
   rp = NULL,
   rp_num_code = 1,
+  het_code = 0.5,
   na_code = NA,
   weighted = TRUE
 )
@@ -40,13 +41,17 @@ used as the recurrent parent.}
 \item{rp_num_code}{A numeric value indicating the coding for the recurrent parent
 marker background in \code{x}.}
 
+\item{het_code}{A numeric value indicating the coding for heterozygous
+marker background in \code{x}.}
+
 \item{na_code}{A value indicating missing data in \code{x}.}
 
 \item{weighted}{A logical value indicating whether RPP values should be weighted
 or not.}
 }
 \value{
-A data frame object comprising the RPP of sample IDs.
+A data frame object comprising the RPP per chromosome and total RPP
+of sample IDs.
 }
 \description{
 Calculate the proportion of recurrent parent background (RPP) fully recovered
@@ -67,15 +72,16 @@ fully recovered as recurrent parent genetic background.
 # example code
 library(panGenomeBreedr)
 # Create a numeric matrix of genotype scores for 10 markers and 5 samples
-num_dat <- matrix(c(rep(1, 10), rep(0, 10),
+num_dat <- matrix(c(1, 1, 0.5, 0.5, 1, 1, 1, 1, 1, 1, rep(0, 10),
                     1, 1, 0.5, 1, 1, 1, 1, 1, 0, 1,
                     1, 1, 0, 1, 1, 1, 1, 1, 1, 1,
                     1, 1, 0, 1, 1, 1, 1, 1, 1, 0.5 ),
                   byrow = TRUE, ncol = 10)
 
 rownames(num_dat) <- c('rp', 'dp', paste0('bc1_', 1:3))
-colnames(num_dat) <- paste0('S1', '_', c(floor(seq(1000, 10000, len = 8)),
-                                         15000, 20000))
+
+colnames(num_dat) <- c(paste0('S1', '_', c(floor(seq(1000, 10000, len = 5)))),
+                            paste0('S2', '_', c(floor(seq(1000, 10000, len = 5)))))
 
 # Get map file by parsing SNP IDs
 map_file <- parse_marker_ns(colnames(num_dat))

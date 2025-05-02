@@ -11,6 +11,7 @@ test_that("rpp_barplot works", {
   # Generate bar plot for RPP values
   expect_invisible(
   rpp_barplot(rpp_df,
+              rpp_col = 'rpp',
               rpp_threshold = 0.85,
               text_size = 18,
               text_scale_fct = 0.1,
