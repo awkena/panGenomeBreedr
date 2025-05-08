@@ -26,14 +26,17 @@ Language: en-US
 bioViews:
 Imports: 
     Biostrings,
+    DBI,
     GenomicRanges,
     ggplot2,
     googledrive,
     gridExtra,
     IRanges,
     msa,
+    R.utils,
     reshape2,
     Rsamtools,
+    RSQLite,
     rtracklayer,
     stats,
     utils,

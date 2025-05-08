@@ -22,9 +22,6 @@
 #'# Example to design a KASP marker on a substitution variant
 #' path <- tempdir()
 #' path1 <- "https://raw.githubusercontent.com/awkena/panGB/main/Chr02.fa.gz"
-#' #path1 <-  system.file("extdata", "Chr02.fa.gz",
-#'                      #package = "panGenomeBreedr",
-#'                      #mustWork = TRUE)
 #' path2 <-  system.file("extdata", "Sobic.002G302700_SNP_snpeff.vcf",
 #'                      package = "panGenomeBreedr",
 #'                      mustWork = TRUE)
