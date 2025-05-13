@@ -475,11 +475,15 @@ query_db <- function(db_path,
 
   } else if (table_name == "genotypes") {
     query <- sprintf("
-      SELECT g.*
+      SELECT g.variant_id, g.chrom, g.pos, v.variant_type, v.ref, v.alt, %s
       FROM genotypes g
       JOIN variants v ON g.variant_id = v.variant_id
       WHERE %s
-      ORDER BY v.pos", where_clause)
+      ORDER BY g.pos",
+      paste(setdiff(DBI::dbListFields(con, "genotypes"),
+                                       c("variant_id", "chrom", "pos")),
+            collapse = ", "), where_clause)
+
 
   } else {
     query <- sprintf("

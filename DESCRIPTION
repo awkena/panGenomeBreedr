@@ -26,6 +26,7 @@ Language: en-US
 bioViews:
 Imports: 
     Biostrings,
+    BSgenome,
     DBI,
     GenomicRanges,
     ggplot2,
@@ -39,8 +40,7 @@ Imports:
     RSQLite,
     rtracklayer,
     stats,
-    utils,
-    VariantAnnotation
+    utils
 Depends: 
     R (>= 4.1)
 Suggests: 

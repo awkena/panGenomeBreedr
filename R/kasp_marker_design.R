@@ -1,8 +1,16 @@
 #' Design KASP markers based on causal variants.
-#' @param vcf_file Path to the vcf file containing identified variants from
-#' re-sequence data.
+#' @param vcf_file Path to the vcf file containing identified variants.
+#' @param gt_df A data frame or matrix containing the meta data of identified
+#' variants and sample VCF genotype calls. The variants are rows and samples as
+#' columns.
+#' @param variant_id_col,chrom_col,pos_col A character value specifying the
+#' column names of variant IDs, chromosome, and positions in `gt_df` or `vcf_file`.
+#' @param ref_al_col,alt_al_col, A character value specifying the column names
+#' of reference and alternate alleles, respectively in `gt_df` or `vcf_file`.
+#' @param geno_start An integer value specifying the column index number of the
+#' start of the sample genotypes in `gt_df` or `vcf_file`.
 #' @param marker_ID Designated name of variant for marker design. Name must be
-#' contained in `vcf_file`.
+#' contained in `gt_df` or `vcf_file`.
 #' @param chr A character value representation the chromosome description in the
 #' `genome_file`. Providing this helps to save memory in R.
 #' @param genome_file Path to reference genome file in fasta format, either
@@ -11,9 +19,6 @@
 #' and downstream KASP sequence alignment to reference genome.
 #' @param plot_file Path to save the sequence alignment if `plot_draw = TRUE`.
 #' @param region_name A n optional character value for assigned region name.
-#' @param vcf_geno_code A character vector for genotype coding for samples
-#' in imported `vcf_file`. The order of the genotype codes in this vector matters:
-#' `c('homo_alt_allele', 'heterozygous', 'homo_ref_allele', 'missing_genotype_call')`.
 #' @param maf A numeric value between 0 and 1 representing the minor allele
 #' frequency for variant subset.
 #'
@@ -26,13 +31,20 @@
 #'                      package = "panGenomeBreedr",
 #'                      mustWork = TRUE)
 #' ma1 <- kasp_marker_design(vcf_file = path2,
+#'                           variant_id_col = 'ID',
+#'                           chrom_col = 'CHROM',
+#'                           pos_col = 'POS',
+#'                           ref_al_col = 'REF',
+#'                           alt_al_col = 'ALT',
 #'                           genome_file = path1,
+#'                           geno_start = 10,
 #'                           marker_ID = "SNP_Chr02_69200443",
 #'                           chr = "Chr02",
 #'                           plot_draw = TRUE,
 #'                           plot_file = path,
 #'                           region_name = "ma1",
 #'                           maf = 0.05)
+
 #'
 #' # View marker alignment output from temp folder
 #' path3 <- file.path(path, list.files(path = path, "alignment_"))
@@ -53,83 +65,109 @@
 #' design and a DNA sequence alignment to the reference genome.
 #'
 #' @importFrom Biostrings fasta.index readDNAStringSet DNAStringSet
+#' @importFrom BSgenome getSeq
 #' @importFrom GenomicRanges GRanges
-#' @import VariantAnnotation
 #' @import msa
 #' @importFrom IRanges IRanges
 #' @importFrom stats na.omit
 #'
 #' @export
 
-kasp_marker_design <- function(vcf_file, #path and file name of tbi index
-                               marker_ID, # what variant want to design the marker for
-                               chr = NULL, # Chromosome with the variant
-                               genome_file, #genome file path
-                               plot_draw = TRUE, #Do you want a plot drawn? Yes or No
+
+kasp_marker_design <- function(vcf_file = NULL,
+                               gt_df = NULL,
+                               variant_id_col= "variant_id",
+                               chrom_col = "chrom",
+                               pos_col = "pos",
+                               ref_al_col = 'ref',
+                               alt_al_col = 'alt',
+                               geno_start = 7,
+                               marker_ID,
+                               chr = NULL,
+                               genome_file,
+                               plot_draw = TRUE,
                                plot_file = tempdir(),
-                               region_name = 'loc_1', #assigned region name
-                               vcf_geno_code = c('1|1', '0|1', '0|0', '.|.'),
-                               maf = 0.05) # Minor allele frequency
-{
+                               region_name = 'loc_1',
+                               maf = 0.05){
 
-  # Extracting genomic region from vcf file
-  vcf_gene <- VariantAnnotation::readVcf(file = vcf_file)
+  # Function to classify variants into mutation types
+  classify_variant_type <- function(ref, alt) {
 
-  if (vcf_gene@fixed@nrows >= 1) {
+    if (is.na(ref) || is.na(alt)) return(NA)
 
-    #converting to dataframe the variant names
-    variant_table <- as.data.frame(names(vcf_gene))
+    alt_split <- strsplit(alt, ",")[[1]][1]
+    ref_len <- nchar(ref)
+    alt_len <- nchar(alt_split)
 
-    #add chromsome
-    variant_table$chrom <- as.character(vcf_gene@rowRanges@seqnames)
+    ifelse(ref_len == alt_len, "Substitution",
+           ifelse(ref_len > alt_len, "Deletion",
+                  ifelse(ref_len < alt_len, "Insertion", "Others")
+           )
+    )
+  }
 
-    #adding position
-    variant_table$pos <- vcf_gene@rowRanges@ranges@start
+  # Function to read vcf file as a data frame
+  read_vcf_as_df <- function(vcf_file) {
+    # Read VCF header to get column names
+    header_lines <- readLines(vcf_file)
+    header <- header_lines[grep("^#CHROM", header_lines)]
+    colnames <- strsplit(header, "\t")[[1]]
+    colnames[1] <- "CHROM"  # fix formatting
 
-    # Extracting reference allele to column
-    variant_table$reference <- as.character(VariantAnnotation::ref(vcf_gene))
+    # Read VCF data (skip header lines)
+    vcf_df <- utils::read.table(vcf_file, comment.char = "#", header = FALSE, sep = "\t",
+                                col.names = colnames, stringsAsFactors = FALSE)
 
-    # Extracting alternate allele to column
-    variant_table$alternate <- as.character(unlist(VariantAnnotation::alt(vcf_gene)))
+    return(vcf_df)
+  }
 
-    # trying type of variation
-    # variant_table$type <- NA
+
+  if (!is.null(vcf_file)) {
+
+    gt_df <- read_vcf_as_df(vcf_file)
+
+  }
+
+  if (!is.null(gt_df)) {
+
+    gt_df <- gt_df
+
+  }
+
+  # Convert the pos column to numeric
+  gt_df[, pos_col] <- as.numeric(gt_df[, pos_col])
+
+  if (nrow(gt_df) >= 1) {
+
+    # Etracting meta data from gt data frame
+    variant_table <- data.frame(variant_id = gt_df[, variant_id_col],
+                                chrom = gt_df[, chrom_col],
+                                pos = gt_df[, pos_col],
+                                ref = gt_df[, ref_al_col],
+                                alt = gt_df[, alt_al_col])
 
     tryCatch({
 
-      variant_table$type <-  ifelse(VariantAnnotation::isInsertion(vcf_gene), "Insertion",
-                                    ifelse(VariantAnnotation::isSubstitution(vcf_gene), "Substitution",
-                                           ifelse(VariantAnnotation::isDeletion(vcf_gene), "Deletion", "Others")))
+      variant_table$type <-  mapply(classify_variant_type,
+                                    variant_table$ref,
+                                    variant_table$alt)
 
     })
 
     # getting allele frequency
-    geno <- as.data.frame(VariantAnnotation::geno(vcf_gene))
-    geno <- geno[geno$group_name == 'GT', -c(1:2)] # getting only the alleles
+    geno <- data.frame(variant_id = variant_table$variant_id,
+                       gt_df[, geno_start:ncol(gt_df)])
 
-    #converting to numeric to calculate MAF
-    geno <- ifelse(geno == vcf_geno_code[1], 2,
-                   ifelse(geno == vcf_geno_code[2], 1,
-                          ifelse(geno == vcf_geno_code[3], 0, NA)))
-
-    # converting all to numeric
-    tryCatch({
-      suppressWarnings(geno <- apply(geno, MARGIN = 2, as.numeric))
-    })
-
-    # calculating frequencies
-    variant_table$MAF <- round(rowSums(geno, na.rm = TRUE)/(ncol(geno)*2), digits = 3)
-
-    # Renaming column
-    names(variant_table)[1] <- c("ID")
+    # calculating alt frequencies
+    variant_table$MAF <- round(calc_af(gt = geno)$alt_af, 3)
   }
 
-  # Reading genome by chromosome subset or whole genome
-  # Indexing for genome file
+  # # Reading genome by chromosome subset or whole genome
+  # # Indexing for genome file
   dd <-  Biostrings::fasta.index(genome_file, seqtype = "DNA")
-
-  # Read only the sequence for the chromosome with the variant if provided,
-  # else read the whole genome sequence
+  #
+  # # Read only the sequence for the chromosome with the variant if provided,
+  # # else read the whole genome sequence
   if (!is.null(chr) && chr %in% dd$desc) {
 
     indx <-  which(dd$desc == chr)
@@ -142,13 +180,24 @@ kasp_marker_design <- function(vcf_file, #path and file name of tbi index
 
   }
 
-  # genome <- Biostrings::readDNAStringSet(genome_file)
+  # # Load genome as FaFile and ensure it's indexed
+  #
+  # fasta_fh <- Rsamtools::FaFile(genome_file)
+  #
+  # # Index the FASTA file if .fai index does not exist
+  # if (!file.exists(paste0(genome_file, ".fai"))) {
+  #   Rsamtools::indexFa(fasta_fh)
+  # }
+  #
+  # # Load indexed FASTA as genome object
+  # genome <- fasta_fh
+
 
   #### extracting information from variant table
-  variant <- variant_table[variant_table$ID == marker_ID,] #variant information
+  variant <- variant_table[variant_table$variant_id == marker_ID,]
   pos <- as.numeric(variant$pos) #position of variant
   type <- variant$type #type of variant
-  w_var <- nchar(variant$reference) # length of variant
+  w_var <- nchar(variant$ref) # length of variant
   chromosome <- variant$chrom
 
   # snp variants only for adjacent highly polymorphic regions
@@ -231,6 +280,7 @@ kasp_marker_design <- function(vcf_file, #path and file name of tbi index
                                        start = up_bound_start,
                                        end = up_bound_end,
                                        type = 'up')
+
   # What happens if it returns no data?
   variants_100bp_down <- up_down_variant(variant_snp_dat = variants_snp_only,
                                          MAF = maf,
@@ -243,10 +293,10 @@ kasp_marker_design <- function(vcf_file, #path and file name of tbi index
                          allele_comb1 = c('AG','CT','GC','AT','GT','AC','GA','TC','CG','TA','TG','CA'))
 
   # Creating collapse column of alleles for substitution
-  variants_100bp_down$collapse <- paste(variants_100bp_down$reference,
-                                        variants_100bp_down$alternate, sep = "")
-  variants_100bp_up$collapse <- paste(variants_100bp_up$reference,
-                                      variants_100bp_up$alternate, sep = "")
+  variants_100bp_down$collapse <- paste(variants_100bp_down$ref,
+                                        variants_100bp_down$alt, sep = "")
+  variants_100bp_up$collapse <- paste(variants_100bp_up$ref,
+                                      variants_100bp_up$alt, sep = "")
 
   # Substitution collapse allele for the the one letter iupac code
   iupac_conv <- function(iupacode = iupacode, variants_100bp) {
@@ -262,6 +312,7 @@ kasp_marker_design <- function(vcf_file, #path and file name of tbi index
 
     return(variants_100bp)
   }
+
 
   #upstream
   variants_100bp_up <- iupac_conv(iupacode = iupacode,
@@ -284,6 +335,7 @@ kasp_marker_design <- function(vcf_file, #path and file name of tbi index
     stream_sequence <- Biostrings::DNAStringSet()
 
     j <- 1
+    i = 1
     for ( i in 1:(length(start_stop_list)-1)) {
 
       #adjust start
@@ -324,7 +376,7 @@ kasp_marker_design <- function(vcf_file, #path and file name of tbi index
       }
 
       # getting sequence for the region
-      sequence <- Biostrings::DNAStringSet(Biostrings::getSeq(genome, region))
+      sequence <- Biostrings::DNAStringSet(BSgenome::getSeq(genome, region))
 
       # merging sequence and base to add
       tmp_seq <- c(sequence, base_to_add)
@@ -338,6 +390,7 @@ kasp_marker_design <- function(vcf_file, #path and file name of tbi index
 
     return(stream_sequence)
   }
+
 
   # Upstream
   upstream_sequence <- get_actual_seq(variants_100bp = variants_100bp_up,
@@ -356,18 +409,18 @@ kasp_marker_design <- function(vcf_file, #path and file name of tbi index
   ## Create output sequence annotated
   if (variant$type == 'Substitution') {
 
-    reference_allele <- variant$reference # reference allele
-    alternate_allele <- variant$alternate # alternate allele
+    reference_allele <- variant$ref # reference allele
+    alternate_allele <- variant$alt # alternate allele
 
     # intertek formatted sequence
     intertek_sequence <- paste(upstream_sequence, "[",
-                               variant$reference,"/", variant$alternate, "]",
+                               variant$ref,"/", variant$alt, "]",
                                downstream_sequence, sep = "")
 
   } else if (variant$type == 'Deletion') {
 
     #variant without anchoring base
-    varc <- substr(variant$reference, start = 2, stop = nchar(variant$reference))
+    varc <- substr(variant$ref, start = 2, stop = nchar(variant$ref))
 
     #reference allele
     reference_allele <- varc
@@ -382,7 +435,7 @@ kasp_marker_design <- function(vcf_file, #path and file name of tbi index
   } else if (variant$type == 'Insertion') {
 
     #variant without anchoring base
-    varc <- substr(variant$alternate, start = 2, stop = nchar(variant$alternate))
+    varc <- substr(variant$alt, start = 2, stop = nchar(variant$alt))
 
     #reference allele
     reference_allele <- '-'
@@ -398,7 +451,7 @@ kasp_marker_design <- function(vcf_file, #path and file name of tbi index
 
   # Creating dataframe for export
   #Empty dataframe
-  marker_data <- data.frame(SNP_Name = variant$ID,
+  marker_data <- data.frame(SNP_Name = variant$variant_id,
                             SNP = variant$type,
                             Marker_Name = region_name,
                             Chromosome = chromosome,
@@ -416,7 +469,7 @@ kasp_marker_design <- function(vcf_file, #path and file name of tbi index
     region_control <- GenomicRanges::GRanges(chromosome, IRanges::IRanges(up_bound_start, down_bound_end))
 
     # getting reference sequence
-    sequence_control <- VariantAnnotation::getSeq(genome, region_control)
+    sequence_control <- BSgenome::getSeq(genome, region_control)
 
     # merging upstream and downstream sequence
     tmp <- c(upstream_sequence, downstream_sequence)

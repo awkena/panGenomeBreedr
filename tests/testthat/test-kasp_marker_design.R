@@ -1,30 +1,43 @@
 
-test_that("kasp_marker_design works", {
- path1 <- "https://raw.githubusercontent.com/awkena/panGB/main/Chr02.fa.gz"
+test_that("kasp_marker_design works correctly for substitution variant", {
+  skip_if_offline()  # In case network is required for fasta download
 
-  # path1 <-  system.file("extdata", "Chr02.fa.gz",
-  #                      package = "panGenomeBreedr",
-  #                      mustWork = TRUE)
-  path2 <-  system.file("extdata", "Sobic.002G302700_SNP_snpeff.vcf",
-                        package = "panGenomeBreedr",
-                        mustWork = TRUE)
-  path <- tempdir()
-  setwd(path)
+  # Reference genome (remote or packaged)
+  path1 <- "https://raw.githubusercontent.com/awkena/panGB/main/Chr02.fa.gz"
+  path2 <- system.file("extdata", "Sobic.002G302700_SNP_snpeff.vcf",
+                       package = "panGenomeBreedr", mustWork = TRUE)
 
-  # Example to test new function on a substitution variant
-  ma1 <- kasp_marker_design(vcf_file = path2,
-                            genome_file = path1,
-                            marker_ID = "SNP_Chr02_69200443",
-                            chr = "Chr02",
-                            plot_draw = TRUE,
-                            region_name = "ma1",
-                            plot_file = path,
-                            maf = 0.05)
+  tmp_dir <- tempdir()
+  plot_path <- file.path(tmp_dir, "plots")
+  dir.create(plot_path, showWarnings = FALSE)
 
+  marker <- kasp_marker_design(vcf_file = path2,
+                                variant_id_col = "ID",
+                                chrom_col = "CHROM",
+                                pos_col = "POS",
+                                ref_al_col = "REF",
+                                alt_al_col = "ALT",
+                                genome_file = path1,
+                                geno_start = 10,
+                                marker_ID = "SNP_Chr02_69200443",
+                                chr = "Chr02",
+                                plot_draw = TRUE,
+                                plot_file = plot_path,
+                                region_name = "ma1",
+                                maf = 0.05)
 
-  expect_true(length(list.files(path = ".", pattern = "\\.pdf$")) > 0)
-  expect_equal(dim(ma1), c(1, 8))
-  on.exit(unlink(path))
+  # === ASSERTIONS ===
+  expect_s3_class(marker, "data.frame")
+  expect_named(marker, c("SNP_Name", "SNP", "Marker_Name",
+                         "Chromosome", "Chromosome_Position",
+                         "Sequence", "ReferenceAllele", "AlternativeAllele"))
+  expect_equal(nrow(marker), 1)
 
+  pdf_files <- list.files(plot_path, pattern = "\\.pdf$", full.names = TRUE)
+  expect_true(length(pdf_files) > 0)
+  expect_true(file.exists(pdf_files[1]))
 
+  # Clean up
+  unlink(plot_path, recursive = TRUE)
 })
+

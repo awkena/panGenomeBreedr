@@ -5,23 +5,41 @@
 \title{Design KASP markers based on causal variants.}
 \usage{
 kasp_marker_design(
-  vcf_file,
+  vcf_file = NULL,
+  gt_df = NULL,
+  variant_id_col = "variant_id",
+  chrom_col = "chrom",
+  pos_col = "pos",
+  ref_al_col = "ref",
+  alt_al_col = "alt",
+  geno_start = 7,
   marker_ID,
   chr = NULL,
   genome_file,
   plot_draw = TRUE,
   plot_file = tempdir(),
   region_name = "loc_1",
-  vcf_geno_code = c("1|1", "0|1", "0|0", ".|."),
   maf = 0.05
 )
 }
 \arguments{
-\item{vcf_file}{Path to the vcf file containing identified variants from
-re-sequence data.}
+\item{vcf_file}{Path to the vcf file containing identified variants.}
+
+\item{gt_df}{A data frame or matrix containing the meta data of identified
+variants and sample VCF genotype calls. The variants are rows and samples as
+columns.}
+
+\item{variant_id_col, chrom_col, pos_col}{A character value specifying the
+column names of variant IDs, chromosome, and positions in `gt_df` or `vcf_file`.}
+
+\item{ref_al_col, alt_al_col, }{A character value specifying the column names
+of reference and alternate alleles, respectively in `gt_df` or `vcf_file`.}
+
+\item{geno_start}{An integer value specifying the column index number of the
+start of the sample genotypes in `gt_df` or `vcf_file`.}
 
 \item{marker_ID}{Designated name of variant for marker design. Name must be
-contained in `vcf_file`.}
+contained in `gt_df` or `vcf_file`.}
 
 \item{chr}{A character value representation the chromosome description in the
 `genome_file`. Providing this helps to save memory in R.}
@@ -35,10 +53,6 @@ and downstream KASP sequence alignment to reference genome.}
 \item{plot_file}{Path to save the sequence alignment if `plot_draw = TRUE`.}
 
 \item{region_name}{A n optional character value for assigned region name.}
-
-\item{vcf_geno_code}{A character vector for genotype coding for samples
-in imported `vcf_file`. The order of the genotype codes in this vector matters:
-`c('homo_alt_allele', 'heterozygous', 'homo_ref_allele', 'missing_genotype_call')`.}
 
 \item{maf}{A numeric value between 0 and 1 representing the minor allele
 frequency for variant subset.}
@@ -65,7 +79,13 @@ path2 <-  system.file("extdata", "Sobic.002G302700_SNP_snpeff.vcf",
                      package = "panGenomeBreedr",
                      mustWork = TRUE)
 ma1 <- kasp_marker_design(vcf_file = path2,
+                          variant_id_col = 'ID',
+                          chrom_col = 'CHROM',
+                          pos_col = 'POS',
+                          ref_al_col = 'REF',
+                          alt_al_col = 'ALT',
                           genome_file = path1,
+                          geno_start = 10,
                           marker_ID = "SNP_Chr02_69200443",
                           chr = "Chr02",
                           plot_draw = TRUE,
