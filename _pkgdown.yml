@@ -1,0 +1,116 @@
+url: https://awkena.github.io/panGenomeBreedr
+
+template:
+  bootstrap: 5
+  bootswatch: flatly
+
+home:
+  title: "panGenomeBreedr"
+  tagline: "Helpers for pangenome-enabled crop breeding"
+  strip_header: false
+
+authors:
+  - name: "Alexander Wireko Kena"
+    email: "alex.kena24@gmail.com"
+    orcid: "0000-0003-3385-4945"
+    role: [aut, cre]
+  - name: "Clara Cruet Burgos"
+    email: "clara.cruet_burgos@colostate.edu"
+    role: [aut]
+  - name: "Joseph Pascal Sene"
+    email: "joseph15.sene@gmail.com"
+    role: [ctb]
+  - name: "Fanna Maina"
+    email: "fannamainaassane@gmail.com"
+    role: [ctb]
+  - name: "Geoffrey Preston Morris"
+    email: "geoff.morris@colostate.edu"
+    role: [ctb, fnd, rev]
+
+navbar:
+  structure:
+    left:
+      - home
+      - reference
+      - articles
+      - news
+    right:
+      - github
+
+  components:
+    github:
+      icon: "fab fa-github"
+      href: "https://github.com/awkena/panGenomeBreedr"
+      aria-label: "GitHub repository"
+
+reference:
+  - title: "Variant Discovery & KASP Marker Design"
+    contents:
+      - query_db
+      - query_by_af
+      - query_ann_summary
+      - kasp_marker_design
+      - list_sqlite_tables
+      - variant_stats
+      - variant_impact_summary
+      - summarize_sqlite_tables
+      - list_table_columns
+      - gene_coord_gff
+      - query_by_impact
+      - calc_af
+      - filter_by_af
+      - query_genotypes
+      - count_variant_types
+      - extract_variant
+      - get_google_id
+      - folder_download_gd
+
+  - title: "KASP Marker Validation"
+    contents:
+      - read_kasp_csv
+      - get_alleles
+      - kasp_pch
+      - kasp_color
+      - scale_axis
+      - pred_status
+      - pred_summary
+      - kasp_qc_ggplot
+      - kasp_qc_ggplot2
+      - plot_plate
+      - nsamples_plate
+      - kasp_reshape_wide
+      - proc_kasp
+      - geno_error
+      - kasp_numeric
+      - pred_summary_plot
+      - gg_dat
+
+  - title: "Decision Support for MABC and Trait Introgression"
+    contents:
+      - parse_marker_ns
+      - cross_qc_ggplot
+      - rm_mono
+      - calc_rpp_bc
+      - calc_rpp_exp
+      - rpp_barplot
+      - cross_qc_annotate
+      - sim_snp_dat
+      - order_markers
+      - hapmap_ns_fmt
+      - find_unexp_homs
+      - find_indels
+      - parent_missing
+      - parent_het
+      - parent_poly
+      - foreground_select
+      - find_lines
+
+  - title: "Example Datasets"
+    contents:
+      - beta_carotene
+      - kasp_dat
+
+articles:
+  - title: "panGenomeBreedr Workflows and Use Cases"
+    contents:
+      - panGenomeBreedr_Workflows
