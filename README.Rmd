@@ -114,7 +114,7 @@ devtools::install_github("awkena/panGenomeBreedr", upgrade = TRUE)
 # Install and load required Bioconductor packages
 if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 
-  BiocManager::install(c("Bsgenome,
+  BiocManager::install(c("Bsgenome",
                          "Biostrings",
                          "GenomicRanges",
                          "IRanges",
@@ -343,10 +343,19 @@ ann_summary <- query_ann_summary(db_path = mini_db_path,
                                  start = 75104537,
                                  end = 75106403)
 
-# View summaries
-head(ann_summary$annotation_summary)
-head(ann_summary$impact_summary)
+knitr::kable(head(ann_summary$annotation_summary), 
+             caption = 'Annotation summary for variants within the genomic range.', 
+             format = 'html', 
+             padding = 0, 
+             booktabs = TRUE, 
+             escape = FALSE)
 
+knitr::kable(head(ann_summary$impact_summary), 
+             caption = ' Functional impact summary for variants within the genomic range.', 
+             format = 'html', 
+             padding = 0, 
+             booktabs = TRUE, 
+             escape = FALSE)
 # Clean up
 unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
        recursive = TRUE)
@@ -383,10 +392,16 @@ R.utils::gunzip(mini_db, destname = mini_db_path, remove = FALSE)
 high_variants <- query_by_impact(db_path = mini_db_path,
                                 impact_level = 'high',
                                 chrom = "Chr05",
+                                start = 75104537,
                                 end = 75106403)
 
-# View summaries
-head(high_variants)
+# View HIGH impact variants
+knitr::kable(head(high_variants), 
+             caption = ' HIGH impact variants within a defined genomic range.', 
+             format = 'html', 
+             padding = 0, 
+             booktabs = TRUE, 
+             escape = FALSE)
 
 # Clean up
 unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
@@ -406,7 +421,13 @@ This function automates the extraction of flanking sequences and polymorphic var
 The vcf file must contain the variant ID, Chromosome ID, Position, REF and ALT alleles, as well as the genotype data for samples, as shown in Table 1:
 
 ```{r, echo = FALSE}
-head(gt_region)
+# View summaries
+knitr::kable(head(gt_region[1:5, 1:10]), 
+             caption = ' HIGH impact variants within a defined genomic range.', 
+             format = 'html', 
+             padding = 0, 
+             booktabs = TRUE, 
+             escape = FALSE)
 ```
 
 

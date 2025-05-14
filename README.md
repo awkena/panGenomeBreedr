@@ -128,7 +128,7 @@ packages, use the code snippet below:
 # Install and load required Bioconductor packages
 if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 
-  BiocManager::install(c("Bsgenome,
+  BiocManager::install(c("Bsgenome",
                          "Biostrings",
                          "GenomicRanges",
                          "IRanges",
@@ -1029,24 +1029,239 @@ ann_summary <- query_ann_summary(db_path = mini_db_path,
                                  start = 75104537,
                                  end = 75106403)
 
-# View summaries
-head(ann_summary$annotation_summary)
-#>                 annotation variant_type count
-#> 24   upstream_gene_variant          SNP   149
-#> 12   upstream_gene_variant        INDEL    53
-#> 19 downstream_gene_variant          SNP    46
-#> 22        missense_variant          SNP    29
-#> 23      synonymous_variant          SNP    21
-#> 13     3_prime_UTR_variant          SNP    18
-head(ann_summary$impact_summary)
-#>     impact variant_type count
-#> 8 MODIFIER          SNP   220
-#> 4 MODIFIER        INDEL    82
-#> 7 MODERATE          SNP    29
-#> 6      LOW          SNP    21
-#> 1     HIGH        INDEL     6
-#> 3 MODERATE        INDEL     5
+knitr::kable(head(ann_summary$annotation_summary), 
+             caption = 'Annotation summary for variants within the genomic range.', 
+             format = 'html', 
+             padding = 0, 
+             booktabs = TRUE, 
+             escape = FALSE)
+```
 
+<table>
+<caption>
+Annotation summary for variants within the genomic range.
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+annotation
+</th>
+<th style="text-align:left;">
+variant_type
+</th>
+<th style="text-align:right;">
+count
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+24
+</td>
+<td style="text-align:left;">
+upstream_gene_variant
+</td>
+<td style="text-align:left;">
+SNP
+</td>
+<td style="text-align:right;">
+149
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+12
+</td>
+<td style="text-align:left;">
+upstream_gene_variant
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:right;">
+53
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+19
+</td>
+<td style="text-align:left;">
+downstream_gene_variant
+</td>
+<td style="text-align:left;">
+SNP
+</td>
+<td style="text-align:right;">
+46
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+22
+</td>
+<td style="text-align:left;">
+missense_variant
+</td>
+<td style="text-align:left;">
+SNP
+</td>
+<td style="text-align:right;">
+29
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+23
+</td>
+<td style="text-align:left;">
+synonymous_variant
+</td>
+<td style="text-align:left;">
+SNP
+</td>
+<td style="text-align:right;">
+21
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+13
+</td>
+<td style="text-align:left;">
+3_prime_UTR_variant
+</td>
+<td style="text-align:left;">
+SNP
+</td>
+<td style="text-align:right;">
+18
+</td>
+</tr>
+</tbody>
+</table>
+
+``` r
+
+knitr::kable(head(ann_summary$impact_summary), 
+             caption = ' Functional impact summary for variants within the genomic range.', 
+             format = 'html', 
+             padding = 0, 
+             booktabs = TRUE, 
+             escape = FALSE)
+```
+
+<table>
+<caption>
+Functional impact summary for variants within the genomic range.
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+impact
+</th>
+<th style="text-align:left;">
+variant_type
+</th>
+<th style="text-align:right;">
+count
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+8
+</td>
+<td style="text-align:left;">
+MODIFIER
+</td>
+<td style="text-align:left;">
+SNP
+</td>
+<td style="text-align:right;">
+220
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+4
+</td>
+<td style="text-align:left;">
+MODIFIER
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:right;">
+82
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+7
+</td>
+<td style="text-align:left;">
+MODERATE
+</td>
+<td style="text-align:left;">
+SNP
+</td>
+<td style="text-align:right;">
+29
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+6
+</td>
+<td style="text-align:left;">
+LOW
+</td>
+<td style="text-align:left;">
+SNP
+</td>
+<td style="text-align:right;">
+21
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:right;">
+6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3
+</td>
+<td style="text-align:left;">
+MODERATE
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:right;">
+5
+</td>
+</tr>
+</tbody>
+</table>
+
+``` r
 # Clean up
 unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
        recursive = TRUE)
@@ -1086,38 +1301,442 @@ R.utils::gunzip(mini_db, destname = mini_db_path, remove = FALSE)
 high_variants <- query_by_impact(db_path = mini_db_path,
                                 impact_level = 'high',
                                 chrom = "Chr05",
+                                start = 75104537,
                                 end = 75106403)
 
-# View summaries
-head(high_variants)
-#>             variant_id chrom      pos   ref   alt qual filter variant_type
-#> 1 INDEL_Chr05_75104881 Chr05 75104881     G GTCGA    .   PASS        INDEL
-#> 2 INDEL_Chr05_75105587 Chr05 75105587    GC     G    .   PASS        INDEL
-#> 3 INDEL_Chr05_75105598 Chr05 75105598    GT     G    .   PASS        INDEL
-#> 4 INDEL_Chr05_75106156 Chr05 75106156 CGTAT     C    .   PASS        INDEL
-#> 5 INDEL_Chr05_75106295 Chr05 75106295     A   ATC    .   PASS        INDEL
-#> 6 INDEL_Chr05_75106325 Chr05 75106325     G   GTA    .   PASS        INDEL
-#>   allele         annotation impact        gene_name               gene_id
-#> 1  GTCGA frameshift_variant   HIGH Sobic.005G213600 Sobic.005G213600.v5.1
-#> 2      G frameshift_variant   HIGH Sobic.005G213600 Sobic.005G213600.v5.1
-#> 3      G frameshift_variant   HIGH Sobic.005G213600 Sobic.005G213600.v5.1
-#> 4      C frameshift_variant   HIGH Sobic.005G213600 Sobic.005G213600.v5.1
-#> 5    ATC frameshift_variant   HIGH Sobic.005G213600 Sobic.005G213600.v5.1
-#> 6    GTA frameshift_variant   HIGH Sobic.005G213600 Sobic.005G213600.v5.1
-#>   feature_type              feature_id transcript_biotype rank
-#> 1   transcript Sobic.005G213600.1.v5.1     protein_coding  2/2
-#> 2   transcript Sobic.005G213600.1.v5.1     protein_coding  2/2
-#> 3   transcript Sobic.005G213600.1.v5.1     protein_coding  2/2
-#> 4   transcript Sobic.005G213600.1.v5.1     protein_coding  2/2
-#> 5   transcript Sobic.005G213600.1.v5.1     protein_coding  1/2
-#> 6   transcript Sobic.005G213600.1.v5.1     protein_coding  1/2
-#>               HGVS_c     HGVS_p
-#> 1 c.1343_1344insTCGA p.Ser449fs
-#> 2          c.637delG p.Ala213fs
-#> 3          c.626delA p.Asp209fs
-#> 4     c.65_68delATAC  p.His22fs
-#> 5       c.38_39dupGA  p.Ser14fs
-#> 6         c.8_9dupTA   p.Gln4fs
+# View HIGH impact variants
+knitr::kable(head(high_variants), 
+             caption = ' HIGH impact variants within a defined genomic range.', 
+             format = 'html', 
+             padding = 0, 
+             booktabs = TRUE, 
+             escape = FALSE)
+```
+
+<table>
+<caption>
+HIGH impact variants within a defined genomic range.
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+variant_id
+</th>
+<th style="text-align:left;">
+chrom
+</th>
+<th style="text-align:right;">
+pos
+</th>
+<th style="text-align:left;">
+ref
+</th>
+<th style="text-align:left;">
+alt
+</th>
+<th style="text-align:left;">
+qual
+</th>
+<th style="text-align:left;">
+filter
+</th>
+<th style="text-align:left;">
+variant_type
+</th>
+<th style="text-align:left;">
+allele
+</th>
+<th style="text-align:left;">
+annotation
+</th>
+<th style="text-align:left;">
+impact
+</th>
+<th style="text-align:left;">
+gene_name
+</th>
+<th style="text-align:left;">
+gene_id
+</th>
+<th style="text-align:left;">
+feature_type
+</th>
+<th style="text-align:left;">
+feature_id
+</th>
+<th style="text-align:left;">
+transcript_biotype
+</th>
+<th style="text-align:left;">
+rank
+</th>
+<th style="text-align:left;">
+HGVS_c
+</th>
+<th style="text-align:left;">
+HGVS_p
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75104881
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:right;">
+75104881
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+GTCGA
+</td>
+<td style="text-align:left;">
+.
+</td>
+<td style="text-align:left;">
+PASS
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+GTCGA
+</td>
+<td style="text-align:left;">
+frameshift_variant
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+Sobic.005G213600
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.v5.1
+</td>
+<td style="text-align:left;">
+transcript
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.1.v5.1
+</td>
+<td style="text-align:left;">
+protein_coding
+</td>
+<td style="text-align:left;">
+2/2
+</td>
+<td style="text-align:left;">
+c.1343_1344insTCGA
+</td>
+<td style="text-align:left;">
+p.Ser449fs
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75105587
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:right;">
+75105587
+</td>
+<td style="text-align:left;">
+GC
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+.
+</td>
+<td style="text-align:left;">
+PASS
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+frameshift_variant
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+Sobic.005G213600
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.v5.1
+</td>
+<td style="text-align:left;">
+transcript
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.1.v5.1
+</td>
+<td style="text-align:left;">
+protein_coding
+</td>
+<td style="text-align:left;">
+2/2
+</td>
+<td style="text-align:left;">
+c.637delG
+</td>
+<td style="text-align:left;">
+p.Ala213fs
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75105598
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:right;">
+75105598
+</td>
+<td style="text-align:left;">
+GT
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+.
+</td>
+<td style="text-align:left;">
+PASS
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+frameshift_variant
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+Sobic.005G213600
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.v5.1
+</td>
+<td style="text-align:left;">
+transcript
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.1.v5.1
+</td>
+<td style="text-align:left;">
+protein_coding
+</td>
+<td style="text-align:left;">
+2/2
+</td>
+<td style="text-align:left;">
+c.626delA
+</td>
+<td style="text-align:left;">
+p.Asp209fs
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75106156
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:right;">
+75106156
+</td>
+<td style="text-align:left;">
+CGTAT
+</td>
+<td style="text-align:left;">
+C
+</td>
+<td style="text-align:left;">
+.
+</td>
+<td style="text-align:left;">
+PASS
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+C
+</td>
+<td style="text-align:left;">
+frameshift_variant
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+Sobic.005G213600
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.v5.1
+</td>
+<td style="text-align:left;">
+transcript
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.1.v5.1
+</td>
+<td style="text-align:left;">
+protein_coding
+</td>
+<td style="text-align:left;">
+2/2
+</td>
+<td style="text-align:left;">
+c.65_68delATAC
+</td>
+<td style="text-align:left;">
+p.His22fs
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75106295
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:right;">
+75106295
+</td>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:left;">
+ATC
+</td>
+<td style="text-align:left;">
+.
+</td>
+<td style="text-align:left;">
+PASS
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+ATC
+</td>
+<td style="text-align:left;">
+frameshift_variant
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+Sobic.005G213600
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.v5.1
+</td>
+<td style="text-align:left;">
+transcript
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.1.v5.1
+</td>
+<td style="text-align:left;">
+protein_coding
+</td>
+<td style="text-align:left;">
+1/2
+</td>
+<td style="text-align:left;">
+c.38_39dupGA
+</td>
+<td style="text-align:left;">
+p.Ser14fs
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75106325
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:right;">
+75106325
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+GTA
+</td>
+<td style="text-align:left;">
+.
+</td>
+<td style="text-align:left;">
+PASS
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+GTA
+</td>
+<td style="text-align:left;">
+frameshift_variant
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+Sobic.005G213600
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.v5.1
+</td>
+<td style="text-align:left;">
+transcript
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.1.v5.1
+</td>
+<td style="text-align:left;">
+protein_coding
+</td>
+<td style="text-align:left;">
+1/2
+</td>
+<td style="text-align:left;">
+c.8_9dupTA
+</td>
+<td style="text-align:left;">
+p.Gln4fs
+</td>
+</tr>
+</tbody>
+</table>
+
+``` r
 
 # Clean up
 unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
@@ -1144,1112 +1763,207 @@ The vcf file must contain the variant ID, Chromosome ID, Position, REF
 and ALT alleles, as well as the genotype data for samples, as shown in
 Table 1:
 
-    #>             variant_id chrom      pos variant_type ref  alt IDMM ISGC ISGK ISHC
-    #> 1 INDEL_Chr05_75104541 Chr05 75104541        INDEL   T TGAC  0|0  0|0  0|0  0|0
-    #> 2   SNP_Chr05_75104557 Chr05 75104557          SNP   C    T  0|0  0|0  0|0  0|0
-    #> 3   SNP_Chr05_75104560 Chr05 75104560          SNP   C    T  0|0  0|0  0|0  0|0
-    #> 4 INDEL_Chr05_75104564 Chr05 75104564        INDEL   C   CA  0|0  0|0  0|0  0|0
-    #> 5   SNP_Chr05_75104568 Chr05 75104568          SNP   G    T  0|0  0|0  0|0  0|0
-    #> 6   SNP_Chr05_75104569 Chr05 75104569          SNP   C    A  0|0  0|0  0|0  0|0
-    #>   ISHJ ISHK ISHS ISHT ISHU ISIC ISID ISIK ISIL ISIS ISIT ISIU ISJB ISJC ISJJ
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   ISJK ISJS ISKB ISQC ISQE ISQF ISQG ISQH ISTM IUEB IUEC IUED IUEE IUEF IUEG
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  1|1
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  1|1
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  1|1
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IUEH IUEI IUEJ IUEK IUEL IUEM IUEN IUEP IUEQ IUER IUES IUET IUEU IUEW IUEX
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  1|1  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  1|1  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  1|1  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IUEY IUEZ IUFA IUFB IUFC IUFD IUFE IUFF IUFG IUFH IUFI IUFJ IUFK IUFL IUFN
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IUFS IUFT IUFU IUFW IUFX IUFY IUFZ IUGA IUGB IUGC IUGD IUGE IUGF IUGG IUGH
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IUGI IUGJ IUGK IUGL IUGM IUGN IUGP IUGQ IUGR IUGS IUGT IUGU IUGW IUGX IUGY
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  1|1  1|1
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  1|1  1|1
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  1|1  1|1
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IUGZ IUHA IUHB IUHC IUHD IUHE IUHF IUHG IUHH IUHI IUHJ IUHK IUHL IUHM IUHN
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|1  1|1  0|0  1|1  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|1  1|1  0|0  1|1  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|1  1|1  0|0  1|1  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IUHP IUHQ IUHR IUHS IUHT IUHU IUHW IXQW IXQX IXQY IXQZ IXRA IZKY IZLD IZLM
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZLN IZLP IZLQ IZLR IZLS IZLT IZLU IZLW IZLX IZLY IZLZ IZMA IZMB IZMC IZMD
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZME IZMF IZMG IZMH IZMI IZMJ IZMK IZML IZMM IZMN IZMP IZMQ IZMR IZMS IZMT
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZMU IZMX IZMY IZMZ IZNB IZND IZNE IZNF IZNG IZNH IZNI IZNJ IZNK IZNL IZNM
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  1|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  1|1  0|0
-    #> 3  0|0  1|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  1|1  0|0
-    #> 4  0|0  1|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  1|1  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZNN IZNP IZNQ IZNR IZNS IZNT IZNU IZNW IZNY IZNZ IZPA IZPB IZPC IZPD IZPE
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  1|1  1|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  1|1  1|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  1|1  1|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZPF IZPG IZPH IZPI IZPJ IZPK IZPL IZPM IZPN IZPP IZPQ IZPR IZPS IZPT IZPU
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1
-    #> 3  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1
-    #> 4  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZPW JBNU JBNW JBNX JBNY JBNZ JBPA JBPB JBPC JBPD JBPE JBPF JBPG JBPH JBPI
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  1|1
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  1|1
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  1|1
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   JBPJ JBPQ JBQM JBQU JBRM JBRZ JBSP IQRD JHIK IQRE ISJT IQRF JHIE JHIF JHGC
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   JHHY JHGK JHGJ JHGI JHGH JHGG IQRH IQRI IQRJ IQRK IQRL IQRM IQRN IQRP IQRQ
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  1|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  1|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  1|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IQRR IQRS IQRT IQRU IQRW IQRX JHGF JHFQ IQRY IQRZ JHFP IQSA IQSB IQSC ISGD
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  1|1  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  1|1  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  1|1  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IQSD IQSE IQSF IQSG IQSH IQSI IQSJ IQSK IQSL JHID IQSY JHGL IQTB IQTE ISHD
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  1|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  1|1
-    #> 3  0|0  0|0  1|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  1|1
-    #> 4  0|0  0|0  1|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  1|1
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IQTF IQTG IQTH IQTI IQTJ IQTK IQTL ISHL JHGD JHIA IZGX IZGY JBQJ JBQK JBQL
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  1|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  1|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZHN JHGX IZGZ IZHA IZHB JBQN JBQP IZLG JBQQ IZHP JBQR JHGY JBQS IZHC JBQT
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZHD JBQW JBQX IZHE JBQY IZHF IZHG JBQZ JBRA JBRB JBRC IZHQ IZHR IZHS IZHT
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   JBRD IZHU IZHW JBRE IZHX IZHY JBRF JBRG JBRH JBRI JBRJ JBRK IZHH JBRL JBRN
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZHZ JBRP JBRQ IZIA IZIB IZIC IZID IZIE JBRR JBRS IZIF IZIG IZIH IZII IZIJ
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZIK IZIL IZIM IZIN IZIP IZIQ IZIR IZIS IZIT JBRT IZIU IZIW IZIX IZIY IZIZ
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZJA IZJB IZJC IZJD IZJE JBRU JBRW JBRX JBRY JBSA JBSB JBSC JBSD IZJF IZHI
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  1|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  1|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  1|1  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZHJ JBSE JBSF JBSG IZHK JBSH JBSI JBSJ IZJG JBSK JBSL JBSM IZJH IZJI IZJJ
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   JBSN IZHL JBSQ IZJK IZJL IZHM JBSR IZJM IZJN IZJP JBSS JBST IZJQ IZJR IZJS
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZJT IZJU IZJW IZJX IZJY IZJZ IZKA INSR INSS INST INSU INSW INSX INSY INSZ
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZKU INTB INTC INTD INTE INTF INTG INTH INTI INTJ IZKW INTL INTM INTN INTP
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   INTQ INTR INTS INTT INTU INTW INTX INTY INTZ INUA INUB INUC INUD INUE INUF
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  1|1  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  1|1  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  1|1  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   INUG IZLJ INUI INUJ INUK INUL INUM INUN INUP INUQ IZKX INUS INUT INUU INUW
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0
-    #> 3  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0
-    #> 4  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IQSU IQSW IQSX IQSZ IQTA IQTC IQTD IXMY IQSM IQSN IQSP IQSQ ISGL ISGU IQSR
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  1|1  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0
-    #> 3  1|1  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0
-    #> 4  1|1  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IQSS IQST JBPK JBPL JHFS JHEW JHFN INJP INJQ INJR INJS INJT IDYQ IFIT INUX
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   SRR8474782 SRR8474692 IFEE SAMEA12302664 INJU ISJD IFLR ISKI IFFZ INJW IDMN
-    #> 1        0|0        0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2        0|0        0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3        0|0        0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4        0|0        0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5        0|0        0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6        0|0        0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   INJX INJY INJZ INKA INKB INKC INKD ISKP INKE INKF IDYU IFMG ISJL IXPH IFGF
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   ISKW ISLC IFKN IDWG IFMN IFLC INKH ISLI IDWN IDWJ IDWI IFGA ISLP INKJ ISLW
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   INKK IFFQ IFKS INKL IFKT INKM INKN IDTY INKP INKQ INKR INKS INKT INUY
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   SAMEA12302762 IFFJ IFGB IFFP INKU JHIC INKW INKX IDUX IFGW INUZ INKY INKZ
-    #> 1           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0
-    #> 4           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   INLA INLB IFGR IFDU ISMI IFGY INWA INWB IFGK INLC INWC INWD INWE IDWT INWF
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1  0|0  0|0  1|1
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1  0|0  0|0  1|1
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1  0|0  0|0  1|1
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   ISMP ISMW JHGS INWH INWI IFLX INWJ ISJU INLE IDYG INWK INLF ISNB IDWK INLG
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IFML INLI INWL INWM ISIB INWN INWP INWQ INWR JHHU INWS INWT IDWD SRR8474623
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0        0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1        0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1        0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1        0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0        0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0        0|0
-    #>   SRR8474811 SRR8474741 INWU ISKJ IECN SRR8474637 SRR8474714 IZPX SRR8474673
-    #> 1        0|0        0|0  0|0  0|0  0|0        0|0        0|0  0|0        0|0
-    #> 2        1|1        0|0  0|0  0|0  0|0        1|1        1|0  1|1        1|1
-    #> 3        1|1        0|0  0|0  0|0  0|0        1|1        1|0  1|1        1|1
-    #> 4        1|1        0|0  0|0  0|0  0|0        1|1        1|1  1|1        1|1
-    #> 5        0|0        0|0  0|0  0|0  0|0        0|0        0|0  0|0        0|0
-    #> 6        0|0        0|0  0|0  0|0  0|0        0|0        0|0  0|0        0|0
-    #>   INLJ IZLC INWW INLK ISKX ISLD INWX IFDN IFDP ISGE IFGZ INWY IFJZ INLL INWZ
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   INXA IXQI INXC INXD INLM INXE INLN INLP IFJE IFJF INLQ INLR INLS IDUP IDZX
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  1|1  1|1  1|1  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  1|1  1|1  1|1  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  1|1  1|1  1|1  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   INLT INXF INLU IFJG IFGI INLW INLX IFJH INLY ISLJ IFLM INLZ IXCU INMA INMB
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  1|1  0|0  0|0  0|0  0|0  0|0  1|1  1|1  1|1  1|1  1|1  1|1  0|0  1|1  1|1
-    #> 3  1|1  0|0  0|0  0|0  0|0  0|0  1|1  1|1  1|1  1|1  1|1  1|1  0|0  1|1  1|1
-    #> 4  1|1  0|0  0|0  0|0  0|0  0|0  1|1  1|1  1|1  1|1  1|1  1|1  0|0  1|1  1|1
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   INMC INMD INME INMF ISLQ IFJJ IFJK IFJL IFJM IFJN INMG INMH IFHE IFEL INMI
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  1|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  0|0  1|1  1|1  1|1  1|1
-    #> 3  0|0  1|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  0|0  1|1  1|1  1|1  1|1
-    #> 4  0|0  1|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  0|0  1|1  1|1  1|1  1|1
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   INMJ INMK IFJP IFEM IFEN ISLX JHGT ISMD IFEP IFEQ IFER IFES IXPJ IFJQ IFJR
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  1|1  1|1  0|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  0|0  1|1
-    #> 3  1|1  1|1  0|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  0|0  1|1
-    #> 4  1|1  1|1  0|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  1|1  0|0  1|1
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   ISMJ IFJT SRR8474737 IXNM SRR8474732 IFET IFEU IFEW IFEX SRR8474731 INXH IFHF
-    #> 1  0|0  0|0        0|0  0|0        0|0  0|0  0|0  0|0  0|0        0|0  0|0  0|0
-    #> 2  0|0  1|1        0|0  0|0        0|0  0|0  1|1  0|0  0|0        1|1  0|0  0|0
-    #> 3  0|0  1|1        0|0  0|0        0|0  0|0  1|1  0|0  0|0        1|1  0|0  0|0
-    #> 4  0|0  1|1        0|0  0|0        0|0  0|0  1|1  0|0  0|0        1|1  0|0  0|0
-    #> 5  0|0  0|0        0|0  0|0        0|0  0|0  0|0  0|0  0|0        0|0  0|0  0|0
-    #> 6  0|0  0|0        0|0  0|0        0|0  0|0  0|0  0|0  0|0        0|0  0|0  0|0
-    #>   IFEY IFEZ IFFA IFFB IFFC IFJX IFFD IFFE INXI IXML IFFF IFFG ISMQ IXPK INXJ
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  1|1  1|1  1|1  1|1  1|1  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  1|1  1|1  1|1  1|1  1|1  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  1|1  1|1  1|1  1|1  1|1  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IFJY IFEH IZKP SRR8474634 SRR8474635 IXNN IFFH IXNP IFFI ISGM ISMX INML
-    #> 1  0|0  0|0  0|0        0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  1|1  1|1  0|0        0|0        0|0  1|1  1|1  1|1  1|1  0|0  0|0  0|0
-    #> 3  1|1  1|1  0|0        0|0        0|0  1|1  1|1  1|1  1|1  0|0  0|0  0|0
-    #> 4  1|1  1|1  0|0        0|0        0|0  1|1  1|1  1|1  1|1  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0        0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0        0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   SRR8474629 INMM INMN INMP INMQ IFEA IFEB IFEC INMR ISNC IFED IFLH IFLZ INXL
-    #> 1        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2        0|0  0|0  0|0  0|0  0|0  0|0  0|1  0|0  0|0  0|0  0|0  0|0  0|0  1|1
-    #> 3        0|0  0|0  0|0  0|0  0|0  0|0  0|1  0|0  0|0  0|0  0|0  0|0  0|0  1|1
-    #> 4        0|0  0|0  0|0  0|0  0|0  0|0  1|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1
-    #> 5        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   INXM IXQJ INXP INXQ IXQK IPBS IPBT SAMEA12302697 ISKK ISKR ISKY INMT ISLE
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  1|1  0|0  0|0  1|1  0|0  0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  1|1  0|0  0|0  1|1  0|0  0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  1|1  0|0  0|0  1|1  0|0  0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0
-    #>   ISLK ISLR JBPR ISLY IPBU IXRB IPBW IPBX IPBY IPBZ IPCA IQTM JHGM ISGW IDYP
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IXMM IXMN IXMP IPCC IXMQ IXMR IXMS IXMT IXMU IXMW IPCD IXMX IXPL IYYN IXNA
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IXPM IXNB IPCE IXPN IXPP IZKJ IXNC IXND IXPQ IXPR IXPS IXPT INMU IXPU IPCF
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZLA IPCG IXPW IXPX IXPY IXPZ INMW IPCH IXQA IXQB IZLH IXQC IPCI IPCJ INMX
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IFGN IDWL IDWM INMY IPCK IPCL ISHE SRR8474631 INMZ IFGG ISHM IPCM IPCN ISHW
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0  1|1  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0  1|1  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0  1|1  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IPCP IFMB ISIE IXQL IPCR IZLI IPCT JHGA IPCW IXQM IDWU INNA IZKQ IPCZ
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   SAMEA12302481 IFGX SAMEA12302509 SAMEA12302673 SAMEA12302666 SAMEA12302663
-    #> 1           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 5           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0  0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302643 SAMEA12302561 SAMEA12302632 SAMEA12302650 ISIM IZPZ
-    #> 1           0|0           0|0           0|0           0|0  0|0  0|0
-    #> 2           0|0           0|0           0|0           0|0  0|0  0|0
-    #> 3           0|0           0|0           0|0           0|0  0|0  0|0
-    #> 4           0|0           0|0           0|0           0|0  0|0  0|0
-    #> 5           0|0           0|0           0|0           0|0  0|0  0|0
-    #> 6           0|0           0|0           0|0           0|0  0|0  0|0
-    #>   SAMEA12302629 SAMEA12302564 SAMEA12302562 SAMEA12302515 SAMEA12302655 IFGM
-    #> 1           0|0           0|0           0|0           0|0           0|0  0|0
-    #> 2           0|0           0|0           0|0           0|0           0|0  0|0
-    #> 3           0|0           0|0           0|0           0|0           0|0  0|0
-    #> 4           0|0           0|0           0|0           0|0           0|0  0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0  0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0  0|0
-    #>   SAMEA12302599 SAMEA12302551 ISIW SAMEA12302544 SAMEA12302656 ISJE
-    #> 1           0|0           0|0  0|0           0|0           0|0  0|0
-    #> 2           0|0           0|0  0|0           0|0           1|1  0|0
-    #> 3           0|0           0|0  0|0           0|0           1|1  0|0
-    #> 4           0|0           0|0  0|0           0|0           1|1  0|0
-    #> 5           0|0           0|0  0|0           0|0           0|0  0|0
-    #> 6           0|0           0|0  0|0           0|0           0|0  0|0
-    #>   SAMEA12302441 SAMEA12302474 SAMEA12302783 SAMEA12302630 SAMEA12302833
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           1|1
-    #> 3           0|0           0|0           0|0           0|0           1|1
-    #> 4           0|0           0|0           0|0           0|0           1|1
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302838 SAMEA12302644 SAMEA12302637 SAMEA12302819 SAMEA12302590
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302448 SAMEA12302794 SAMEA12302775 SAMEA12302486 SAMEA12302769
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302471 IFLW SAMEA12302594 IWNY SAMEA12302580 SAMEA12302674 ISJM
-    #> 1           0|0  0|0           0|0  0|0           0|0           0|0  0|0
-    #> 2           0|0  0|0           0|0  0|0           0|0           0|0  0|0
-    #> 3           0|0  0|0           0|0  0|0           0|0           0|0  0|0
-    #> 4           0|0  0|0           0|0  0|0           1|1           0|0  0|0
-    #> 5           0|0  0|0           0|0  0|0           0|0           0|0  0|0
-    #> 6           0|0  0|0           0|0  0|0           0|0           0|0  0|0
-    #>   SAMEA12302577 SAMEA12302595 SAMEA12302659 INNB SAMEA12302772 SAMEA12302825
-    #> 1           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0  1|1           1|1           1|1
-    #> 3           0|0           0|0           0|0  1|1           1|1           1|1
-    #> 4           0|0           0|0           0|0  1|1           1|1           1|1
-    #> 5           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0  0|0           0|0           0|0
-    #>   SAMEA12302649 SAMEA12302834 SAMEA12302651 SAMEA12302808 SAMEA12302791
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302497 SAMEA12302513 SAMEA12302798 SAMEA12302790 SAMEA12302727
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           1|1           1|1           1|1           0|0           0|0
-    #> 3           1|1           1|1           1|1           0|0           0|0
-    #> 4           1|1           1|1           1|1           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302712 SAMEA12302797 SAMEA12302741 SAMEA12302504 SAMEA12302698
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302611 ISJW SAMEA12302699 ISGF SAMEA12302793 ISGN SAMEA12302615
-    #> 1           0|0  0|0           0|0  0|0           0|0  0|0           0|0
-    #> 2           0|0  0|0           0|0  0|0           0|0  0|0           0|0
-    #> 3           0|0  0|0           0|0  0|0           0|0  0|0           0|0
-    #> 4           0|0  0|0           0|0  0|0           0|0  0|0           0|0
-    #> 5           0|0  0|0           0|0  0|0           0|0  0|0           0|0
-    #> 6           0|0  0|0           0|0  0|0           0|0  0|0           0|0
-    #>   SAMEA12302636 SAMEA12302690 SAMEA12302689 SAMEA12302646 SAMEA12302635
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302618 SAMEA12302728 SAMEA12302638 SAMEA12302645 SAMEA12302613
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302639 SAMEA12302685 SAMEA12302809 SAMEA12302693 SAMEA12302778 INNC
-    #> 1           0|0           0|0           0|0           0|0           0|0  0|0
-    #> 2           0|0           0|0           1|1           0|0           0|0  0|0
-    #> 3           0|0           0|0           1|1           0|0           0|0  0|0
-    #> 4           0|0           0|0           1|1           0|0           0|0  0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0  0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0  0|0
-    #>   SAMEA12302508 ISGX SAMEA12302462 SAMEA12302483 SAMEA12302597 SAMEA12302817
-    #> 1           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 5           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0  0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302660 ISHF SAMEA12302648 SAMEA12302748 SAMEA12302574 SAMEA12302572
-    #> 1           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 2           1|1  0|0           0|0           0|0           0|0           0|0
-    #> 3           1|1  0|0           0|0           0|0           0|0           0|0
-    #> 4           1|1  1|1           0|0           0|0           0|0           0|0
-    #> 5           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0  0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302566 SAMEA12302686 ISHN SAMEA12302575 SAMEA12302576 SAMEA12302583
-    #> 1           0|0           0|0  0|0           0|0           0|0           0|0
-    #> 2           0|0           1|1  0|0           0|0           0|0           0|0
-    #> 3           0|0           1|1  0|0           0|0           0|0           0|0
-    #> 4           0|0           1|1  0|0           0|0           0|0           0|0
-    #> 5           0|0           0|0  0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0  0|0           0|0           0|0           0|0
-    #>   SAMEA12302739 SAMEA12302609 SAMEA12302687 SAMEA12302623 SAMEA12302617
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           1|1           0|0           0|0
-    #> 3           0|0           0|0           1|1           0|0           0|0
-    #> 4           0|0           0|0           1|1           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302642 SAMEA12302647 ISHX SAMEA12302803 SAMEA12302598 INND
-    #> 1           0|0           0|0  0|0           0|0           0|0  0|0
-    #> 2           0|0           0|0  0|0           1|1           1|1  1|1
-    #> 3           0|0           0|0  0|0           1|1           1|1  1|1
-    #> 4           0|0           0|0  0|0           1|1           1|1  1|1
-    #> 5           0|0           0|0  0|0           0|0           0|0  0|0
-    #> 6           0|0           0|0  0|0           0|0           0|0  0|0
-    #>   SAMEA12302824 SAMEA12302604 SAMEA12302493 SAMEA12302477 ISIF SAMEA12302492
-    #> 1           0|0           0|0           0|0           0|0  0|0           0|0
-    #> 2           1|1           1|1           0|0           0|0  0|0           0|0
-    #> 3           1|1           1|1           0|0           0|0  0|0           0|0
-    #> 4           1|1           1|1           0|0           0|0  0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0  0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0  0|0           0|0
-    #>   IZGS SAMEA12302457 SAMEA12302831 SAMEA12302801 SAMEA12302815 SAMEA12302567
-    #> 1  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 2  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 3  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 4  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 5  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 6  0|0           0|0           0|0           0|0           0|0           0|0
-    #>   ISIN ISIX ISJF IFHK ISJN INNE SAMEA12302500 IFMK IDYI IEBU IFMJ IDXC INNH
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  1|1  0|0  1|1  0|0  0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  1|1  0|0  1|1  0|0  0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  1|1  0|0  1|1  0|0  0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IDYK IDWR SAMEA12302841 SAMEA12302675 IFGP SAMEA12302620 IDXE INNI
-    #> 1  0|0  0|0           0|0           0|0  0|0           0|0  0|0  0|0
-    #> 2  0|0  0|0           0|0           0|0  0|0           0|0  0|0  0|0
-    #> 3  0|0  0|0           0|0           0|0  0|0           0|0  0|0  0|0
-    #> 4  0|0  0|0           0|0           0|0  0|0           0|0  0|0  0|0
-    #> 5  0|0  0|0           0|0           0|0  0|0           0|0  0|0  0|0
-    #> 6  0|0  0|0           0|0           0|0  0|0           0|0  0|0  0|0
-    #>   SAMEA12302750 SAMEA12302832 INNJ SAMEA12302746 ISME IDWQ SAMEA12302511 INNK
-    #> 1           0|0           0|0  0|0           0|0  0|0  0|0           0|0  0|0
-    #> 2           0|0           0|0  0|0           0|0  0|0  0|0           0|0  0|0
-    #> 3           0|0           0|0  0|0           0|0  0|0  0|1           0|0  0|0
-    #> 4           0|0           0|0  0|0           0|0  0|0  0|0           0|0  0|0
-    #> 5           0|0           0|0  0|0           0|0  0|0  0|0           0|0  0|0
-    #> 6           0|0           0|0  0|0           0|0  0|0  0|0           0|0  0|0
-    #>   IPDA INNL IFLJ INNN ISMK IXNE IPDB ISMR ISMY ISND IFLK IFLL IDZN ISKL IDZP
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   SRR8474664 IDWF IDWP IEBN ISKS IDYM ISJX IQTN ISKZ IPDC IZKC IEDF IPDD IXQD
-    #> 1        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IPDE IFEG IFEI IFEJ IZKD IFJD IFEK ISLF IZKE IZKK IZKF IPDF IXRC IZKG IUHX
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   JHGR SRR8474670 IPDH IQTP IQTQ IPDI IPDJ IQTR ISGG IWNU SAMEA12302560
-    #> 1  0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0           0|0
-    #> 2  0|0        1|1  1|1  0|0  0|0  1|1  0|0  0|0  0|0  0|0           0|0
-    #> 3  0|0        1|1  1|1  0|0  0|0  1|1  0|0  0|0  0|0  0|0           0|0
-    #> 4  0|0        1|1  1|1  0|0  0|0  1|1  0|0  0|0  0|0  0|0           0|0
-    #> 5  0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0           0|0
-    #> 6  0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0           0|0
-    #>   SAMEA12302553 ISGP IFDY IZNA IFGE JHGN IPDL IPDM IPDN JHGP IPDQ IPDR JHGB
-    #> 1           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IFFK IFFL IPDS IPDT IFKA IFKB ISGY IFIX IFKP IFIY IFJC IFKY IFFU IFDQ IFFY
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IFDT IFFR IFDS IFGD IFDZ IFGL IFFT IFIZ IFFW IFGC IFKX IFFX IFKZ IFFS IXNQ
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IZKZ IFFM IPDU IFKC IFKD IFKE IFKF IFKG IFKH ISLL IDUY IDMK IFLP ISLS ISLZ
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0
-    #> 3  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0
-    #> 4  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   ISMF ISML IDWA ISMS ISMZ IDML ISNE ISKM IXNR IXNS IXNT IZKH IPDW ISKT IXNU
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IXNW IPDX IPDY IXNX IXNY IPDZ IXNZ IPEA IPEB IZKI IXPA IXPB IDWB IFLT IPEC
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IFMH IEAZ ISLA IFKI JHII IXPC IUHY IUHZ IUIA IXPD IXPE IXPF IXMF IXMG IXMH
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   ISHG IPED IPEE IPEF IPEG IPEH SRR8474581 IPEI IZKL IPEJ IXPG IPEK IXMI IPEL
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IPEM ISLG IPEN IPEP ISHP SAMEA12302725 SAMEA12302782 SAMEA12302717
-    #> 1  0|0  0|0  0|0  0|0  0|0           0|0           0|0           0|0
-    #> 2  0|1  0|0  0|0  0|0  0|0           1|1           0|0           0|0
-    #> 3  0|1  0|0  0|0  0|0  0|0           1|1           0|0           0|0
-    #> 4  1|0  0|0  0|0  0|0  0|0           1|1           0|0           0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0           0|0           0|0           0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0           0|0           0|0           0|0
-    #>   SAMEA12302701 ISHY SAMEA12302733 SAMEA12302811 SAMEA12302796 ISIG
-    #> 1           0|0  0|0           0|0           0|0           0|0  0|0
-    #> 2           0|0  1|1           0|0           0|0           1|0  0|0
-    #> 3           0|0  1|1           0|0           0|0           1|0  0|0
-    #> 4           0|0  1|1           0|0           0|0           0|1  0|0
-    #> 5           0|0  0|0           0|0           0|0           0|0  0|0
-    #> 6           0|0  0|0           0|0           0|0           0|0  0|0
-    #>   SAMEA12302800 SAMEA12302702 SAMEA12302517 SAMEA12302723 IFHG SAMEA12302810
-    #> 1           0|0           0|0           0|0           0|0  0|0           0|0
-    #> 2           1|1           0|0           0|0           0|0  0|0           0|0
-    #> 3           1|1           0|0           0|0           0|0  0|0           0|0
-    #> 4           1|1           0|0           0|0           0|0  0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0  0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0  0|0           0|0
-    #>   SAMEA12302764 SAMEA12302502 SAMEA12302473 SAMEA12302540 SAMEA12302476 ISIP
-    #> 1           0|0           0|0           0|0           0|0           0|0  0|0
-    #> 2           0|0           0|0           0|0           0|0           0|0  0|0
-    #> 3           0|0           0|0           0|0           0|0           0|0  0|0
-    #> 4           0|0           0|0           0|0           0|0           0|0  0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0  0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0  0|0
-    #>   ISIY SAMEA12302628 SAMEA12302640 SAMEA12302489 SAMEA12302465 SAMEA12302732
-    #> 1  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 2  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 3  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 4  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 5  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 6  0|0           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302641 ISJG SAMEA12302804 IFGJ ISJP SAMEA12302703 SAMEA12302472
-    #> 1           0|0  0|0           0|0  0|0  0|0           0|0           0|0
-    #> 2           0|0  0|0           0|0  0|0  0|0           0|0           0|0
-    #> 3           0|0  0|0           0|0  0|0  0|0           0|0           0|0
-    #> 4           0|0  0|0           0|0  0|0  0|0           0|0           0|0
-    #> 5           0|0  0|0           0|0  0|0  0|0           0|0           0|0
-    #> 6           0|0  0|0           0|0  0|0  0|0           0|0           0|0
-    #>   SAMEA12302485 SAMEA12302546 SAMEA12302682 SAMEA12302654 SAMEA12302829 ISLM
-    #> 1           0|0           0|0           0|0           0|0           0|0  0|0
-    #> 2           0|0           0|0           1|1           0|0           0|0  0|0
-    #> 3           0|0           0|0           1|1           0|0           0|0  0|0
-    #> 4           0|0           0|0           1|1           0|0           0|0  0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0  0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0  0|0
-    #>   SAMEA12302558 SAMEA12302827 JHHX IPEQ ISLT IZKB IPER ISMA ISMG IEAT ISMM ISMT
-    #> 1           0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2           0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3           0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4           0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5           0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6           0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IXNG IEAX IXQE IZKM ISNA IPES IXQF IXQG IZKN IPET IXQH JHFR ISJY JHHR JHGZ
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  1|1  0|0  0|0  1|1  1|1  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  1|1  0|0  0|0  1|1  1|1  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  1|1  0|0  0|0  1|1  1|1  1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   JHHA JHHB JBPS IDWC JHHC IFLG IXNH JHHD JHFZ IZLK JHHE IXNI IXNJ IPEU IXNK
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IXNL JHHF JHHG IPEW IPEX JHHH IFLD JHHI JHHJ JHHK IFFN JHHL IFMP IPEY IPEZ
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IDWW SAMEA12302466 SAMEA12302704 ISGH SAMEA12302619 SAMEA12302626
-    #> 1  0|0           0|0           0|0  1|0           0|0           0|0
-    #> 2  0|0           0|0           0|0  0|0           0|0           1|1
-    #> 3  0|0           0|0           0|0  0|0           0|0           1|1
-    #> 4  0|0           0|0           0|0  0|0           0|0           1|1
-    #> 5  0|0           0|0           0|0  1|1           0|0           0|0
-    #> 6  0|0           0|0           0|0  1|1           0|0           0|0
-    #>   SAMEA12302463 SAMEA12302667 SAMEA12302802 IFMD SAMEA12302761 SAMEA12302781
-    #> 1           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0  0|0           0|0           0|0
-    #>   SAMEA12302494 ISGQ SAMEA12302774 SAMEA12302785 SAMEA12302585 SAMEA12302816
-    #> 1           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0  1|1           0|0           0|0           0|0           0|0
-    #> 3           0|0  1|1           0|0           0|0           0|0           0|0
-    #> 4           0|0  1|1           0|0           0|0           0|0           0|0
-    #> 5           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0  0|0           0|0           0|0           0|0           0|0
-    #>   IXNF SAMEA12302491 SAMEA12302765 SAMEA12302688 SAMEA12302548 SAMEA12302607
-    #> 1  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 2  1|1           0|0           0|0           0|0           1|1           1|1
-    #> 3  1|1           0|0           0|0           0|0           1|1           1|1
-    #> 4  1|1           0|0           0|0           0|0           1|1           1|1
-    #> 5  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 6  0|0           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302614 SAMEA12302537 SAMEA12302692 SAMEA12302658 SAMEA12302836
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           1|1           0|0           0|0
-    #> 3           0|0           0|0           1|1           0|0           0|0
-    #> 4           0|0           0|0           1|1           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302840 SAMEA12302569 IUIN SAMEA12302627 SAMEA12302496 SAMEA12302495
-    #> 1           0|0           0|0  0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0  0|0           0|0           0|0           0|0
-    #> 3           0|0           0|0  0|0           0|0           0|0           0|0
-    #> 4           0|0           0|0  0|0           0|0           0|0           0|0
-    #> 5           0|0           0|0  0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0  0|0           0|0           0|0           0|0
-    #>   SAMEA12302522 IFHM SAMEA12302678 IPFA ISGZ JHHM ISHH IZKR JHHN ISHQ ISHZ ISIH
-    #> 1           0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2           0|0  0|0           1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3           0|0  0|0           1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4           0|0  0|0           1|1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5           0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6           0|0  0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   SAMEA12302588 SRR8474587 IPFC IZLL IPFE IPFF IPFG IXQP JHIG IPFI IPFJ
-    #> 1           0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2           0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0
-    #> 3           0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0
-    #> 4           0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0
-    #> 5           0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6           0|0        0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   SAMEA12302839 IPFK IDXU IEBA IXQQ IPFM IPFN IPFP IPFQ IDWE JHHP IFKM IQTS
-    #> 1           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6           0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IQTT JHHQ JBPT IQTU SAMEA12302830 SAMEA12302520 IFLY IFLE JBPU IFIW IFJA IFJB
-    #> 1  0|0  0|0  0|0  0|0           0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0           0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0           0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0           0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0           0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0           0|0           0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IFEF ISKN JBPW IFKQ IFKR ISKU IFLA SAMEA12302705 JHIJ SAMEA12302751 IFGU IFDW
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0           0|0  0|0           0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0           0|0  0|0           0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0           0|0  0|0           0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0           0|0  0|0           0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0           0|0  0|0           0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0           0|0  0|0           0|0  0|0  0|0
-    #>   IFIU SAMEA12302498 IFGQ IFLB SAMEA12302552 ISIQ SAMEA12302612 JBPX IFKU IFKW
-    #> 1  0|0           0|0  0|0  0|0           0|0  0|0           0|0  0|0  0|0  0|0
-    #> 2  0|0           0|0  0|0  0|0           0|0  0|0           0|0  0|0  0|0  0|0
-    #> 3  0|0           0|0  0|0  0|0           0|0  0|0           0|0  0|0  0|0  0|0
-    #> 4  0|0           0|0  0|0  0|0           0|0  0|0           0|0  0|0  0|0  0|0
-    #> 5  0|0           0|0  0|0  0|0           0|0  0|0           0|0  0|0  0|0  0|0
-    #> 6  0|0           0|0  0|0  0|0           0|0  0|0           0|0  0|0  0|0  0|0
-    #>   IQTW IZKS JHIP JHGU IQTY JHHT IQTZ JHHW IQUA IXQR IQUC IQUD IQUE IQUF JBPY
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0
-    #>   JBPZ JBQA IQUG JBQB IFKJ JBQC IFKK IFKL JBQD JBQE IZKT JBQF IQUI IXQS IQUK
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   IQUL IQUM IXQT IZLE SRR8474602 JBQG SRR8474606 IQUQ IFDR SAMEA12302822 ISLB
-    #> 1  0|0  0|0  0|0  0|0        0|0  0|0        0|0  0|0  0|0           0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0        0|0  0|0        0|0  1|1  0|0           0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0        0|0  0|0        0|0  1|1  0|0           0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0        0|0  0|0        0|0  1|1  0|0           0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0        0|0  0|0        0|0  0|0  0|0           0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0        0|0  0|0        0|0  0|0  0|0           0|0  0|0
-    #>   IFDX IQUR IFGT IFHI IFMR ISLN SAMEA12302694 SAMEA12302706 SAMEA12302449 JBQH
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0           0|0           0|0           0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0           0|0           0|0           0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0           0|0           0|0           0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0           0|0           0|0           0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0           0|0           0|0           0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0           0|0           0|0           0|0  0|0
-    #>   ISIZ SAMEA12302707 SAMEA12302729 SAMEA12302718 SAMEA12302550 ISLU ISJH
-    #> 1  0|0           0|0           0|0           0|0           0|0  0|0  0|0
-    #> 2  0|0           0|0           0|0           0|0           0|0  0|0  0|0
-    #> 3  0|0           0|0           0|0           0|0           0|0  0|0  0|0
-    #> 4  0|0           0|0           0|0           0|0           0|0  0|0  0|0
-    #> 5  0|0           0|0           0|0           0|0           0|0  0|0  0|0
-    #> 6  0|0           0|0           0|0           0|0           0|0  0|0  0|0
-    #>   SAMEA12302820 ISMB SAMEA12302749 SAMEA12302708 SAMEA12302758 SAMEA12302519
-    #> 1           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 5           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0  0|0           0|0           0|0           0|0           0|0
-    #>   IFHB SAMEA12302726 IFHC SAMEA12302738 ISJQ SAMEA12302721 SAMEA12302709
-    #> 1  0|0           0|0  0|0           0|0  0|0           0|0           0|0
-    #> 2  0|0           0|0  0|0           0|0  0|0           0|0           0|0
-    #> 3  0|0           0|0  0|0           0|0  0|0           0|0           0|0
-    #> 4  0|0           0|0  0|0           0|0  0|0           0|0           0|0
-    #> 5  0|0           0|0  0|0           0|0  0|0           0|0           0|0
-    #> 6  0|0           0|0  0|0           0|0  0|0           0|0           0|0
-    #>   SAMEA12302731 SAMEA12302760 SAMEA12302499 IFMC SAMEA12302521 SAMEA12302592
-    #> 1           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0  0|0           0|0           0|0
-    #>   SAMEA12302805 SAMEA12302776 SAMEA12302823 JBQI SAMEA12302593 SAMEA12302737
-    #> 1           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0  0|0           0|0           0|0
-    #>   SAMEA12302789 SAMEA12302754 SAMEA12302533 SAMEA12302557 ISGI SAMEA12302669
-    #> 1           0|0           0|0           0|0           0|0  0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0  0|0           0|0
-    #> 3           0|0           0|0           0|0           0|0  0|0           0|0
-    #> 4           0|0           0|0           0|0           0|0  0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0  0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0  0|0           0|0
-    #>   SAMEA12302442 SAMEA12302475 SAMEA12302505 ISGR SAMEA12302784 SAMEA12302443
-    #> 1           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0  0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0  0|0           0|0           0|0
-    #>   SAMEA12302730 SAMEA12302745 IFHA SAMEA12302453 SAMEA12302719 ISHA IZPY
-    #> 1           0|0           0|0  0|0           0|0           0|0  0|0  0|0
-    #> 2           0|0           0|0  0|0           0|0           0|0  0|0  0|0
-    #> 3           0|0           0|0  0|0           0|0           0|0  0|0  0|0
-    #> 4           0|0           0|0  0|0           0|0           0|0  0|0  0|0
-    #> 5           0|0           0|0  0|0           0|0           0|0  0|0  0|0
-    #> 6           0|0           0|0  0|0           0|0           0|0  0|0  0|0
-    #>   SAMEA12302523 ISHI SAMEA12302527 ISTN ISTP IWCK SAMEA12302633 SAMEA12302722
-    #> 1           0|0  0|0           0|0  0|0  0|0  0|0           0|0           0|0
-    #> 2           0|0  0|0           0|0  0|0  0|0  0|0           0|0           0|0
-    #> 3           0|0  0|0           0|0  0|0  0|0  0|0           0|0           0|0
-    #> 4           0|0  0|0           0|0  1|0  0|0  1|0           1|1           0|0
-    #> 5           0|0  0|0           0|0  0|0  0|0  0|0           0|0           0|0
-    #> 6           0|0  0|0           0|0  0|0  0|0  0|0           0|0           0|0
-    #>   SAMEA12302488 IFLU ITIK SAMEA12302677 SAMEA12302755 SAMEA12302444
-    #> 1           0|0  0|0  0|0           0|0           0|0           0|0
-    #> 2           0|0  0|0  0|0           0|0           0|0           0|0
-    #> 3           0|0  0|0  0|0           0|0           0|0           0|0
-    #> 4           0|0  0|0  0|0           0|0           0|0           0|0
-    #> 5           0|0  0|0  0|0           0|0           0|0           0|0
-    #> 6           0|0  0|0  0|0           0|0           0|0           0|0
-    #>   SAMEA12302532 ISIA SAMEA12302545 SAMEA12302724 SAMEA12302535 SAMEA12302602
-    #> 1           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0  1|1           0|0           0|0           0|0           0|0
-    #> 3           0|0  1|1           0|0           0|0           0|0           0|0
-    #> 4           0|0  1|1           0|0           0|0           0|0           0|0
-    #> 5           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0  0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302445 SAMEA12302742 SAMEA12302524 SAMEA12302525 SAMEA12302503
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           1|1
-    #> 3           0|0           0|0           0|0           0|0           1|1
-    #> 4           0|0           0|0           0|0           0|0           1|1
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302454 ISII SAMEA12302735 ITIL IFHH SAMEA12302766 SAMEA12302771
-    #> 1           0|0  0|0           0|0  0|0  0|0           0|0           0|0
-    #> 2           0|0  0|0           0|0  1|1  0|0           0|0           0|0
-    #> 3           0|0  0|0           0|0  1|1  0|0           0|0           0|0
-    #> 4           0|0  0|0           0|0  1|1  0|0           0|0           0|0
-    #> 5           0|0  0|0           0|0  0|0  0|0           0|0           0|0
-    #> 6           0|0  0|0           0|0  0|0  0|0           0|0           0|0
-    #>   SAMEA12302603 SAMEA12302541 SAMEA12302526 SAMEA12302610 SAMEA12302757
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302542 SAMEA12302711 SAMEA12302720 SAMEA12302672 SAMEA12302753
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302450 SAMEA12302661 SAMEA12302506 SAMEA12302467 SAMEA12302534
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302696 SAMEA12302695 SAMEA12302624 ISIR SAMEA12302670 ISJA
-    #> 1           0|0           0|0           0|0  0|0           0|0  0|0
-    #> 2           0|0           1|1           0|0  0|0           0|0  0|0
-    #> 3           0|0           1|1           0|0  0|0           0|0  0|0
-    #> 4           0|0           1|1           0|0  0|0           0|0  0|0
-    #> 5           0|0           0|0           0|0  0|0           0|0  0|0
-    #> 6           0|0           0|0           0|0  0|0           0|0  0|0
-    #>   SAMEA12302679 SAMEA12302538 SAMEA12302507 SAMEA12302587 ISJI SAMEA12302763
-    #> 1           0|0           0|0           0|0           0|0  0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0  0|0           0|0
-    #> 3           0|0           0|0           0|0           0|0  0|0           0|0
-    #> 4           0|0           0|0           0|0           0|0  0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0  0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0  0|0           0|0
-    #>   ISJR SAMEA12302478 SAMEA12302787 SAMEA12302818 SAMEA12302837 SAMEA12302799
-    #> 1  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 2  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 3  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 4  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 5  0|0           0|0           0|0           0|0           0|0           0|0
-    #> 6  0|0           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302446 SAMEA12302459 SAMEA12302657 SAMEA12302464 SAMEA12302484
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302584 SAMEA12302570 SAMEA12302578 SAMEA12302573 SAMEA12302468
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302625 SAMEA12302455 SAMEA12302452 SAMEA12302652 SAMEA12302788
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           1|1
-    #> 3           0|0           0|0           0|0           0|0           1|1
-    #> 4           0|0           0|0           0|0           0|0           1|1
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302487 SAMEA12302514 SAMEA12302653 SAMEA12302691 SAMEA12302676
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           1|1           0|0           0|0
-    #> 3           0|0           0|0           1|1           0|0           0|0
-    #> 4           0|0           0|0           1|1           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302480 IXYF SAMEA12302752 SAMEA12302516 SAMEA12302828 SAMEA12302518
-    #> 1           0|1  0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0  0|0           0|0           0|0           0|0           0|0
-    #> 5           1|1  0|0           0|0           0|0           0|0           0|0
-    #> 6           1|1  0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302814 SAMEA12302616 SAMEA12302586 SAMEA12302795 SAMEA12302826
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           1|1
-    #> 3           0|0           0|0           0|0           0|0           1|1
-    #> 4           0|0           0|0           0|0           0|0           1|1
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SAMEA12302530 SAMEA12302681 SAMEA12302460 SAMEA12302680 SAMEA12302479
-    #> 1           0|0           0|0           0|0           0|0           0|0
-    #> 2           0|0           0|0           0|0           0|0           0|0
-    #> 3           0|0           0|0           0|0           0|0           0|0
-    #> 4           0|0           0|0           0|0           0|0           0|0
-    #> 5           0|0           0|0           0|0           0|0           0|0
-    #> 6           0|0           0|0           0|0           0|0           0|0
-    #>   SRR8474598 IUIW IXPI IXMZ IXYG IXYE SRR8474778 ISKA SRR8474802 IXMJ
-    #> 1        0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0        0|0  0|0
-    #> 2        0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0        0|0  0|0
-    #> 3        0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0        0|0  0|0
-    #> 4        0|0  0|0  0|0  0|0  0|0  0|0        0|0  1|1        0|0  0|0
-    #> 5        0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0        0|0  0|0
-    #> 6        0|0  0|0  0|0  0|0  0|0  0|0        0|0  0|0        0|0  0|0
-    #>   SRR8474801 SRR8474799 SRR8474798 SRR8474797 SRR8474682 SRR8474763 SRR8474679
-    #> 1        0|0        0|0        0|0        0|0        0|0        0|0        0|0
-    #> 2        1|1        0|0        0|0        0|0        0|0        0|0        0|0
-    #> 3        1|1        0|0        0|0        0|0        0|0        0|0        0|0
-    #> 4        1|1        0|0        0|0        0|0        0|0        0|0        0|0
-    #> 5        0|0        0|0        0|0        0|0        0|0        0|0        0|0
-    #> 6        0|0        0|0        0|0        0|0        0|0        0|0        0|0
-    #>   SRR8474674 SRR8474675 SRR8474729 SRR8474768 SRR8474761 SRR8474757 SRR8474575
-    #> 1        0|0        0|0        0|0        0|0        0|0        0|0        0|0
-    #> 2        0|0        0|0        0|0        0|0        1|1        0|0        0|0
-    #> 3        0|0        0|0        0|0        0|0        1|1        0|0        0|0
-    #> 4        0|0        0|0        0|0        0|0        1|1        0|0        0|0
-    #> 5        0|0        0|0        0|0        0|0        0|0        0|0        0|0
-    #> 6        0|0        0|0        0|0        0|0        0|0        0|0        0|0
-    #>   SRR8474721 IQUS SRR8474691 SRR8474688 SRR8474656 SRR8474652 IQUT JHIM ISGJ
-    #> 1        0|0  0|0        0|0        0|0        0|0        0|0  0|0  0|0  0|0
-    #> 2        0|0  0|0        0|0        0|0        0|0        0|0  1|1  0|0  0|0
-    #> 3        0|0  0|0        0|0        0|0        0|0        0|0  1|1  0|0  0|0
-    #> 4        0|0  0|0        0|0        0|0        0|0        0|0  1|1  0|0  0|0
-    #> 5        0|0  0|0        0|0        0|0        0|0        0|0  0|0  0|0  0|0
-    #> 6        0|0  0|0        0|0        0|0        0|0        0|0  0|0  0|0  0|0
-    #>   IQUU IQUW IQUX JHIB JHGW IQUZ IFGS JHFI JHFL JHEU JHHZ ISGS JHFF JHFG JHEQ
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #>   JHFE JHFJ JHFK JHFM SRR8474749 SRR8474747 JHFC SRR8474754 JHER JHET JHFY JHFA
-    #> 1  0|0  0|0  0|0  0|0        0|0        0|0  0|0        0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  1|1  0|0        0|0        0|0  0|0        0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  1|1  0|0        0|0        0|0  0|0        0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  1|1  0|0        0|0        0|0  0|0        0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0        0|0        0|0  0|0        0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0        0|0        0|0  0|0        0|0  0|0  0|0  0|0  0|0
-    #>   JHFB JHFD SRR8474765 JHGE JHIH JHFU SRR8474640 SRR8474752 JHFW JBPM JHES JHEX
-    #> 1  0|0  0|0        0|0  0|0  0|0  0|0        0|0        0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0        0|0  0|0  0|0  0|0        0|0        0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0        0|0  0|0  0|0  0|0        0|0        0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0        0|0  0|0  0|0  0|0        0|0        0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0        0|0  0|0  0|0  0|0        0|0        0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0        0|0  0|0  0|0  0|0        0|0        0|0  0|0  0|0  0|0  0|0
-    #>   JHEY JHFX ISIJ JHFT JBPP JHIN JHFH JBPN JHEZ IQWA ISHB IQWB ISMU
-    #> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 2  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 3  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 4  0|0  0|0  0|0  0|0  0|0  0|0  1|1  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-    #> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
+<table>
+<caption>
+HIGH impact variants within a defined genomic range.
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+variant_id
+</th>
+<th style="text-align:left;">
+chrom
+</th>
+<th style="text-align:left;">
+pos
+</th>
+<th style="text-align:left;">
+variant_type
+</th>
+<th style="text-align:left;">
+ref
+</th>
+<th style="text-align:left;">
+alt
+</th>
+<th style="text-align:left;">
+IDMM
+</th>
+<th style="text-align:left;">
+ISGC
+</th>
+<th style="text-align:left;">
+ISGK
+</th>
+<th style="text-align:left;">
+ISHC
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75104541
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:left;">
+75104541
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+T
+</td>
+<td style="text-align:left;">
+TGAC
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SNP_Chr05_75104557
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:left;">
+75104557
+</td>
+<td style="text-align:left;">
+SNP
+</td>
+<td style="text-align:left;">
+C
+</td>
+<td style="text-align:left;">
+T
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SNP_Chr05_75104560
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:left;">
+75104560
+</td>
+<td style="text-align:left;">
+SNP
+</td>
+<td style="text-align:left;">
+C
+</td>
+<td style="text-align:left;">
+T
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75104564
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:left;">
+75104564
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+C
+</td>
+<td style="text-align:left;">
+CA
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SNP_Chr05_75104568
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:left;">
+75104568
+</td>
+<td style="text-align:left;">
+SNP
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+T
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+<td style="text-align:left;">
+0\|0
+</td>
+</tr>
+</tbody>
+</table>
 
 ``` r
 # Example to design a KASP marker on a HIGH impact Deletion variant
