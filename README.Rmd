@@ -244,7 +244,9 @@ annota_region <- query_db(db_path = mini_db_path,
 # Clean up temporary files
 unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
        recursive = TRUE)
+```
 
+```{r, echo=FALSE}
 knitr::kable(gt_region[1:5, 1:10], 
              caption = 'Table 1: Queried genotypes for varaints from the SQLite database.', 
              format = 'html', 
@@ -295,12 +297,12 @@ filter_af <- query_by_af(db_path = mini_db_path,
                          start = 75104537,
                          end = 75106403)
 
-head(filter_af)
-
 # Clean up temporary files
 unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
        recursive = TRUE)
+```
 
+```{r, echo = FALSE}
 knitr::kable(filter_af[1:5,], 
              caption = 'Table 3: Filtered variants from the SQLite database.', 
              format = 'html', 
@@ -342,7 +344,12 @@ ann_summary <- query_ann_summary(db_path = mini_db_path,
                                  chrom = "Chr05",
                                  start = 75104537,
                                  end = 75106403)
+# Clean up
+unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
+       recursive = TRUE)
+```
 
+```{r, echo=FALSE}
 knitr::kable(head(ann_summary$annotation_summary), 
              caption = 'Annotation summary for variants within the genomic range.', 
              format = 'html', 
@@ -356,9 +363,6 @@ knitr::kable(head(ann_summary$impact_summary),
              padding = 0, 
              booktabs = TRUE, 
              escape = FALSE)
-# Clean up
-unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
-       recursive = TRUE)
 
 ```
 
@@ -395,6 +399,13 @@ high_variants <- query_by_impact(db_path = mini_db_path,
                                 start = 75104537,
                                 end = 75106403)
 
+# Clean up
+unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
+       recursive = TRUE)
+
+```
+
+```{r, echo=FALSE}
 # View HIGH impact variants
 knitr::kable(head(high_variants), 
              caption = ' HIGH impact variants within a defined genomic range.', 
@@ -403,9 +414,6 @@ knitr::kable(head(high_variants),
              booktabs = TRUE, 
              escape = FALSE)
 
-# Clean up
-unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
-       recursive = TRUE)
 
 ```
 

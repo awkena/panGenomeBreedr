@@ -294,13 +294,6 @@ annota_region <- query_db(db_path = mini_db_path,
 # Clean up temporary files
 unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
        recursive = TRUE)
-
-knitr::kable(gt_region[1:5, 1:10], 
-             caption = 'Table 1: Queried genotypes for varaints from the SQLite database.', 
-             format = 'html', 
-             padding = 0, 
-             booktabs = TRUE, 
-             escape = FALSE)
 ```
 
 <table>
@@ -504,17 +497,6 @@ T
 </tr>
 </tbody>
 </table>
-
-``` r
-
-knitr::kable(annota_region[1:5,], 
-             caption = 'Table 2: Queried annotations for variants from the SQLite database.', 
-             format = 'html', 
-             padding = 0, 
-             booktabs = TRUE, 
-             escape = FALSE)
-```
-
 <table>
 <caption>
 Table 2: Queried annotations for variants from the SQLite database.
@@ -841,25 +823,9 @@ filter_af <- query_by_af(db_path = mini_db_path,
                          start = 75104537,
                          end = 75106403)
 
-head(filter_af)
-#>              variant_id chrom      pos    ref_af     alt_af
-#> 2    SNP_Chr05_75104557 Chr05 75104557 0.8905131 0.10948687
-#> 3    SNP_Chr05_75104560 Chr05 75104560 0.8896181 0.11038186
-#> 4  INDEL_Chr05_75104564 Chr05 75104564 0.8854415 0.11455847
-#> 7  INDEL_Chr05_75104573 Chr05 75104573 0.8848449 0.11515513
-#> 9  INDEL_Chr05_75104585 Chr05 75104585 0.8836516 0.11634845
-#> 10   SNP_Chr05_75104591 Chr05 75104591 0.9642005 0.03579952
-
 # Clean up temporary files
 unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
        recursive = TRUE)
-
-knitr::kable(filter_af[1:5,], 
-             caption = 'Table 3: Filtered variants from the SQLite database.', 
-             format = 'html', 
-             padding = 0, 
-             booktabs = TRUE, 
-             escape = FALSE)
 ```
 
 <table>
@@ -1028,13 +994,9 @@ ann_summary <- query_ann_summary(db_path = mini_db_path,
                                  chrom = "Chr05",
                                  start = 75104537,
                                  end = 75106403)
-
-knitr::kable(head(ann_summary$annotation_summary), 
-             caption = 'Annotation summary for variants within the genomic range.', 
-             format = 'html', 
-             padding = 0, 
-             booktabs = TRUE, 
-             escape = FALSE)
+# Clean up
+unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
+       recursive = TRUE)
 ```
 
 <table>
@@ -1143,17 +1105,6 @@ SNP
 </tr>
 </tbody>
 </table>
-
-``` r
-
-knitr::kable(head(ann_summary$impact_summary), 
-             caption = ' Functional impact summary for variants within the genomic range.', 
-             format = 'html', 
-             padding = 0, 
-             booktabs = TRUE, 
-             escape = FALSE)
-```
-
 <table>
 <caption>
 Functional impact summary for variants within the genomic range.
@@ -1261,12 +1212,6 @@ INDEL
 </tbody>
 </table>
 
-``` r
-# Clean up
-unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
-       recursive = TRUE)
-```
-
 The `query_ann_summary()` function has the following input parameters:
 
 | Argument | Type | Description |
@@ -1304,13 +1249,9 @@ high_variants <- query_by_impact(db_path = mini_db_path,
                                 start = 75104537,
                                 end = 75106403)
 
-# View HIGH impact variants
-knitr::kable(head(high_variants), 
-             caption = ' HIGH impact variants within a defined genomic range.', 
-             format = 'html', 
-             padding = 0, 
-             booktabs = TRUE, 
-             escape = FALSE)
+# Clean up
+unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
+       recursive = TRUE)
 ```
 
 <table>
@@ -1735,13 +1676,6 @@ p.Gln4fs
 </tr>
 </tbody>
 </table>
-
-``` r
-
-# Clean up
-unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
-       recursive = TRUE)
-```
 
 ## KASP Marker Design
 
