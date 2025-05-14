@@ -333,7 +333,7 @@ gene_coord_gff <- function(gene_name,
 
 #' Check the column names and types for any table in a SQLite database.
 #' @param db_path A character value indicating the path to the SQLite database.
-#' @param table_name A character value specifying the name of any any table in a
+#' @param table_name A character value specifying the name of any table in a
 #' SQLite database.
 #' @returns A data frame of table column information in the SQLite database.
 #' @examples

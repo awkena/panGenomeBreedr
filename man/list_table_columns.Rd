@@ -12,7 +12,7 @@ list_table_columns(
 \arguments{
 \item{db_path}{A character value indicating the path to the SQLite database.}
 
-\item{table_name}{A character value specifying the name of any any table in a
+\item{table_name}{A character value specifying the name of any table in a
 SQLite database.}
 }
 \value{
