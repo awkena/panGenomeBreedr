@@ -46,6 +46,9 @@ Submit bug reports and feature suggestions, or track changes on the
       - [Pangenome Data and Database Rationale](#pangenome-data-and-database-rationale)
       - [Recommended Schema for the SQLite Database](#recommended-schema-for-the-sqlite-database)
       - [Database Creation](#database-creation)
+      - [Query Variant Tables](#query-variant-tables)
+      - [Filter Variants by Allele Frequency](#filter-variants-by-allele-frequency)
+      - [Summarize SnpEff Annotation and Impact](#summarize-snpeff-annotation-and-impact)
     - [KASP Marker Design](#kasp-marker-design)
     - [KASP Marker Validation](#kasp-marker-validation)
 - [Other Breeder-Centered Functionalities in panGB](#other-breeder-centered-functionalities-in-pangb)
@@ -188,8 +191,8 @@ Stores genotype calls per sample for each variant.
 | `variant_id`   | Foreign key linking to `variants`      |
 | `chrom`        | Chromosome name                        |
 | `pos`          | Genomic position                       |
-| `sample1`      | Genotype for Sample 1 (e.g., "A:G")     |
-| `sample2`      | Genotype for Sample 2 (e.g., "A:A")     |
+| `sample1`      | Genotype for Sample 1 (e.g., "1|1")     |
+| `sample2`      | Genotype for Sample 2 (e.g., "0|0")     |
 | ...            | Genotypes for other samples             |
 
 
@@ -271,7 +274,7 @@ The `query_db()` function has the following key arguments:
 - `gene_name`: *(character)* Optional Sobic gene ID (e.g., `"Sobic.005G213600"`) — used when querying the `annotations` table to filter entries by gene.
 
 
-### Filter Variants by Allele Frequency in a Genomic Region
+### Filter Variants by Allele Frequency
 
 The `query_by_af()` function allows users to extract variants from a SQLite database based on **alternate allele frequency thresholds** within a specified genomic region.
 
@@ -323,7 +326,7 @@ The `query_by_af()` function has the following input parameters:
 | `end`       | `numeric`   | End coordinate of the region. |
 
 
-### Summarize SnpEff Annotation and Impact Distributions by Variant Type
+### Summarize SnpEff Annotation and Impact 
 
 The `query_ann_summary()` function provides a convenient way to summarize the distribution of **SnpEff annotations** and **impact categories** across variant types (e.g., SNPs, indels) within a defined genomic region.
 
@@ -430,7 +433,7 @@ The vcf file must contain the variant ID, Chromosome ID, Position, REF and ALT a
 
 ```{r, echo = FALSE}
 # View summaries
-knitr::kable(head(gt_region[1:5, 1:10]), 
+knitr::kable(head(high_variants), 
              caption = ' HIGH impact variants within a defined genomic range.', 
              format = 'html', 
              padding = 0, 

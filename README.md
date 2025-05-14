@@ -50,6 +50,11 @@ Submit bug reports and feature suggestions, or track changes on the
     - [Recommended Schema for the SQLite
       Database](#recommended-schema-for-the-sqlite-database)
     - [Database Creation](#database-creation)
+    - [Query Variant Tables](#query-variant-tables)
+    - [Filter Variants by Allele
+      Frequency](#filter-variants-by-allele-frequency)
+    - [Summarize SnpEff Annotation and
+      Impact](#summarize-snpeff-annotation-and-impact)
   - [KASP Marker Design](#kasp-marker-design)
   - [KASP Marker Validation](#kasp-marker-validation)
 - [Other Breeder-Centered Functionalities in
@@ -225,14 +230,14 @@ predicted effects, gene names, and functional categories.
 
 Stores genotype calls per sample for each variant.
 
-| Column       | Description                         |
-|--------------|-------------------------------------|
-| `variant_id` | Foreign key linking to `variants`   |
-| `chrom`      | Chromosome name                     |
-| `pos`        | Genomic position                    |
-| `sample1`    | Genotype for Sample 1 (e.g., “A:G”) |
-| `sample2`    | Genotype for Sample 2 (e.g., “A:A”) |
-| …            | Genotypes for other samples         |
+| Column       | Description                       |
+|--------------|-----------------------------------|
+| `variant_id` | Foreign key linking to `variants` |
+| `chrom`      | Chromosome name                   |
+| `pos`        | Genomic position                  |
+| `sample1`    | Genotype for Sample 1 (e.g., “1   |
+| `sample2`    | Genotype for Sample 2 (e.g., “0   |
+| …            | Genotypes for other samples       |
 
 ### Database Creation
 
@@ -792,7 +797,7 @@ coordinates for the query region. - `gene_name`: *(character)* Optional
 Sobic gene ID (e.g., `"Sobic.005G213600"`) — used when querying the
 `annotations` table to filter entries by gene.
 
-### Filter Variants by Allele Frequency in a Genomic Region
+### Filter Variants by Allele Frequency
 
 The `query_by_af()` function allows users to extract variants from a
 SQLite database based on **alternate allele frequency thresholds**
@@ -968,7 +973,7 @@ The `query_by_af()` function has the following input parameters:
 | `start`   | `numeric`   | Start coordinate of the region.           |
 | `end`     | `numeric`   | End coordinate of the region.             |
 
-### Summarize SnpEff Annotation and Impact Distributions by Variant Type
+### Summarize SnpEff Annotation and Impact
 
 The `query_ann_summary()` function provides a convenient way to
 summarize the distribution of **SnpEff annotations** and **impact
@@ -1709,11 +1714,8 @@ variant_id
 <th style="text-align:left;">
 chrom
 </th>
-<th style="text-align:left;">
+<th style="text-align:right;">
 pos
-</th>
-<th style="text-align:left;">
-variant_type
 </th>
 <th style="text-align:left;">
 ref
@@ -1722,178 +1724,402 @@ ref
 alt
 </th>
 <th style="text-align:left;">
-IDMM
+qual
 </th>
 <th style="text-align:left;">
-ISGC
+filter
 </th>
 <th style="text-align:left;">
-ISGK
+variant_type
 </th>
 <th style="text-align:left;">
-ISHC
+allele
+</th>
+<th style="text-align:left;">
+annotation
+</th>
+<th style="text-align:left;">
+impact
+</th>
+<th style="text-align:left;">
+gene_name
+</th>
+<th style="text-align:left;">
+gene_id
+</th>
+<th style="text-align:left;">
+feature_type
+</th>
+<th style="text-align:left;">
+feature_id
+</th>
+<th style="text-align:left;">
+transcript_biotype
+</th>
+<th style="text-align:left;">
+rank
+</th>
+<th style="text-align:left;">
+HGVS_c
+</th>
+<th style="text-align:left;">
+HGVS_p
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
-INDEL_Chr05_75104541
+INDEL_Chr05_75104881
 </td>
 <td style="text-align:left;">
 Chr05
 </td>
-<td style="text-align:left;">
-75104541
-</td>
-<td style="text-align:left;">
-INDEL
-</td>
-<td style="text-align:left;">
-T
-</td>
-<td style="text-align:left;">
-TGAC
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-SNP_Chr05_75104557
-</td>
-<td style="text-align:left;">
-Chr05
-</td>
-<td style="text-align:left;">
-75104557
-</td>
-<td style="text-align:left;">
-SNP
-</td>
-<td style="text-align:left;">
-C
-</td>
-<td style="text-align:left;">
-T
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-SNP_Chr05_75104560
-</td>
-<td style="text-align:left;">
-Chr05
-</td>
-<td style="text-align:left;">
-75104560
-</td>
-<td style="text-align:left;">
-SNP
-</td>
-<td style="text-align:left;">
-C
-</td>
-<td style="text-align:left;">
-T
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-INDEL_Chr05_75104564
-</td>
-<td style="text-align:left;">
-Chr05
-</td>
-<td style="text-align:left;">
-75104564
-</td>
-<td style="text-align:left;">
-INDEL
-</td>
-<td style="text-align:left;">
-C
-</td>
-<td style="text-align:left;">
-CA
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-<td style="text-align:left;">
-0\|0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-SNP_Chr05_75104568
-</td>
-<td style="text-align:left;">
-Chr05
-</td>
-<td style="text-align:left;">
-75104568
-</td>
-<td style="text-align:left;">
-SNP
+<td style="text-align:right;">
+75104881
 </td>
 <td style="text-align:left;">
 G
 </td>
 <td style="text-align:left;">
-T
+GTCGA
 </td>
 <td style="text-align:left;">
-0\|0
+.
 </td>
 <td style="text-align:left;">
-0\|0
+PASS
 </td>
 <td style="text-align:left;">
-0\|0
+INDEL
 </td>
 <td style="text-align:left;">
-0\|0
+GTCGA
+</td>
+<td style="text-align:left;">
+frameshift_variant
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+Sobic.005G213600
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.v5.1
+</td>
+<td style="text-align:left;">
+transcript
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.1.v5.1
+</td>
+<td style="text-align:left;">
+protein_coding
+</td>
+<td style="text-align:left;">
+2/2
+</td>
+<td style="text-align:left;">
+c.1343_1344insTCGA
+</td>
+<td style="text-align:left;">
+p.Ser449fs
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75105587
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:right;">
+75105587
+</td>
+<td style="text-align:left;">
+GC
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+.
+</td>
+<td style="text-align:left;">
+PASS
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+frameshift_variant
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+Sobic.005G213600
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.v5.1
+</td>
+<td style="text-align:left;">
+transcript
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.1.v5.1
+</td>
+<td style="text-align:left;">
+protein_coding
+</td>
+<td style="text-align:left;">
+2/2
+</td>
+<td style="text-align:left;">
+c.637delG
+</td>
+<td style="text-align:left;">
+p.Ala213fs
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75105598
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:right;">
+75105598
+</td>
+<td style="text-align:left;">
+GT
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+.
+</td>
+<td style="text-align:left;">
+PASS
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+frameshift_variant
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+Sobic.005G213600
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.v5.1
+</td>
+<td style="text-align:left;">
+transcript
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.1.v5.1
+</td>
+<td style="text-align:left;">
+protein_coding
+</td>
+<td style="text-align:left;">
+2/2
+</td>
+<td style="text-align:left;">
+c.626delA
+</td>
+<td style="text-align:left;">
+p.Asp209fs
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75106156
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:right;">
+75106156
+</td>
+<td style="text-align:left;">
+CGTAT
+</td>
+<td style="text-align:left;">
+C
+</td>
+<td style="text-align:left;">
+.
+</td>
+<td style="text-align:left;">
+PASS
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+C
+</td>
+<td style="text-align:left;">
+frameshift_variant
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+Sobic.005G213600
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.v5.1
+</td>
+<td style="text-align:left;">
+transcript
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.1.v5.1
+</td>
+<td style="text-align:left;">
+protein_coding
+</td>
+<td style="text-align:left;">
+2/2
+</td>
+<td style="text-align:left;">
+c.65_68delATAC
+</td>
+<td style="text-align:left;">
+p.His22fs
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75106295
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:right;">
+75106295
+</td>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:left;">
+ATC
+</td>
+<td style="text-align:left;">
+.
+</td>
+<td style="text-align:left;">
+PASS
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+ATC
+</td>
+<td style="text-align:left;">
+frameshift_variant
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+Sobic.005G213600
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.v5.1
+</td>
+<td style="text-align:left;">
+transcript
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.1.v5.1
+</td>
+<td style="text-align:left;">
+protein_coding
+</td>
+<td style="text-align:left;">
+1/2
+</td>
+<td style="text-align:left;">
+c.38_39dupGA
+</td>
+<td style="text-align:left;">
+p.Ser14fs
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75106325
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:right;">
+75106325
+</td>
+<td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+GTA
+</td>
+<td style="text-align:left;">
+.
+</td>
+<td style="text-align:left;">
+PASS
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+GTA
+</td>
+<td style="text-align:left;">
+frameshift_variant
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+Sobic.005G213600
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.v5.1
+</td>
+<td style="text-align:left;">
+transcript
+</td>
+<td style="text-align:left;">
+Sobic.005G213600.1.v5.1
+</td>
+<td style="text-align:left;">
+protein_coding
+</td>
+<td style="text-align:left;">
+1/2
+</td>
+<td style="text-align:left;">
+c.8_9dupTA
+</td>
+<td style="text-align:left;">
+p.Gln4fs
 </td>
 </tr>
 </tbody>
