@@ -22,13 +22,13 @@ knitr::opts_chunk$set(
 
 |<img src='man/figures/workflow.png' align="center" style="width: 800px;" />|
 |:--:| 
-| *Fig. 1. Imagined workflow for the `panGenomeBreedr` package for pangenome-enabled breeding. To develop trait-predictive, functional markers, the program takes manual inputs of candidate gene(s) and available pangenome resources for any crop. The program utilizes the input information to perform homology searches to identify orthologs/paralogs. The program, then, characterizes mutations within the input candidate gene to identify high-impact or putative causal variants (PCV). Identifying PCVs allows the program to design functional trait-predictive markers. The program implements the validation of designed markers in a hypothesis-driven manner. The program can equally design other types of markers such as precision-introgression markers and background markers.* |. 
+| *Fig. 1. Conceptual workflow of the panGenomeBreedr (panGB) package for pangenome-enabled marker development. Using snpEff-annotated VCF files organized within a SQLite database, panGB enables querying for variants within candidate genes or user-defined genomic regions. It retrieves mutation annotations and predicted impacts from snpEff to identify putative causal variants (PCVs), which serve as the basis for designing functional trait-predictive markers. The package supports hypothesis-driven validation of these markers and also facilitates the design of additional marker types, including precision-introgression and background markers.* |.   
 
-In its current development version, `panGB` provides customizable functions for **KASP marker design and validation** (Steps 2 and 3 in Figure 1). 
+In its current development version, panGB provides customizable R functions for **variant discovery from snpEff-annotated VCF files, KASP marker design, and marker validation** (Steps 1–3 in Fig. 1).  
 
-`panGB` will host a user-friendly shiny application to enable non-R users to access its functionalities outside R. 
+To expand accessibility, `panGB` will include a user-friendly Shiny application, allowing non-R users to leverage its core features without requiring R programming experience.  
 
-LGC Genomics' current visualization tool is platform-specific — the SNP Viewer program runs only on Windows, thus preventing Mac and other non-Windows platform customers from utilizing it. The SNP Viewer program does not incorporate standardized conventions for visualizing the prediction of positive controls to fully validate a marker. This makes it difficult for users to validate markers conclusively using the existing tool. `panGB` provides platform-independent functionalities to users to perform hypothesis testing on KASP marker QC and validation.
+The SNP Viewer tool by LGC Genomics is limited to Windows platforms and lacks standardized conventions for visualizing positive controls in marker validation, making it difficult for users to conclusively assess marker performance. In contrast, `panGB` offers platform-independent tools for hypothesis testing, quality control (QC), and validation of KASP markers, addressing a key gap in existing visualization and validation workflows.  
 
 Submit bug reports and feature suggestions, or track changes on the
 [issues page](https://github.com/awkena/panGenomeBreedr/issues).
@@ -39,8 +39,13 @@ Submit bug reports and feature suggestions, or track changes on the
 - [Requirements](#requirements)
 - [Recommended packages](#recommended-packages)   
 - [Installation](#installation)
+- [Current Functionality of panGB](#current-functionality-of-pangb)
 - [Usage](#usage) 
 - [Examples](#examples) 
+    - [Variant Discovery](#variant-discovery)
+      - [Pangenome Data and Database Rationale](#pangenome-data-and-database-rationale)
+      - [Recommended Schema for the SQLite Database](#recommended-schema-for-the-sqlite-database)
+      - [Database Creation](#database-creation)
     - [KASP Marker Design](#kasp-marker-design)
     - [KASP Marker Validation](#kasp-marker-validation)
 - [Other Breeder-Centered Functionalities in panGB](#other-breeder-centered-functionalities-in-pangb)
@@ -109,81 +114,325 @@ devtools::install_github("awkena/panGenomeBreedr", upgrade = TRUE)
 # Install and load required Bioconductor packages
 if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 
-  BiocManager::install(c("VariantAnnotation",
+  BiocManager::install(c("Bsgenome,
                          "Biostrings",
                          "GenomicRanges",
                          "IRanges",
                          "msa"))
 ```
 
-# Usage
-Currently, `panGB` has functionality for KASP marker design based on causal variants and QC visualizations for marker validation. 
+# Current Functionality of `panGB`
+`panGB` currently provides functionality for the following key tasks:
 
+1. **Variant discovery**  
+   Identify variants within candidate genes or any user-defined genomic interval using *snpEff*-annotated VCF files.
+
+2. **KASP marker design**  
+   Generate allele-specific markers targeting either causal variants or any variant of interest.
+
+3. **Marker validation and QC visualization**  
+   Produce quality control plots and perform hypothesis-driven evaluations to assess marker reliability.
+
+4. **Decision-support for trait introgression**  
+   Guide marker-assisted backcrossing by profiling foreground, background, and precision-introgression markers to support selection decisions.
+
+# Usage
 ## Examples
 Here, we provide examples on how to use `panGB` to design a KASP marker based on a causal variant, as well as marker validation for any KASP marker.
 
-### KASP Marker Design
-The `kasp_marker_design()` function provides a simplified approach to designing a KASP marker based on identified causal variants. 
+## Variant Discovery 
+### Pangenome Data and Database Rationale
+The examples used in this documentation are based on **sorghum pangenome resources** derived from whole-genome resequencing data of **1,676 sorghum lines**. Variant calling was performed using version **v5.1** of the **BTx623** reference genome. The resulting **SNP** and **INDEL** variants were functionally annotated using **snpEff**.
 
-The user needs two important input data to run the `kasp_marker_design()`: the whole genome or specific chromosome sequence of the focused crop and a vcf file containing variant calls from putative causal variant analytical pipeline. 
+Direct querying of **snpEff-annotated VCF files** from R is often **computationally slow and inefficient**, especially with large datasets. To overcome this limitation, we built a **SQLite database** that stores the variants, annotations, and genotypes in normalized tables. This structure allows for **fast and flexible access** to relevant data, supporting workflows for trait-predictive marker discovery  
 
-The vcf file must contain the Chromosome ID, Position, locus ID, REF and ALT alleles, as well as the genotype data for samples, as shown below in Table 1:
+We **strongly recommend the creation of similar databases for other crops**. The SQLite format offers a compact, portable, and queryable representation of pangenome-derived variant data, significantly improving performance and reproducibility in genomic analysis pipelines.
 
-```{r, echo = FALSE}
-suppressPackageStartupMessages(library(VariantAnnotation))
+A compressed format of the SQLite database for sorghum can be downloaded [here](https://drive.google.com/file/d/1L4S7_ZGeFyu_bA7rRsmTpf9V8__VLB-R/view?usp=sharing).
 
-# Path to import vcf file for variant calls on Chromosome 2
-path <-  system.file("extdata", "Sobic.002G302700_SNP_snpeff.vcf",
-                      package = "panGenomeBreedr",
-                     mustWork = TRUE)
+### Recommended Schema for the SQLite Database
+The SQLite database contains the following three key tables:
 
-vcf_gene <- VariantAnnotation::readVcf(file = path)# read vcf file
-geno <- as.data.frame(VariantAnnotation::geno(vcf_gene))
-geno <- geno[,-c(1:2)]
-geno <- data.frame(CHROM = as.data.frame(vcf_gene@rowRanges)[,1],
-                   POS = as.data.frame(vcf_gene@rowRanges)[,2],
-                   ID = names(vcf_gene),
-                   REF = as.data.frame(ref(vcf_gene))[,1],
-                   ALT = as.data.frame(alt(vcf_gene))[,3],
-                   geno)
+#### `variants`
 
-rownames(geno) <- NULL
+Stores core variant information extracted from the VCF.
 
-library(knitr)
-knitr::kable(geno[1:5, 1:10], 
-             caption = 'Table 1: An example vcf file for marker design.', 
+| Column        | Description                        |
+|---------------|------------------------------------|
+| `variant_id`  | Unique variant identifier          |
+| `chrom`       | Chromosome name                    |
+| `pos`         | Genomic position (1-based)         |
+| `ref`         | Reference allele                   |
+| `alt`         | Alternate allele                   |
+| `variant_type`| Type of variant (e.g., SNP, indel) |
+
+#### `annotations`
+
+Contains functional annotations from **snpEff**, typically including predicted effects, gene names, and functional categories.
+
+| Column         | Description                               |
+|----------------|-------------------------------------------|
+| `variant_id`   | Foreign key linking to `variants`         |
+| `gene_name`    | Sorghum gene ID (e.g., "Sobic.005G213600")|
+| `effect`       | Type of effect (e.g., missense_variant)   |
+| `impact`       | snpEff predicted impact (e.g., HIGH)      |
+| `feature_type` | Type of annotated feature (e.g., exon)    |
+| ...            | Additional snpEff annotation fields       |
+
+#### `genotypes`
+
+Stores genotype calls per sample for each variant.
+
+| Column         | Description                            |
+|----------------|----------------------------------------|
+| `variant_id`   | Foreign key linking to `variants`      |
+| `chrom`        | Chromosome name                        |
+| `pos`          | Genomic position                       |
+| `sample1`      | Genotype for Sample 1 (e.g., "A:G")     |
+| `sample2`      | Genotype for Sample 2 (e.g., "A:A")     |
+| ...            | Genotypes for other samples             |
+
+
+### Database Creation
+We generated the SQLite database a custom workflow that
+1. Parses a multi-sample VCF file annotated by snpEff,
+2. Extracts variant, annotation, and genotype data,
+3. Writes the data into normalized relational tables (`variants`, `annotations`, `genotypes`).
+
+A prebuilt mini example database (`mini_sorghum_variant_vcf.db.gz`) is included in the `extdata/` folder of the package.
+
+### Query Variant Tables from SQLite Database
+
+The `query_db()` function allows users to query specific tables within a panGenomeBreedr-formatted SQLite database for variants, annotations, or genotypes based on chromosome coordinates or candidate gene IDs.  
+
+This function retrieves records from one of the following tables in the database:
+
+- `variants`: Basic variant information (chromosome, position, REF/ALT alleles, etc.)
+- `annotations`: Variant effect predictions (e.g., from snpEff)
+- `genotypes`: Genotypic data across lines/samples plus the metadata of the variants.
+
+Users can specify genomic coordinates (`chrom`, `start`, `end`) or a candidate gene name (`gene_name`) to extract relevant entries.
+
+If used correctly, the `query_db()` function returns a data frame containing the filtered records from the selected table.
+
+```{r, echo = TRUE}
+library(panGenomeBreedr)
+
+# This example uses the mini SQLite database included in the package.
+# Define a temporary path and decompress the example database
+path <- tempdir()
+mini_db <- system.file("extdata", "mini_sorghum_variant_vcf.db.gz",
+                       package = "panGenomeBreedr", mustWork = TRUE)
+mini_db_path <- file.path(path, 'mini_sorghum_variant_vcf.db')
+R.utils::gunzip(mini_db, destname = mini_db_path, remove = FALSE)
+
+# Query VCF genotypes within the genomic range: Chr05:75104537-75106403
+gt_region <- query_db(db_path = mini_db_path,
+                      chrom = "Chr05",
+                      start = 75104537,
+                      end = 75106403,
+                      table_name = "genotypes")
+
+# Query snpEff annotations within a candidate gene
+annota_region <- query_db(db_path = mini_db_path,
+                          chrom = "Chr05",
+                          start = 75104537,
+                          end = 75106403,
+                          table_name = "annotations",
+                          gene_name = "Sobic.005G213600")
+
+# Clean up temporary files
+unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
+       recursive = TRUE)
+
+knitr::kable(gt_region[1:5, 1:10], 
+             caption = 'Table 1: Queried genotypes for varaints from the SQLite database.', 
+             format = 'html', 
+             padding = 0, 
+             booktabs = TRUE, 
+             escape = FALSE)
+
+knitr::kable(annota_region[1:5,], 
+             caption = 'Table 2: Queried annotations for variants from the SQLite database.', 
+             format = 'html', 
+             padding = 0, 
+             booktabs = TRUE, 
+             escape = FALSE)
+
+```
+
+The `query_db()` function has the following key arguments:
+- `db_path`: *(character)* Path to the SQLite database file.
+- `table_name`: *(character)* Name of the table to query (`"variants"`, `"annotations"`, or `"genotypes"`).
+- `chrom`: *(character)* Chromosome name to filter by (e.g., `"Chr05"`).
+- `start`, `end`: *(numeric)* Start and end genomic coordinates for the query region.
+- `gene_name`: *(character)* Optional Sobic gene ID (e.g., `"Sobic.005G213600"`) — used when querying the `annotations` table to filter entries by gene.
+
+
+### Filter Variants by Allele Frequency in a Genomic Region
+
+The `query_by_af()` function allows users to extract variants from a SQLite database based on **alternate allele frequency thresholds** within a specified genomic region.
+
+This is particularly useful for identifying **polymorphic sites** within candidate gene regions or windows of interest that meet desired minor allele frequency (MAF) thresholds for marker development.
+
+An example usage for the `query_by_af()` function is shown in the code snippet below:
+
+```{r, echo = TRUE}
+library(panGenomeBreedr)
+
+# Define temporary directory and decompress demo database
+path <- tempdir()
+mini_db <- system.file("extdata", "mini_sorghum_variant_vcf.db.gz",
+                       package = "panGenomeBreedr", mustWork = TRUE)
+mini_db_path <- file.path(path, 'mini_sorghum_variant_vcf.db')
+R.utils::gunzip(mini_db, destname = mini_db_path, remove = FALSE)
+
+# Filter variants with alt allele frequency between 1% and 99% in a defined region
+filter_af <- query_by_af(db_path = mini_db_path,
+                         min_af = 0.01,
+                         max_af = 0.99,
+                         chrom = "Chr05",
+                         start = 75104537,
+                         end = 75106403)
+
+head(filter_af)
+
+# Clean up temporary files
+unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
+       recursive = TRUE)
+
+knitr::kable(filter_af[1:5,], 
+             caption = 'Table 3: Filtered variants from the SQLite database.', 
              format = 'html', 
              padding = 0, 
              booktabs = TRUE, 
              escape = FALSE)
 ```
 
+The `query_by_af()` function has the following input parameters:
 
-```{r}
+| Argument   | Type     | Description |
+|-------------|----------|-------------|
+| `db_path`   | `character` | Path to the SQLite database (`.db` file). |
+| `min_af`    | `numeric`   | Minimum allele frequency (default: `0`). |
+| `max_af`    | `numeric`   | Maximum allele frequency (default: `1`). |
+| `chrom`     | `character` | Chromosome name (e.g., `"Chr05"`). |
+| `start`     | `numeric`   | Start coordinate of the region. |
+| `end`       | `numeric`   | End coordinate of the region. |
 
-# Example to design a KASP marker on a substitution variant
-# Set path to alignment output folder 
+
+### Summarize SnpEff Annotation and Impact Distributions by Variant Type
+
+The `query_ann_summary()` function provides a convenient way to summarize the distribution of **SnpEff annotations** and **impact categories** across variant types (e.g., SNPs, indels) within a defined genomic region.
+
+This function enables users to quickly assess the types and functional implications of variants located within candidate genes or genomic intervals of interest.
+
+```{r, echo = TRUE}
+library(panGenomeBreedr)
+
+# Prepare test database
+path <- tempdir()
+mini_db <- system.file("extdata", "mini_sorghum_variant_vcf.db.gz",
+                       package = "panGenomeBreedr", mustWork = TRUE)
+mini_db_path <- file.path(path, 'mini_sorghum_variant_vcf.db')
+R.utils::gunzip(mini_db, destname = mini_db_path, remove = FALSE)
+
+# Run annotation summary for region Chr05:75104537-75106403
+ann_summary <- query_ann_summary(db_path = mini_db_path,
+                                 chrom = "Chr05",
+                                 start = 75104537,
+                                 end = 75106403)
+
+# View summaries
+head(ann_summary$annotation_summary)
+head(ann_summary$impact_summary)
+
+# Clean up
+unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
+       recursive = TRUE)
+
+```
+
+The `query_ann_summary()` function has the following input parameters:
+
+| Argument            | Type        | Description |
+|----------------------|-------------|-------------|
+| `db_path`            | `character` | Path to the SQLite database. |
+| `chrom`              | `character` | Chromosome name (e.g., `"Chr05"`). |
+| `start`, `end`       | `numeric`   | Start and end coordinates of the target genomic region. |
+| `annotations_table`  | `character` | Name of the table storing snpEff annotations (default: `"annotations"`). |
+| `variants_table`     | `character` | Name of the table storing variant data (default: `"variants"`). |
+
+The `query_ann_summary()` function returns a `list` with the following elements:
+- `annotation_summary`: Data frame summarizing the count of each SnpEff annotation grouped by variant type.
+- `impact_summary`: Data frame summarizing the count of each SnpEff impact level (e.g., HIGH, MODERATE) grouped by variant type.
+- `variant_type_totals`: Total count of variants in the region grouped by variant type.
+
+**The annotation summary shows that there are six (6) INDEL variants with a HIGH impact on protein function.** To see these variants, we need to use the `query_by_impact()` function, as shown below:
+
+```{r, echo = TRUE}
+
+# Prepare test database
+path <- tempdir()
+mini_db <- system.file("extdata", "mini_sorghum_variant_vcf.db.gz",
+                       package = "panGenomeBreedr", mustWork = TRUE)
+mini_db_path <- file.path(path, 'mini_sorghum_variant_vcf.db')
+R.utils::gunzip(mini_db, destname = mini_db_path, remove = FALSE)
+
+# Extract low impact variant for a region or gene
+high_variants <- query_by_impact(db_path = mini_db_path,
+                                impact_level = 'high',
+                                chrom = "Chr05",
+                                end = 75106403)
+
+# View summaries
+head(high_variants)
+
+# Clean up
+unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
+       recursive = TRUE)
+
+```
+
+## KASP Marker Design
+The `kasp_marker_design()` function enables the design of **KASP (Kompetitive Allele Specific PCR)** markers from identified putative causal variants. It supports SNP, insertion, and deletion variants using VCF genotype data and a reference genome to generate Intertek-compatible marker information, including upstream and downstream polymorphic context.
+
+This function automates the extraction of flanking sequences and polymorphic variants surrounding a focal variant and generates:
+
+- Intertek-ready marker submission metadata
+- DNA sequence alignment for visual inspection of marker context
+- An optional publication-ready alignment plot in PDF format
+
+The vcf file must contain the variant ID, Chromosome ID, Position, REF and ALT alleles, as well as the genotype data for samples, as shown in Table 1:
+
+```{r, echo = FALSE}
+head(gt_region)
+```
+
+
+```{r, echo = TRUE}
+# Example to design a KASP marker on a HIGH impact Deletion variant
 library(panGenomeBreedr)
 path <- tempdir() # (default directory for saving alignment outputs)
 
-# Path to import sorghum genome sequence for Chromosome 2
-path1 <- "https://raw.githubusercontent.com/awkena/panGB/main/Chr02.fa.gz"
+# Path to import sorghum genome sequence for Chromosome 5
+path1 <- "https://raw.githubusercontent.com/awkena/panGB/main/Chr05.fa.gz"
 
-# Path to import vcf file for variant calls on Chromosome 2
-path2 <-  system.file("extdata", "Sobic.002G302700_SNP_snpeff.vcf",
-                      package = "panGenomeBreedr",
-                     mustWork = TRUE)
-
-# KASP marker design for variant ID: SNP_Chr02_69200443 in vcf file
-ma1 <- kasp_marker_design(vcf_file = path2,
+# KASP marker design for variant ID: INDEL_Chr05_75106156 in Table 1
+lgs1 <- kasp_marker_design(gt_df = gt_region,
+                           variant_id_col = 'variant_id',
+                           chrom_col = 'chrom',
+                           pos_col = 'pos',
+                           ref_al_col = 'ref',
+                           alt_al_col = 'alt',
                            genome_file = path1,
-                           marker_ID = "SNP_Chr02_69200443",
-                           chr = "Chr02",
+                           geno_start = 7,
+                           marker_ID = "INDEL_Chr05_75106156",
+                           chr = "Chr05",
                            plot_draw = TRUE,
                            plot_file = path,
-                           vcf_geno_code = c('1|1', '0|1', '0|0', '.|.'),
-                           region_name = "ma1",
-                           maf = 0.05)
+                           region_name = "lgs1")
+
 
 # View marker alignment output from temp folder
 path3 <- file.path(path, list.files(path = path, "alignment_"))
@@ -193,26 +442,51 @@ on.exit(unlink(path)) # Clear the temp directory on exit
 
 ```
 
-In the `kasp_marker_design()` function call above, the user must specify the path to the genome sequence and vcf files using the `genome_file` and `vcf_file` arguments, respectively. The user must specify the ID for the variant in the vcf file using the `marker_ID` argument. 
+The `kasp_marker_design()` function has the following input parameters:
 
-To save memory and enhance the computational speed, the `chr` argument can be specified to access only the chromosome sequence of the chosen variant from the genome sequence.
+| Argument       | Type        | Description |
+|------------------|-------------|-------------|
+| `vcf_file`        | `character` | Path to VCF file containing variants. |
+| `gt_df`           | `data.frame` or `matrix` |Pre-parsed genotype matrix with metadata and sample genotypes. |
+| `variant_id_col`  | `character` | Column name for variant IDs. |
+| `chrom_col`       | `character` | Column name for chromosome names. |
+| `pos_col`         | `character` | Column name for variant positions. |
+| `ref_al_col`      | `character` | Column name for reference alleles. |
+| `alt_al_col`      | `character` | Column name for alternate alleles. |
+| `geno_start`      | `integer`   | Column index in `gt_df` where genotype data starts. |
+| `marker_ID`       | `character` | ID of the variant to design the marker for. |
+| `chr`             | `character` | Chromosome name used to subset the reference genome. |
+| `genome_file`     | `character` | Path to genome FASTA file. |
+| `plot_draw`       | `logical`   | Whether to plot upstream/downstream alignment. |
+| `plot_file`       | `character` | Output path to save the PDF alignment plot. |
+| `region_name`     | `character` | Optional name for marker region. |
+| `maf`             | `numeric`   | MAF filter for selecting flanking variants. |
 
-The `vcf_geno_code` argument is used to specify the genotype coding in the vcf file -- either phased (1|1) or unphased (1/1) coding.
 
-The `plot_draw = TRUE` argument indicates the return of the alignment of the 100 bp upstream and downstream sequences to the imported reference genome as PDF file (Figure 2).
+The `kasp_marker_design()` function returns a `data.frame` with marker design metadata:
 
-The `plot_file` argument specifies the path to the directory where the alignment should be saved -- default is a temporary directory.  
+- `SNP_Name`: Variant ID
+- `SNP`: Type of variant (SNP/INDEL)
+- `Marker_Name`: Assigned name for the marker
+- `Chromosome`: Chromosome name
+- `Chromosome_Position`: Variant position
+- `Sequence`: Intertek-style polymorphism sequence
+- `ReferenceAllele`: Reference allele
+- `AlternativeAllele`: Alternate allele
+
+If `plot_draw = TRUE`, a **PDF plot** of sequence alignment will be saved to `plot_file`.
+
 
 |<img src='man/figures/alignment.png' align="center" style="width: 700px;" />|
 |:--:| 
 | *Fig. 2. Alignment of the 100 bp upstream and downstream sequences to the reference genome used for KASP marker design.* |. 
 
-The required sequence for submission to Intertek for the designed KASP marker is shown in Table 2.
+The required sequence for submission to Intertek for the designed KASP marker is shown in Table 5.
 
 ```{r, echo = FALSE}
 library(knitr)
-knitr::kable(ma1, 
-             caption = 'Table 2: Intertek required sequence for a KASP marker.', 
+knitr::kable(lgs1, 
+             caption = 'Table 5: Intertek required sequence for a KASP marker.', 
              format = 'html', 
              padding = 0, 
              booktabs = TRUE, 
