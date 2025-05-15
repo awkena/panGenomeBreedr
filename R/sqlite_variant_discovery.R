@@ -871,10 +871,19 @@ query_by_af <- function(db_path,
   return(result)
 }
 
+
 #' Query genotypes for one or more variant IDs from a wide-format genotype table.
 #' @param db_path The path to your SQLite or PostgreSQL database.
 #' @param variant_ids A character vector of variant IDs to query.
-#' @return A data.frame of genotype data (samples x variants).
+#' @param variant_id_col A character value specifying the column name of variant
+#' IDs in the SQLite database.
+#' @param variants_table,genotypes_table, A character value specifying the
+#' column names of variants and genotypes tables, respectively, in the SQLite
+#' database. if the `meta_data = NULL`, it returns all the metadata in
+#' the variants table.
+#' @param meta_data A character vector of metadata to include with the genotype data.
+#' @return A data.frame of genotype data in variants x samples format with
+#' metadata.
 #'
 #' @examples
 #' \donttest{
@@ -900,8 +909,9 @@ query_by_af <- function(db_path,
 #' # Extract all genotypes for all samples for any set of variants
 #' geno_filter <- query_genotypes(db_path = mini_db_path,
 #'                                variant_ids = c("INDEL_Chr05_75104541",
-#'                                                "SNP_Chr05_75104557"))
-#'
+#'                                                "SNP_Chr05_75104557"),
+#'                                meta_data = c('chrom', 'pos', 'ref', 'alt',
+#'                                              'variant_type'))
 #' # Clean tempdir
 #' contents <- list.files(tempdir(),
 #'                              full.names = TRUE,
@@ -914,37 +924,75 @@ query_by_af <- function(db_path,
 #' @export
 #'
 query_genotypes <- function(db_path,
-                            variant_ids) {
-
-  table_name <- "genotypes"
+                            variant_ids,
+                            variant_id_col = "variant_id",
+                            variants_table = 'variants',
+                            genotypes_table = 'genotypes',
+                            meta_data = NULL) {
 
   if (length(variant_ids) == 0) {
-    stop("Please provide at least one variant ID.")
+    stop("Please provide at least one variant ID in the database.")
   }
 
-  # Connect
+  # Connect to the database
   con <- DBI::dbConnect(RSQLite::SQLite(), db_path)
-  # assign("con", con, envir = .GlobalEnv)
 
-  # Escape and collapse variant IDs into SQL IN clause
+  # Use all metadata if not specified
+  if (is.null(meta_data)) {
+    meta_data <- setdiff(DBI::dbListFields(con, variants_table), variant_id_col)
+  }
+
+  # Ensure join key is included in metadata
+  meta_data <- unique(c(variant_id_col, meta_data))
+
+  # Format variant IDs for SQL
   id_list <- paste(sprintf("'%s'", variant_ids), collapse = ", ")
 
-  query <- sprintf("SELECT * FROM %s WHERE variant_id IN (%s)",
-                   table_name, id_list)
+  # Query genotype data
+  geno_query <- sprintf("SELECT * FROM %s WHERE %s IN (%s)",
+                        genotypes_table, variant_id_col, id_list)
+  geno_df <- DBI::dbGetQuery(con, geno_query)
 
-  result <- DBI::dbGetQuery(con, query)
+  # Check available metadata columns
+  all_meta_cols <- DBI::dbListFields(con, variants_table)
+  valid_meta_cols <- intersect(meta_data, all_meta_cols)
+
+  if (!(variant_id_col %in% valid_meta_cols)) {
+    stop(sprintf("'%s' must be included in meta_data for proper joining.", variant_id_col))
+  }
+
+  # Warn if user requested unavailable columns
+  missing_cols <- setdiff(meta_data, all_meta_cols)
+  if (length(missing_cols) > 0) {
+    warning("The following metadata columns do not exist in the 'variants' table and will be ignored: ",
+            paste(missing_cols, collapse = ", "))
+  }
+
+  # Query metadata table
+  meta_query <- sprintf("SELECT %s FROM %s WHERE %s IN (%s)",
+                        paste(valid_meta_cols, collapse = ", "),
+                        variants_table, variant_id_col, id_list)
+  meta_df <- DBI::dbGetQuery(con, meta_query)
+
   DBI::dbDisconnect(con)
 
-  # Transpose to samples x variants format
-  variant_ids_ordered <- result$variant_id
-  rownames(result) <- result$variant_id
-  result <- result[, !(colnames(result) %in% c("variant_id", "chrom", "pos"))]
-  result_t <- as.data.frame(t(result))
-  colnames(result_t) <- variant_ids_ordered
-  result_t <- cbind(sample = rownames(result_t), result_t)
-  rownames(result_t) <- NULL
+  if (nrow(geno_df) == 0) {
+    warning("No genotype data found for the specified variant IDs.")
+    return(data.frame())
+  }
 
-  return(result_t)
+  # Prevent duplication of shared columns except the join key
+  common_cols <- intersect(names(geno_df), names(meta_df))
+  cols_to_drop <- setdiff(common_cols, variant_id_col)
+  geno_df <- geno_df[, !names(geno_df) %in% cols_to_drop]
+
+  # Merge metadata and genotypes
+  wide_df <- merge(meta_df, geno_df, by = variant_id_col, all.x = TRUE)
+
+  # Drop duplicates if any (safety net)
+  wide_df <- wide_df[, !duplicated(names(wide_df))]
+
+  return(wide_df)
 }
 
 

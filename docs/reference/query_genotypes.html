@@ -36,7 +36,14 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">query_genotypes</span><span class="op">(</span><span class="va">db_path</span>, <span class="va">variant_ids</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">query_genotypes</span><span class="op">(</span></span>
+<span>  <span class="va">db_path</span>,</span>
+<span>  <span class="va">variant_ids</span>,</span>
+<span>  variant_id_col <span class="op">=</span> <span class="st">"variant_id"</span>,</span>
+<span>  variants_table <span class="op">=</span> <span class="st">"variants"</span>,</span>
+<span>  genotypes_table <span class="op">=</span> <span class="st">"genotypes"</span>,</span>
+<span>  meta_data <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -50,10 +57,27 @@
 <dt id="arg-variant-ids">variant_ids<a class="anchor" aria-label="anchor" href="#arg-variant-ids"></a></dt>
 <dd><p>A character vector of variant IDs to query.</p></dd>
 
+
+<dt id="arg-variant-id-col">variant_id_col<a class="anchor" aria-label="anchor" href="#arg-variant-id-col"></a></dt>
+<dd><p>A character value specifying the column name of variant
+IDs in the SQLite database.</p></dd>
+
+
+<dt id="arg-variants-table-genotypes-table-">variants_table, genotypes_table, <a class="anchor" aria-label="anchor" href="#arg-variants-table-genotypes-table-"></a></dt>
+<dd><p>A character value specifying the
+column names of variants and genotypes tables, respectively, in the SQLite
+database. if the `meta_data = NULL`, it returns all the metadata in
+the variants table.</p></dd>
+
+
+<dt id="arg-meta-data">meta_data<a class="anchor" aria-label="anchor" href="#arg-meta-data"></a></dt>
+<dd><p>A character vector of metadata to include with the genotype data.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A data.frame of genotype data (samples x variants).</p>
+    <p>A data.frame of genotype data in variants x samples format with
+metadata.</p>
     </div>
 
     <div class="section level2">
@@ -81,8 +105,9 @@
 <span class="r-in"><span><span class="co"># Extract all genotypes for all samples for any set of variants</span></span></span>
 <span class="r-in"><span><span class="va">geno_filter</span> <span class="op">&lt;-</span> <span class="fu">query_genotypes</span><span class="op">(</span>db_path <span class="op">=</span> <span class="va">mini_db_path</span>,</span></span>
 <span class="r-in"><span>                               variant_ids <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"INDEL_Chr05_75104541"</span>,</span></span>
-<span class="r-in"><span>                                               <span class="st">"SNP_Chr05_75104557"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
+<span class="r-in"><span>                                               <span class="st">"SNP_Chr05_75104557"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                               meta_data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'chrom'</span>, <span class="st">'pos'</span>, <span class="st">'ref'</span>, <span class="st">'alt'</span>,</span></span>
+<span class="r-in"><span>                                             <span class="st">'variant_type'</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Clean tempdir</span></span></span>
 <span class="r-in"><span><span class="va">contents</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                             full.names <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
@@ -99,7 +124,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Alexander Wireko Kena, Clara Cruet Burgos, Geoffrey Preston Morris.</p>
+  <p>Developed by Alexander Wireko Kena, Israel Tawiah Tetteh, Clara Cruet Burgos, Geoffrey Preston Morris.</p>
 </div>
 
 <div class="pkgdown-footer-right">

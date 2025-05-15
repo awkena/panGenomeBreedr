@@ -13,9 +13,21 @@ pangenomes, marker design, and marker QC hypothesis testing (Figure 1).
 It seeks to simplify and enhance the use of pangenome resources in
 cultivar development.
 
-| <img src='man/figures/workflow.png' align="center" style="width: 800px;" /> |
-|:--:|
-| *Fig. 1. Conceptual workflow of the panGenomeBreedr (panGB) package for pangenome-enabled marker development. Using snpEff-annotated VCF files organized within a SQLite database, panGB enables querying for variants within candidate genes or user-defined genomic regions. It retrieves mutation annotations and predicted impacts from snpEff to identify putative causal variants (PCVs), which serve as the basis for designing functional trait-predictive markers. The package supports hypothesis-driven validation of these markers and also facilitates the design of additional marker types, including precision-introgression and background markers.* |
+<figure style="text-align: center;">
+<img src="man/figures/workflow.png" width="800" alt="panGenomeBreedr marker design workflow">
+<figcaption>
+<em>Fig. 1.</em> Conceptual workflow of the panGenomeBreedr (panGB)
+package for pangenome-enabled marker development. Using snpEff-annotated
+VCF files organized within a SQLite database, panGB enables querying for
+variants within candidate genes or user-defined genomic regions. It
+retrieves mutation annotations and predicted impacts from snpEff to
+identify putative causal variants (PCVs), which serve as the basis for
+designing functional trait-predictive markers. The package supports
+hypothesis-driven validation of these markers and also facilitates the
+design of additional marker types, including precision-introgression and
+background markers.
+</figcaption>
+</figure>
 
 In its current development version, panGB provides customizable R
 functions for **variant discovery from snpEff-annotated VCF files, KASP
@@ -108,6 +120,8 @@ If the package does not run as expected, check the following:
 # Authors and contributors
 
 - [Alexander Wireko Kena](https://www.github.com/awkena)
+
+- [Israel Tawiah Tetteh](https://github.com/Israel-Tetteh)
 
 - [Cruet Burgos](https://www.morrislab.org/people/clara-cruet-burgos)
 

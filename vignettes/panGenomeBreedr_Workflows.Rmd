@@ -5,6 +5,8 @@ vignette: >
   %\VignetteIndexEntry{panGenomeBreedr_Workflows}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+depends:
+  - UpSetR
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -44,40 +46,37 @@ Submit bug reports and feature suggestions, or track changes on the
 - [Recommended packages](#recommended-packages)   
 - [Installation](#installation)
 - [Current Functionality of panGB](#current-functionality-of-pangb)
-- [Usage](#usage) 
-- [Examples](#examples) 
-    - [Variant Discovery](#variant-discovery)
-      - [Pangenome Data and Database Rationale](#pangenome-data-and-database-rationale)
-      - [Recommended Schema for the SQLite Database](#recommended-schema-for-the-sqlite-database)
-      - [Database Creation](#database-creation)
-      - [Query Variant Tables](#query-variant-tables)
-      - [Filter Variants by Allele Frequency](#filter-variants-by-allele-frequency)
-      - [Summarize SnpEff Annotation and Impact](#summarize-snpeff-annotation-and-impact)
-    - [KASP Marker Design](#kasp-marker-design)
-    - [KASP Marker Validation](#kasp-marker-validation)
-- [Other Breeder-Centered Functionalities in panGB](#other-breeder-centered-functionalities-in-pangb)
+- [Variant Discovery](#variant-discovery)
+    - [Pangenome Data and Database Rationale](#pangenome-data-and-database-rationale)
+    - [Recommended Schema for the SQLite Database](#recommended-schema-for-the-sqlite-database)
+    - [Database Creation](#database-creation)
+    - [Query Variant Tables](#query-variant-tables)
+    - [Filter Variants by Allele Frequency](#filter-variants-by-allele-frequency)
+    - [Summarize SnpEff Annotation and Impact](#summarize-snpeff-annotation-and-impact)
+- [KASP Marker Design](#kasp-marker-design)
+- [KASP Marker Validation](#kasp-marker-validation)
+- [Decision Support for Trait Introgression and MABC](#decision-support-for-trait-introgression-and-mabc)
     - [Creating Heatmaps with `panGB`](#creating-heatmaps-with-pangb)
     - [Trait Introgression Hypothesis Testing](#trait-introgression-hypothesis-testing)
-    - [Decision Support for Marker-Assisted Backcrossing in `panGB`](#decision-support-for-marker-assisted-backcrossing-in-pangb)
+    - [Decision Support for MABC](#decision-support-for-mabc)
     - [Weighted RPP computation in panGB](#weighted-rpp-computation-in-pangb)
+    - [Decision Support for Foreground Selection](#decision-support-for-foreground-selection)
 - [Troubleshooting](#troubleshooting)
 - [Authors and contributors](#authors-and-contributors)
 - [License](#license)
 - [Support and Feedback](##support-and-feedback)
 
 
-## Requirements
+# Requirements
     
-To run this package locally on a machine, the following R packages are
+To use this package locally on a machine, the following R packages are
 required:
 
--   [ggplot2](https://ggplot2.tidyverse.org): Elegant Graphics for Data Analysis.
+-   [ggplot2](https://ggplot2.tidyverse.org)
 
--   [gridExtra](https://cran.r-project.org/web/packages/gridExtra/index.html):
-    Miscellaneous Functions for "Grid" Graphics.
+-   [gridExtra](https://cran.r-project.org/web/packages/gridExtra/index.html)
     
--   [utils](https://www.rdocumentation.org/packages/utils/versions/3.6.2):
-    The R Utils Package.
+-   [utils](https://www.rdocumentation.org/packages/utils/versions/3.6.2)
 
 -   [stats](https://www.rdocumentation.org/packages/stats/versions/3.6.2)
 
@@ -94,15 +93,14 @@ required:
 -   [msa](https://bioconductor.org/packages/release/bioc/html/msa.html)
 
 
-## Recommended packages
+# Recommended packages
 
 -   [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html): Needed for package development and installation from GitHub on Windows PCs.
 
--   [rmarkdown](https://CRAN.R-project.org/package=rmarkdown): When
-    installed, display of the project's README.md will be rendered with R         Markdown.
+-   [UpSetR](https://cran.r-project.org/web/packages/UpSetR/index.html): Required for generating UpSet plots.
 
 
-## Installation
+# Installation
 First, ensure all existing packages are up to date.  
 
 You can install the development version of `panGenomeBreedr` from [GitHub](https://github.com/awkena/panGenomeBreedr) with:
@@ -114,7 +112,7 @@ if (!require("devtools")) install.packages("devtools")
 devtools::install_github("awkena/panGenomeBreedr", upgrade = TRUE)
 ```
 
-### Installing Bioconductor dependency packages
+## Installing Bioconductor dependency packages
 `panGB` depends on a list of Bioconductor packages that may not be installed automatically alongside `panGB`. To manually install these packages, use the code snippet below:
 
 ```r
@@ -143,26 +141,22 @@ if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 4. **Decision-support for trait introgression**  
    Guide marker-assisted backcrossing by profiling foreground, background, and precision-introgression markers to support selection decisions.
 
-# Usage
-## Examples
-Here, we provide examples on how to use `panGB` to design a KASP marker based on a causal variant, as well as marker validation for any KASP marker.
-
-## Variant Discovery 
-### Pangenome Data and Database Rationale
+# Variant Discovery 
+## Pangenome Data and Database Rationale
 The examples used in this documentation are based on **sorghum pangenome resources** derived from whole-genome resequencing data of **1,676 sorghum lines**. Variant calling was performed using version **v5.1** of the **BTx623** reference genome. The resulting **SNP** and **INDEL** variants were functionally annotated using **snpEff**.
 
-Direct querying of **snpEff-annotated VCF files** from R is often **computationally slow and inefficient**, especially with large datasets. To overcome this limitation, we built a **SQLite database** that stores the variants, annotations, and genotypes in normalized tables. This structure allows for **fast and flexible access** to relevant data, supporting workflows for trait-predictive marker discovery  
+Direct querying of **snpEff-annotated VCF files** from R is often computationally slow and inefficient, especially with large datasets. To overcome this limitation, we built a **SQLite database** that stores the variants, annotations, and genotypes in normalized tables. This structure allows for **fast and flexible access** to relevant data, supporting workflows for trait-predictive marker discovery.    
 
-We **strongly recommend the creation of similar databases for other crops**. The SQLite format offers a compact, portable, and queryable representation of pangenome-derived variant data, significantly improving performance and reproducibility in genomic analysis pipelines.
+**We strongly recommend the creation of similar databases for other crops**. The SQLite format offers a compact, portable, and queryable representation of pangenome-derived variant data, significantly improving performance and reproducibility in variant discovery pipelines.
 
-A compressed format of the SQLite database for sorghum can be downloaded [here](https://drive.google.com/file/d/1L4S7_ZGeFyu_bA7rRsmTpf9V8__VLB-R/view?usp=sharing).
+**A compressed format of the SQLite database for sorghum can be downloaded** [here](https://drive.google.com/file/d/1L4S7_ZGeFyu_bA7rRsmTpf9V8__VLB-R/view?usp=sharing).
 
-### Recommended Schema for the SQLite Database
+## Recommended Schema for the SQLite Database
 The SQLite database contains the following three key tables:
 
-#### `variants`
+### `variants`
 
-Stores core variant information extracted from the VCF.
+This table stores core metadata variant information extracted from the VCF.
 
 | Column        | Description                        |
 |---------------|------------------------------------|
@@ -173,9 +167,9 @@ Stores core variant information extracted from the VCF.
 | `alt`         | Alternate allele                   |
 | `variant_type`| Type of variant (e.g., SNP, indel) |
 
-#### `annotations`
+### `annotations`
 
-Contains functional annotations from **snpEff**, typically including predicted effects, gene names, and functional categories.
+This table contains functional annotations from **snpEff**, typically including predicted effects, gene names, and functional categories.
 
 | Column         | Description                               |
 |----------------|-------------------------------------------|
@@ -186,29 +180,30 @@ Contains functional annotations from **snpEff**, typically including predicted e
 | `feature_type` | Type of annotated feature (e.g., exon)    |
 | ...            | Additional snpEff annotation fields       |
 
-#### `genotypes`
+### `genotypes`
 
-Stores genotype calls per sample for each variant.
+This table stores genotype calls per sample for each variant in a wide format.
 
 | Column         | Description                            |
 |----------------|----------------------------------------|
 | `variant_id`   | Foreign key linking to `variants`      |
 | `chrom`        | Chromosome name                        |
 | `pos`          | Genomic position                       |
-| `sample1`      | Genotype for Sample 1 (e.g., "1|1")     |
-| `sample2`      | Genotype for Sample 2 (e.g., "0|0")     |
+| `sample1`      | Genotype for Sample 1 (e.g., `1|1`)     |
+| `sample2`      | Genotype for Sample 2 (e.g., `0|0`)     |
 | ...            | Genotypes for other samples             |
 
 
-### Database Creation
-We generated the SQLite database a custom workflow that
+## Database Creation
+We generated the SQLite database using a custom workflow that  
+
 1. Parses a multi-sample VCF file annotated by snpEff,
 2. Extracts variant, annotation, and genotype data,
 3. Writes the data into normalized relational tables (`variants`, `annotations`, `genotypes`).
 
 A prebuilt mini example database (`mini_sorghum_variant_vcf.db.gz`) is included in the `extdata/` folder of the package.
 
-### Query Variant Tables from SQLite Database
+## Query Variant Tables
 
 The `query_db()` function allows users to query specific tables within a panGenomeBreedr-formatted SQLite database for variants, annotations, or genotypes based on chromosome coordinates or candidate gene IDs.  
 
@@ -271,14 +266,18 @@ knitr::kable(annota_region[1:5,],
 ```
 
 The `query_db()` function has the following key arguments:
-- `db_path`: *(character)* Path to the SQLite database file.
-- `table_name`: *(character)* Name of the table to query (`"variants"`, `"annotations"`, or `"genotypes"`).
-- `chrom`: *(character)* Chromosome name to filter by (e.g., `"Chr05"`).
-- `start`, `end`: *(numeric)* Start and end genomic coordinates for the query region.
-- `gene_name`: *(character)* Optional Sobic gene ID (e.g., `"Sobic.005G213600"`) — used when querying the `annotations` table to filter entries by gene.
+
+| Argument     | Type       | Description                         |
+|--------------|------------|-------------------------------------|
+| `db_path`    | `character`| Path to the SQLite database file.   |
+| `table_name` | `character`| Name of the table to query.         |
+| `chrom`      | `character`| Chromosome name.                    |
+| `start`     | `numeric`   | Start coordinate of the region.     |
+| `end`       | `numeric`   | End coordinate of the region.       |
+| `gene_name`  | `character`| Optional Sobic gene ID.             |
 
 
-### Filter Variants by Allele Frequency
+## Filter Variants by Allele Frequency
 
 The `query_by_af()` function allows users to extract variants from a SQLite database based on **alternate allele frequency thresholds** within a specified genomic region.
 
@@ -322,15 +321,15 @@ The `query_by_af()` function has the following input parameters:
 
 | Argument   | Type     | Description |
 |-------------|----------|-------------|
-| `db_path`   | `character` | Path to the SQLite database (`.db` file). |
-| `min_af`    | `numeric`   | Minimum allele frequency (default: `0`). |
-| `max_af`    | `numeric`   | Maximum allele frequency (default: `1`). |
-| `chrom`     | `character` | Chromosome name (e.g., `"Chr05"`). |
+| `db_path`   | `character` | Path to the SQLite database. |
+| `min_af`    | `numeric`   | Minimum allele frequency. |
+| `max_af`    | `numeric`   | Maximum allele frequency. |
+| `chrom`     | `character` | Chromosome name. |
 | `start`     | `numeric`   | Start coordinate of the region. |
 | `end`       | `numeric`   | End coordinate of the region. |
 
 
-### Summarize SnpEff Annotation and Impact 
+## Summarize SnpEff Annotation and Impact 
 
 The `query_ann_summary()` function provides a convenient way to summarize the distribution of **SnpEff annotations** and **impact categories** across variant types (e.g., SNPs, indels) within a defined genomic region.
 
@@ -383,9 +382,12 @@ The `query_ann_summary()` function has the following input parameters:
 | `annotations_table`  | `character` | Name of the table storing snpEff annotations (default: `"annotations"`). |
 | `variants_table`     | `character` | Name of the table storing variant data (default: `"variants"`). |
 
-The `query_ann_summary()` function returns a `list` with the following elements:
-- `annotation_summary`: Data frame summarizing the count of each SnpEff annotation grouped by variant type.
-- `impact_summary`: Data frame summarizing the count of each SnpEff impact level (e.g., HIGH, MODERATE) grouped by variant type.
+The `query_ann_summary()` function returns a `list` with the following elements:  
+
+- `annotation_summary`: Data frame summarizing the count of each SnpEff annotation grouped by variant type.  
+
+- `impact_summary`: Data frame summarizing the count of each SnpEff impact level (e.g., HIGH, MODERATE) grouped by variant type.  
+
 - `variant_type_totals`: Total count of variants in the region grouped by variant type.
 
 **The annotation summary shows that there are six (6) INDEL variants with a HIGH impact on protein function.** To see these variants, we need to use the `query_by_impact()` function, as shown below:
@@ -424,7 +426,7 @@ knitr::kable(head(high_variants),
 
 ```
 
-## KASP Marker Design
+# KASP Marker Design
 The `kasp_marker_design()` function enables the design of **KASP (Kompetitive Allele Specific PCR)** markers from identified putative causal variants. It supports SNP, insertion, and deletion variants using VCF genotype data and a reference genome to generate Intertek-compatible marker information, including upstream and downstream polymorphic context.
 
 This function automates the extraction of flanking sequences and polymorphic variants surrounding a focal variant and generates:
@@ -533,7 +535,7 @@ knitr::kable(lgs1,
 
 
 
-### KASP Marker Validation
+# KASP Marker Validation
 
 The following example demonstrates how to use the customizable functions in `panGB` to perform hypothesis testing of allelic discrimination for KASP marker QC and validation.
 
@@ -549,7 +551,7 @@ The following example demonstrates how to use the customizable functions in `pan
 -   Visualize plate design and randomization.  
 
 
-### Reading Raw KASP Full Results Files (.csv)
+## Reading Raw KASP Full Results Files (.csv)
 The `read_kasp_csv()` function allows users to import raw or polished KASP genotyping full results file (.csv) into R. The function requires the path of the raw file and the row tags for the different components of data in the raw file as arguments. 
 
 For polished files, the user must extract the `Data` component of the full results file and save it as a csv file before import.
@@ -577,7 +579,7 @@ file1 <- read_kasp_csv(file = path1,
 kasp_dat <- file1$Data
 ```
 
-### Assigning colors and PCH symbols for KASP cluster plotting
+## Assigning colors and PCH symbols for KASP cluster plotting
 The next step after importing data is to assign FAM and HEX fluorescence colors to samples based on their observed genotype calls. This step is accomplished using the `kasp_color()` function in `panGB` as shown in the code snippet below:  
 
 ```{r}
@@ -607,7 +609,7 @@ The `kasp_color()` function expects that genotype calls are for diploid state wi
 
 The `kasp_color()` function returns a list object with the processed data for each master plate as the components.  
 
-### Cluster plot
+## Cluster plot
 To test the hypothesis that the designed KASP marker can accurately discriminate between homozygotes and heterozygotes (allelic discrimination), a cluster plot needs to be generated.  
 
 The `kasp_qc_ggplot()` and `kasp_qc_ggplot2()`functions in `panGB` can be used to make the cluster plots for each plate and KASP marker as shown below:   
@@ -656,7 +658,7 @@ Users can set the `pdf = TRUE` argument to save plots as a PDF file in a directo
 
 To visualize predictions for positive controls to validate KASP markers, the column name containing expected genotype calls must be provided and passed to the function using the `Group_id = 'Group'` argument as shown in the code snippets above. If this information is not available, set the argument `Group_id = NULL`. 
 
-### Summary of Prediction Verification in Plates
+## Summary of Prediction Verification in Plates
 The `pred_summary()` function produces a summary of predicted genotypes for positive controls in each reaction plate after verification (Table 3), as shown in the code snippet below:
 
 
@@ -698,7 +700,7 @@ my_sum <- my_sum[my_sum$snp_id == 'snpSB00804',]
 
 ```
 
-### Plot Plate Design
+## Plot Plate Design
 Users can visualize the observed genotype calls in a plate design format using the `plot_plate()` function as depicted in Figure 5, using the code snippet below:  
 
 ```{r plate_05_design, fig.cap = "Fig. 6. Observed genotype calls for samples in Plate 5 in a plate design format.", eval=TRUE}
@@ -707,7 +709,7 @@ plot_plate(dat1[5], pdf = FALSE)
 ```
 
 
-# Other Breeder-Centered Functionalities in panGB
+# Decision Support for Trait Introgression and MABC
 `panGB` provides additional functionalities to test hypotheses on the success of trait introgression pipelines and crosses. 
 
 Users can easily generate heatmaps that compare the genetic background of parents to progenies to ascertain if a target locus was successfully introgressed or check for the hybridity of F1s. These plots also allow users to get a visual insight into the amount of parent germplasm recovered in progenies.  
@@ -888,9 +890,10 @@ The `trait_pos` argument was used to specify the position of the target locus (*
 In Figure 7, the color intensity correlates positively with the marker density or coverage. Thus, areas with no color (white vertical gaps) depicts gaps in the marker coverage in the data.  
 
 
-
-## Decision Support for Marker-Assisted Backcrossing in panGB
+## Decision Support for MABC
 Users can use the `calc_rpp_bc()` function in `panGB` to calculate the proportion of recurrent parent background (RPP) fully recovered in backcross progenies. 
+
+It also returns the rpp value for each chromosome.
 
 In the computation, partially regions are ignored, hence, heterozygous scores are not used.  
 
@@ -923,6 +926,15 @@ rpp_barplot(rpp_df = rpp,
             aspect_ratio = 0.5,
             pdf = FALSE)
 ```
+
+```{r, echo=FALSE}
+library(knitr)
+knitr::kable(rpp, caption = 'RPP computation across and for each chromosome.', 
+             format = 'html', 
+             booktabs = TRUE)
+
+```
+
 
 
 The `calc_rpp_bc()` function in `panGB` provides two algorithms for computing the observed RPP values: weighted and unweighted RPP values. We recommend the use of the weighted algorithm to account for differences in the marker coverage across the genome. 
@@ -970,7 +982,125 @@ where:
 This formula provides the sum of the weighted contributions from each marker, representing the proportion of the recurrent parent genome in the individual.
 
 
-## Troubleshooting
+## Decision Support for Foreground Selection
+
+The `foreground_select()` and `find_lines()` functions are designed to help breeders identify lines that carry **favorable alleles at target loci** using trait-predictive markers. This process supports **foreground selection** in marker-assisted selection pipelines.
+
+### Generate a Binary Matrix: `foreground_select()` function
+The `foreground_select()` function score Lines for presence of favorable alleles by converting raw marker genotype data into a binary matrix (1 = favorable allele present, 0 = absent) based on a set of trait-predictive markers. The `foreground_select()` function is shown in the code snippet below:
+
+
+```{r, echo=TRUE}
+library(panGenomeBreedr)
+
+# Marker genotype data
+geno <- data.frame(SNP1 = c("A:A", "A:G", "G:G", "A:A"),
+                   SNP2 = c("C:C", "C:T", "T:T", "C:T"),
+                   SNP3 = c("G:G", "G:G", "A:G", "A:A"),
+                   row.names = c("Line1", "Line2", "Line3", "Line4"))
+
+# Trait-predictive marker metadata
+marker_info <- data.frame(qtl_markers = paste0("SNP", 1:3),
+                           locus_name = paste0('loc', 1:3),
+                          fav_alleles = c("A", "C", "G"),
+                         
+                          alt_alleles = c("G", "T", "A"))
+
+# Convert raw genotypes to binary (foreground profile)
+foreground_matrix <- foreground_select(geno_data = geno,
+                                       fore_marker_info = marker_info,
+                                       fore_marker_col = "qtl_markers",
+                                       fav_allele_col = "fav_alleles",
+                                       alt_allele_col = "alt_alleles",
+                                       select_type = "homo")
+```
+
+```{r, echo=FALSE}
+library(knitr)
+knitr::kable(foreground_matrix, 
+             caption = 'Binary matrix of presence or absence of favorable alleles.', 
+             format = 'html', 
+             booktabs = TRUE)
+
+
+```
+
+The `foreground_select()` function has the following input parameters:
+
+| Argument            | Type         | Description |
+|---------------------|--------------|-------------|
+| `geno_data`         | `data.frame` | Marker genotype data (lines x markers), e.g., `"A:A"`, `"A:G"` |
+| `fore_marker_info`  | `data.frame` | Metadata describing trait-predictive markers, including marker names, favorable alleles, and alternate alleles |
+| `fore_marker_col`   | `character`  | Column name in `fore_marker_info` for marker names |
+| `fav_allele_col`    | `character`  | Column name for favorable allele |
+| `alt_allele_col`    | `character`  | Column name for alternate allele |
+| `select_type`       | `character`  | Genotype class to select: `"homo"`, `"hetero"`, or `"both"` |
+| `sep`               | `character`  | Separator used in genotype calls (e.g., `":"`) |
+
+
+### Visualize the Binary Data with UpSet Plot
+
+Generate an UpSet plot using the `UpSetR` package to explore the co-occurrence of favorable alleles across lines.  The UpSet plot allows users to quickly determine:  
+
+- Whether any line carries favorable alleles at all target loci. 
+
+- How favorable alleles are distributed across lines. 
+
+- Which loci are rarely combined. 
+
+**How to Interpret the UpSet Plot:** 
+
+- **Top bar plot:** shows the number of lines for each unique combination (intersection) of target loci with favorable alleles.  
+
+- **Bottom matrix of dots and lines:** indicates which loci are involved in each combination.  
+
+- **Left bar plot:** shows how many lines have the favorable allele for each individual target locus.
+
+
+```{r upset_plot1, fig.cap = "Fig. 9. Visualizing the co-occurrence of favorable alleles across lines.", fig.width=10.5, fig.height=6.5, eval=TRUE}
+# Make an Upset plot and overlay with trait loci names
+metadata <- data.frame(sets = marker_info$qtl_markers,
+                      locus = marker_info$locus_name)
+
+nl <- ncol(foreground_matrix) # Number of markers
+
+UpSetR::upset(foreground_matrix,
+              nsets = nl,
+              mainbar.y.label = "Locus Intersection Size",
+              sets.x.label = "Locus Size",
+              text.scale = 1.2,
+              set.metadata = list(data = metadata,
+                          plots = list(list(type = 'text', 
+                                            assign = 8,
+                                            column = 'locus',
+                                            colors = rep('firebrick2', nl)))))
+
+```
+
+###  Query Lines by Intersection Category: `find_lines()` function
+The `find_lines()` function identifies lines based on target loci profile by filtering the binary output of `foreground_select()` to return line names that match a desired allele presence/absence profile across loci. Using the binary matrix, users can extract line IDs corresponding to any intersection (i.e., specific combinations of favorable alleles revealed by the UpSet plot).
+
+```{r, echo=TRUE}
+library(panGenomeBreedr)
+
+# Find lines with favorable alleles at all target loci
+selected_lines <- find_lines(mat = foreground_matrix,
+                             present = c('SNP1', 'SNP2', 'SNP3'))
+
+print(selected_lines)
+
+```
+
+The `find_lines()` function has the following input parameters:  
+
+| Argument   | Type           | Description |
+|------------|----------------|-------------|
+| `mat`      | `data.frame`   | Binary matrix. |
+| `present`  | `character`  | Markers that must be 1. |
+| `absent`   | `character`  | Markers that must be 0. |
+
+
+# Troubleshooting
 
 If the package does not run as expected, check the following:
 
@@ -987,6 +1117,8 @@ If the package does not run as expected, check the following:
 # Authors and contributors
 
 -   [Alexander Wireko Kena](https://www.github.com/awkena)
+
+-   [Israel Tawiah Tetteh](https://github.com/Israel-Tetteh)
 
 -   [Cruet Burgos](https://www.morrislab.org/people/clara-cruet-burgos)
 

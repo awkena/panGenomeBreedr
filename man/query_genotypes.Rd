@@ -4,15 +4,33 @@
 \alias{query_genotypes}
 \title{Query genotypes for one or more variant IDs from a wide-format genotype table.}
 \usage{
-query_genotypes(db_path, variant_ids)
+query_genotypes(
+  db_path,
+  variant_ids,
+  variant_id_col = "variant_id",
+  variants_table = "variants",
+  genotypes_table = "genotypes",
+  meta_data = NULL
+)
 }
 \arguments{
 \item{db_path}{The path to your SQLite or PostgreSQL database.}
 
 \item{variant_ids}{A character vector of variant IDs to query.}
+
+\item{variant_id_col}{A character value specifying the column name of variant
+IDs in the SQLite database.}
+
+\item{variants_table, genotypes_table, }{A character value specifying the
+column names of variants and genotypes tables, respectively, in the SQLite
+database. if the `meta_data = NULL`, it returns all the metadata in
+the variants table.}
+
+\item{meta_data}{A character vector of metadata to include with the genotype data.}
 }
 \value{
-A data.frame of genotype data (samples x variants).
+A data.frame of genotype data in variants x samples format with
+metadata.
 }
 \description{
 Query genotypes for one or more variant IDs from a wide-format genotype table.
@@ -41,8 +59,9 @@ R.utils::gunzip(mini_db,
 # Extract all genotypes for all samples for any set of variants
 geno_filter <- query_genotypes(db_path = mini_db_path,
                                variant_ids = c("INDEL_Chr05_75104541",
-                                               "SNP_Chr05_75104557"))
-
+                                               "SNP_Chr05_75104557"),
+                               meta_data = c('chrom', 'pos', 'ref', 'alt',
+                                             'variant_type'))
 # Clean tempdir
 contents <- list.files(tempdir(),
                              full.names = TRUE,
