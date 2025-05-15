@@ -9,7 +9,7 @@ vignette: >
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-```{r}
+```{r, echo=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -83,7 +83,7 @@ required:
 
 -   [reshape2](https://cran.r-project.org/web/packages/reshape2/index.html)
     
--   [VariantAnnotation](https://bioconductor.org/packages/release/bioc/html/VariantAnnotation.html)
+-   [BSgenome](https://bioconductor.org/packages/release/bioc/html/BSgenome.html)
 
 -   [Biostrings](https://bioconductor.org/packages/release/bioc/html/Biostrings.html)
 
