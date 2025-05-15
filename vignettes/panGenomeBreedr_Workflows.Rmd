@@ -17,18 +17,16 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 ```
-# panGenomeBreedr <img src="vignettes/figures/logo.png" align="right" height="139" alt="" />
-
-<img src="figures/logo.png" align="right" height="139" alt="panGenomeBreedr logo" />
 
 <!-- badges: start -->
 <!-- badges: end -->
 
 `panGenomeBreedr` (`panGB`) is conceptualized to be a unified, crop agnostic platform for pangenome-enabled breeding that follows standardized conventions for natural or casual variant analysis using pangenomes, marker design, and marker QC hypothesis testing (Figure 1). It seeks to simplify and enhance the use of pangenome resources in cultivar development.  
 
-<img src="figures/workflow.png" align="center" style="width: 800px;" alt="panGenomeBreedr marker design workflow" />
-|:--:| 
-| *Fig. 1. Conceptual workflow of the panGenomeBreedr (panGB) package for pangenome-enabled marker development. Using snpEff-annotated VCF files organized within a SQLite database, panGB enables querying for variants within candidate genes or user-defined genomic regions. It retrieves mutation annotations and predicted impacts from snpEff to identify putative causal variants (PCVs), which serve as the basis for designing functional trait-predictive markers. The package supports hypothesis-driven validation of these markers and also facilitates the design of additional marker types, including precision-introgression and background markers.* |.   
+<figure style="text-align: center;">
+  <img src="figures/workflow.png" width="800" alt="panGenomeBreedr marker design workflow">
+  <figcaption><em>Fig. 1.</em> Conceptual workflow of the panGenomeBreedr (panGB) package for pangenome-enabled marker development. Using snpEff-annotated VCF files organized within a SQLite database, panGB enables querying for variants within candidate genes or user-defined genomic regions. It retrieves mutation annotations and predicted impacts from snpEff to identify putative causal variants (PCVs), which serve as the basis for designing functional trait-predictive markers. The package supports hypothesis-driven validation of these markers and also facilitates the design of additional marker types, including precision-introgression and background markers.</figcaption>
+</figure>
 
 In its current development version, panGB provides customizable R functions for **variant discovery from snpEff-annotated VCF files, KASP marker design, and marker validation** (Steps 1–3 in Fig. 1).  
 
@@ -514,10 +512,11 @@ The `kasp_marker_design()` function returns a `data.frame` with marker design me
 
 If `plot_draw = TRUE`, a **PDF plot** of sequence alignment will be saved to `plot_file`.
 
+<figure style="text-align: center;">
+  <img src="figures/alignment.png" width="700" alt="Sequence alignment">
+  <figcaption><em>Fig. 2.</em> Alignment of the 100 bp upstream and downstream sequences to the reference genome used for KASP marker design.</figcaption>
+</figure>
 
-<img src='figures/alignment.png' align="center" style="width: 700px;" />
-|:--:| 
-| *Fig. 2. Alignment of the 100 bp upstream and downstream sequences to the reference genome used for KASP marker design.* |. 
 
 The required sequence for submission to Intertek for the designed KASP marker is shown in Table 5.
 
