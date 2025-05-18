@@ -2130,7 +2130,19 @@ gg_dat <- function(num_mat,
                    sort = FALSE)
 
   # Convert from numeric to characters
-  dat <- apply(num_mat, 2, as.character, simplify = TRUE)
+  if (nrow(num_mat) == 1) {
+
+    dat <- matrix(apply(num_mat, 2, as.character, simplify = TRUE),
+                  ncol = ncol(num_mat))
+    colnames(dat) <- colnames(num_mat)
+    rownames(dat) <- rownames(num_mat)
+
+  } else {
+
+    dat <- apply(num_mat, 2, as.character, simplify = TRUE)
+
+  }
+
 
   #colnames(dat) <- map_new[, map_pos] # Rename column names using positions
   rownames(dat) <- rownames(num_mat) # Add sample IDs as row names
