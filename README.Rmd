@@ -34,6 +34,39 @@ The SNP Viewer tool by LGC Genomics is limited to Windows platforms and lacks st
 Submit bug reports and feature suggestions, or track changes on the
 [issues page](https://github.com/awkena/panGenomeBreedr/issues).
 
+# Requirements
+    
+To use this package locally on a machine, the following R packages are
+required:
+
+-   [ggplot2](https://ggplot2.tidyverse.org)
+
+-   [gridExtra](https://cran.r-project.org/web/packages/gridExtra/index.html)
+    
+-   [utils](https://www.rdocumentation.org/packages/utils/versions/3.6.2)
+
+-   [stats](https://www.rdocumentation.org/packages/stats/versions/3.6.2)
+
+-   [reshape2](https://cran.r-project.org/web/packages/reshape2/index.html)
+    
+-   [BSgenome](https://bioconductor.org/packages/release/bioc/html/BSgenome.html)
+
+-   [Biostrings](https://bioconductor.org/packages/release/bioc/html/Biostrings.html)
+
+-   [GenomicRanges](https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html)
+
+-   [IRanges](https://bioconductor.org/packages/release/bioc/html/IRanges.html)
+
+-   [msa](https://bioconductor.org/packages/release/bioc/html/msa.html)
+
+
+# Recommended packages
+
+-   [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html): Needed for package development and installation from GitHub on Windows PCs.
+
+-   [UpSetR](https://cran.r-project.org/web/packages/UpSetR/index.html): Required for generating UpSet plots.
+
+
 ## Installation
 First, ensure all existing packages are up to date.  
 
@@ -43,21 +76,30 @@ You can install the development version of `panGenomeBreedr` from [GitHub](https
 # Install panGenomeBreedr
 if (!require("devtools")) install.packages("devtools")
 
-devtools::install_github("awkena/panGenomeBreedr", upgrade = TRUE)
+devtools::install_github("awkena/panGenomeBreedr")
 ```
 
 ### Installing Bioconductor dependency packages
 `panGB` depends on a list of Bioconductor packages that may not be installed automatically alongside `panGB`. To manually install these packages, use the code snippet below:
 
 ```r
-# Install and load required Bioconductor packages
+# Install and load required Bioconductor packages if not already installed
 if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 
-  BiocManager::install(c("Bsgenome",
-                         "Biostrings",
-                         "GenomicRanges",
-                         "IRanges",
-                         "msa"))
+# Define required Bioconductor packages
+bioc_packages <- c("rtracklayer", "Rsamtools", "msa", "IRanges",
+                   "GenomicRanges", "BSgenome", "Biostrings")
+
+# Install any missing Bioconductor packages
+for (pkg in bioc_packages) {
+
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+
+    BiocManager::install(pkg, ask = FALSE, update = FALSE)
+
+  }
+}
+
 ```
 
 # Current Functionality of `panGB`

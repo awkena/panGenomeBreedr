@@ -63,50 +63,10 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 <!-- badges: start -->
 <!-- badges: end -->
-<p><code>panGenomeBreedr</code> (<code>panGB</code>) is conceptualized
-to be a unified, crop agnostic platform for pangenome-enabled breeding
-that follows standardized conventions for natural or casual variant
-analysis using pangenomes, marker design, and marker QC hypothesis
-testing (Figure 1). It seeks to simplify and enhance the use of
-pangenome resources in cultivar development.</p>
-<figure style="text-align: center;"><img src="figures/workflow.png" width="800" alt="panGenomeBreedr marker design workflow"><figcaption><em>Fig. 1.</em> Conceptual workflow of the panGenomeBreedr (panGB)
-package for pangenome-enabled marker development. Using snpEff-annotated
-VCF files organized within a SQLite database, panGB enables querying for
-variants within candidate genes or user-defined genomic regions. It
-retrieves mutation annotations and predicted impacts from snpEff to
-identify putative causal variants (PCVs), which serve as the basis for
-designing functional trait-predictive markers. The package supports
-hypothesis-driven validation of these markers and also facilitates the
-design of additional marker types, including precision-introgression and
-background markers.
-</figcaption></figure><p>In its current development version, panGB provides customizable R
-functions for <strong>variant discovery from snpEff-annotated VCF files,
-KASP marker design, and marker validation</strong> (Steps 1–3 in Fig.
-1).</p>
-<p>To expand accessibility, <code>panGB</code> will include a
-user-friendly Shiny application, allowing non-R users to leverage its
-core features without requiring R programming experience.</p>
-<p>The SNP Viewer tool by LGC Genomics is limited to Windows platforms
-and lacks standardized conventions for visualizing positive controls in
-marker validation, making it difficult for users to conclusively assess
-marker performance. In contrast, <code>panGB</code> offers
-platform-independent tools for hypothesis testing, quality control (QC),
-and validation of KASP markers, addressing a key gap in existing
-visualization and validation workflows.</p>
-<p>Submit bug reports and feature suggestions, or track changes on the
-<a href="https://github.com/awkena/panGenomeBreedr/issues" class="external-link">issues
-page</a>.</p>
 <div class="section level2">
 <h2 id="table-of-contents">Table of contents<a class="anchor" aria-label="anchor" href="#table-of-contents"></a>
 </h2>
 <ul>
-<li><a href="#requirements">Requirements</a></li>
-<li>
-<a href="#recommended-packages">Recommended packages</a><br>
-</li>
-<li><a href="#installation">Installation</a></li>
-<li><a href="#current-functionality-of-pangb">Current Functionality of
-panGB</a></li>
 <li>
 <a href="#variant-discovery">Variant Discovery</a>
 <ul>
@@ -140,90 +100,7 @@ computation in panGB</a></li>
 Support for Foreground Selection</a></li>
 </ul>
 </li>
-<li><a href="#troubleshooting">Troubleshooting</a></li>
-<li><a href="#authors-and-contributors">Authors and
-contributors</a></li>
-<li><a href="#license">License</a></li>
-<li><a href="#id_#support-and-feedback">Support and Feedback</a></li>
 </ul>
-</div>
-<div class="section level2">
-<h2 id="requirements">Requirements<a class="anchor" aria-label="anchor" href="#requirements"></a>
-</h2>
-<p>To use this package locally on a machine, the following R packages
-are required:</p>
-<ul>
-<li><p><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></p></li>
-<li><p><a href="https://cran.r-project.org/web/packages/gridExtra/index.html" class="external-link">gridExtra</a></p></li>
-<li><p><a href="https://www.rdocumentation.org/packages/utils/versions/3.6.2" class="external-link">utils</a></p></li>
-<li><p><a href="https://www.rdocumentation.org/packages/stats/versions/3.6.2" class="external-link">stats</a></p></li>
-<li><p><a href="https://cran.r-project.org/web/packages/reshape2/index.html" class="external-link">reshape2</a></p></li>
-<li><p><a href="https://bioconductor.org/packages/release/bioc/html/BSgenome.html" class="external-link">BSgenome</a></p></li>
-<li><p><a href="https://bioconductor.org/packages/release/bioc/html/Biostrings.html" class="external-link">Biostrings</a></p></li>
-<li><p><a href="https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html" class="external-link">GenomicRanges</a></p></li>
-<li><p><a href="https://bioconductor.org/packages/release/bioc/html/IRanges.html" class="external-link">IRanges</a></p></li>
-<li><p><a href="https://bioconductor.org/packages/release/bioc/html/msa.html" class="external-link">msa</a></p></li>
-</ul>
-</div>
-<div class="section level2">
-<h2 id="recommended-packages">Recommended packages<a class="anchor" aria-label="anchor" href="#recommended-packages"></a>
-</h2>
-<ul>
-<li><p><a href="https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html" class="external-link">Rtools</a>:
-Needed for package development and installation from GitHub on Windows
-PCs.</p></li>
-<li><p><a href="https://cran.r-project.org/web/packages/UpSetR/index.html" class="external-link">UpSetR</a>:
-Required for generating UpSet plots.</p></li>
-</ul>
-</div>
-<div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
-</h2>
-<p>First, ensure all existing packages are up to date.</p>
-<p>You can install the development version of
-<code>panGenomeBreedr</code> from <a href="https://github.com/awkena/panGenomeBreedr" class="external-link">GitHub</a> with:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Install panGenomeBreedr</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://devtools.r-lib.org/" class="external-link">"devtools"</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"awkena/panGenomeBreedr"</span>, upgrade <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="installing-bioconductor-dependency-packages">Installing Bioconductor dependency packages<a class="anchor" aria-label="anchor" href="#installing-bioconductor-dependency-packages"></a>
-</h3>
-<p><code>panGB</code> depends on a list of Bioconductor packages that
-may not be installed automatically alongside <code>panGB</code>. To
-manually install these packages, use the code snippet below:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Install and load required Bioconductor packages</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://bioconductor.github.io/BiocManager/" class="external-link">"BiocManager"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Bsgenome"</span>,</span>
-<span>                         <span class="st">"Biostrings"</span>,</span>
-<span>                         <span class="st">"GenomicRanges"</span>,</span>
-<span>                         <span class="st">"IRanges"</span>,</span>
-<span>                         <span class="st">"msa"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-</div>
-</div>
-<div class="section level2">
-<h2 id="current-functionality-of-pangb">Current Functionality of <code>panGB</code><a class="anchor" aria-label="anchor" href="#current-functionality-of-pangb"></a>
-</h2>
-<p><code>panGB</code> currently provides functionality for the following
-key tasks:</p>
-<ol style="list-style-type: decimal">
-<li><p><strong>Variant discovery</strong><br>
-Identify variants within candidate genes or any user-defined genomic
-interval using <em>snpEff</em>-annotated VCF files.</p></li>
-<li><p><strong>KASP marker design</strong><br>
-Generate allele-specific markers targeting either causal variants or any
-variant of interest.</p></li>
-<li><p><strong>Marker validation and QC visualization</strong><br>
-Produce quality control plots and perform hypothesis-driven evaluations
-to assess marker reliability.</p></li>
-<li><p><strong>Decision-support for trait introgression</strong><br>
-Guide marker-assisted backcrossing by profiling foreground, background,
-and precision-introgression markers to support selection
-decisions.</p></li>
-</ol>
 </div>
 <div class="section level2">
 <h2 id="variant-discovery">Variant Discovery<a class="anchor" aria-label="anchor" href="#variant-discovery"></a>
@@ -418,7 +295,7 @@ metadata of the variants.</li>
 (<code>gene_name</code>) to extract relevant entries.</p>
 <p>If used correctly, the <code><a href="../reference/query_db.html">query_db()</a></code> function returns a
 data frame containing the filtered records from the selected table.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># This example uses the mini SQLite database included in the package.</span></span>
@@ -929,248 +806,6 @@ Chr05
 </tr>
 </tbody>
 </table>
-<p>The <code><a href="../reference/query_db.html">query_db()</a></code> function has the following key
-arguments:</p>
-<table class="table">
-<thead><tr class="header">
-<th>Argument</th>
-<th>Type</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td><code>db_path</code></td>
-<td><code>character</code></td>
-<td>Path to the SQLite database file.</td>
-</tr>
-<tr class="even">
-<td><code>table_name</code></td>
-<td><code>character</code></td>
-<td>Name of the table to query.</td>
-</tr>
-<tr class="odd">
-<td><code>chrom</code></td>
-<td><code>character</code></td>
-<td>Chromosome name.</td>
-</tr>
-<tr class="even">
-<td><code>start</code></td>
-<td><code>numeric</code></td>
-<td>Start coordinate of the region.</td>
-</tr>
-<tr class="odd">
-<td><code>end</code></td>
-<td><code>numeric</code></td>
-<td>End coordinate of the region.</td>
-</tr>
-<tr class="even">
-<td><code>gene_name</code></td>
-<td><code>character</code></td>
-<td>Optional Sobic gene ID.</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section level3">
-<h3 id="filter-variants-by-allele-frequency">Filter Variants by Allele Frequency<a class="anchor" aria-label="anchor" href="#filter-variants-by-allele-frequency"></a>
-</h3>
-<p>The <code><a href="../reference/query_by_af.html">query_by_af()</a></code> function allows users to extract
-variants from a SQLite database based on <strong>alternate allele
-frequency thresholds</strong> within a specified genomic region.</p>
-<p>This is particularly useful for identifying <strong>polymorphic
-sites</strong> within candidate gene regions or windows of interest that
-meet desired minor allele frequency (MAF) thresholds for marker
-development.</p>
-<p>An example usage for the <code><a href="../reference/query_by_af.html">query_by_af()</a></code> function is shown
-in the code snippet below:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Define temporary directory and decompress demo database</span></span>
-<span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">mini_db</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_sorghum_variant_vcf.db.gz"</span>,</span>
-<span>                       package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">mini_db_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">path</span>, <span class="st">'mini_sorghum_variant_vcf.db'</span><span class="op">)</span></span>
-<span><span class="fu">R.utils</span><span class="fu">::</span><span class="fu"><a href="https://henrikbengtsson.github.io/R.utils/reference/compressFile.html" class="external-link">gunzip</a></span><span class="op">(</span><span class="va">mini_db</span>, destname <span class="op">=</span> <span class="va">mini_db_path</span>, remove <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Filter variants with alt allele frequency between 1% and 99% in a defined region</span></span>
-<span><span class="va">filter_af</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_by_af.html">query_by_af</a></span><span class="op">(</span>db_path <span class="op">=</span> <span class="va">mini_db_path</span>,</span>
-<span>                         min_af <span class="op">=</span> <span class="fl">0.01</span>,</span>
-<span>                         max_af <span class="op">=</span> <span class="fl">0.99</span>,</span>
-<span>                         chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
-<span>                         start <span class="op">=</span> <span class="fl">75104537</span>,</span>
-<span>                         end <span class="op">=</span> <span class="fl">75106403</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Clean up temporary files</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, </span>
-<span>       recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<table class="table">
-<caption>
-Table 3: Filtered variants from the SQLite database.
-</caption>
-<thead><tr>
-<th style="text-align:left;">
-</th>
-<th style="text-align:left;">
-variant_id
-</th>
-<th style="text-align:left;">
-chrom
-</th>
-<th style="text-align:left;">
-pos
-</th>
-<th style="text-align:right;">
-ref_af
-</th>
-<th style="text-align:right;">
-alt_af
-</th>
-</tr></thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-2
-</td>
-<td style="text-align:left;">
-SNP_Chr05_75104557
-</td>
-<td style="text-align:left;">
-Chr05
-</td>
-<td style="text-align:left;">
-75104557
-</td>
-<td style="text-align:right;">
-0.8905131
-</td>
-<td style="text-align:right;">
-0.1094869
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-3
-</td>
-<td style="text-align:left;">
-SNP_Chr05_75104560
-</td>
-<td style="text-align:left;">
-Chr05
-</td>
-<td style="text-align:left;">
-75104560
-</td>
-<td style="text-align:right;">
-0.8896181
-</td>
-<td style="text-align:right;">
-0.1103819
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-4
-</td>
-<td style="text-align:left;">
-INDEL_Chr05_75104564
-</td>
-<td style="text-align:left;">
-Chr05
-</td>
-<td style="text-align:left;">
-75104564
-</td>
-<td style="text-align:right;">
-0.8854415
-</td>
-<td style="text-align:right;">
-0.1145585
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-7
-</td>
-<td style="text-align:left;">
-INDEL_Chr05_75104573
-</td>
-<td style="text-align:left;">
-Chr05
-</td>
-<td style="text-align:left;">
-75104573
-</td>
-<td style="text-align:right;">
-0.8848449
-</td>
-<td style="text-align:right;">
-0.1151551
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-9
-</td>
-<td style="text-align:left;">
-INDEL_Chr05_75104585
-</td>
-<td style="text-align:left;">
-Chr05
-</td>
-<td style="text-align:left;">
-75104585
-</td>
-<td style="text-align:right;">
-0.8836516
-</td>
-<td style="text-align:right;">
-0.1163484
-</td>
-</tr>
-</tbody>
-</table>
-<p>The <code><a href="../reference/query_by_af.html">query_by_af()</a></code> function has the following input
-parameters:</p>
-<table class="table">
-<thead><tr class="header">
-<th>Argument</th>
-<th>Type</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td><code>db_path</code></td>
-<td><code>character</code></td>
-<td>Path to the SQLite database.</td>
-</tr>
-<tr class="even">
-<td><code>min_af</code></td>
-<td><code>numeric</code></td>
-<td>Minimum allele frequency.</td>
-</tr>
-<tr class="odd">
-<td><code>max_af</code></td>
-<td><code>numeric</code></td>
-<td>Maximum allele frequency.</td>
-</tr>
-<tr class="even">
-<td><code>chrom</code></td>
-<td><code>character</code></td>
-<td>Chromosome name.</td>
-</tr>
-<tr class="odd">
-<td><code>start</code></td>
-<td><code>numeric</code></td>
-<td>Start coordinate of the region.</td>
-</tr>
-<tr class="even">
-<td><code>end</code></td>
-<td><code>numeric</code></td>
-<td>End coordinate of the region.</td>
-</tr>
-</tbody>
-</table>
 </div>
 <div class="section level3">
 <h3 id="summarize-snpeff-annotation-and-impact">Summarize SnpEff Annotation and Impact<a class="anchor" aria-label="anchor" href="#summarize-snpeff-annotation-and-impact"></a>
@@ -1182,7 +817,7 @@ indels) within a defined genomic region.</p>
 <p>This function enables users to quickly assess the types and
 functional implications of variants located within candidate genes or
 genomic intervals of interest.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Prepare test database</span></span>
@@ -1408,51 +1043,6 @@ INDEL
 </tr>
 </tbody>
 </table>
-<p>The <code><a href="../reference/query_ann_summary.html">query_ann_summary()</a></code> function has the following input
-parameters:</p>
-<table class="table">
-<colgroup>
-<col width="45%">
-<col width="27%">
-<col width="27%">
-</colgroup>
-<thead><tr class="header">
-<th>Argument</th>
-<th>Type</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td><code>db_path</code></td>
-<td><code>character</code></td>
-<td>Path to the SQLite database.</td>
-</tr>
-<tr class="even">
-<td><code>chrom</code></td>
-<td><code>character</code></td>
-<td>Chromosome name (e.g., <code>"Chr05"</code>).</td>
-</tr>
-<tr class="odd">
-<td>
-<code>start</code>, <code>end</code>
-</td>
-<td><code>numeric</code></td>
-<td>Start and end coordinates of the target genomic region.</td>
-</tr>
-<tr class="even">
-<td><code>annotations_table</code></td>
-<td><code>character</code></td>
-<td>Name of the table storing snpEff annotations (default:
-<code>"annotations"</code>).</td>
-</tr>
-<tr class="odd">
-<td><code>variants_table</code></td>
-<td><code>character</code></td>
-<td>Name of the table storing variant data (default:
-<code>"variants"</code>).</td>
-</tr>
-</tbody>
-</table>
 <p>The <code><a href="../reference/query_ann_summary.html">query_ann_summary()</a></code> function returns a
 <code>list</code> with the following elements:</p>
 <ul>
@@ -1468,7 +1058,7 @@ region grouped by variant type.</p></li>
 variants with a HIGH impact on protein function.</strong> To see these
 variants, we need to use the <code><a href="../reference/query_by_impact.html">query_by_impact()</a></code> function, as
 shown below:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Prepare test database</span></span>
 <span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -1477,7 +1067,7 @@ shown below:</p>
 <span><span class="va">mini_db_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">path</span>, <span class="st">'mini_sorghum_variant_vcf.db'</span><span class="op">)</span></span>
 <span><span class="fu">R.utils</span><span class="fu">::</span><span class="fu"><a href="https://henrikbengtsson.github.io/R.utils/reference/compressFile.html" class="external-link">gunzip</a></span><span class="op">(</span><span class="va">mini_db</span>, destname <span class="op">=</span> <span class="va">mini_db_path</span>, remove <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Extract low impact variant for a region or gene</span></span>
+<span><span class="co"># Extract HIGH impact variant for a region or gene</span></span>
 <span><span class="va">high_variants</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_by_impact.html">query_by_impact</a></span><span class="op">(</span>db_path <span class="op">=</span> <span class="va">mini_db_path</span>,</span>
 <span>                                impact_level <span class="op">=</span> <span class="st">'high'</span>,</span>
 <span>                                chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
@@ -1908,6 +1498,131 @@ p.Gln4fs
 </tbody>
 </table>
 </div>
+<div class="section level3">
+<h3 id="filter-variants-by-allele-frequency">Filter Variants by Allele Frequency<a class="anchor" aria-label="anchor" href="#filter-variants-by-allele-frequency"></a>
+</h3>
+<p>The <code><a href="../reference/query_by_af.html">query_by_af()</a></code> and <code><a href="../reference/filter_by_af.html">filter_by_af()</a></code>
+functions allow users to filter queried variants based on
+<strong>alternate allele frequency thresholds</strong> within a
+specified genomic region.</p>
+<p>This is particularly useful for identifying <strong>polymorphic
+sites</strong> within candidate gene regions or windows of interest that
+meet desired minor allele frequency (MAF) thresholds for marker
+development.</p>
+<p>An example usage for the <code><a href="../reference/filter_by_af.html">filter_by_af()</a></code> function is
+shown in the code snippet below:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Define temporary directory and decompress demo database</span></span>
+<span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">mini_db</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_sorghum_variant_vcf.db.gz"</span>,</span>
+<span>                       package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">mini_db_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">path</span>, <span class="st">'mini_sorghum_variant_vcf.db'</span><span class="op">)</span></span>
+<span><span class="fu">R.utils</span><span class="fu">::</span><span class="fu"><a href="https://henrikbengtsson.github.io/R.utils/reference/compressFile.html" class="external-link">gunzip</a></span><span class="op">(</span><span class="va">mini_db</span>, destname <span class="op">=</span> <span class="va">mini_db_path</span>, remove <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Extract genotype data for all HIGH impact variants and filter by alternate allele frequency</span></span>
+<span><span class="va">geno_high_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_genotypes.html">query_genotypes</a></span><span class="op">(</span>db_path <span class="op">=</span> <span class="va">mini_db_path</span>,</span>
+<span>                                      variant_ids <span class="op">=</span> <span class="va">high_variants</span><span class="op">$</span><span class="va">variant_id</span>,</span>
+<span>                                      meta_data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'chrom'</span>, <span class="st">'pos'</span>, <span class="st">'ref'</span>, <span class="st">'alt'</span>, <span class="st">'variant_type'</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  </span>
+<span>  <span class="fu"><a href="../reference/filter_by_af.html">filter_by_af</a></span><span class="op">(</span>min_af <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>
+Table 3: Filtered variants from the SQLite database.
+</caption>
+<thead><tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+variant_id
+</th>
+<th style="text-align:left;">
+chrom
+</th>
+<th style="text-align:right;">
+pos
+</th>
+<th style="text-align:right;">
+ref_af
+</th>
+<th style="text-align:right;">
+alt_af
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+INDEL_Chr05_75104881
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:right;">
+75104881
+</td>
+<td style="text-align:right;">
+0.9495823
+</td>
+<td style="text-align:right;">
+0.0504177
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+4
+</td>
+<td style="text-align:left;">
+INDEL_Chr05_75106156
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:right;">
+75106156
+</td>
+<td style="text-align:right;">
+0.9474940
+</td>
+<td style="text-align:right;">
+0.0525060
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+5
+</td>
+<td style="text-align:left;">
+INDEL_Chr05_75106295
+</td>
+<td style="text-align:left;">
+Chr05
+</td>
+<td style="text-align:right;">
+75106295
+</td>
+<td style="text-align:right;">
+0.9439141
+</td>
+<td style="text-align:right;">
+0.0560859
+</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Get genotype data for HIGH impact variants that passed allele filter</span></span>
+<span><span class="va">geno_high_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_genotypes.html">query_genotypes</a></span><span class="op">(</span>db_path <span class="op">=</span> <span class="va">mini_db_path</span>,</span>
+<span>                                      variant_ids <span class="op">=</span> <span class="va">geno_high_filtered</span><span class="op">$</span><span class="va">variant_id</span>,</span>
+<span>                                      meta_data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'chrom'</span>, <span class="st">'pos'</span>, <span class="st">'ref'</span>, <span class="st">'alt'</span>, <span class="st">'variant_type'</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Clean up temporary files</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, </span>
+<span>       recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="kasp-marker-design">KASP Marker Design<a class="anchor" aria-label="anchor" href="#kasp-marker-design"></a>
@@ -1930,7 +1645,7 @@ REF and ALT alleles, as well as the genotype data for samples, as shown
 in Table 1:</p>
 <table class="table">
 <caption>
-HIGH impact variants within a defined genomic range.
+Filtered HIGH impact variants for marker development.
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -1949,46 +1664,13 @@ ref
 alt
 </th>
 <th style="text-align:left;">
-qual
-</th>
-<th style="text-align:left;">
-filter
-</th>
-<th style="text-align:left;">
 variant_type
 </th>
 <th style="text-align:left;">
-allele
+IDMM
 </th>
 <th style="text-align:left;">
-annotation
-</th>
-<th style="text-align:left;">
-impact
-</th>
-<th style="text-align:left;">
-gene_name
-</th>
-<th style="text-align:left;">
-gene_id
-</th>
-<th style="text-align:left;">
-feature_type
-</th>
-<th style="text-align:left;">
-feature_id
-</th>
-<th style="text-align:left;">
-transcript_biotype
-</th>
-<th style="text-align:left;">
-rank
-</th>
-<th style="text-align:left;">
-HGVS_c
-</th>
-<th style="text-align:left;">
-HGVS_p
+ISGC
 </th>
 </tr></thead>
 <tbody>
@@ -2009,164 +1691,13 @@ G
 GTCGA
 </td>
 <td style="text-align:left;">
-.
-</td>
-<td style="text-align:left;">
-PASS
-</td>
-<td style="text-align:left;">
 INDEL
 </td>
 <td style="text-align:left;">
-GTCGA
+0|0
 </td>
 <td style="text-align:left;">
-frameshift_variant
-</td>
-<td style="text-align:left;">
-HIGH
-</td>
-<td style="text-align:left;">
-Sobic.005G213600
-</td>
-<td style="text-align:left;">
-Sobic.005G213600.v5.1
-</td>
-<td style="text-align:left;">
-transcript
-</td>
-<td style="text-align:left;">
-Sobic.005G213600.1.v5.1
-</td>
-<td style="text-align:left;">
-protein_coding
-</td>
-<td style="text-align:left;">
-2/2
-</td>
-<td style="text-align:left;">
-c.1343_1344insTCGA
-</td>
-<td style="text-align:left;">
-p.Ser449fs
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-INDEL_Chr05_75105587
-</td>
-<td style="text-align:left;">
-Chr05
-</td>
-<td style="text-align:right;">
-75105587
-</td>
-<td style="text-align:left;">
-GC
-</td>
-<td style="text-align:left;">
-G
-</td>
-<td style="text-align:left;">
-.
-</td>
-<td style="text-align:left;">
-PASS
-</td>
-<td style="text-align:left;">
-INDEL
-</td>
-<td style="text-align:left;">
-G
-</td>
-<td style="text-align:left;">
-frameshift_variant
-</td>
-<td style="text-align:left;">
-HIGH
-</td>
-<td style="text-align:left;">
-Sobic.005G213600
-</td>
-<td style="text-align:left;">
-Sobic.005G213600.v5.1
-</td>
-<td style="text-align:left;">
-transcript
-</td>
-<td style="text-align:left;">
-Sobic.005G213600.1.v5.1
-</td>
-<td style="text-align:left;">
-protein_coding
-</td>
-<td style="text-align:left;">
-2/2
-</td>
-<td style="text-align:left;">
-c.637delG
-</td>
-<td style="text-align:left;">
-p.Ala213fs
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-INDEL_Chr05_75105598
-</td>
-<td style="text-align:left;">
-Chr05
-</td>
-<td style="text-align:right;">
-75105598
-</td>
-<td style="text-align:left;">
-GT
-</td>
-<td style="text-align:left;">
-G
-</td>
-<td style="text-align:left;">
-.
-</td>
-<td style="text-align:left;">
-PASS
-</td>
-<td style="text-align:left;">
-INDEL
-</td>
-<td style="text-align:left;">
-G
-</td>
-<td style="text-align:left;">
-frameshift_variant
-</td>
-<td style="text-align:left;">
-HIGH
-</td>
-<td style="text-align:left;">
-Sobic.005G213600
-</td>
-<td style="text-align:left;">
-Sobic.005G213600.v5.1
-</td>
-<td style="text-align:left;">
-transcript
-</td>
-<td style="text-align:left;">
-Sobic.005G213600.1.v5.1
-</td>
-<td style="text-align:left;">
-protein_coding
-</td>
-<td style="text-align:left;">
-2/2
-</td>
-<td style="text-align:left;">
-c.626delA
-</td>
-<td style="text-align:left;">
-p.Asp209fs
+0|0
 </td>
 </tr>
 <tr>
@@ -2186,46 +1717,13 @@ CGTAT
 C
 </td>
 <td style="text-align:left;">
-.
-</td>
-<td style="text-align:left;">
-PASS
-</td>
-<td style="text-align:left;">
 INDEL
 </td>
 <td style="text-align:left;">
-C
+0|0
 </td>
 <td style="text-align:left;">
-frameshift_variant
-</td>
-<td style="text-align:left;">
-HIGH
-</td>
-<td style="text-align:left;">
-Sobic.005G213600
-</td>
-<td style="text-align:left;">
-Sobic.005G213600.v5.1
-</td>
-<td style="text-align:left;">
-transcript
-</td>
-<td style="text-align:left;">
-Sobic.005G213600.1.v5.1
-</td>
-<td style="text-align:left;">
-protein_coding
-</td>
-<td style="text-align:left;">
-2/2
-</td>
-<td style="text-align:left;">
-c.65_68delATAC
-</td>
-<td style="text-align:left;">
-p.His22fs
+0|0
 </td>
 </tr>
 <tr>
@@ -2245,110 +1743,18 @@ A
 ATC
 </td>
 <td style="text-align:left;">
-.
-</td>
-<td style="text-align:left;">
-PASS
-</td>
-<td style="text-align:left;">
 INDEL
 </td>
 <td style="text-align:left;">
-ATC
+0|0
 </td>
 <td style="text-align:left;">
-frameshift_variant
-</td>
-<td style="text-align:left;">
-HIGH
-</td>
-<td style="text-align:left;">
-Sobic.005G213600
-</td>
-<td style="text-align:left;">
-Sobic.005G213600.v5.1
-</td>
-<td style="text-align:left;">
-transcript
-</td>
-<td style="text-align:left;">
-Sobic.005G213600.1.v5.1
-</td>
-<td style="text-align:left;">
-protein_coding
-</td>
-<td style="text-align:left;">
-1/2
-</td>
-<td style="text-align:left;">
-c.38_39dupGA
-</td>
-<td style="text-align:left;">
-p.Ser14fs
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-INDEL_Chr05_75106325
-</td>
-<td style="text-align:left;">
-Chr05
-</td>
-<td style="text-align:right;">
-75106325
-</td>
-<td style="text-align:left;">
-G
-</td>
-<td style="text-align:left;">
-GTA
-</td>
-<td style="text-align:left;">
-.
-</td>
-<td style="text-align:left;">
-PASS
-</td>
-<td style="text-align:left;">
-INDEL
-</td>
-<td style="text-align:left;">
-GTA
-</td>
-<td style="text-align:left;">
-frameshift_variant
-</td>
-<td style="text-align:left;">
-HIGH
-</td>
-<td style="text-align:left;">
-Sobic.005G213600
-</td>
-<td style="text-align:left;">
-Sobic.005G213600.v5.1
-</td>
-<td style="text-align:left;">
-transcript
-</td>
-<td style="text-align:left;">
-Sobic.005G213600.1.v5.1
-</td>
-<td style="text-align:left;">
-protein_coding
-</td>
-<td style="text-align:left;">
-1/2
-</td>
-<td style="text-align:left;">
-c.8_9dupTA
-</td>
-<td style="text-align:left;">
-p.Gln4fs
+0|0
 </td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Example to design a KASP marker on a HIGH impact Deletion variant</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># (default directory for saving alignment outputs)</span></span>
@@ -2357,7 +1763,7 @@ p.Gln4fs
 <span><span class="va">path1</span> <span class="op">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/awkena/panGB/main/Chr05.fa.gz"</span></span>
 <span></span>
 <span><span class="co"># KASP marker design for variant ID: INDEL_Chr05_75106156 in Table 1</span></span>
-<span><span class="va">lgs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kasp_marker_design.html">kasp_marker_design</a></span><span class="op">(</span>gt_df <span class="op">=</span> <span class="va">gt_region</span>,</span>
+<span><span class="va">lgs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kasp_marker_design.html">kasp_marker_design</a></span><span class="op">(</span>gt_df <span class="op">=</span> <span class="va">geno_high_filtered</span>,</span>
 <span>                           variant_id_col <span class="op">=</span> <span class="st">'variant_id'</span>,</span>
 <span>                           chrom_col <span class="op">=</span> <span class="st">'chrom'</span>,</span>
 <span>                           pos_col <span class="op">=</span> <span class="st">'pos'</span>,</span>
@@ -2378,99 +1784,6 @@ p.Gln4fs
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.html" class="external-link">system</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">'open "'</span>, <span class="va">path3</span>, <span class="st">'"'</span><span class="op">)</span><span class="op">)</span> <span class="co"># Open PDF file from R</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/on.exit.html" class="external-link">on.exit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span><span class="op">)</span> <span class="co"># Clear the temp directory on exit</span></span></code></pre></div>
-<p>The <code><a href="../reference/kasp_marker_design.html">kasp_marker_design()</a></code> function has the following
-input parameters:</p>
-<table class="table">
-<colgroup>
-<col width="40%">
-<col width="29%">
-<col width="29%">
-</colgroup>
-<thead><tr class="header">
-<th>Argument</th>
-<th>Type</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td><code>vcf_file</code></td>
-<td><code>character</code></td>
-<td>Path to VCF file containing variants.</td>
-</tr>
-<tr class="even">
-<td><code>gt_df</code></td>
-<td>
-<code>data.frame</code> or <code>matrix</code>
-</td>
-<td>Pre-parsed genotype matrix with metadata and sample genotypes.</td>
-</tr>
-<tr class="odd">
-<td><code>variant_id_col</code></td>
-<td><code>character</code></td>
-<td>Column name for variant IDs.</td>
-</tr>
-<tr class="even">
-<td><code>chrom_col</code></td>
-<td><code>character</code></td>
-<td>Column name for chromosome names.</td>
-</tr>
-<tr class="odd">
-<td><code>pos_col</code></td>
-<td><code>character</code></td>
-<td>Column name for variant positions.</td>
-</tr>
-<tr class="even">
-<td><code>ref_al_col</code></td>
-<td><code>character</code></td>
-<td>Column name for reference alleles.</td>
-</tr>
-<tr class="odd">
-<td><code>alt_al_col</code></td>
-<td><code>character</code></td>
-<td>Column name for alternate alleles.</td>
-</tr>
-<tr class="even">
-<td><code>geno_start</code></td>
-<td><code>integer</code></td>
-<td>Column index in <code>gt_df</code> where genotype data starts.</td>
-</tr>
-<tr class="odd">
-<td><code>marker_ID</code></td>
-<td><code>character</code></td>
-<td>ID of the variant to design the marker for.</td>
-</tr>
-<tr class="even">
-<td><code>chr</code></td>
-<td><code>character</code></td>
-<td>Chromosome name used to subset the reference genome.</td>
-</tr>
-<tr class="odd">
-<td><code>genome_file</code></td>
-<td><code>character</code></td>
-<td>Path to genome FASTA file.</td>
-</tr>
-<tr class="even">
-<td><code>plot_draw</code></td>
-<td><code>logical</code></td>
-<td>Whether to plot upstream/downstream alignment.</td>
-</tr>
-<tr class="odd">
-<td><code>plot_file</code></td>
-<td><code>character</code></td>
-<td>Output path to save the PDF alignment plot.</td>
-</tr>
-<tr class="even">
-<td><code>region_name</code></td>
-<td><code>character</code></td>
-<td>Optional name for marker region.</td>
-</tr>
-<tr class="odd">
-<td><code>maf</code></td>
-<td><code>numeric</code></td>
-<td>MAF filter for selecting flanking variants.</td>
-</tr>
-</tbody>
-</table>
 <p>The <code><a href="../reference/kasp_marker_design.html">kasp_marker_design()</a></code> function returns a
 <code>data.frame</code> with marker design metadata:</p>
 <ul>
@@ -2544,7 +1857,7 @@ Chr05
 75106156
 </td>
 <td style="text-align:left;">
-AACCACCGCCACTTCACCGCCGGCGCCGGGGACGACGGCTGCTGGCGCAGAGTAGRAAGTAGRAGTACTCATGCTGCTGCCTGCTGGTGTGTTTCGTATC[GTAT/-]GTAGGTGCCTATAAGAGTTTACATGCATGCATCAAAACTAAGGATCCCTCAATGTARYCATGACAGTTCAAAGAAGGCAACAAGGAAGAATTGCTTGCAT
+AACCACCGCCACTTCACCGCCGGCGCCGGGGACGACGGCTGCTGGCGCAGAGTAGCAAGTAGTAGTACTCATGCTGCTGCCTGCTGGTGTGTTTCGTATC[GTAT/-]GTAGGTGCCTATAAGAGTTTACATGCATGCATCAAAACTAAGGATCCCTCAATGTATGCATGACAGTTCAAAGAAGGCAACAAGGAAGAATTGCTTGCAT
 </td>
 <td style="text-align:left;">
 GTAT
@@ -2591,7 +1904,7 @@ row tags for genotyping data: <code>Statistics</code>, <code>DNA</code>,
 <p>The raw file is imported as a list object in R. Thus, all components
 in the imported data can be extracted using the row tag ID as shown in
 the code snippet below:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Import raw KASP genotyping file (.csv) using the read_kasp_csv() function</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
@@ -2616,7 +1929,7 @@ the code snippet below:</p>
 fluorescence colors to samples based on their observed genotype calls.
 This step is accomplished using the <code><a href="../reference/kasp_color.html">kasp_color()</a></code> function
 in <code>panGB</code> as shown in the code snippet below:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Assign KASP fluorescence colors using the kasp_color() function</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="co"># Create a subet variable called plates: masterplate x snpid</span></span>
@@ -2658,7 +1971,7 @@ discrimination), a cluster plot needs to be generated.</p>
 <code><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2()</a></code>functions in <code>panGB</code> can be
 used to make the cluster plots for each plate and KASP marker as shown
 below:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># KASP QC plot for Plate 05</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>,</span>
@@ -2676,7 +1989,7 @@ Fig. 3. Cluster plot for Plate 5 using FAM and HEX colors for grouping
 observed genotypes.
 </p>
 </div>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># KASP QC plot for Plate 05</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span> <span class="fu"><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>,</span>
@@ -2729,7 +2042,7 @@ above. If this information is not available, set the argument
 <p>The <code><a href="../reference/pred_summary.html">pred_summary()</a></code> function produces a summary of
 predicted genotypes for positive controls in each reaction plate after
 verification (Table 3), as shown in the code snippet below:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get prediction summary for all plates</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">my_sum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pred_summary.html">pred_summary</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span>,</span>
@@ -2901,7 +2214,7 @@ snpSB00805
 <p>The output of the <code><a href="../reference/pred_summary.html">pred_summary()</a></code> function can be
 visualized as bar plots using the <code><a href="../reference/pred_summary_plot.html">pred_summary_plot()</a></code>
 function as shown in the code snippet below:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get prediction summary for snp:snpSB00804</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">my_sum</span> <span class="op">&lt;-</span> <span class="va">my_sum</span><span class="op">$</span><span class="va">summ</span></span>
@@ -2929,7 +2242,7 @@ Fig. 5. Match/Mismatch rate of predictions for snp: snpSB00804.
 <p>Users can visualize the observed genotype calls in a plate design
 format using the <code><a href="../reference/plot_plate.html">plot_plate()</a></code> function as depicted in
 Figure 5, using the code snippet below:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_plate.html">plot_plate</a></span><span class="op">(</span><span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>, pdf <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $`SE-24-1088_P01_d1_snpSB00804`</span></span></code></pre></div>
 <div class="figure">
@@ -2978,7 +2291,7 @@ samples as rows. It comes with some meta data about the samples. Marker
 names are informative: chromosome number and position coordinates are
 embedded in the marker names
 (<code>Eg. S1_778962: chr = 1, pos = 779862</code>).</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Set path to the directory where your data is located</span></span>
 <span><span class="va">path1</span> <span class="op">&lt;-</span>  <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"agriplex_dat.csv"</span>,</span>
@@ -3245,7 +2558,7 @@ re-coding to numeric format is done as follows:</p>
 <li>Loci with at least one missing parental or any other genotype =
 -5.</li>
 </ul>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Parse snp ids to generate a map file</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
@@ -3395,7 +2708,7 @@ S1_1985365
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Process genotype data to re-order SNPs based on chromosome and positions</span></span>
 <span><span class="va">stg5</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/proc_kasp.html">proc_kasp</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">stg5</span>,</span>
 <span>                  kasp_map <span class="op">=</span> <span class="va">map_file</span>,</span>
@@ -3710,12 +3023,12 @@ Stg5-|-_3
 <p>All is now set to generate the heatmap (Figure 6) using the
 <code><a href="../reference/cross_qc_ggplot.html">cross_qc_ggplot()</a></code> function, as shown in the code snippet
 below:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Get prediction summary for snp:snpSB00804</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="co"># Create a heatmap that compares the parents to progenies</span></span>
-<span><span class="fu"><a href="../reference/cross_qc_ggplot.html">cross_qc_ggplot</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">num_geno</span>,</span>
+<span><span class="fu"><a href="../reference/cross_qc_heatmap.html">cross_qc_heatmap</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">num_geno</span>,</span>
 <span>                map_file <span class="op">=</span> <span class="va">map_file</span>,</span>
 <span>                snp_ids <span class="op">=</span> <span class="st">'snpid'</span>,</span>
 <span>                chr <span class="op">=</span> <span class="st">'chr'</span>,</span>
@@ -3752,25 +3065,25 @@ PDF file in a directory outside R.</p>
 effective, we can use the <code><a href="../reference/cross_qc_annotate.html">cross_qc_annotate()</a></code> function to
 generate a heatmap (Figure 7) with an annotation of the position of the
 <em>stg5</em> locus on Chr 1, as shown below:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">###########################################################################</span></span>
 <span><span class="co"># Subset data for the first 30 markers on Chr 1</span></span>
-<span><span class="va">stg5_ch1</span> <span class="op">&lt;-</span> <span class="va">num_geno</span><span class="op">[</span>, <span class="va">map_file</span><span class="op">$</span><span class="va">chr</span> <span class="op">==</span> <span class="fl">1</span><span class="op">]</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">30</span><span class="op">]</span> </span>
+<span><span class="va">stg5_ch1</span> <span class="op">&lt;-</span> <span class="va">num_geno</span><span class="op">[</span>, <span class="va">map_file</span><span class="op">$</span><span class="va">chr</span> <span class="op">==</span> <span class="fl">1</span><span class="op">]</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">]</span> </span>
 <span></span>
 <span><span class="co"># Get the map file for subset data</span></span>
 <span><span class="va">stg5_ch1_map</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/parse_marker_ns.html">parse_marker_ns</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">stg5_ch1</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Annotate a heatmap to show the stg5 locus on Chr 1</span></span>
-<span><span class="co"># The locus is between positions 0.98 - 1.8 Mbp on Chr 1</span></span>
-<span><span class="fu"><a href="../reference/cross_qc_annotate.html">cross_qc_annotate</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">stg5_ch1</span>,</span>
+<span><span class="co"># The locus is between positions 1e6 - 1.4 Mbp on Chr 1</span></span>
+<span><span class="fu"><a href="../reference/cross_qc_heatmap.html">cross_qc_heatmap</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">stg5_ch1</span>,</span>
 <span>                  map_file <span class="op">=</span> <span class="va">stg5_ch1_map</span>,</span>
 <span>                  snp_ids <span class="op">=</span> <span class="st">'snpid'</span>,</span>
 <span>                  chr <span class="op">=</span> <span class="st">'chr'</span>,</span>
 <span>                  chr_pos <span class="op">=</span> <span class="st">'pos'</span>,</span>
 <span>                  parents <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BTx623a"</span>, <span class="st">"BTx642a"</span><span class="op">)</span>,</span>
-<span>                  trait_pos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>stg5 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>start <span class="op">=</span> <span class="fl">.98e6</span>, end <span class="op">=</span> <span class="fl">1.8e6</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                  text_scale_fct <span class="op">=</span> <span class="fl">0.3</span>,</span>
+<span>                  trait_pos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>stg5 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>chr <span class="op">=</span> <span class="fl">1</span>, start <span class="op">=</span> <span class="fl">1e6</span>, end <span class="op">=</span> <span class="fl">1.4e6</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                  text_scale_fct <span class="op">=</span> <span class="fl">0.18</span>,</span>
 <span>                  pdf <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                  legend_title <span class="op">=</span> <span class="st">'Stg5_NILs'</span>,</span>
 <span>                  alpha <span class="op">=</span> <span class="fl">0.9</span>,</span>
@@ -3813,7 +3126,7 @@ defined RPP threshold on the bar plot.</p>
 <p>We can compute and visualize the observed RPP values for the
 <em>stg5</em> NILs across all polymorphic loci as shown in the code
 snippet below:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Calculate weighted RPP</span></span>
 <span><span class="va">rpp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_rpp_bc.html">calc_rpp_bc</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">num_geno</span>,</span>
@@ -4363,7 +3676,7 @@ presence of favorable alleles by converting raw marker genotype data
 into a binary matrix (1 = favorable allele present, 0 = absent) based on
 a set of trait-predictive markers. The <code><a href="../reference/foreground_select.html">foreground_select()</a></code>
 function is shown in the code snippet below:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Marker genotype data</span></span>
@@ -4541,7 +3854,7 @@ loci are involved in each combination.</p></li>
 <li><p><strong>Left bar plot:</strong> shows how many lines have the
 favorable allele for each individual target locus.</p></li>
 </ul>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Make an Upset plot and overlay with trait loci names</span></span>
 <span><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sets <span class="op">=</span> <span class="va">marker_info</span><span class="op">$</span><span class="va">qtl_markers</span>,</span>
 <span>                      locus <span class="op">=</span> <span class="va">marker_info</span><span class="op">$</span><span class="va">locus_name</span><span class="op">)</span></span>
@@ -4575,7 +3888,7 @@ desired allele presence/absence profile across loci. Using the binary
 matrix, users can extract line IDs corresponding to any intersection
 (i.e., specific combinations of favorable alleles revealed by the UpSet
 plot).</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Find lines with favorable alleles at all target loci</span></span>

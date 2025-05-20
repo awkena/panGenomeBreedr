@@ -23,29 +23,8 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-`panGenomeBreedr` (`panGB`) is conceptualized to be a unified, crop agnostic platform for pangenome-enabled breeding that follows standardized conventions for natural or casual variant analysis using pangenomes, marker design, and marker QC hypothesis testing (Figure 1). It seeks to simplify and enhance the use of pangenome resources in cultivar development.  
-
-<figure style="text-align: center;">
-  <img src="figures/workflow.png" width="800" alt="panGenomeBreedr marker design workflow">
-  <figcaption><em>Fig. 1.</em> Conceptual workflow of the panGenomeBreedr (panGB) package for pangenome-enabled marker development. Using snpEff-annotated VCF files organized within a SQLite database, panGB enables querying for variants within candidate genes or user-defined genomic regions. It retrieves mutation annotations and predicted impacts from snpEff to identify putative causal variants (PCVs), which serve as the basis for designing functional trait-predictive markers. The package supports hypothesis-driven validation of these markers and also facilitates the design of additional marker types, including precision-introgression and background markers.</figcaption>
-</figure>
-
-In its current development version, panGB provides customizable R functions for **variant discovery from snpEff-annotated VCF files, KASP marker design, and marker validation** (Steps 1–3 in Fig. 1).  
-
-To expand accessibility, `panGB` will include a user-friendly Shiny application, allowing non-R users to leverage its core features without requiring R programming experience.  
-
-The SNP Viewer tool by LGC Genomics is limited to Windows platforms and lacks standardized conventions for visualizing positive controls in marker validation, making it difficult for users to conclusively assess marker performance. In contrast, `panGB` offers platform-independent tools for hypothesis testing, quality control (QC), and validation of KASP markers, addressing a key gap in existing visualization and validation workflows.  
-
-Submit bug reports and feature suggestions, or track changes on the
-[issues page](https://github.com/awkena/panGenomeBreedr/issues).
-
-
 # Table of contents
 
-- [Requirements](#requirements)
-- [Recommended packages](#recommended-packages)   
-- [Installation](#installation)
-- [Current Functionality of panGB](#current-functionality-of-pangb)
 - [Variant Discovery](#variant-discovery)
     - [Pangenome Data and Database Rationale](#pangenome-data-and-database-rationale)
     - [Recommended Schema for the SQLite Database](#recommended-schema-for-the-sqlite-database)
@@ -61,85 +40,7 @@ Submit bug reports and feature suggestions, or track changes on the
     - [Decision Support for MABC](#decision-support-for-mabc)
     - [Weighted RPP computation in panGB](#weighted-rpp-computation-in-pangb)
     - [Decision Support for Foreground Selection](#decision-support-for-foreground-selection)
-- [Troubleshooting](#troubleshooting)
-- [Authors and contributors](#authors-and-contributors)
-- [License](#license)
-- [Support and Feedback](##support-and-feedback)
 
-
-# Requirements
-    
-To use this package locally on a machine, the following R packages are
-required:
-
--   [ggplot2](https://ggplot2.tidyverse.org)
-
--   [gridExtra](https://cran.r-project.org/web/packages/gridExtra/index.html)
-    
--   [utils](https://www.rdocumentation.org/packages/utils/versions/3.6.2)
-
--   [stats](https://www.rdocumentation.org/packages/stats/versions/3.6.2)
-
--   [reshape2](https://cran.r-project.org/web/packages/reshape2/index.html)
-    
--   [BSgenome](https://bioconductor.org/packages/release/bioc/html/BSgenome.html)
-
--   [Biostrings](https://bioconductor.org/packages/release/bioc/html/Biostrings.html)
-
--   [GenomicRanges](https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html)
-
--   [IRanges](https://bioconductor.org/packages/release/bioc/html/IRanges.html)
-
--   [msa](https://bioconductor.org/packages/release/bioc/html/msa.html)
-
-
-# Recommended packages
-
--   [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html): Needed for package development and installation from GitHub on Windows PCs.
-
--   [UpSetR](https://cran.r-project.org/web/packages/UpSetR/index.html): Required for generating UpSet plots.
-
-
-# Installation
-First, ensure all existing packages are up to date.  
-
-You can install the development version of `panGenomeBreedr` from [GitHub](https://github.com/awkena/panGenomeBreedr) with:
-
-``` r
-# Install panGenomeBreedr
-if (!require("devtools")) install.packages("devtools")
-
-devtools::install_github("awkena/panGenomeBreedr", upgrade = TRUE)
-```
-
-## Installing Bioconductor dependency packages
-`panGB` depends on a list of Bioconductor packages that may not be installed automatically alongside `panGB`. To manually install these packages, use the code snippet below:
-
-```r
-# Install and load required Bioconductor packages
-if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-
-  BiocManager::install(c("Bsgenome",
-                         "Biostrings",
-                         "GenomicRanges",
-                         "IRanges",
-                         "msa"))
-```
-
-# Current Functionality of `panGB`
-`panGB` currently provides functionality for the following key tasks:
-
-1. **Variant discovery**  
-   Identify variants within candidate genes or any user-defined genomic interval using *snpEff*-annotated VCF files.
-
-2. **KASP marker design**  
-   Generate allele-specific markers targeting either causal variants or any variant of interest.
-
-3. **Marker validation and QC visualization**  
-   Produce quality control plots and perform hypothesis-driven evaluations to assess marker reliability.
-
-4. **Decision-support for trait introgression**  
-   Guide marker-assisted backcrossing by profiling foreground, background, and precision-introgression markers to support selection decisions.
 
 # Variant Discovery 
 ## Pangenome Data and Database Rationale
@@ -265,69 +166,6 @@ knitr::kable(annota_region[1:5,],
 
 ```
 
-The `query_db()` function has the following key arguments:
-
-| Argument     | Type       | Description                         |
-|--------------|------------|-------------------------------------|
-| `db_path`    | `character`| Path to the SQLite database file.   |
-| `table_name` | `character`| Name of the table to query.         |
-| `chrom`      | `character`| Chromosome name.                    |
-| `start`     | `numeric`   | Start coordinate of the region.     |
-| `end`       | `numeric`   | End coordinate of the region.       |
-| `gene_name`  | `character`| Optional Sobic gene ID.             |
-
-
-## Filter Variants by Allele Frequency
-
-The `query_by_af()` function allows users to extract variants from a SQLite database based on **alternate allele frequency thresholds** within a specified genomic region.
-
-This is particularly useful for identifying **polymorphic sites** within candidate gene regions or windows of interest that meet desired minor allele frequency (MAF) thresholds for marker development.
-
-An example usage for the `query_by_af()` function is shown in the code snippet below:
-
-```{r, echo = TRUE}
-library(panGenomeBreedr)
-
-# Define temporary directory and decompress demo database
-path <- tempdir()
-mini_db <- system.file("extdata", "mini_sorghum_variant_vcf.db.gz",
-                       package = "panGenomeBreedr", mustWork = TRUE)
-mini_db_path <- file.path(path, 'mini_sorghum_variant_vcf.db')
-R.utils::gunzip(mini_db, destname = mini_db_path, remove = FALSE)
-
-# Filter variants with alt allele frequency between 1% and 99% in a defined region
-filter_af <- query_by_af(db_path = mini_db_path,
-                         min_af = 0.01,
-                         max_af = 0.99,
-                         chrom = "Chr05",
-                         start = 75104537,
-                         end = 75106403)
-
-# Clean up temporary files
-unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
-       recursive = TRUE)
-```
-
-```{r, echo = FALSE}
-knitr::kable(filter_af[1:5,], 
-             caption = 'Table 3: Filtered variants from the SQLite database.', 
-             format = 'html', 
-             padding = 0, 
-             booktabs = TRUE, 
-             escape = FALSE)
-```
-
-The `query_by_af()` function has the following input parameters:
-
-| Argument   | Type     | Description |
-|-------------|----------|-------------|
-| `db_path`   | `character` | Path to the SQLite database. |
-| `min_af`    | `numeric`   | Minimum allele frequency. |
-| `max_af`    | `numeric`   | Maximum allele frequency. |
-| `chrom`     | `character` | Chromosome name. |
-| `start`     | `numeric`   | Start coordinate of the region. |
-| `end`       | `numeric`   | End coordinate of the region. |
-
 
 ## Summarize SnpEff Annotation and Impact 
 
@@ -372,15 +210,6 @@ knitr::kable(head(ann_summary$impact_summary),
 
 ```
 
-The `query_ann_summary()` function has the following input parameters:
-
-| Argument            | Type        | Description |
-|----------------------|-------------|-------------|
-| `db_path`            | `character` | Path to the SQLite database. |
-| `chrom`              | `character` | Chromosome name (e.g., `"Chr05"`). |
-| `start`, `end`       | `numeric`   | Start and end coordinates of the target genomic region. |
-| `annotations_table`  | `character` | Name of the table storing snpEff annotations (default: `"annotations"`). |
-| `variants_table`     | `character` | Name of the table storing variant data (default: `"variants"`). |
 
 The `query_ann_summary()` function returns a `list` with the following elements:  
 
@@ -401,7 +230,7 @@ mini_db <- system.file("extdata", "mini_sorghum_variant_vcf.db.gz",
 mini_db_path <- file.path(path, 'mini_sorghum_variant_vcf.db')
 R.utils::gunzip(mini_db, destname = mini_db_path, remove = FALSE)
 
-# Extract low impact variant for a region or gene
+# Extract HIGH impact variant for a region or gene
 high_variants <- query_by_impact(db_path = mini_db_path,
                                 impact_level = 'high',
                                 chrom = "Chr05",
@@ -426,6 +255,58 @@ knitr::kable(head(high_variants),
 
 ```
 
+
+## Filter Variants by Allele Frequency
+
+The `query_by_af()` and `filter_by_af()` functions allow users to filter queried variants based on **alternate allele frequency thresholds** within a specified genomic region.
+
+This is particularly useful for identifying **polymorphic sites** within candidate gene regions or windows of interest that meet desired minor allele frequency (MAF) thresholds for marker development.
+
+An example usage for the `filter_by_af()` function is shown in the code snippet below:
+
+```{r, echo = TRUE}
+library(panGenomeBreedr)
+
+# Define temporary directory and decompress demo database
+path <- tempdir()
+mini_db <- system.file("extdata", "mini_sorghum_variant_vcf.db.gz",
+                       package = "panGenomeBreedr", mustWork = TRUE)
+mini_db_path <- file.path(path, 'mini_sorghum_variant_vcf.db')
+R.utils::gunzip(mini_db, destname = mini_db_path, remove = FALSE)
+
+# Extract genotype data for all HIGH impact variants and filter by alternate allele frequency
+geno_high_filtered <- query_genotypes(db_path = mini_db_path,
+                                      variant_ids = high_variants$variant_id,
+                                      meta_data = c('chrom', 'pos', 'ref', 'alt', 'variant_type')) |>
+  
+  filter_by_af(min_af = 0.05)
+
+```
+
+
+```{r, echo = FALSE}
+knitr::kable(geno_high_filtered, 
+             caption = 'Table 3: Filtered variants from the SQLite database.', 
+             format = 'html', 
+             padding = 0, 
+             booktabs = TRUE, 
+             escape = FALSE)
+```
+
+
+```{r, echo=TRUE}
+# Get genotype data for HIGH impact variants that passed allele filter
+geno_high_filtered <- query_genotypes(db_path = mini_db_path,
+                                      variant_ids = geno_high_filtered$variant_id,
+                                      meta_data = c('chrom', 'pos', 'ref', 'alt', 'variant_type'))
+
+# Clean up temporary files
+unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
+       recursive = TRUE)
+```
+
+
+
 # KASP Marker Design
 The `kasp_marker_design()` function enables the design of **KASP (Kompetitive Allele Specific PCR)** markers from identified putative causal variants. It supports SNP, insertion, and deletion variants using VCF genotype data and a reference genome to generate Intertek-compatible marker information, including upstream and downstream polymorphic context.
 
@@ -439,8 +320,8 @@ The vcf file must contain the variant ID, Chromosome ID, Position, REF and ALT a
 
 ```{r, echo = FALSE}
 # View summaries
-knitr::kable(head(high_variants), 
-             caption = ' HIGH impact variants within a defined genomic range.', 
+knitr::kable(geno_high_filtered[, 1:8], 
+             caption = 'Filtered HIGH impact variants for marker development.',
              format = 'html', 
              padding = 0, 
              booktabs = TRUE, 
@@ -457,7 +338,7 @@ path <- tempdir() # (default directory for saving alignment outputs)
 path1 <- "https://raw.githubusercontent.com/awkena/panGB/main/Chr05.fa.gz"
 
 # KASP marker design for variant ID: INDEL_Chr05_75106156 in Table 1
-lgs1 <- kasp_marker_design(gt_df = gt_region,
+lgs1 <- kasp_marker_design(gt_df = geno_high_filtered,
                            variant_id_col = 'variant_id',
                            chrom_col = 'chrom',
                            pos_col = 'pos',
@@ -479,26 +360,6 @@ system(paste0('open "', path3, '"')) # Open PDF file from R
 on.exit(unlink(path)) # Clear the temp directory on exit
 
 ```
-
-The `kasp_marker_design()` function has the following input parameters:
-
-| Argument       | Type        | Description |
-|------------------|-------------|-------------|
-| `vcf_file`        | `character` | Path to VCF file containing variants. |
-| `gt_df`           | `data.frame` or `matrix` |Pre-parsed genotype matrix with metadata and sample genotypes. |
-| `variant_id_col`  | `character` | Column name for variant IDs. |
-| `chrom_col`       | `character` | Column name for chromosome names. |
-| `pos_col`         | `character` | Column name for variant positions. |
-| `ref_al_col`      | `character` | Column name for reference alleles. |
-| `alt_al_col`      | `character` | Column name for alternate alleles. |
-| `geno_start`      | `integer`   | Column index in `gt_df` where genotype data starts. |
-| `marker_ID`       | `character` | ID of the variant to design the marker for. |
-| `chr`             | `character` | Chromosome name used to subset the reference genome. |
-| `genome_file`     | `character` | Path to genome FASTA file. |
-| `plot_draw`       | `logical`   | Whether to plot upstream/downstream alignment. |
-| `plot_file`       | `character` | Output path to save the PDF alignment plot. |
-| `region_name`     | `character` | Optional name for marker region. |
-| `maf`             | `numeric`   | MAF filter for selecting flanking variants. |
 
 
 The `kasp_marker_design()` function returns a `data.frame` with marker design metadata:
@@ -826,7 +687,7 @@ All is now set to generate the heatmap (Figure 6) using the `cross_qc_ggplot()` 
 # Get prediction summary for snp:snpSB00804
 library(panGenomeBreedr)
 # Create a heatmap that compares the parents to progenies
-cross_qc_ggplot(x = num_geno,
+cross_qc_heatmap(x = num_geno,
                 map_file = map_file,
                 snp_ids = 'snpid',
                 chr = 'chr',
@@ -857,21 +718,21 @@ To test the hypothesis that the *stg5* NIL development was effective, we can use
 
 ###########################################################################
 # Subset data for the first 30 markers on Chr 1
-stg5_ch1 <- num_geno[, map_file$chr == 1][,1:30] 
+stg5_ch1 <- num_geno[, map_file$chr == 1][,1:20] 
 
 # Get the map file for subset data
 stg5_ch1_map <- parse_marker_ns(colnames(stg5_ch1))
 
 # Annotate a heatmap to show the stg5 locus on Chr 1
-# The locus is between positions 0.98 - 1.8 Mbp on Chr 1
-cross_qc_annotate(x = stg5_ch1,
+# The locus is between positions 1e6 - 1.4 Mbp on Chr 1
+cross_qc_heatmap(x = stg5_ch1,
                   map_file = stg5_ch1_map,
                   snp_ids = 'snpid',
                   chr = 'chr',
                   chr_pos = 'pos',
                   parents = c("BTx623a", "BTx642a"),
-                  trait_pos = list(stg5 = c(start = .98e6, end = 1.8e6)),
-                  text_scale_fct = 0.3,
+                  trait_pos = list(stg5 = c(chr = 1, start = 1e6, end = 1.4e6)),
+                  text_scale_fct = 0.18,
                   pdf = FALSE,
                   legend_title = 'Stg5_NILs',
                   alpha = 0.9,
