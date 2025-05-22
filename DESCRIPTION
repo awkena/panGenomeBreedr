@@ -30,20 +30,35 @@ bioViews:
 Imports: 
     Biostrings,
     BSgenome,
+    bslib,
+    config,
+    data.table,
     DBI,
+    DT,
     GenomicRanges,
     ggplot2,
+    golem,
     googledrive,
+    grid,
     gridExtra,
     IRanges,
     msa,
     R.utils,
+    readxl,
     reshape2,
     Rsamtools,
     RSQLite,
     rtracklayer,
+    shiny,
+    shinyalert,
+    shinybusy,
+    shinyjs,
+    shinyWidgets,
     stats,
-    utils
+    stringr,
+    utils,
+    vcfR,
+    writexl
 Depends: 
     R (>= 4.1)
 Suggests: 
