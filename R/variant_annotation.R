@@ -61,9 +61,6 @@
 #' # unlink(vcf_dir, recursive = TRUE)
 #' }
 #'
-#' @importFrom rtracklayer import
-#' @importFrom GenomicRanges GRanges
-#' @importFrom Rsamtools indexTabix scanTabix headerTabix
 #' @export
 #'
 extract_variant <- function(cand_gene_id,
@@ -72,6 +69,22 @@ extract_variant <- function(cand_gene_id,
                             vcf_file,
                             output_path = tempdir(),
                             outfile_suffix = 'variants') {
+
+  # Conditional logic for Bioconductor dependencies
+  required_pkgs <- c("rtracklayer", "GenomicRanges", "Rsamtools")
+
+  for (pkg in required_pkgs) {
+
+    if (!requireNamespace(pkg, quietly = TRUE)) {
+
+      stop(sprintf("The '%s' package is required for this function.
+                   Please install it via BiocManager::install('%s').", pkg, pkg),
+           call. = FALSE)
+
+    }
+
+  }
+
 
   # Load GFF file using the rtracklayer package
   # gff_path <- file.path(gff_path)
@@ -189,12 +202,22 @@ get_google_id <- function(drive_link, is.folder = TRUE) {
 #' @returns A list or vector containing the path to directory containing downloaded
 #' files from Google Drive.
 #'
-#' @importFrom googledrive drive_get as_id drive_ls drive_download drive_deauth drive_user drive_get
 #' @export
 #'
 folder_download_gd <- function(drive_link,
                                output_path = tempdir(),
                                is.folder = TRUE) {
+
+  # Conditional logic for Bioconductor dependencies
+  pkg <- "googledrive"
+
+    if (!requireNamespace(pkg, quietly = TRUE)) {
+
+      stop(sprintf("The '%s' package is required for this function.
+                   Please install it via utils::install.packages('%s').", pkg, pkg),
+           call. = FALSE)
+
+    }
 
   # No authentication required from Google Drive
   googledrive::drive_deauth()

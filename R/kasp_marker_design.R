@@ -1,3 +1,4 @@
+
 #' Design KASP markers based on causal variants.
 #' @param vcf_file Path to the vcf file containing identified variants.
 #' @param gt_df A data frame or matrix containing the meta data of identified
@@ -64,11 +65,6 @@
 #' @returns A data frame containing all information required for KASP marker
 #' design and a DNA sequence alignment to the reference genome.
 #'
-#' @importFrom Biostrings fasta.index readDNAStringSet DNAStringSet
-#' @importFrom BSgenome getSeq
-#' @importFrom GenomicRanges GRanges
-#' @import msa
-#' @importFrom IRanges IRanges
 #' @importFrom stats na.omit
 #'
 #' @export
@@ -89,6 +85,21 @@ kasp_marker_design <- function(vcf_file = NULL,
                                plot_file = tempdir(),
                                region_name = 'loc_1',
                                maf = 0.05){
+
+  # Conditional logic for Bioconductor dependencies
+  required_pkgs <- c("Biostrings", "BSgenome", "GenomicRanges", "IRanges", "msa")
+
+  for (pkg in required_pkgs) {
+
+    if (!requireNamespace(pkg, quietly = TRUE)) {
+
+      stop(sprintf("The '%s' package is required for this function.
+                   Please install it via BiocManager::install('%s').", pkg, pkg),
+           call. = FALSE)
+
+    }
+
+  }
 
   # Function to classify variants into mutation types
   classify_variant_type <- function(ref, alt) {

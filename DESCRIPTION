@@ -26,29 +26,28 @@ URL: https://awkena.github.io/panGenomeBreedr,
 BugReports: https://github.com/awkena/panGenomeBreedr/issues
 RoxygenNote: 7.3.2
 Language: en-US
-bioViews:
 Imports: 
-    Biostrings,
-    BSgenome,
     DBI,
-    GenomicRanges,
     ggplot2,
-    googledrive,
     gridExtra,
-    IRanges,
-    msa,
     R.utils,
     reshape2,
-    Rsamtools,
     RSQLite,
-    rtracklayer,
     stats,
     utils
 Depends: 
     R (>= 4.1)
 Suggests: 
+    Biostrings,
+    BSgenome,
+    GenomicRanges,
+    googledrive,
+    IRanges,
     knitr,
+    msa,
     rmarkdown,
+    Rsamtools,
+    rtracklayer,
     testthat (>= 3.0.0),
     UpSetR
 Config/testthat/edition: 3
