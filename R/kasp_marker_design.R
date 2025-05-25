@@ -68,8 +68,6 @@
 #' @importFrom stats na.omit
 #'
 #' @export
-
-
 kasp_marker_design <- function(vcf_file = NULL,
                                gt_df = NULL,
                                variant_id_col= "variant_id",
@@ -191,18 +189,6 @@ kasp_marker_design <- function(vcf_file = NULL,
 
   }
 
-  # # Load genome as FaFile and ensure it's indexed
-  #
-  # fasta_fh <- Rsamtools::FaFile(genome_file)
-  #
-  # # Index the FASTA file if .fai index does not exist
-  # if (!file.exists(paste0(genome_file, ".fai"))) {
-  #   Rsamtools::indexFa(fasta_fh)
-  # }
-  #
-  # # Load indexed FASTA as genome object
-  # genome <- fasta_fh
-
 
   #### extracting information from variant table
   variant <- variant_table[variant_table$variant_id == marker_ID,]
@@ -299,29 +285,28 @@ kasp_marker_design <- function(vcf_file = NULL,
                                          end = down_bound_end,
                                          type = 'down')
 
-  # Creating iupacode table for substitutions
-  iupacode <- data.frame(one_letter = c('R', 'Y','S','W','K','M', 'R', 'Y','S','W','K','M'),
-                         allele_comb1 = c('AG','CT','GC','AT','GT','AC','GA','TC','CG','TA','TG','CA'))
+  # Canonical IUPAC code table (unique and unambiguous)
+  iupacode <- data.frame(one_letter = c('R', 'Y', 'S', 'W', 'K', 'M'),
+                         allele_comb1 = c('AG', 'CT', 'CG', 'AT', 'GT', 'AC'),
+                         stringsAsFactors = FALSE)
 
-  # Creating collapse column of alleles for substitution
-  variants_100bp_down$collapse <- paste(variants_100bp_down$ref,
-                                        variants_100bp_down$alt, sep = "")
-  variants_100bp_up$collapse <- paste(variants_100bp_up$ref,
-                                      variants_100bp_up$alt, sep = "")
 
-  # Substitution collapse allele for the the one letter iupac code
-  iupac_conv <- function(iupacode = iupacode, variants_100bp) {
+  # Collapse ref + alt alleles and sort letters to match IUPAC combinations
+  variants_100bp_up$collapse <- sapply(seq_len(nrow(variants_100bp_up)), function(i) {
+    paste0(sort(c(variants_100bp_up$ref[i], variants_100bp_up$alt[i])),
+           collapse = "")})
 
-    if (nrow(variants_100bp) > 0) {
-      i <- 1
-      while (i <= nrow(variants_100bp)) {
-        variants_100bp$one_letter[i] <-
-          iupacode[rowSums(iupacode == variants_100bp$collapse[i]) > 0, ]$one_letter
-        i <- i+1
-      }
-    }
+  variants_100bp_down$collapse <- sapply(seq_len(nrow(variants_100bp_down)), function(i) {
+    paste0(sort(c(variants_100bp_down$ref[i], variants_100bp_down$alt[i])),
+           collapse = "")})
 
+
+  iupac_conv <- function(iupacode, variants_100bp) {
+
+    variants_100bp$one_letter <- iupacode$one_letter[match(variants_100bp$collapse,
+                                                           iupacode$allele_comb1)]
     return(variants_100bp)
+
   }
 
 
@@ -415,8 +400,6 @@ kasp_marker_design <- function(vcf_file = NULL,
                                         bound_start = down_bound_start,
                                         bound_end = down_bound_end)
 
-
-
   ## Create output sequence annotated
   if (variant$type == 'Substitution') {
 
@@ -460,8 +443,8 @@ kasp_marker_design <- function(vcf_file = NULL,
 
   }
 
-  # Creating dataframe for export
-  #Empty dataframe
+  # Creating a dataframe for export
+  # Empty dataframe
   marker_data <- data.frame(SNP_Name = variant$variant_id,
                             SNP = variant$type,
                             Marker_Name = region_name,
@@ -474,7 +457,7 @@ kasp_marker_design <- function(vcf_file = NULL,
   # assign("marker_data", marker_data, envir = .GlobalEnv) # creating dataframe
 
   # Plot alignment of upstream and downstream sequences to the reference seq
-  if (plot_draw == TRUE) {
+  if (plot_draw) {
 
     # getting genomic range to extract
     region_control <- GenomicRanges::GRanges(chromosome, IRanges::IRanges(up_bound_start, down_bound_end))
@@ -500,36 +483,54 @@ kasp_marker_design <- function(vcf_file = NULL,
     #converting to dnastringset
     alignment <- Biostrings::DNAStringSet(alg)
 
-    # Extract the aligned sequences
+    # Extract aligned sequences
     aligned_strings <- as.character(alignment)
 
-    # Re-implementing alignment plot in ggplot
-    y <- NULL
-    group <- NULL
-    x <- NULL
+    position <- base <- y <- color <- NULL
 
-    x <- data.frame(
-      x = 1,
-      y = c(0.5, 0.4, 0.3),
-      seq = aligned_strings,
-      group = c('reference', 'upstream', 'downstream'))
+    # Break sequences into single characters and reshape for plotting
+    sequence_df <- do.call(rbind, lapply(seq_along(aligned_strings), function(i) {
+      chars <- strsplit(aligned_strings[i], "")[[1]]
+      data.frame(group = names(alignment)[i],
+                 position = seq_along(chars),
+                 base = chars,
+                 stringsAsFactors = FALSE)}))
 
-    # Define the colors you want for each group
-    group_colors <- c("reference" = "black",
-                      "upstream" = "red",
-                      "downstream" = "blue")
+    # Assign colors based on sequence groups
+    sequence_df$color <- ifelse(sequence_df$group == "reference", "black",
+                                ifelse(toupper(sequence_df$base) %in% iupacode$one_letter,
+                                       "red", "blue"))
 
-    pp <- ggplot2::ggplot(data = x, ggplot2::aes(x = x, y = y, label = seq,
-                                                 color = group)) +
+    sequence_df$y <- ifelse(sequence_df$group == "reference", 0.5,
+                            ifelse(sequence_df$group == "upstream", 0.4, 0.3))
+
+    # Check if flanking sequences have any polymophic site
+    has_deg <- any(sequence_df$color == "red")
+
+    # If NO, these are the labels
+    legend_labels <- c("Reference seq.", "Flanking seq.")
+    legend_breaks <- c("black", "blue")
+
+    # If YES, these are the labels
+    if (has_deg) {
+      legend_labels <- c(legend_labels, "Polymorphic site/(SNP)")
+      legend_breaks <- c(legend_breaks, "red")
+    }
+
+    # Plot
+    pp <- ggplot2::ggplot(sequence_df,
+                          ggplot2::aes(x = position, y = y, label = base,
+                                       color = color)) +
       ggplot2::geom_text(size = 4.5, hjust = 'outward', family = 'mono',
                          key_glyph = 'rect') +
+      ggplot2::scale_color_identity( guide = "legend",
+                                     name = paste("Alignment for marker", marker_ID),
+                                     labels = legend_labels,
+                                     breaks = legend_breaks) +
 
-      ggplot2::labs(color = paste("Alignment for marker", marker_ID, sep = " ")) +
-      ggplot2::scale_x_continuous(breaks = c(-2, 0, 2), expand = c(0, 2)) +
-      ggplot2::scale_y_continuous(breaks = c(-2, 0, 2), expand = c(0, 2)) +
-      ggplot2::scale_color_manual(values = group_colors,
-                                  breaks = c('reference', 'upstream', 'downstream'),
-                                  label = c('Reference', 'Upstream', 'Downstream')) +
+      ggplot2::scale_x_continuous(breaks = NULL, expand = c(0, 2)) +
+      ggplot2::scale_y_continuous(breaks = NULL, expand = c(0, 2)) +
+
       ggplot2::guides(color = ggplot2::guide_legend(label.position = "right",
                                                     title.position = 'top',
                                                     title.hjust = 0.5)) +
