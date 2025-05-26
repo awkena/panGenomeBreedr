@@ -3,7 +3,7 @@ pkgdown: 2.1.2
 pkgdown_sha: ~
 articles:
   panGenomeBreedr_Workflows: panGenomeBreedr_Workflows.html
-last_built: 2025-05-24T14:31Z
+last_built: 2025-05-26T18:26Z
 urls:
   reference: https://awkena.github.io/panGenomeBreedr/reference
   article: https://awkena.github.io/panGenomeBreedr/articles

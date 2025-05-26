@@ -1773,7 +1773,7 @@ INDEL
 <span>                           geno_start <span class="op">=</span> <span class="fl">7</span>,</span>
 <span>                           marker_ID <span class="op">=</span> <span class="st">"INDEL_Chr05_75106156"</span>,</span>
 <span>                           chr <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
-<span>                           plot_draw <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                           save_alignment <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                           plot_file <span class="op">=</span> <span class="va">path</span>,</span>
 <span>                           region_name <span class="op">=</span> <span class="st">"lgs1"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; using Gonnet</span></span>
@@ -1784,8 +1784,8 @@ INDEL
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.html" class="external-link">system</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">'open "'</span>, <span class="va">path3</span>, <span class="st">'"'</span><span class="op">)</span><span class="op">)</span> <span class="co"># Open PDF file from R</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/on.exit.html" class="external-link">on.exit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span><span class="op">)</span> <span class="co"># Clear the temp directory on exit</span></span></code></pre></div>
-<p>The <code><a href="../reference/kasp_marker_design.html">kasp_marker_design()</a></code> function returns a
-<code>data.frame</code> with marker design metadata:</p>
+<p>The <code><a href="../reference/kasp_marker_design.html">kasp_marker_design()</a></code> function returns a list object
+including a <code>data.frame</code> with marker design metadata:</p>
 <ul>
 <li>
 <code>SNP_Name</code>: Variant ID</li>
@@ -1804,7 +1804,7 @@ INDEL
 <li>
 <code>AlternativeAllele</code>: Alternate allele</li>
 </ul>
-<p>If <code>plot_draw = TRUE</code>, a <strong>PDF plot</strong> of
+<p>If <code>save_alignment = TRUE</code>, a <strong>PDF plot</strong> of
 sequence alignment will be saved to <code>plot_file</code>.</p>
 <figure style="text-align: center;"><img src="figures/alignment.png" width="700" alt="Sequence alignment"><figcaption><em>Fig. 2.</em> Alignment of the 100 bp upstream and downstream
 sequences to the reference genome used for KASP marker design.

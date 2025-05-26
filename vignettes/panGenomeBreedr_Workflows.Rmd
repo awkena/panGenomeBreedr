@@ -348,7 +348,7 @@ lgs1 <- kasp_marker_design(gt_df = geno_high_filtered,
                            geno_start = 7,
                            marker_ID = "INDEL_Chr05_75106156",
                            chr = "Chr05",
-                           plot_draw = TRUE,
+                           save_alignment = TRUE,
                            plot_file = path,
                            region_name = "lgs1")
 
@@ -362,7 +362,7 @@ on.exit(unlink(path)) # Clear the temp directory on exit
 ```
 
 
-The `kasp_marker_design()` function returns a `data.frame` with marker design metadata:
+The `kasp_marker_design()` function returns a list object including a `data.frame` with marker design metadata:
 
 - `SNP_Name`: Variant ID
 - `SNP`: Type of variant (SNP/INDEL)
@@ -373,7 +373,7 @@ The `kasp_marker_design()` function returns a `data.frame` with marker design me
 - `ReferenceAllele`: Reference allele
 - `AlternativeAllele`: Alternate allele
 
-If `plot_draw = TRUE`, a **PDF plot** of sequence alignment will be saved to `plot_file`.
+If `save_alignment = TRUE`, a **PDF plot** of sequence alignment will be saved to `plot_file`.
 
 <figure style="text-align: center;">
   <img src="figures/alignment.png" width="700" alt="Sequence alignment">
@@ -385,7 +385,7 @@ The required sequence for submission to Intertek for the designed KASP marker is
 
 ```{r, echo = FALSE}
 library(knitr)
-knitr::kable(lgs1, 
+knitr::kable(lgs1$marker_data, 
              caption = 'Table 5: Intertek required sequence for a KASP marker.', 
              format = 'html', 
              padding = 0, 

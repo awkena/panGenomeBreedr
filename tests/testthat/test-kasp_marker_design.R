@@ -31,17 +31,17 @@ test_that("kasp_marker_design works correctly for substitution variant", {
                                geno_start = 10,
                                marker_ID = "SNP_Chr02_69200443",
                                chr = "Chr02",
-                               plot_draw = TRUE,
+                               save_alignment = TRUE,
                                plot_file = plot_path,
                                region_name = "ma1",
                                maf = 0.05)
 
   # === ASSERTIONS ===
-  expect_s3_class(marker, "data.frame")
-  expect_named(marker, c("SNP_Name", "SNP", "Marker_Name",
+  expect_s3_class(marker$marker_data, "data.frame")
+  expect_named(marker$marker_data, c("SNP_Name", "SNP", "Marker_Name",
                          "Chromosome", "Chromosome_Position",
                          "Sequence", "ReferenceAllele", "AlternativeAllele"))
-  expect_equal(nrow(marker), 1)
+  expect_equal(nrow(marker$marker_data), 1)
 
   pdf_files <- list.files(plot_path, pattern = "\\.pdf$", full.names = TRUE)
   expect_true(length(pdf_files) > 0)
