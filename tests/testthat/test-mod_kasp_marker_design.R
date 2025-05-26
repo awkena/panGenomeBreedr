@@ -1,7 +1,7 @@
-# # Test file for KASP Marker Design Module
-# library(testthat)
-# library(shiny)
-# library(mockery)
+# Test file for KASP Marker Design Module
+library(testthat)
+library(shiny)
+library(mockery)
 
 # Mock data for testing
 create_mock_vcf_data <- function() {
