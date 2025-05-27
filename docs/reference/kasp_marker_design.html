@@ -48,7 +48,7 @@
 <span>  <span class="va">marker_ID</span>,</span>
 <span>  chr <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">genome_file</span>,</span>
-<span>  plot_draw <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  save_alignment <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  plot_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  region_name <span class="op">=</span> <span class="st">"loc_1"</span>,</span>
 <span>  maf <span class="op">=</span> <span class="fl">0.05</span></span>
@@ -99,9 +99,9 @@ contained in `gt_df` or `vcf_file`.</p></dd>
 compressed (.gz) or decompressed.</p></dd>
 
 
-<dt id="arg-plot-draw">plot_draw<a class="anchor" aria-label="anchor" href="#arg-plot-draw"></a></dt>
-<dd><p>A logical value indicating whether to plot 100 bp upstream
-and downstream KASP sequence alignment to reference genome.</p></dd>
+<dt id="arg-save-alignment">save_alignment<a class="anchor" aria-label="anchor" href="#arg-save-alignment"></a></dt>
+<dd><p>A logical value indicating whether to save the alignment
+plot to a directory specified by `plot_file`.</p></dd>
 
 
 <dt id="arg-plot-file">plot_file<a class="anchor" aria-label="anchor" href="#arg-plot-file"></a></dt>
@@ -119,8 +119,9 @@ frequency for variant subset.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A data frame containing all information required for KASP marker
-design and a DNA sequence alignment to the reference genome.</p>
+    <p>A list object of two components comprising a data frame containing
+all information required for KASP marker design, and a plot of DNA sequence
+alignment to the reference genome.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -139,6 +140,7 @@ sequence of the target crop in fasta format.</p>
 <span class="r-in"><span><span class="va">path2</span> <span class="op">&lt;-</span>  <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"Sobic.002G302700_SNP_snpeff.vcf"</span>,</span></span>
 <span class="r-in"><span>                     package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>,</span></span>
 <span class="r-in"><span>                     mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">ma1</span> <span class="op">&lt;-</span> <span class="fu">kasp_marker_design</span><span class="op">(</span>vcf_file <span class="op">=</span> <span class="va">path2</span>,</span></span>
 <span class="r-in"><span>                          variant_id_col <span class="op">=</span> <span class="st">'ID'</span>,</span></span>
 <span class="r-in"><span>                          chrom_col <span class="op">=</span> <span class="st">'CHROM'</span>,</span></span>
@@ -149,14 +151,14 @@ sequence of the target crop in fasta format.</p>
 <span class="r-in"><span>                          geno_start <span class="op">=</span> <span class="fl">10</span>,</span></span>
 <span class="r-in"><span>                          marker_ID <span class="op">=</span> <span class="st">"SNP_Chr02_69200443"</span>,</span></span>
 <span class="r-in"><span>                          chr <span class="op">=</span> <span class="st">"Chr02"</span>,</span></span>
-<span class="r-in"><span>                          plot_draw <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>                          save_alignment <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>                          plot_file <span class="op">=</span> <span class="va">path</span>,</span></span>
 <span class="r-in"><span>                          region_name <span class="op">=</span> <span class="st">"ma1"</span>,</span></span>
 <span class="r-in"><span>                          maf <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> using Gonnet</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># View marker alignment output from temp folder</span></span></span>
-<span class="r-in"><span><span class="va">path3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">path</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">path</span>, <span class="st">"alignment_"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># path3 &lt;- file.path(path, list.files(path = path, "alignment_"))</span></span></span>
 <span class="r-in"><span><span class="co"># system(paste0('open "', path3, '"'))</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/on.exit.html" class="external-link">on.exit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span><span class="op">)</span></span></span>

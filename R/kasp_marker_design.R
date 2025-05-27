@@ -16,8 +16,8 @@
 #' `genome_file`. Providing this helps to save memory in R.
 #' @param genome_file Path to reference genome file in fasta format, either
 #' compressed (.gz) or decompressed.
-#' @param plot_draw A logical value indicating whether to plot 100 bp upstream
-#' and downstream KASP sequence alignment to reference genome.
+#' @param save_alignment A logical value indicating whether to save the alignment
+#' plot to a directory specified by `plot_file`.
 #' @param plot_file Path to save the sequence alignment if `plot_draw = TRUE`.
 #' @param region_name A n optional character value for assigned region name.
 #' @param maf A numeric value between 0 and 1 representing the minor allele
@@ -31,6 +31,7 @@
 #' path2 <-  system.file("extdata", "Sobic.002G302700_SNP_snpeff.vcf",
 #'                      package = "panGenomeBreedr",
 #'                      mustWork = TRUE)
+#'
 #' ma1 <- kasp_marker_design(vcf_file = path2,
 #'                           variant_id_col = 'ID',
 #'                           chrom_col = 'CHROM',
@@ -41,14 +42,13 @@
 #'                           geno_start = 10,
 #'                           marker_ID = "SNP_Chr02_69200443",
 #'                           chr = "Chr02",
-#'                           plot_draw = TRUE,
+#'                           save_alignment = TRUE,
 #'                           plot_file = path,
 #'                           region_name = "ma1",
 #'                           maf = 0.05)
-
 #'
 #' # View marker alignment output from temp folder
-#' path3 <- file.path(path, list.files(path = path, "alignment_"))
+#' # path3 <- file.path(path, list.files(path = path, "alignment_"))
 #' # system(paste0('open "', path3, '"'))
 #'
 #' on.exit(unlink(path))
@@ -62,8 +62,9 @@
 #' sequence of the target crop in fasta format.
 #'
 #'
-#' @returns A data frame containing all information required for KASP marker
-#' design and a DNA sequence alignment to the reference genome.
+#' @returns A list object of two components comprising a data frame containing
+#' all information required for KASP marker design, and a plot of DNA sequence
+#' alignment to the reference genome.
 #'
 #' @importFrom stats na.omit
 #'
@@ -79,7 +80,7 @@ kasp_marker_design <- function(vcf_file = NULL,
                                marker_ID,
                                chr = NULL,
                                genome_file,
-                               plot_draw = TRUE,
+                               save_alignment = TRUE,
                                plot_file = tempdir(),
                                region_name = 'loc_1',
                                maf = 0.05){
@@ -174,7 +175,7 @@ kasp_marker_design <- function(vcf_file = NULL,
   # # Reading genome by chromosome subset or whole genome
   # # Indexing for genome file
   dd <-  Biostrings::fasta.index(genome_file, seqtype = "DNA")
-  #
+
   # # Read only the sequence for the chromosome with the variant if provided,
   # # else read the whole genome sequence
   if (!is.null(chr) && chr %in% dd$desc) {
@@ -331,7 +332,6 @@ kasp_marker_design <- function(vcf_file = NULL,
     stream_sequence <- Biostrings::DNAStringSet()
 
     j <- 1
-    i = 1
     for ( i in 1:(length(start_stop_list)-1)) {
 
       #adjust start
@@ -454,98 +454,102 @@ kasp_marker_design <- function(vcf_file = NULL,
                             ReferenceAllele = reference_allele,
                             AlternativeAllele = alternate_allele)
 
-  # assign("marker_data", marker_data, envir = .GlobalEnv) # creating dataframe
-
   # Plot alignment of upstream and downstream sequences to the reference seq
-  if (plot_draw) {
+  # getting genomic range to extract
+  region_control <- GenomicRanges::GRanges(chromosome, IRanges::IRanges(up_bound_start, down_bound_end))
 
-    # getting genomic range to extract
-    region_control <- GenomicRanges::GRanges(chromosome, IRanges::IRanges(up_bound_start, down_bound_end))
+  # getting reference sequence
+  sequence_control <- BSgenome::getSeq(genome, region_control)
 
-    # getting reference sequence
-    sequence_control <- BSgenome::getSeq(genome, region_control)
+  # merging upstream and downstream sequence
+  tmp <- c(upstream_sequence, downstream_sequence)
 
-    # merging upstream and downstream sequence
-    tmp <- c(upstream_sequence, downstream_sequence)
+  # merging all sequences for plotting
+  sequences <- c(sequence_control, tmp)
 
-    # merging all sequences for plotting
-    sequences <- c(sequence_control, tmp)
+  # converting to DNAstring set
+  sequences <- Biostrings::DNAStringSet(sequences)
 
-    # converting to DNAstring set
-    sequences <- Biostrings::DNAStringSet(sequences)
+  # adding sequence names
+  names(sequences) <- c('reference', 'upstream', 'downstream')
 
-    # adding sequence names
-    names(sequences) <- c('reference', 'upstream', 'downstream')
+  # alignment
+  alg <- msa::msaClustalOmega(sequences, order = 'input')
 
-    # alignment
-    alg <- msa::msaClustalOmega(sequences, order = 'input')
+  #converting to dnastringset
+  alignment <- Biostrings::DNAStringSet(alg)
 
-    #converting to dnastringset
-    alignment <- Biostrings::DNAStringSet(alg)
+  # Extract aligned sequences
+  aligned_strings <- as.character(alignment)
 
-    # Extract aligned sequences
-    aligned_strings <- as.character(alignment)
+  position <- base <- y <- color <- NULL
 
-    position <- base <- y <- color <- NULL
+  # Break sequences into single characters and reshape for plotting
+  sequence_df <- do.call(rbind, lapply(seq_along(aligned_strings), function(i) {
+    chars <- strsplit(aligned_strings[i], "")[[1]]
+    data.frame(group = names(alignment)[i],
+               position = seq_along(chars),
+               base = chars,
+               stringsAsFactors = FALSE)}))
 
-    # Break sequences into single characters and reshape for plotting
-    sequence_df <- do.call(rbind, lapply(seq_along(aligned_strings), function(i) {
-      chars <- strsplit(aligned_strings[i], "")[[1]]
-      data.frame(group = names(alignment)[i],
-                 position = seq_along(chars),
-                 base = chars,
-                 stringsAsFactors = FALSE)}))
+  #sequence_df$base <- gsub("-", ".", sequence_df$base, fixed = TRUE)
 
-    # Assign colors based on sequence groups
-    sequence_df$color <- ifelse(sequence_df$group == "reference", "black",
-                                ifelse(toupper(sequence_df$base) %in% iupacode$one_letter,
-                                       "red", "blue"))
+  # Assign colors based on sequence groups
+  sequence_df$color <- ifelse(sequence_df$group == "reference", "black",
+                              ifelse(toupper(sequence_df$base) %in% iupacode$one_letter,
+                                     "red", "blue"))
 
-    sequence_df$y <- ifelse(sequence_df$group == "reference", 0.5,
-                            ifelse(sequence_df$group == "upstream", 0.4, 0.3))
+  sequence_df$y <- ifelse(sequence_df$group == "reference", 0.5,
+                          ifelse(sequence_df$group == "upstream", 0.4, 0.3))
 
-    # Check if flanking sequences have any polymophic site
-    has_deg <- any(sequence_df$color == "red")
+  # Check if flanking sequences have any polymophic site
+  has_deg <- any(sequence_df$color == "red")
 
-    # If NO, these are the labels
-    legend_labels <- c("Reference seq.", "Flanking seq.")
-    legend_breaks <- c("black", "blue")
+  # If NO, these are the labels
+  legend_labels <- c("Reference seq.", "Flanking seq.")
+  legend_breaks <- c("black", "blue")
 
-    # If YES, these are the labels
-    if (has_deg) {
-      legend_labels <- c(legend_labels, "Polymorphic site/(SNP)")
-      legend_breaks <- c(legend_breaks, "red")
-    }
+  # If YES, these are the labels
+  if (has_deg) {
+    legend_labels <- c(legend_labels, "Polymorphic site/(SNP)")
+    legend_breaks <- c(legend_breaks, "red")
+  }
 
-    # Plot
-    pp <- ggplot2::ggplot(sequence_df,
-                          ggplot2::aes(x = position, y = y, label = base,
-                                       color = color)) +
-      ggplot2::geom_text(size = 4.5, hjust = 'outward', family = 'mono',
-                         key_glyph = 'rect') +
-      ggplot2::scale_color_identity( guide = "legend",
-                                     name = paste("Alignment for marker", marker_ID),
-                                     labels = legend_labels,
-                                     breaks = legend_breaks) +
+  # Plot
+  pp <- ggplot2::ggplot(sequence_df,
+                        ggplot2::aes(x = position,
+                                     y = y,
+                                     color = color)) +
+    ggplot2::geom_text( ggplot2::aes(label = trimws(base, which = 'both')),
+                        size = 4.5,
+                        hjust = 0.5,
+                        family = 'mono',
+                        key_glyph = 'rect') +
+    ggplot2::scale_color_identity( guide = "legend",
+                                   name = paste("Alignment for marker", marker_ID),
+                                   labels = legend_labels,
+                                   breaks = legend_breaks) +
 
-      ggplot2::scale_x_continuous(breaks = NULL, expand = c(0, 2)) +
-      ggplot2::scale_y_continuous(breaks = NULL, expand = c(0, 2)) +
+    ggplot2::scale_x_continuous(breaks = NULL, expand = c(0, 2)) +
+    ggplot2::scale_y_continuous(breaks = NULL, expand = c(0, 2)) +
 
-      ggplot2::guides(color = ggplot2::guide_legend(label.position = "right",
-                                                    title.position = 'top',
-                                                    title.hjust = 0.5)) +
-      ggplot2::theme(legend.title = ggplot2::element_text(size  = 12,
-                                                          color = 'black'),
-                     panel.background = ggplot2::element_rect('white'),
-                     axis.line = ggplot2::element_blank(),
-                     axis.text = ggplot2::element_blank(),
-                     axis.title = ggplot2::element_blank(),
-                     axis.ticks = ggplot2::element_blank(),
-                     legend.text = ggplot2::element_text(size  = 12,
-                                                         color = 'black'),
-                     legend.position = 'inside',
-                     legend.position.inside = c(0.5, 0.6),
-                     legend.direction = 'horizontal')
+    ggplot2::guides(color = ggplot2::guide_legend(label.position = "right",
+                                                  title.position = 'top',
+                                                  title.hjust = 0.5)) +
+    ggplot2::theme(legend.title = ggplot2::element_text(size  = 12,
+                                                        color = 'black'),
+                   panel.background = ggplot2::element_rect('white'),
+                   axis.line = ggplot2::element_blank(),
+                   axis.text = ggplot2::element_blank(),
+                   axis.title = ggplot2::element_blank(),
+                   axis.ticks = ggplot2::element_blank(),
+                   legend.text = ggplot2::element_text(size  = 12,
+                                                       color = 'black'),
+                   legend.position = 'inside',
+                   legend.position.inside = c(0.5, 0.6),
+                   legend.direction = 'horizontal')
+
+  if (save_alignment) {
 
     # Save ggplot object as a pdf device
     ggplot2::ggsave(filename = paste0('alignment_', marker_ID, '.pdf'),
@@ -555,8 +559,9 @@ kasp_marker_design <- function(vcf_file = NULL,
                     units = "in",
                     width = 24,
                     height = 9)
+
   }
 
-  return(marker_data)
+  return(list(marker_data = marker_data, plot = pp))
 
 }

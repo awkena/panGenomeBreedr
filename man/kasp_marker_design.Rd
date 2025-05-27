@@ -16,7 +16,7 @@ kasp_marker_design(
   marker_ID,
   chr = NULL,
   genome_file,
-  plot_draw = TRUE,
+  save_alignment = TRUE,
   plot_file = tempdir(),
   region_name = "loc_1",
   maf = 0.05
@@ -47,8 +47,8 @@ contained in `gt_df` or `vcf_file`.}
 \item{genome_file}{Path to reference genome file in fasta format, either
 compressed (.gz) or decompressed.}
 
-\item{plot_draw}{A logical value indicating whether to plot 100 bp upstream
-and downstream KASP sequence alignment to reference genome.}
+\item{save_alignment}{A logical value indicating whether to save the alignment
+plot to a directory specified by `plot_file`.}
 
 \item{plot_file}{Path to save the sequence alignment if `plot_draw = TRUE`.}
 
@@ -58,8 +58,9 @@ and downstream KASP sequence alignment to reference genome.}
 frequency for variant subset.}
 }
 \value{
-A data frame containing all information required for KASP marker
-design and a DNA sequence alignment to the reference genome.
+A list object of two components comprising a data frame containing
+all information required for KASP marker design, and a plot of DNA sequence
+alignment to the reference genome.
 }
 \description{
 Design KASP markers based on causal variants.
@@ -78,6 +79,7 @@ path1 <- "https://raw.githubusercontent.com/awkena/panGB/main/Chr02.fa.gz"
 path2 <-  system.file("extdata", "Sobic.002G302700_SNP_snpeff.vcf",
                      package = "panGenomeBreedr",
                      mustWork = TRUE)
+
 ma1 <- kasp_marker_design(vcf_file = path2,
                           variant_id_col = 'ID',
                           chrom_col = 'CHROM',
@@ -88,13 +90,13 @@ ma1 <- kasp_marker_design(vcf_file = path2,
                           geno_start = 10,
                           marker_ID = "SNP_Chr02_69200443",
                           chr = "Chr02",
-                          plot_draw = TRUE,
+                          save_alignment = TRUE,
                           plot_file = path,
                           region_name = "ma1",
                           maf = 0.05)
 
 # View marker alignment output from temp folder
-path3 <- file.path(path, list.files(path = path, "alignment_"))
+# path3 <- file.path(path, list.files(path = path, "alignment_"))
 # system(paste0('open "', path3, '"'))
 
 on.exit(unlink(path))
