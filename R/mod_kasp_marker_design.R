@@ -74,7 +74,8 @@ mod_kasp_marker_design_ui <- function(id) {
           ),
           selectizeInput(ns("marker_ID"),
                       label = "Marker ID",
-                      choices = NULL
+                      choices = NULL,
+                      multiple =  TRUE
           ),
           textInput(ns("reg_name"),
                     label = "Region Name",
@@ -115,7 +116,12 @@ mod_kasp_marker_design_ui <- function(id) {
         open = TRUE,
         bslib::accordion_panel(
           "Comprehensive Table of KASP Marker Design Data and DNA Sequence Alignment to the Reference Genome",
-          DT::DTOutput (ns("kasp_table")),
+          # preview for other generated markers
+          selectizeInput(inputId = ns('done_markers'),
+                         label = 'Select Marker ID',
+                         choices = NULL,
+                         width = '30%'),
+          DT::DTOutput (ns("kasp_table"),height = '200px'), # data.table output
           bslib::card(
             bslib::card_footer(
               fluidRow(
@@ -123,7 +129,7 @@ mod_kasp_marker_design_ui <- function(id) {
                   inputId = ns("exten"),
                   label = "Download file as?",
                   choices = c(".csv", ".xlsx"),
-                  selected = ".csv",
+                  selected = ".xlsx",
                   multiple = FALSE
                 )),
                 column(
@@ -204,8 +210,7 @@ mod_kasp_marker_design_server <- function(id) {
         })
       }
     })
-    # Reactive values
-    kasp_des.result <- reactiveVal(NULL)
+
 
     # Read VCF data
     vcf_data <- reactive({
@@ -362,11 +367,16 @@ mod_kasp_marker_design_server <- function(id) {
         )
     })
 
-
+    # Reactive values
+    kasp_des.result <- reactiveVal(NULL) # for dataframes
+    kasp_des.plot <- reactiveVal(NULL) # for plots
 
 
     # Check which input is available and make use of it
     observeEvent(input$run_but, {
+      list_markers <- list() # initialize list to store  marker dataframes
+      list_plots <- list() # to store plot data frames
+
       req(input$variant_id_col, input$chrom_col,
            input$pos_col, input$ref_al_col, input$alt_al_col, input$geno_start,
            input$marker_ID, input$chr_ID, input$genome_file$datapath, input$maf)
@@ -380,8 +390,11 @@ mod_kasp_marker_design_server <- function(id) {
       # First tryCatch for VCF file processing
       if (!is.null(input$vcf_file)) {
         tryCatch({
-          # Using the altered kasp marker design here
-          result_data <- kasp_marker_design_alt(
+
+          for (marker in input$marker_ID ) {
+
+                # Using the altered kasp marker design here
+          result_data <- kasp_marker_design(
             vcf_file = input$vcf_file$datapath,
             gt_df = NULL,
             variant_id_col = input$variant_id_col,
@@ -390,21 +403,32 @@ mod_kasp_marker_design_server <- function(id) {
             ref_al_col = input$ref_al_col,
             alt_al_col = input$alt_al_col,
             geno_start = input$geno_start,
-            marker_ID = input$marker_ID,
+            marker_ID = marker,
             chr = input$chr_ID,
             genome_file = input$genome_file$datapath,
             plot_file = tempdir(),
-            plot_draw = TRUE,
+            save_alignment = FALSE,
             region_name = input$reg_name,
             maf = input$maf
           )
 
-          kasp_des.result(result_data)
+          #store in list object created.
+          list_markers[[marker]] <- result_data$marker_data
+          list_plots[[marker]] <- result_data$plot
+
+          }
+
+
+          kasp_des.result(list_markers) # store dataframes
+          kasp_des.plot(list_plots) # store  plots
 
           # Success alert for VCF processing
           show_alert(
             title = "Success!",
-            text = "KASP marker designed successfully from VCF file",
+            text = paste(
+              length(list_markers), "KASP marker(s) and",
+              length(list_plots), "plot(s) designed successfully"
+            ),
             type = "success",
             showCloseButton = TRUE,
             timer = 5000
@@ -427,31 +451,44 @@ mod_kasp_marker_design_server <- function(id) {
       } else if (!is.null(gt_data())) {
 
         tryCatch({
-          # Using the altered kasp marker design here
-          result_data <- kasp_marker_design_alt(
-            vcf_file = NULL,
-            gt_df = gt_data(),
-            variant_id_col = input$variant_id_col,
-            chrom_col = input$chrom_col,
-            pos_col = input$pos_col,
-            ref_al_col = input$ref_al_col,
-            alt_al_col = input$alt_al_col,
-            geno_start = input$geno_start,
-            marker_ID = input$marker_ID,
-            chr = input$chr_ID,
-            genome_file = input$genome_file$datapath,
-            plot_file = tempdir(),
-            region_name = input$reg_name,
-            maf = input$maf,
-            plot_draw = TRUE
-          )
 
-          kasp_des.result(result_data)
+
+          for (marker in input$marker_ID ) {
+
+            result_data <- kasp_marker_design(
+              vcf_file = NULL,
+              gt_df = gt_data(),
+              variant_id_col = input$variant_id_col,
+              chrom_col = input$chrom_col,
+              pos_col = input$pos_col,
+              ref_al_col = input$ref_al_col,
+              alt_al_col = input$alt_al_col,
+              geno_start = input$geno_start,
+              marker_ID = marker,
+              chr = input$chr_ID,
+              genome_file = input$genome_file$datapath,
+              plot_file = tempdir(),
+              region_name = input$reg_name,
+              maf = input$maf,
+              save_alignment = FALSE
+
+            )
+
+            list_markers[[marker]] <- result_data$marker_data
+            list_plots[[marker]] <- result_data$plot
+
+          }
+
+          kasp_des.result(list_markers) # store dataframes
+          kasp_des.plot(list_plots)# store plots
 
           # Success alert for gt_data processing
           show_alert(
             title = "Success!",
-            text = "KASP marker designed successfully from genotype data",
+            text = paste(
+              length(list_markers), "KASP marker(s) and",
+              length(list_plots), "plot(s) designed successfully"
+            ),
             type = "success",
             showCloseButton = TRUE,
             timer = 5000
@@ -472,11 +509,22 @@ mod_kasp_marker_design_server <- function(id) {
       }
     })
 
+    # Update select input.
+    observe({
+      req(kasp_des.result() ,kasp_des.plot() )
+      updateSelectizeInput(session,
+                           inputId = 'done_markers',
+                           choices = names(kasp_des.result()) )
+      updateSelectizeInput(session ,
+                           inputId = 'plot_choice',
+                           choices = names(kasp_des.plot()))
+    })
 
     # Render KASP table
     output$kasp_table <- DT::renderDT({
-      req(kasp_des.result()$marker_data)
-      DT::datatable(kasp_des.result()$marker_data,
+
+      req(kasp_des.result(),input$done_markers)
+      DT::datatable(kasp_des.result()[[input$done_markers]],
                     options = list(pageLength = 10, scrollX = TRUE)
       )
     })
@@ -491,9 +539,9 @@ mod_kasp_marker_design_server <- function(id) {
       },
       content = function(file) {
         if (input$exten == ".csv") {
-          write.csv(kasp_des.result()$marker_data, file, row.names = FALSE)
+          write.csv(kasp_des.result()[[1]], file, row.names = FALSE)
         } else if (input$exten == ".xlsx") {
-          openxlsx::write.xlsx(kasp_des.result()$marker_data, file)
+          openxlsx::write.xlsx(kasp_des.result(), file)
         }
       }
     )
@@ -509,7 +557,11 @@ mod_kasp_marker_design_server <- function(id) {
             open = TRUE,
             bslib::accordion_panel(
               "KASP Sequence Alignment: 100 bp Upstream and Downstream of Target Site",
-              plotOutput(ns("plot")),
+              selectizeInput(inputId = ns('plot_choice'),
+                             label = 'Select Marker ID',
+                             width = '30%',
+                             choices = NULL), # drop down for plots
+              plotOutput(ns("plot"),height = '400px'),
               downloadButton(ns("download_plot"),
                              label = "Download Plot (pdf)",
                              class = "btn-success", icon = icon("download")
@@ -526,29 +578,29 @@ mod_kasp_marker_design_server <- function(id) {
 
     # Render Plot
     output$plot <- renderPlot({
-      req(kasp_des.result())
-
-      kasp_des.result()$plot # show plot
+      req(kasp_des.plot() , input$plot_choice)
+     print(kasp_des.plot()[[input$plot_choice]])
     })
 
-    # Download Plot
+
     output$download_plot <- downloadHandler(
       filename = function() {
-        # Clean marker ID for filename
         clean_marker <- gsub("[^[:alnum:]_-]", "_", input$marker_ID)
         paste0("alignment_", clean_marker, ".pdf")
       },
       content = function(file) {
-        ggplot2::ggsave(
-          filename = file,
-          plot = kasp_des.result()$plot,
-          device = "pdf",
-          width = 24,
-          height = 9,
-          units = "in"
-        )
+        plots <- kasp_des.plot()
+
+        # Start PDF
+        pdf(file, width = 24, height = 9, onefile = TRUE)
+
+        # Print plots
+        if (is.list(plots)) lapply(plots, print) else print(plots)
+
+        dev.off()  # Close PDF
       }
     )
+
   })
 }
 
