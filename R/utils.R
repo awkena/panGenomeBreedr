@@ -625,13 +625,6 @@ rpp_barplot <- function(rpp_df,
   rpp_df <- data.frame(sample_id = rpp_df[, rpp_sample_id], rpp = rpp_df[, rpp_col])
   rpp_df$sample_id <- factor(rpp_df$sample_id, levels = rev(unique(rpp_df$sample_id )))
 
-  # Subset to show only lines that have RPP above the desired RPP threshold
-  if (show_above_thresh == TRUE) {
-
-    rpp_df <- rpp_df[rpp_df[,rpp_col] >= rpp_threshold,]
-
-  }
-
   # Use nominal RPP value as threshold if its value is NULL
   # Or set to 0.9 if both bc_gen and threshold value are NULL
   if (is.null(rpp_threshold)) {
@@ -643,6 +636,16 @@ rpp_barplot <- function(rpp_df,
     } else rpp_threshold <- 0.9
 
   }
+
+  # Subset to show only lines that have RPP above the desired RPP threshold
+  if (show_above_thresh) {
+
+    rpp_df <- rpp_df[rpp_df[,'rpp'] >= rpp_threshold,]
+
+  }
+
+
+
 
   plt <- ggplot2::ggplot(rpp_df, ggplot2::aes(x = rpp, y = sample_id)) +
 
