@@ -15,7 +15,7 @@
 #' @importFrom bslib navset_card_underline sidebar card card_header
 #' @importFrom bslib card_body card_footer nav_panel navset_card_tab
 #' @importFrom bslib layout_column_wrap input_switch
-#' @importFrom DT DTOutput
+#' @importFrom reactable reactableOutput
 #'
 mod_variant_discovery_ui <- function(id) {
   ns <- NS(id)
@@ -71,22 +71,22 @@ mod_variant_discovery_ui <- function(id) {
         width = "100%",
         bslib::card(
           primary_card_header("Variant Impact Summary"),
-          bslib::card_body(DT::DTOutput(ns("table_impact_id")))
+          bslib::card_body(reactable::reactableOutput(ns("table_impact_id")))
         ),
         bslib::card(
           primary_card_header("Variant Statistics"),
-          bslib::card_body(DT::DTOutput(ns("table_var_stats_id")))
+          bslib::card_body(reactable::reactableOutput(ns("table_var_stats_id")))
         )
       ),
       bslib::layout_column_wrap(
         width = 1 / 2,
         bslib::card(
           primary_card_header("Summarised SQLite Tables"),
-          bslib::card_body(DT::DTOutput(ns("sum_sqlite_id")))
+          bslib::card_body(reactable::reactableOutput(ns("sum_sqlite_id")))
         ),
         bslib::card(
           primary_card_header("Variant Type Count"),
-          bslib::card_body(DT::DTOutput(ns("count_variant_typ_id")))
+          bslib::card_body(reactable::reactableOutput(ns("count_variant_typ_id")))
         )
       ),
       bslib::layout_column_wrap(
@@ -100,7 +100,7 @@ mod_variant_discovery_ui <- function(id) {
               choices = c("variants", "annotations", "genotypes"),
               selected = "genotypes"
             ),
-            DT::DTOutput(ns("results_lst"))
+            reactable::reactableOutput(ns("results_lst"))
           )
         )
       )
@@ -260,7 +260,7 @@ mod_variant_discovery_ui <- function(id) {
 #' @importFrom RSQLite dbConnect dbDisconnect
 #' @importFrom writexl write_xlsx
 #' @importFrom shinyWidgets show_alert show_toast
-#' @importFrom DT DTOutput
+#' @importFrom reactable reactable renderReactable reactableOutput reactableTheme colDef
 #' @importFrom shiny showModal modalDialog
 #'
 #' @noRd
@@ -343,15 +343,13 @@ mod_variant_discovery_server <- function(id) {
         rv$status_message <- paste("Connected with", length(rv$tables), "tables")
         rv$db_path <- input$db_path
 
-        shinyjs::delay(100, {
-          show_alert(
-            title = "Success!",
-            text = "Database connected successfully",
-            type = "success",
-            showCloseButton = TRUE,
-            timer = 5000
-          )
-        })
+        shinyWidgets::show_alert(
+          title = "Success!",
+          text = "Database connected successfully",
+          type = "success",
+          showCloseButton = TRUE,
+          timer = 5000
+        )
       }, error = function(e) {
         show_alert(
           title = "Failed!",
@@ -433,28 +431,71 @@ mod_variant_discovery_server <- function(id) {
 
     # Table renderers
     # Helper function for rendering tables
-    render_dt <- function(data) {
-      DT::datatable(data, options = list(scrollX = TRUE))
+    render_reactable <- function(data, theme = NULL) {
+      # Default theme if none provided
+      if (is.null(theme)) {
+        theme <- reactable::reactableTheme(
+          backgroundColor = "hsl(0, 0%, 100%)",
+          borderColor = "hsl(0, 0%, 89%)",
+          stripedColor = "hsl(0, 0%, 97%)",
+          highlightColor = "hsl(0, 0%, 96%)",
+          cellPadding = "8px 12px",
+          style = list(
+            fontFamily = "-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif"
+          ),
+          searchInputStyle = list(
+            width = "100%",
+            padding = "8px 12px"
+          ),
+          headerStyle = list(
+            borderWidth = "1px",
+            padding = "8px 12px"
+          )
+        )
+      }
+
+      reactable(
+        data,
+        defaultColDef = reactable::colDef(
+          headerClass = "header",
+          align = "left",
+          minWidth = 100,
+          width = 200
+        ),
+        pagination = TRUE,
+        showPageSizeOptions = TRUE,
+        pageSizeOptions = c(10, 25, 50, 100),
+        striped = TRUE,
+        highlight = TRUE,
+        bordered = TRUE,
+        compact = TRUE,
+        wrap = TRUE,
+        theme = theme,
+        style = list(
+          maxWidth = "100%"
+        )
+      )
     }
 
-    output$table_impact_id <- DT::renderDT({
+    output$table_impact_id <- reactable::renderReactable({
       req(rv$variant_impact)
-      render_dt(rv$variant_impact)
+      render_reactable(rv$variant_impact)
     })
 
-    output$table_var_stats_id <- DT::renderDT({
+
+    output$table_var_stats_id <- reactable::renderReactable({
       req(rv$variant_stats)
-      render_dt(rv$variant_stats)
+      render_reactable(rv$variant_stats)
     })
 
-    output$sum_sqlite_id <- DT::renderDT({
+    output$sum_sqlite_id <- reactable::renderReactable({
       req(rv$sqlite_summary)
-      render_dt(rv$sqlite_summary)
+      render_reactable(rv$sqlite_summary)
     })
 
-    output$count_variant_typ_id <- DT::renderDT({
+    output$count_variant_typ_id <- reactable::renderReactable({
       req(rv$variant_count)
-      render_dt(rv$variant_count)
+      render_reactable(rv$variant_count)
     })
 
     # List table columns in database
@@ -466,9 +507,9 @@ mod_variant_discovery_server <- function(id) {
       )
     })
 
-    output$results_lst <- DT::renderDT({
+    output$results_lst <- reactable::renderReactable({
       req(lst_tbl_column())
-      render_dt(lst_tbl_column())
+      render_reactable(lst_tbl_column())
     })
 
 
@@ -478,38 +519,41 @@ mod_variant_discovery_server <- function(id) {
     #------------------------------
     # Reactive values for query results
     values <- reactiveValues(
-      # status = "",
       result = NULL, # Store results for genotype coordinates
       query_db_val = NULL, # Store results for queried tables within Database
       query_ann_react = NULL, # store annotation summary
-      query_geno_react = NULL # store genotype matrix of PCVs
+      query_geno_react = NULL, # store genotype matrix of PCVs
+      last_action = NULL # help make feedback robust for dbquery actions
     )
 
     # Helper function for success toasts
-    show_toast_success <- function(text) {
+    show_toast_success <- function(text ,
+                                   type = 'success',
+                                   timer = 3000) {
       shinyWidgets::show_toast(
         title = "Success",
         text = text,
-        timer = 5000,
+        timer = timer,
         position = "bottom-end",
-        type = "success"
+        type = type
       )
     }
+
     # Helper function for annotation summary ui
     annotation_summary_results_ui <- function(ns) {
       bslib::card(
         bslib::card_header("Annotation Statistics"),
         bslib::card(
           bslib::card_header("Annotation Summary", class = "bg-primary text-light"),
-          DT::DTOutput(ns("ann_summary_tbl"))
+          reactable::reactableOutput(ns("ann_summary_tbl"))
         ),
         bslib::card(
           bslib::card_header("Impact Summary", class = "bg-primary text-light"),
-          DT::DTOutput(ns("impact_summary_tbl"))
+          reactable::reactableOutput(ns("impact_summary_tbl"))
         ),
         bslib::card(
           bslib::card_header("Variant Type Totals", class = "bg-primary text-light"),
-          DT::DTOutput(ns("variant_totals_tbl"))
+          reactable::reactableOutput(ns("variant_totals_tbl"))
         ),
         class = "mt-3"
       )
@@ -565,7 +609,6 @@ mod_variant_discovery_server <- function(id) {
     # Get gene coordinates
     observeEvent(input$submit, {
       removeModal()
-
       req(input$gene_name)
 
       shinybusy::show_modal_spinner(
@@ -658,6 +701,12 @@ mod_variant_discovery_server <- function(id) {
       req(input$chrom, input$start, input$end)
       removeModal()
 
+      values$result <- list(
+        chrom = input$chrom,
+        start = input$start,
+        end = input$end
+      )
+
       show_alert(
         title = "Gene Coordinates Set",
         text = sprintf(
@@ -669,6 +718,8 @@ mod_variant_discovery_server <- function(id) {
         timer = 5000
       )
     })
+
+
 
     # Render UI dynamically based on choice of query
     observe({
@@ -721,28 +772,54 @@ mod_variant_discovery_server <- function(id) {
     })
 
 
-
-    # Query database
+    # Combined database query and annotation summary
     observeEvent(input$query_dbase_btn, {
-      req(input$db_path, input$table_name)
+      values$last_action <- NULL # Null last action
 
+      req(input$db_path, values$result)
+
+      # Show loading spinner for both operations
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
         color = "#0dc5c1",
         text = "Querying Database... Please wait."
       )
 
-      tryCatch({
-        values$query_db_val <- query_db(
-          db_path = input$db_path,
-          table_name = input$table_name,
-          chrom = if (is.null(input$chrom)) values$result$chrom else input$chrom,
-          start = if (is.null(input$start)) values$result$start else input$start,
-          end = if (is.null(input$end)) values$result$end else input$end,
-          gene_name = if (input$query_gene_name == "") NULL else input$query_gene_name
-        )
 
-        show_toast_success(text = paste("Queried by", input$table_name))
+      # First: Database query
+      tryCatch({
+
+
+        if (!is.null(input$table_name) && input$table_name != "") {
+          values$query_db_val <- query_db(
+            db_path = input$db_path,
+            table_name = input$table_name,
+            chrom = values$result$chrom,
+            start = values$result$start,
+            end = values$result$end,
+            gene_name = if (input$query_gene_name == "") NULL else input$query_gene_name
+          )
+
+          values$last_action <- 'main_db'
+        }
+
+        # Second: Annotation summary
+        if (!is.null(input$table_name_v) && !is.null(input$table_name_a)) {
+          updateTabsetPanel(session, "nav_id", selected = "Main Database Query Result")
+
+          values$query_ann_react <- query_ann_summary(
+            db_path = input$db_path,
+            variants_table = input$table_name_v,
+            annotations_table = input$table_name_a,
+            chrom = values$result$chrom,
+            start = values$result$start,
+            end = values$result$end
+          )
+
+          values$last_action <- 'annotation_summ'
+
+        }
+
       }, error = function(e) {
         show_alert(
           title = "Failed!",
@@ -752,41 +829,40 @@ mod_variant_discovery_server <- function(id) {
           timer = 5000
         )
       }, finally = {
-        shinybusy::remove_modal_spinner()
+        shinyjs::delay(ms = 1000, {
+          shinybusy::remove_modal_spinner()
+          if(values$last_action == 'annotation_summ'){
+
+            show_toast_success("Variant Filtered By Annotation Summary")
+
+          }else if(values$last_action == 'main_db'){
+
+           show_toast_success(text = paste("Queried by", input$table_name))
+
+          }
+
+        })
       })
+
+
     })
 
-    # Annotation summary.
-    observeEvent(input$query_dbase_btn, {
-      updateTabsetPanel(session, "nav_id", selected = "Main Database Query Result")
-      req(input$db_path, input$table_name_v, input$table_name_a)
-
-      values$query_ann_react <- query_ann_summary(
-        db_path = input$db_path,
-        variants_table = input$table_name_v,
-        annotations_table = input$table_name_a,
-        chrom = if (is.null(input$chrom)) values$result$chrom else input$chrom,
-        start = if (is.null(input$start)) values$result$start else input$start,
-        end = if (is.null(input$end)) values$result$end else input$end
-      )
-
-      show_toast_success("Variant Filtered By Annotation Summary")
-    })
 
     # Insert results to table
-    output$ann_summary_tbl <- DT::renderDT({
+    output$ann_summary_tbl <- reactable::renderReactable({
       req(values$query_ann_react)
-      render_dt(values$query_ann_react$annotation_summary)
+      render_reactable(values$query_ann_react$annotation_summary)
+
     })
 
-    output$impact_summary_tbl <- DT::renderDT({
+    output$impact_summary_tbl <- reactable::renderReactable({
       req(values$query_ann_react)
-      render_dt(values$query_ann_react$impact_summary)
+      render_reactable(values$query_ann_react$impact_summary)
     })
 
-    output$variant_totals_tbl <- DT::renderDT({
+    output$variant_totals_tbl <- reactable::renderReactable({
       req(values$query_ann_react)
-      render_dt(values$query_ann_react$variant_type_totals)
+      render_reactable(values$query_ann_react$variant_type_totals)
     })
 
 
@@ -795,9 +871,10 @@ mod_variant_discovery_server <- function(id) {
       req(input$query_database) # choice radio button
       if (!is.null(input$query_database) && input$query_database == "q_entire") {
         output$query_db_display <- renderUI({
-          DT::renderDT({
+          reactable::renderReactable({
             req(values$query_db_val)
-            render_dt(values$query_db_val)
+            render_reactable(values$query_db_val)
+
           })
         })
       } else if (!is.null(input$query_database) && input$query_database == "q_annt") {
@@ -816,7 +893,7 @@ mod_variant_discovery_server <- function(id) {
     genotype_results_ui <- function(ns) {
       bslib::card(
         # bslib::card_header("Genotype Data"),
-        div(style = "overflow-x: auto;", DT::DTOutput(ns("genotype_results_tbl"))),
+        div(style = "overflow-x: auto;", reactable::reactableOutput(ns("genotype_results_tbl"))),
         class = "mt-3",
         bslib::card_footer(
           textInput(
@@ -851,13 +928,13 @@ mod_variant_discovery_server <- function(id) {
     # Query handlers
     # Reactive for queried by impact
     query_by_impact_result <- reactive({
-      req(input$db_path, input$impact_level)
+      req(input$db_path, input$impact_level, values$result)
       query_by_impact(
         db_path = input$db_path,
         impact_level = input$impact_level,
-        chrom = if (is.null(input$chrom)) values$result$chrom else input$chrom,
-        start = if (is.null(input$start)) values$result$start else input$start,
-        end = if (is.null(input$end)) values$result$end else input$end
+        chrom = values$result$chrom,
+        start = values$result$start,
+        end = values$result$end
       )
     })
 
@@ -881,11 +958,21 @@ mod_variant_discovery_server <- function(id) {
       )
     })
 
+
     # Filter by out successful PCVs for marker design
     observeEvent(input$get_pcv_btn, {
-      updateTabsetPanel(session, inputId = "nav_id", selected = "Results Showing PCVs for KASP Marker Design")
+      values$query_geno_react  <- NULL
 
       req(query_by_alf_result(), input$db_path)
+
+      updateTabsetPanel(session, inputId = "nav_id", selected = "Results Showing PCVs for KASP Marker Design")
+
+      shinybusy::show_modal_spinner(
+        spin = "fading-circle",
+        color = "#0dc5c1",
+        text = "Getting Putative Causal Variants... Please wait."
+      )
+
 
       tryCatch(
         {
@@ -894,8 +981,6 @@ mod_variant_discovery_server <- function(id) {
             variant_ids = query_by_alf_result()$variant_id,
             meta_data = c("chrom", "pos", "ref", "alt", "variant_type")
           )
-
-          show_toast_success(text = "Putative Causal Variants Found!")
         },
         error = function(e) {
           show_alert(
@@ -903,8 +988,18 @@ mod_variant_discovery_server <- function(id) {
             text = "Confirm Impact Level and Allele Frequency Threshold Using Annotation Summary",
             type = "error",
             showCloseButton = TRUE,
-            timer = 5000
+            timer = 8000
           )
+        }, finally = {
+          shinyjs::delay(1000, {
+            shinybusy::remove_modal_spinner()
+            if(is.null(values$query_geno_react)){
+              show_toast_success(text = paste('Found No Putative Causal Variants'),type = 'error')
+            }else{
+              show_toast_success(text = paste('Found',nrow(values$query_geno_react),'Putative Causal Variants'))
+            }
+
+          })
         }
       )
 
@@ -916,10 +1011,12 @@ mod_variant_discovery_server <- function(id) {
 
 
     # Result genotype matrix
-    output$genotype_results_tbl <- DT::renderDT({
+    output$genotype_results_tbl <- reactable::renderReactable({
       req(values$query_geno_react)
-      render_dt(values$query_geno_react)
+      render_reactable(values$query_geno_react)
     })
+
+
 
     # Download handler
     output$download_excel <- downloadHandler(
@@ -962,7 +1059,8 @@ mod_variant_discovery_server <- function(id) {
                     ns("modal_marker_ID"),
                     label = "Marker ID",
                     choices = values$query_geno_react$variant_id,
-                    options = list(placeholder = "Select a variant...")
+                    options = list(placeholder = "Select variants..."),
+                    multiple = TRUE
                   ),
                   textInput(
                     ns("modal_reg_name"),
@@ -1000,7 +1098,14 @@ mod_variant_discovery_server <- function(id) {
                 open = TRUE,
                 bslib::accordion_panel(
                   "KASP Marker Data & Sequence Alignment Table",
-                  DT::DTOutput(ns("kasp_table")),
+                  # preview for other generated markers
+                  selectizeInput(
+                    inputId = ns("done_markers"),
+                    label = "Select Marker ID",
+                    choices = NULL,
+                    width = "45%"
+                  ),
+                  DT::DTOutput(ns("kasp_table"), height = "200px"),
                   bslib::card(
                     bslib::card_footer(
                       fluidRow(
@@ -1008,8 +1113,8 @@ mod_variant_discovery_server <- function(id) {
                           inputId = ns("exten"),
                           label = "Download file as?",
                           choices = c(".csv", ".xlsx"),
-                          selected = ".csv",
-                          multiple = FALSE
+                          selected = ".xlsx",
+                          multiple = FALSE,
                         )),
                         column(
                           width = 4,
@@ -1037,27 +1142,26 @@ mod_variant_discovery_server <- function(id) {
     })
 
     # Server Side of kasp marker design
-    kasp_design_result <- reactiveVal(NULL) # store kasp result
+    kasp_des.result <- reactiveVal(NULL) # store kasp dataframe
+    kasp_des.plot <- reactiveVal(NULL) # store kasp plots
 
     observeEvent(input$modal_run_but, {
+    show_toast_success(text = 'Designing KASP Markers... Please Wait!'  ,type = 'info'  ,timer = 8000)
+
       req(
         values$query_geno_react, input$modal_genome_file$datapath,
         input$modal_maf, input$modal_marker_ID
       )
 
-      shinyWidgets::show_toast(
-        title = "Designing Marker...",
-        text = "Please Wait...",
-        timer = 8000,
-        type = "info"
-      )
+      list_markers <- list() # list object for markers
+      list_plots <- list() # list object for plots
 
       tryCatch(
         {
           # Get column names
           gt_cols <- colnames(values$query_geno_react)
 
-          # Find column indices
+          # Get exact column names
           id_col <- gt_cols[grep("id", gt_cols, ignore.case = TRUE)[1]]
           chrom_col <- gt_cols[grep("chro", gt_cols, ignore.case = TRUE)[1]]
           pos_col <- gt_cols[grep("pos", gt_cols, ignore.case = TRUE)[1]]
@@ -1070,51 +1174,78 @@ mod_variant_discovery_server <- function(id) {
           # Get unique chromosomes
           unique_chr <- unique(values$query_geno_react[[chrom_col]])
 
-          # Run KASP design
-          result_data <- kasp_marker_design_alt(
-            vcf_file = NULL,
-            gt_df = values$query_geno_react,
-            variant_id_col = id_col,
-            chrom_col = chrom_col,
-            pos_col = pos_col,
-            ref_al_col = ref_col,
-            alt_al_col = alt_col,
-            geno_start = geno_start,
-            marker_ID = input$modal_marker_ID,
-            chr = unique_chr,
-            genome_file = input$modal_genome_file$datapath,
-            plot_file = tempdir(),
-            region_name = input$modal_reg_name,
-            maf = input$modal_maf,
-            plot_draw = TRUE
-          )
+          for (marker in input$modal_marker_ID) {
+            # Run KASP design
+            result_data <- kasp_marker_design(
+              vcf_file = NULL,
+              gt_df = values$query_geno_react,
+              variant_id_col = id_col,
+              chrom_col = chrom_col,
+              pos_col = pos_col,
+              ref_al_col = ref_col,
+              alt_al_col = alt_col,
+              geno_start = geno_start,
+              marker_ID = marker,
+              chr = unique_chr,
+              genome_file = input$modal_genome_file$datapath,
+              plot_file = tempdir(),
+              region_name = input$modal_reg_name,
+              maf = input$modal_maf,
+              save_alignment = FALSE
+            )
 
-          kasp_design_result(result_data)
+            list_markers[[marker]] <- result_data$marker_data
+            list_plots[[marker]] <- result_data$plot
+          }
 
-          # Show success message
-          shinyWidgets::show_toast(
-            title = "Success",
-            text = "KASP marker designed successfully",
+
+          kasp_des.result(list_markers) # marker dataframes
+          kasp_des.plot(list_plots) # plots
+
+          # Success alert for VCF processing
+          shinyWidgets::show_alert(
+            title = "Success!",
+            text = paste(
+              length(list_markers), "KASP marker(s) and",
+              length(list_plots), "plot(s) designed successfully"
+            ),
             type = "success",
+            showCloseButton = TRUE,
             timer = 5000
           )
         },
         error = function(e) {
-          # Show error message
-          shinyWidgets::show_toast(
-            title = "Error",
-            text = paste("Failed to design KASP marker:", e$message),
-            type = "error",
-            timer = 8000
-          )
-          kasp_design_result(NULL)
+          kasp_des.result(NULL)
+          show_toast_success(text = paste('Error: ',e$message),
+                             type = 'error')
         }
       )
     })
+    # Update drop down.
+    observe({
+      req(kasp_des.result(), kasp_des.plot())
+      updateSelectizeInput(session,
+        inputId = "done_markers",
+        choices = names(kasp_des.result())
+      )
+      updateSelectizeInput(session,
+        inputId = "plot_choice",
+        choices = names(kasp_des.plot())
+      )
+    })
+
 
     output$kasp_table <- DT::renderDT({
-      req(kasp_design_result()$marker_data)
-      render_dt(data = kasp_design_result()$marker_data)
+      req(kasp_des.result())
+      DT::datatable(
+        data = kasp_des.result()[[input$done_markers]],
+        options = list(
+          scrollX = TRUE,
+          pageLength = 10,
+          serverSide = TRUE
+        ),
+        escape = TRUE
+      )
     })
 
 
@@ -1127,9 +1258,9 @@ mod_variant_discovery_server <- function(id) {
       },
       content = function(file) {
         if (input$exten == ".csv") {
-          write.csv(kasp_design_result()$marker_data, file, row.names = FALSE)
+          write.csv(data.table::rbindlist(kasp_des.result()), file, row.names = FALSE)
         } else if (input$exten == ".xlsx") {
-          openxlsx::write.xlsx(kasp_design_result()$marker_data, file)
+          openxlsx::write.xlsx(data.table::rbindlist(kasp_des.result()), file)
         }
       }
     )
@@ -1141,6 +1272,12 @@ mod_variant_discovery_server <- function(id) {
           bslib::accordion(
             bslib::accordion_panel(
               "KASP Sequence Alignment Plot",
+              selectizeInput(
+                inputId = ns("plot_choice"),
+                label = "Select Marker ID",
+                width = "45%",
+                choices = NULL
+              ), # drop down for plots
               plotOutput(ns("plot")),
               downloadButton(ns("download_plot"),
                 label = "Download Plot (pdf)",
@@ -1156,29 +1293,29 @@ mod_variant_discovery_server <- function(id) {
       }
     })
 
-    # Render alignment Plot
-    output$plot <- renderPlot({
-      req(kasp_design_result())
 
-      print(kasp_design_result()$plot) # show plot
+    # Render Plot
+    output$plot <- renderPlot({
+      req(kasp_des.plot(), input$plot_choice)
+      print(kasp_des.plot()[[input$plot_choice]])
     })
 
-    # Download Plot
+
     output$download_plot <- downloadHandler(
       filename = function() {
-        # Clean proposed user file name and append underscores
-        clean_marker <- gsub("[^[:alnum:]_-]", "_", input$modal_marker_ID)
+        clean_marker <- gsub("[^[:alnum:]_-]", "_", input$marker_ID)
         paste0("alignment_", clean_marker, ".pdf")
       },
       content = function(file) {
-        ggplot2::ggsave(
-          filename = file,
-          plot = kasp_design_result()$plot,
-          device = "pdf",
-          width = 24,
-          height = 9,
-          units = "in"
-        )
+        plots <- kasp_des.plot()
+
+        # Start PDF
+        pdf(file, width = 24, height = 9, onefile = TRUE)
+
+        # Print plots
+        if (is.list(plots)) lapply(plots, print) else print(plots)
+
+        dev.off() # Close PDF
       }
     )
   })
