@@ -12,7 +12,7 @@
 #' @importFrom shiny NS tagList sidebarLayout sidebarPanel mainPanel selectInput textInput
 #'   actionButton icon div conditionalPanel column fluidRow numericInput plotOutput downloadButton
 #' @importFrom bslib input_switch accordion accordion_panel card card_footer
-#' @importFrom DT dataTableOutput
+#' @importFrom DT DTOutput
 #' @importFrom grDevices colors
 mod_mv_pred_sum_stat_ui <- function(id) {
   ns <- NS(id)
@@ -58,7 +58,7 @@ mod_mv_pred_sum_stat_ui <- function(id) {
           open = TRUE,
           bslib::accordion_panel(
             title = "Predictive Summary for Positive Controls in KASP Genotype Data",
-            DT::dataTableOutput(outputId = ns("predict_sum"))
+            DT::DTOutput(outputId = ns("predict_sum"))
           ), style = "margin-bottom: 15px;"
         ),
         shiny::conditionalPanel(
@@ -113,7 +113,7 @@ mod_mv_pred_sum_stat_ui <- function(id) {
           bslib::accordion_panel(
             title = "Predictive Status for Positive Controls in KASP Genotype Data",
             selectInput(inputId = ns("pred_stat_dd"), label = "Select Plate ID", choices = NULL, multiple = FALSE),
-            DT::dataTableOutput(outputId = ns("predict_stat"))
+            DT::DTOutput(outputId = ns("predict_stat"))
           ),
           style = "margin-bottom: 15px;"
         )
@@ -294,16 +294,12 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
       })
 
       # Show success message with appropriate delay
-      shinyjs::delay(100, {
-        # Make sure spinner is removed
-        #shinybusy::remove_modal_spinner()
-
         shinyWidgets::show_toast(
           title = "Success!",
-          type = "success",
-          timer = 5000
+          type = "Predictive Status Generated Successfully",
+          timer = 2000
         )
-      })
+
     })
 
     # Display prediction summary with error handling
