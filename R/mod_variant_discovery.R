@@ -293,7 +293,8 @@ mod_variant_discovery_server <- function(id) {
       db_path = NULL,
       sqlite_summary = NULL,
       variant_count = NULL,
-      variant_stats = NULL
+      variant_stats = NULL,
+      lst_tbl_column = NULL
     )
 
     # Status badge UI
@@ -424,6 +425,22 @@ mod_variant_discovery_server <- function(id) {
         rv$variant_count <- count_variant_types(db_path = input$db_path)
         rv$variant_stats <- variant_stats(db_path = input$db_path)
         rv$tables <- list_sqlite_tables(input$db_path)
+        rv$lst_tbl_column <-   list_table_columns(
+          db_path = input$db_path,
+          table_name = input$table_name_lst
+        )
+
+
+      },error = function(e){
+
+       shinyWidgets::show_alert(
+          title = "Failed!",
+          text = e$message,
+          type = "danger",
+          showCloseButton = TRUE,
+          timer = 5000
+        )
+
       }, finally = {
         shinybusy::remove_modal_spinner()
       })
@@ -498,18 +515,9 @@ mod_variant_discovery_server <- function(id) {
       render_reactable(rv$variant_count)
     })
 
-    # List table columns in database
-    lst_tbl_column <- reactive({
-      req(input$table_name_lst, input$db_path)
-      list_table_columns(
-        db_path = input$db_path,
-        table_name = input$table_name_lst
-      )
-    })
-
     output$results_lst <- reactable::renderReactable({
-      req(lst_tbl_column())
-      render_reactable(lst_tbl_column())
+      req(rv$lst_tbl_column)
+      render_reactable(rv$lst_tbl_column)
     })
 
 
