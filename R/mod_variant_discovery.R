@@ -230,10 +230,12 @@ mod_variant_discovery_ui <- function(id) {
         status = "primary",
         connection_panel(ns)
       ),
+      # Display query frontend
       bslib::nav_panel(
         title = tags$b("Query Actions"), icon = icon("bolt"),
         query_actions_tab(ns)
-      ), # Display query frontend
+      ),
+      # Database info ui
       bslib::nav_panel(
         title = tags$b("Info"), icon = icon("info-circle"),
         shinyWidgets::actionBttn(
@@ -243,8 +245,9 @@ mod_variant_discovery_ui <- function(id) {
           size = "md",
           color = "primary"
         ),
-        info_tab(ns) # Display info
+        info_tab(ns)
       )
+
     )
   )
 }
@@ -280,11 +283,12 @@ mod_variant_discovery_server <- function(id) {
       }
     }
 
-    # Connection object
-    conn <- NULL
+
+
 
     # Reactive values to store application state
     rv <- reactiveValues(
+      conn = NULL, # Connection object
       connected = FALSE,
       tables = NULL,
       status_message = "Not connected",
@@ -330,13 +334,13 @@ mod_variant_discovery_server <- function(id) {
         }
 
         # Close existing connection if any
-        if (!is.null(conn)) {
-          dbDisconnect(conn)
-          conn <- NULL
+        if (!is.null(rv$conn)) {
+          dbDisconnect(rv$conn)
+          rv$conn <- NULL
         }
 
         # Connect to database
-        conn <<- dbConnect(RSQLite::SQLite(), input$db_path)
+        rv$conn <- dbConnect(RSQLite::SQLite(), input$db_path)
 
         # Update state
         rv$connected <- TRUE
@@ -366,9 +370,9 @@ mod_variant_discovery_server <- function(id) {
 
     # Disconnect from database
     observeEvent(input$disconnect_btn, {
-      if (!is.null(conn)) {
-        dbDisconnect(conn)
-        conn <<- NULL
+      if (!is.null(rv$conn)) {
+        dbDisconnect(rv$conn)
+        rv$conn <- NULL
 
         # Reset state
         rv$connected <- FALSE
@@ -376,6 +380,17 @@ mod_variant_discovery_server <- function(id) {
         rv$status_message <- "Disconnected"
         rv$variant_impact <- NULL
         rv$selected_table <- NULL
+        rv$sqlite_summary <- NULL
+        rv$variant_count <- NULL
+        rv$variant_stats <- NULL
+        rv$lst_tbl_column <- NULL
+        rv$db_path <- NULL
+
+        # Reset query results
+        values$result <- NULL
+        values$query_db_val <- NULL
+        values$query_ann_react <- NULL
+        values$query_geno_react <- NULL
 
         shinyWidgets::show_toast(
           title = "Disconnected from Database",
@@ -386,10 +401,13 @@ mod_variant_discovery_server <- function(id) {
     })
 
     # Clean up connection when app closes
-    onSessionEnded(function() {
-      if (!is.null(conn)) {
-        dbDisconnect(conn)
-      }
+    session$onSessionEnded(function() {
+      isolate({
+        if (!is.null(rv$conn)) {
+          dbDisconnect(rv$conn)
+          rv$conn <- NULL
+        }
+      })
     })
 
     # Connection status for conditional panels
@@ -411,7 +429,7 @@ mod_variant_discovery_server <- function(id) {
 
     # Users decide to get info about table then it renders.
     observeEvent(input$get_info, {
-      req(input$db_path)
+      req(rv$db_path)
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
         color = "#0dc5c1",
@@ -420,27 +438,23 @@ mod_variant_discovery_server <- function(id) {
 
       tryCatch({
         # Precompute database information
-        rv$variant_impact <- variant_impact_summary(db_path = input$db_path)
-        rv$sqlite_summary <- summarize_sqlite_tables(db_path = input$db_path)
-        rv$variant_count <- count_variant_types(db_path = input$db_path)
-        rv$variant_stats <- variant_stats(db_path = input$db_path)
-        rv$tables <- list_sqlite_tables(input$db_path)
-        rv$lst_tbl_column <-   list_table_columns(
-          db_path = input$db_path,
+        rv$variant_impact <- variant_impact_summary(db_path = rv$db_path)
+        rv$sqlite_summary <- summarize_sqlite_tables(db_path = rv$db_path)
+        rv$variant_count <- count_variant_types(db_path = rv$db_path)
+        rv$variant_stats <- variant_stats(db_path = rv$db_path)
+        rv$tables <- list_sqlite_tables(rv$db_path)
+        rv$lst_tbl_column <- list_table_columns(
+          db_path = rv$db_path,
           table_name = input$table_name_lst
         )
-
-
-      },error = function(e){
-
-       shinyWidgets::show_alert(
+      }, error = function(e) {
+        shinyWidgets::show_alert(
           title = "Failed!",
           text = e$message,
           type = "danger",
           showCloseButton = TRUE,
           timer = 5000
         )
-
       }, finally = {
         shinybusy::remove_modal_spinner()
       })
@@ -535,8 +549,8 @@ mod_variant_discovery_server <- function(id) {
     )
 
     # Helper function for success toasts
-    show_toast_success <- function(text ,
-                                   type = 'success',
+    show_toast_success <- function(text,
+                                   type = "success",
                                    timer = 3000) {
       shinyWidgets::show_toast(
         title = "Success",
@@ -784,7 +798,7 @@ mod_variant_discovery_server <- function(id) {
     observeEvent(input$query_dbase_btn, {
       values$last_action <- NULL # Null last action
 
-      req(input$db_path, values$result)
+      req(rv$db_path, values$result)
 
       # Show loading spinner for both operations
       shinybusy::show_modal_spinner(
@@ -796,11 +810,9 @@ mod_variant_discovery_server <- function(id) {
 
       # First: Database query
       tryCatch({
-
-
         if (!is.null(input$table_name) && input$table_name != "") {
           values$query_db_val <- query_db(
-            db_path = input$db_path,
+            db_path = rv$db_path,
             table_name = input$table_name,
             chrom = values$result$chrom,
             start = values$result$start,
@@ -808,7 +820,7 @@ mod_variant_discovery_server <- function(id) {
             gene_name = if (input$query_gene_name == "") NULL else input$query_gene_name
           )
 
-          values$last_action <- 'main_db'
+          values$last_action <- "main_db"
         }
 
         # Second: Annotation summary
@@ -816,7 +828,7 @@ mod_variant_discovery_server <- function(id) {
           updateTabsetPanel(session, "nav_id", selected = "Main Database Query Result")
 
           values$query_ann_react <- query_ann_summary(
-            db_path = input$db_path,
+            db_path = rv$db_path,
             variants_table = input$table_name_v,
             annotations_table = input$table_name_a,
             chrom = values$result$chrom,
@@ -824,10 +836,8 @@ mod_variant_discovery_server <- function(id) {
             end = values$result$end
           )
 
-          values$last_action <- 'annotation_summ'
-
+          values$last_action <- "annotation_summ"
         }
-
       }, error = function(e) {
         show_alert(
           title = "Failed!",
@@ -839,20 +849,13 @@ mod_variant_discovery_server <- function(id) {
       }, finally = {
         shinyjs::delay(ms = 1000, {
           shinybusy::remove_modal_spinner()
-          if(values$last_action == 'annotation_summ'){
-
+          if (values$last_action == "annotation_summ") {
             show_toast_success("Variant Filtered By Annotation Summary")
-
-          }else if(values$last_action == 'main_db'){
-
-           show_toast_success(text = paste("Queried by", input$table_name))
-
+          } else if (values$last_action == "main_db") {
+            show_toast_success(text = paste("Queried by", input$table_name))
           }
-
         })
       })
-
-
     })
 
 
@@ -860,7 +863,6 @@ mod_variant_discovery_server <- function(id) {
     output$ann_summary_tbl <- reactable::renderReactable({
       req(values$query_ann_react)
       render_reactable(values$query_ann_react$annotation_summary)
-
     })
 
     output$impact_summary_tbl <- reactable::renderReactable({
@@ -882,7 +884,6 @@ mod_variant_discovery_server <- function(id) {
           reactable::renderReactable({
             req(values$query_db_val)
             render_reactable(values$query_db_val)
-
           })
         })
       } else if (!is.null(input$query_database) && input$query_database == "q_annt") {
@@ -936,9 +937,9 @@ mod_variant_discovery_server <- function(id) {
     # Query handlers
     # Reactive for queried by impact
     query_by_impact_result <- reactive({
-      req(input$db_path, input$impact_level, values$result)
+      req(rv$db_path, input$impact_level, values$result)
       query_by_impact(
-        db_path = input$db_path,
+        db_path = rv$db_path,
         impact_level = input$impact_level,
         chrom = values$result$chrom,
         start = values$result$start,
@@ -948,9 +949,9 @@ mod_variant_discovery_server <- function(id) {
 
     # Hold genotypes for impact queries
     hold_genotypes_impact <- reactive({
-      req(query_by_impact_result(), input$db_path)
+      req(query_by_impact_result(), rv$db_path)
       query_genotypes(
-        db_path = input$db_path,
+        db_path = rv$db_path,
         variant_ids = query_by_impact_result()$variant_id,
         meta_data = c("chrom", "pos", "ref", "alt", "variant_type")
       )
@@ -969,9 +970,9 @@ mod_variant_discovery_server <- function(id) {
 
     # Filter by out successful PCVs for marker design
     observeEvent(input$get_pcv_btn, {
-      values$query_geno_react  <- NULL
+      values$query_geno_react <- NULL
 
-      req(query_by_alf_result(), input$db_path)
+      req(query_by_alf_result(), rv$db_path)
 
       updateTabsetPanel(session, inputId = "nav_id", selected = "Results Showing PCVs for KASP Marker Design")
 
@@ -985,7 +986,7 @@ mod_variant_discovery_server <- function(id) {
       tryCatch(
         {
           values$query_geno_react <- query_genotypes(
-            db_path = input$db_path,
+            db_path = rv$db_path,
             variant_ids = query_by_alf_result()$variant_id,
             meta_data = c("chrom", "pos", "ref", "alt", "variant_type")
           )
@@ -1001,12 +1002,11 @@ mod_variant_discovery_server <- function(id) {
         }, finally = {
           shinyjs::delay(1000, {
             shinybusy::remove_modal_spinner()
-            if(is.null(values$query_geno_react)){
-              show_toast_success(text = paste('Found No Putative Causal Variants'),type = 'error')
-            }else{
-              show_toast_success(text = paste('Found',nrow(values$query_geno_react),'Putative Causal Variants'))
+            if (is.null(values$query_geno_react)) {
+              show_toast_success(text = paste("Found No Putative Causal Variants"), type = "error")
+            } else {
+              show_toast_success(text = paste("Found", nrow(values$query_geno_react), "Putative Causal Variants"))
             }
-
           })
         }
       )
@@ -1154,7 +1154,7 @@ mod_variant_discovery_server <- function(id) {
     kasp_des.plot <- reactiveVal(NULL) # store kasp plots
 
     observeEvent(input$modal_run_but, {
-    show_toast_success(text = 'Designing KASP Markers... Please Wait!'  ,type = 'info'  ,timer = 8000)
+      show_toast_success(text = "Designing KASP Markers... Please Wait!", type = "info", timer = 8000)
 
       req(
         values$query_geno_react, input$modal_genome_file$datapath,
@@ -1224,8 +1224,10 @@ mod_variant_discovery_server <- function(id) {
         },
         error = function(e) {
           kasp_des.result(NULL)
-          show_toast_success(text = paste('Error: ',e$message),
-                             type = 'error')
+          show_toast_success(
+            text = paste("Error: ", e$message),
+            type = "error"
+          )
         }
       )
     })
