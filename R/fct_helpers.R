@@ -731,62 +731,26 @@ generate_named_list <- function(x) {
 }
 
 
-
-#' Check and install required dependencies
-#' @param packages Character vector of package names to check
-#' @param install_missing Logical, whether to attempt installation of missing packages
-#' @return Logical vector indicating which packages are available
-check_dependencies <- function(packages = NULL, install_missing = TRUE) {
-
-  if (is.null(packages)) {
-    # Define your suggested packages here
-    packages <- c(
-      "DT", "bslib", "data.table", "fontawesome",
-      "openxlsx", "reactable", "readxl", "shinyWidgets",
-      "shinyalert", "shinybusy", "shinyjs", "stringr",
-      "vcfR", "writexl"
-    )
+#' Call functions from suggested packages
+#'
+#' @param pkg_func String in format "package::function"
+#' @param ... Arguments passed to the function
+#' @return Result of the called function
+#' @noRd
+call_suggested <- function(pkg_func, ...) {
+  parts <- strsplit(pkg_func, "::")[[1]]
+  if (length(parts) != 2) {
+    stop("pkg_func must be in format 'package::function'", call. = FALSE)
   }
 
-  # Check which packages are installed
-  installed <- sapply(packages, function(pkg) {
-    requireNamespace(pkg, quietly = TRUE)
-  })
+  pkg <- parts[1]
+  func <- parts[2]
 
-  missing <- packages[!installed]
-
-  if (length(missing) > 0) {
-    if (install_missing) {
-      message("Missing packages detected: ", paste(missing, collapse = ", "))
-      message("Attempting to install missing packages...")
-
-      tryCatch({
-        utils::install.packages(missing, dependencies = TRUE)
-
-        # Re-check after installation
-        newly_installed <- sapply(missing, function(pkg) {
-          requireNamespace(pkg, quietly = TRUE)
-        })
-
-        still_missing <- missing[!newly_installed]
-
-        if (length(still_missing) > 0) {
-          stop("Failed to install packages: ", paste(still_missing, collapse = ", "))
-        }
-
-        message("All packages successfully installed!")
-        return(TRUE)
-
-      }, error = function(e) {
-        stop("Error installing packages: ", e$message)
-      })
-
-    } else {
-      stop("Missing required packages: ", paste(missing, collapse = ", "),
-           "\nPlease install them using: install.packages(c('",
-           paste(missing, collapse = "', '"), "'))")
-    }
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    stop(sprintf("Package '%s' is required. Install with: install.packages('%s')",
+                 pkg, pkg),
+         call. = FALSE)
   }
 
-  return(TRUE)
+  do.call(getFromNamespace(func, pkg), list(...))
 }
