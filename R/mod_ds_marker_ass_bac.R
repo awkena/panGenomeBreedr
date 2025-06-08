@@ -1,12 +1,20 @@
-#' ds_marker_ass_bac UI Function
+#' Decision Support for Marker Assisted Backcrossing (UI)
 #'
-#' @description A shiny Module.
+#' @description A Shiny module UI for analyzing marker data in backcross breeding programs.
 #'
-#' @param id,input,output,session Internal parameters for {shiny}.
+#' @param id Unique namespace ID
 #'
+#' @return A shiny::tagList containing the UI elements
+#'
+#' @importFrom shiny NS tagList fileInput radioButtons selectInput textInput
+#' @importFrom shiny actionButton uiOutput icon plotOutput
+#' @importFrom bslib navset_card_underline nav_panel layout_sidebar sidebar
+#' @importFrom bslib card card_header card_body card_footer accordion
+#' @importFrom bslib accordion_panel navset_card_tab input_switch
+#' @importFrom DT DTOutput
+#' @importFrom grDevices colors
+#' @importFrom fontawesome fa
 #' @noRd
-#'
-#' @importFrom shiny NS tagList
 mod_ds_marker_ass_bac_ui <- function(id) {
   ns <- NS(id)
   tagList(
@@ -298,18 +306,56 @@ mod_ds_marker_ass_bac_ui <- function(id) {
             )
           )
         )
+      ),
+      nav_panel(
+        title = "Data QC", icon = icon("bell"),
+        splitLayout(
+          bslib::card(
+            card_header(tags$b("SNP Loci with Potential Genotype Call Errors")),
+            bslib::card_body(
+              DT::DTOutput(outputId = ns("geno_error_tbl"))
+            )
+          ),
+          bslib::card(
+            card_header(tags$b("SNP Loci with Parent Missing")),
+            bslib::card_body(
+              DT::DTOutput(outputId = ns("par_missing_tbl"))
+            )
+          )
+        ),
+        splitLayout(
+          bslib::card(
+            card_header(tags$b("SNP Loci with Heterozygote Parent")),
+            bslib::card_body(
+              DT::DTOutput(outputId = ns("par_het_tbl"))
+            )
+          ),
+          bslib::card(
+            card_header(tags$b("SNP Loci with Unexpected Locus")),
+            bslib::card_body(
+              DT::DTOutput(outputId = ns("unexp_locu_tbl"))
+            )
+          )
+        )
       )
     )
   )
 }
 
-#' ds_marker_ass_bac Server Functions
+#' Decision Support for Marker Assisted Backcrossing (Server)
 #'
+#' @description Server logic for the MABC analysis module
+#'
+#' @param id Unique namespace ID
+#'
+#' @importFrom shiny moduleServer observeEvent req reactive renderUI observe
+#' @importFrom DT renderDT datatable
+#' @importFrom utils read.csv
+#' @importFrom stats setNames
 #' @noRd
 mod_ds_marker_ass_bac_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-
     # Process file.
     # Dynamic ui based on choice of individual.
     observe({
@@ -379,7 +425,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
 
     observeEvent(input$config, {
       req(
-        data(), input$batch, input$sep_marker, Genotype_names(),
+        data(), input$batch, input$sep_marker, Genotype_names(), input$na_code,
         input$data_type, input$allele_sep, input$rp, input$dp, input$choice
       )
       # Cleaning and numeric coding
@@ -392,6 +438,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
         rp = input$rp,
         dp = input$dp,
         geno_vec = Genotype_names(),
+        na_code = input$na_code,
         feedback = input$choice,
         mapfile_path = if (is.null(map_file())) NULL else map_file()
       )
@@ -481,14 +528,6 @@ mod_ds_marker_ass_bac_server <- function(id) {
     })
 
 
-
-    observe({
-      # req(calc_rpp_bc_result())
-      print(calc_rpp_bc_result())
-      print(Result())
-      print(input$show_above_thresh)
-    })
-
     # Render output.
     output$comp_rpp_val <- renderDT({
       req(calc_rpp_bc_result())
@@ -523,25 +562,35 @@ mod_ds_marker_ass_bac_server <- function(id) {
     rpp_barplot_result <- reactive({
       req(
         calc_rpp_bc_result(), input$text_size, input$text_scale_fct,
-        input$alpha,input$bar_width ,input$aspect_ratio, input$bar_col,
+        input$alpha, input$bar_width, input$aspect_ratio, input$bar_col,
         input$thresh_line_col, input$rpp_col
       )
-      #
-      rpp_barplot(rpp_df = calc_rpp_bc_result(),
-                  rpp_sample_id = input$rpp_sample_id,
-                  rpp_col = input$rpp_col,
-                  rpp_threshold = input$rpp_threshold,
-                  text_size = input$text_size,
-                  text_scale_fct = input$text_scale_fct,
-                  alpha = input$alpha,
-                  bar_width = input$bar_width,
-                  aspect_ratio = input$aspect_ratio,
-                  bar_col = input$bar_col,
-                  thresh_line_col = input$thresh_line_col,
-                  show_above_thresh = input$show_above_thresh ,
-                  bc_gen = input$bc_gen,
-                  pdf = FALSE)
+      tryCatch(
+        {
+          #
+          rpp_barplot(
+            rpp_df = calc_rpp_bc_result(),
+            rpp_sample_id = input$rpp_sample_id,
+            rpp_col = input$rpp_col,
+            rpp_threshold = input$rpp_threshold,
+            text_size = input$text_size,
+            text_scale_fct = input$text_scale_fct,
+            alpha = input$alpha,
+            bar_width = input$bar_width,
+            aspect_ratio = input$aspect_ratio,
+            bar_col = input$bar_col,
+            thresh_line_col = input$thresh_line_col,
+            show_above_thresh = input$show_above_thresh,
+            bc_gen = input$bc_gen,
+            pdf = FALSE
+          )
+        },
+        error = function(e) {
 
+
+
+        }
+      )
     })
 
     # plot it.
@@ -549,6 +598,30 @@ mod_ds_marker_ass_bac_server <- function(id) {
       req(rpp_barplot_result())
       print(rpp_barplot_result())
     })
+
+    #------------------------------------------------------
+    # Information to the user
+    #------------------------------------------------------
+    # parent missing
+    output$par_missing_tbl <- renderDT({
+      req(Result())
+      DT::datatable(Result()$par_missing_dat, options = list(scrollX = TRUE))
+    })
+
+    # Genotype error
+    output$geno_error_tbl <- renderDT({
+      req(Result())
+      DT::datatable(Result()$genotype_error, options = list(scrollX = TRUE))
+    })
+
+    # # parent hetero
+    output$par_het_tbl <- renderDT({
+      req(Result())
+      DT::datatable(Result()$parent_het, options = list(scrollX = TRUE))
+    })
+
+    # # find_unexpected homo.
+    # panGenomeBreedr::find_unexp_homs()
   })
 }
 
