@@ -2099,7 +2099,6 @@ cross_qc_heatmap <- function(x,
 #'
 #' }
 #'
-#' @importFrom grid gpar textGrob
 #' @export
 #'
 cross_qc_heatmap2 <- function(x,
@@ -2188,6 +2187,8 @@ cross_qc_heatmap2 <- function(x,
       names(trait_pos) <- paste0('loc', seq_along(trait_pos))
     }
 
+    loc_ns <- mid_pos <- NULL
+
     loc_names <- names(trait_pos)
 
     # Create trait label dataframe
@@ -2199,34 +2200,18 @@ cross_qc_heatmap2 <- function(x,
 
     trait_lab_df <- do.call(rbind, trait_lab)
 
-    # Add vertical lines
+    # Add vertical dashed lines at each locus
     gg_obj <- gg_obj +
       ggplot2::geom_vline(data = trait_lab_df,
                           ggplot2::aes(xintercept = mid_pos),
-                          linetype = "dashed", color = "black", linewidth = 1)
-
-    # Add text labels very close above the top row
-    for (i in seq_len(nrow(trait_lab_df))) {
-      mid_pos <- trait_lab_df$mid_pos[i]
-      label <- trait_lab_df$loc_ns[i]
-      chr_label <- trait_lab_df$chr[i]
-
-      chr_grp <- grp[as.character(grp$chr) == chr_label, ]
-      if (nrow(chr_grp) == 0) next
-
-      # Get top row number for the chr panel
-      y_max <- max(as.numeric(factor(grp$x, levels = levels(grp$x))), na.rm = TRUE)
-
-      gg_obj <- gg_obj +
-        ggplot2::annotation_custom(
-          grob = grid::textGrob(label,
-                                rot = 45,
-                                gp = grid::gpar(fontsize = text_size * 0.7,
-                                                fontface = "bold")),
-          xmin = mid_pos, xmax = mid_pos,
-          ymin = y_max + 0.6, ymax = y_max + 0.6)
-
-    }
+                          linetype = "dashed", color = "black", linewidth = 1) +
+      ggplot2::geom_text(data = trait_lab_df,
+                         ggplot2::aes(x = mid_pos, label = loc_ns),
+                         col = "black",
+                         angle = 60,
+                         y = length(unique(grp$x)) + 0.63,
+                         size = text_size / (text_scale_fct * text_size),
+                         inherit.aes = FALSE)
     return(gg_obj)
   }
 
@@ -2277,28 +2262,6 @@ cross_qc_heatmap2 <- function(x,
         stop("Argument `trait_pos` must be a list object.")
       }
 
-      highlight_df <- do.call(rbind, lapply(trait_pos, function(loc) {
-        chr_val <- if (is.numeric(loc[1])) sprintf("Chr%02s", loc[1]) else as.character(loc[1])
-        pos_vals <- as.numeric(loc[2:length(loc)])
-
-        if (length(pos_vals) == 1) {
-          # Single position: find closest matching marker position
-          grp[as.character(grp$chr) == chr_val & abs(grp$pos - pos_vals[1]) < 1e-6 & grp$value == 0, ]
-        } else {
-          # Range: use interval
-          grp[as.character(grp$chr) == chr_val & grp$pos >= pos_vals[1] &
-                grp$pos <= pos_vals[2] & grp$value == 0, ]
-        }
-      }))
-
-      if (nrow(highlight_df) > 0) {
-        plt <- plt + ggplot2::geom_tile(data = highlight_df,
-                                        ggplot2::aes(x = pos, y = x, width = map_dist, height = 1),
-                                        color = "black", lwd = 1.2, lty = 1,
-                                        fill = NA,
-                                        inherit.aes = FALSE)
-      }
-
       plt <- annotate_loc(gg_obj = plt, trait_pos = trait_pos, grp = grp)
     }
 
@@ -2316,5 +2279,4 @@ cross_qc_heatmap2 <- function(x,
     return(gg_plts)
   }
 }
-
 
