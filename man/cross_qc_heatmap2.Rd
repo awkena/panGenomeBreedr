@@ -23,6 +23,7 @@ cross_qc_heatmap2(
   alpha = 0.9,
   text_size = 12,
   text_scale_fct = 0.5,
+  label_offset = 0.5,
   width = 9,
   height = 6.5
 )
@@ -73,6 +74,9 @@ opacity of colors.}
 
 \item{text_scale_fct}{A numeric value for scaling text size. The default value
 is `50\%` of the defined text size.}
+
+\item{label_offset}{A numeric value indicating the position of the trait loci
+text labels on the heatmap. It is positioned on the donor parent by default.}
 
 \item{width}{A numeric value for the width of pdf device.}
 

@@ -2119,6 +2119,7 @@ cross_qc_heatmap2 <- function(x,
                               alpha = 0.9,
                               text_size = 12,
                               text_scale_fct = 0.5,
+                              label_offset = 0.5,
                               width = 9,
                               height = 6.5) {
 
@@ -2209,7 +2210,8 @@ cross_qc_heatmap2 <- function(x,
                          ggplot2::aes(x = mid_pos, label = loc_ns),
                          col = "black",
                          angle = 60,
-                         y = length(unique(grp$x)) + 0.63,
+                         hjust = 0,
+                         y = length(unique(grp$x)) + label_offset,
                          size = text_size / (text_scale_fct * text_size),
                          inherit.aes = FALSE)
     return(gg_obj)
