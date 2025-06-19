@@ -2236,10 +2236,10 @@ cross_qc_heatmap2 <- function(x,
                           col = 'white', lwd = 2.5) +
       ggplot2::coord_cartesian(clip = "off") +
 
-      # ggplot2::facet_grid(rows = NULL, cols = ggplot2::vars(chr),
-      #                     space = "free", scales = "free_x") +
-      ggplot2::facet_wrap(~ chr, nrow = 1, scales = "free_x",
-                          strip.position = "bottom") +
+      ggplot2::facet_grid(rows = NULL, cols = ggplot2::vars(chr),
+                          space = "free", scales = "free_x", switch = 'x') +
+      # ggplot2::facet_wrap(~ chr, nrow = 1, scales = "free_x",
+      #                     strip.position = "bottom") +
       ggplot2::theme(axis.text.y = ggplot2::element_text(size = text_size, face = 'bold'),
                      axis.ticks.length.y = ggplot2::unit(0.25, 'cm'),
                      axis.ticks.x = ggplot2::element_blank(),
