@@ -9,7 +9,6 @@
 #'
 #' @importFrom shiny NS tagList sidebarLayout sidebarPanel mainPanel selectInput textInput tableOutput
 #' @importFrom bslib accordion accordion_panel
-#' @importFrom DT DTOutput
 #'
 mod_mv_get_alleles_ui <- function(id) {
   ns <- NS(id)
@@ -37,13 +36,13 @@ mod_mv_get_alleles_ui <- function(id) {
           bslib::accordion_panel(
             "Identified Alleles",
             selectInput(ns("plates_pres"),
-                        label = "Choose plate",
-                        choices = NULL,
-                        multiple = FALSE,
-                        width = '40%'
+              label = "Choose plate",
+              choices = NULL,
+              multiple = FALSE,
+              width = "40%"
             ),
             DT::DTOutput(ns("alleles_output"))
-          ) , style = "margin-bottom: 15px;"
+          ), style = "margin-bottom: 15px;"
         ),
         # Genotype output
         bslib::accordion(
@@ -70,10 +69,10 @@ mod_mv_get_alleles_ui <- function(id) {
 #' @param input,output,session Internal parameters for {shiny}.
 #'
 #' @importFrom shiny moduleServer NS req reactive observeEvent
-#' @importFrom DT renderDT
+#'
 #'
 #' @noRd
-mod_mv_get_alleles_server <- function(id,kasp_data) {
+mod_mv_get_alleles_server <- function(id, kasp_data) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -86,8 +85,8 @@ mod_mv_get_alleles_server <- function(id,kasp_data) {
     observe({
       req(distinct_plates())
       updateSelectInput(session,
-                        inputId = "plates_pres",
-                        choices = distinct_plates()
+        inputId = "plates_pres",
+        choices = distinct_plates()
       )
     })
 
@@ -99,39 +98,38 @@ mod_mv_get_alleles_server <- function(id,kasp_data) {
 
     # Get alleles
     obtain_alleles <- reactive({
-
-      req(Get_calls(), input$data_type_id , input$sep_id)
-      get_alleles(x = Get_calls(),
-                                   data_type = input$data_type_id,
-                                   sep = input$sep_id)
+      req(Get_calls(), input$data_type_id, input$sep_id)
+      get_alleles(
+        x = Get_calls(),
+        data_type = input$data_type_id,
+        sep = input$sep_id
+      )
     })
 
     # Display alleles from get_alleles()
     observe({
       req(obtain_alleles())
 
-      output$alleles_output <- renderDT({
+      output$alleles_output <- DT::renderDT({
         req(obtain_alleles())
-       alleles_df(x = obtain_alleles()$alleles)
+        alleles_df(x = obtain_alleles()$alleles)
       })
 
       # Display genotypes from get_alleles()
-      output$genotypes_output <- renderDT({
+      output$genotypes_output <- DT::renderDT({
         req(obtain_alleles())
         genotypes(obtain_alleles()$genotypes)
       })
 
       # show toast
       shinyWidgets::show_toast(
-        title = 'Showing Alleles for',
+        title = "Showing Alleles for",
         text = input$plates_pres,
-        type = 'success',
+        type = "success",
         timer = 2000,
-        position = "bottom-end",width = '30%'
+        position = "bottom-end", width = "30%"
       )
-
     })
-
   })
 }
 

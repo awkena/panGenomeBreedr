@@ -8,17 +8,14 @@
 #'
 #' @importFrom shiny NS tagList uiOutput selectInput numericInput actionButton downloadButton plotOutput div textInput
 #' @importFrom bslib card card_header card_body card_footer accordion accordion_panel
-#' @importFrom grDevices colors
 #'
 mod_mv_kasp_qc_ggplot_ui <- function(id) {
   ns <- NS(id)
 
   tagList(
     # uiOutput(ns("error_messages")),
-
     bslib::card(
       bslib::card_header("QC Plot Configuration", class = "bg-dark text-white"),
-
       bslib::card_body(
         fluidRow(
           # Card 1: Core Data Mapping
@@ -155,7 +152,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                 selectInput(
                   inputId = ns("pred_col_id"),
                   label = "Prediction Colors (Blank|False|True|Unverified)",
-                  choices = colors(),
+                  choices = grDevices::colors(),
                   selected = c("blue", "orange", "forestgreen", "black"),
                   multiple = TRUE,
                   width = "100%"
@@ -189,7 +186,6 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
       open = "KASP marker genotyping QC plot overlaid with predicitons",
       bslib::accordion_panel(
         title = "KASP marker genotyping QC plot overlaid with predicitons",
-
         selectInput(
           inputId = ns("plate_choice"),
           label = "Plate Selection",
@@ -251,13 +247,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
 #' @noRd
 #'
 #' @importFrom shiny moduleServer reactive reactiveVal observeEvent req updateSelectInput downloadHandler renderPlot
-#' @importFrom shinyjs delay
-#' @importFrom shinybusy show_modal_spinner remove_modal_spinner
-#' @importFrom shinyalert shinyalert
-#' @importFrom shinyWidgets show_alert
 #' @importFrom ggplot2 ggsave
-#' @importFrom panGenomeBreedr kasp_qc_ggplot2
-#' @importFrom dplyr %>%
 #' @importFrom stats setNames
 #'
 mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
@@ -274,58 +264,53 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
 
       # Update select input.
       observe({
-        req(names_pop() , color_coded())
-        updateSelectInput( session ,
-                           inputId = 'group_id',
-                           choices = c('None',names_pop()),
-                           selected = 'None'
+        req(names_pop(), color_coded())
+        updateSelectInput(session,
+          inputId = "group_id",
+          choices = c("None", names_pop()),
+          selected = "None"
         )
         updateSelectInput(session,
-                          inputId = 'geno_call',
-                          choices = names_pop(),
-                          selected = names_pop()[grep('Call',x = names_pop(),
-                                                      ignore.case = TRUE)[1]])
+          inputId = "geno_call",
+          choices = names_pop(),
+          selected = names_pop()[grep("Call",
+            x = names_pop(),
+            ignore.case = TRUE
+          )[1]]
+        )
         updateSelectInput(session,
-                          inputId = 'snp_id',
-                          choices = names_pop(),
-                          selected = names_pop()[grep('SNP',x = names_pop(),
-                                                      ignore.case = TRUE)[1]])
+          inputId = "snp_id",
+          choices = names_pop(),
+          selected = names_pop()[grep("SNP",
+            x = names_pop(),
+            ignore.case = TRUE
+          )[1]]
+        )
 
         updateSelectInput(session,
-                          inputId = 'Hex_id',
-                          choices = names_pop(),
-                          selected = names_pop()[grep('Y',x = names_pop(),
-                                                      ignore.case = TRUE)[1]])
+          inputId = "Hex_id",
+          choices = names_pop(),
+          selected = names_pop()[grep("Y",
+            x = names_pop(),
+            ignore.case = TRUE
+          )[1]]
+        )
         updateSelectInput(session,
-                          inputId = 'fam_id',
-                          choices = names_pop(),
-                          selected = names_pop()[grep('X',x = names_pop(),
-                                                      ignore.case = TRUE)[1]])
+          inputId = "fam_id",
+          choices = names_pop(),
+          selected = names_pop()[grep("X",
+            x = names_pop(),
+            ignore.case = TRUE
+          )[1]]
+        )
 
-        updateSelectInput(session,inputId = 'plate_choice',choices = names(color_coded()))
-
+        updateSelectInput(session, inputId = "plate_choice", choices = names(color_coded()))
       })
 
 
+      result_plot <- reactiveVal(NULL)
 
-
-
-
-      # Validate color selections
       observe({
-        req(input$pred_col_id)
-
-        if (length(input$pred_col_id) < 4) {
-          shinyWidgets::show_alert(
-            title = "Color Selection Required",
-            text = "Please select exactly 4 colors for: Blank, False, True, Unverified",
-            type = "error"
-          )
-        }
-      }) %>% bindEvent(input$pred_col_id)
-
-      # Generate plot reactively
-      result_plot <- reactive({
         # Validate all required inputs exist
         req(
           color_coded(),
@@ -342,60 +327,66 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
 
         # Validate exactly 4 colors selected
         validate(
-          need(length(input$pred_col_id) == 4,
-               "Please select 4 colors for prediction legend")
+          need(
+            length(input$pred_col_id) == 4,
+            "Please select 4 colors for prediction legend"
+          )
         )
 
-        tryCatch({
-          # Process 'others' input safely
-          others_values <- if (nzchar(input$others)) {
-            trimws(unlist(strsplit(input$others, ",")))
-          } else {
-            character(0)
-          }
+        tryCatch(
+          {
+            # Process 'others' input safely
+            others_values <- if (nzchar(input$others)) {
+              trimws(unlist(strsplit(input$others, ",")))
+            } else {
+              character(0)
+            }
 
-          # Generate the plot
-          panGenomeBreedr::kasp_qc_ggplot2(
-            pdf = FALSE,
-            blank = input$blank,
-            uncallable = input$uncallable,
-            others = others_values,
-            Group_unknown = input$group_unknown,
-            unused = input$unused,
-            x = color_coded(),
-            FAM = input$fam_id,
-            HEX = input$Hex_id,
-            geno_call = input$geno_call,
-            snp_id = input$snp_id,
-            Group_id = if (input$group_id == "None") NULL else input$group_id,
-            legend.pos.x = input$legendx_id,
-            legend.pos.y = input$legendy_id,
-            legend.box = input$legend_box,
-            alpha = input$alpha_id,
-            text_size = input$textsize_id,
-            legend.pos = input$legend_pos,
-            scale = input$scale,
-            pred_cols = stats::setNames(
-              input$pred_col_id[1:4],
-              c("Blank", "False", "True", "Unverified")
-            ),
-            expand_axis = input$expand_id
-          )
-
-        }, error = function(e) {
-          # Show error message
-          shinyjs::delay(100, {
-            shinyWidgets::show_alert(
-              title = "Plot Generation Error",
-              text = paste("Failed to generate plot:", e$message),
-              type = "error",
-              showCloseButton = TRUE,
-              timer = 5000
+            # Generate the plot
+            result <- panGenomeBreedr::kasp_qc_ggplot2(
+              pdf = FALSE,
+              blank = input$blank,
+              uncallable = input$uncallable,
+              others = others_values,
+              Group_unknown = input$group_unknown,
+              unused = input$unused,
+              x = color_coded(),
+              FAM = input$fam_id,
+              HEX = input$Hex_id,
+              geno_call = input$geno_call,
+              snp_id = input$snp_id,
+              Group_id = if (input$group_id == "None") NULL else input$group_id,
+              legend.pos.x = input$legendx_id,
+              legend.pos.y = input$legendy_id,
+              legend.box = input$legend_box,
+              alpha = input$alpha_id,
+              text_size = input$textsize_id,
+              legend.pos = input$legend_pos,
+              scale = input$scale,
+              pred_cols = stats::setNames(
+                input$pred_col_id[1:4],
+                c("Blank", "False", "True", "Unverified")
+              ),
+              expand_axis = input$expand_id
             )
-          })
-          NULL
-        })
+            result_plot(result)
+          },
+          error = function(e) {
+            # Show error message
+            shinyjs::delay(100, {
+              shinyWidgets::show_alert(
+                title = "Plot Generation Error",
+                text = paste("Failed to generate plot:", e$message),
+                type = "error",
+                showCloseButton = TRUE,
+                timer = 5000
+              )
+            })
+            NULL
+          }
+        )
       })
+
 
       # Show success toast when plot generates successfully
       observe({
@@ -414,41 +405,41 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
           timer = 2000,
           position = "bottom-end"
         )
-
       })
 
       output$download_plot2 <- downloadHandler(
         filename = function() {
           clean_name <- gsub("[^[:alnum:]_-]", "_", input$file_name2)
-          paste0(clean_name, ".pdf")  # Force PDF for multi-page
+          paste0(clean_name, ".pdf") # Force PDF for multi-page
         },
         content = function(file) {
-          req(result_plot())  # Only require plot data (no plate_choice dependency)
+          req(result_plot()) # Only require plot data (no plate_choice dependency)
 
-          tryCatch({
-            # Start multi-page PDF
-            pdf(file,
+          tryCatch(
+            {
+              # Start multi-page PDF
+              grDevices::pdf(file,
                 width = input$width,
                 height = input$height,
-                onefile = TRUE)  # Critical for multi-page
+                onefile = TRUE
+              ) # Critical for multi-page
 
-            # Print ALL plots in result_plot()
-            for (plot in result_plot()) {
-              print(plot)
+              # Print ALL plots in result_plot()
+              for (plot in result_plot()) {
+                print(plot)
+              }
+
+              grDevices::dev.off()
+            },
+            error = function(e) {
+              shinyWidgets::show_toast(
+                paste("Download failed:", e$message),
+                type = "error"
+              )
             }
-
-            dev.off()
-          },
-          error = function(e) {
-            showNotification(
-              paste("Download failed:", e$message),
-              type = "error",
-              duration = 5
-            )
-          })
+          )
         }
       )
-
     }
   )
 }

@@ -11,9 +11,6 @@
 #' @importFrom bslib navset_card_underline nav_panel layout_sidebar sidebar
 #' @importFrom bslib card card_header card_body card_footer accordion
 #' @importFrom bslib accordion_panel navset_card_tab input_switch
-#' @importFrom DT DTOutput
-#' @importFrom grDevices colors
-#' @importFrom fontawesome fa
 #' @noRd
 mod_ds_marker_ass_bac_ui <- function(id) {
   ns <- NS(id)
@@ -28,7 +25,7 @@ mod_ds_marker_ass_bac_ui <- function(id) {
             position = "left",
             bslib::card(
               height = "100%",
-              bslib::card_header("Upload & Configure Data", class = "bg-primary"),
+              bslib::card_header("Upload & Configure Data"), # class = "bg-primary"),
               bslib::card_body(
                 fileInput(
                   inputId = ns("data_id"),
@@ -37,38 +34,86 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                   accept = ".csv",
                   width = "100%"
                 ),
-                radioButtons(
-                  inputId = ns("choice"),
-                  label = "Do you have a map file?",
-                  choices = c("Yes" = "yes", "No, generate one for me" = "no"),
-                  selected = "no"
-                ),
-                uiOutput(outputId = ns("map_upld")),
-                selectInput(
-                  inputId = ns("batch"),
-                  label = "Select Focused Batch",
-                  choices = NULL,
-                  width = "100%"
-                ),
-                textInput(
-                  inputId = ns("sep_marker"),
-                  label = "Enter Separator for Marker ID",
-                  value = "_",
-                  width = "100%"
-                ),
                 selectInput(
                   inputId = ns("data_type"),
                   label = "Indicate Data Format",
                   choices = c("agriplex", "Kasp"),
                   selected = "agriplex",
                   width = "100%"
-                ),
+                ), # user defines data format
+
                 textInput(
                   inputId = ns("allele_sep"),
-                  label = "Enter Allele Separator for Data Type",
+                  label = "Enter Allele Separator for Data Format",
                   value = " / ",
                   width = "100%"
                 ),
+                radioButtons(
+                  inputId = ns("choice"),
+                  label = "Do you have a map file?",
+                  choices = c("Yes" = "yes", "No, generate one for me" = "no"),
+                  selected = "yes"
+                ),
+
+                # Dynamic rendering based on choice
+                conditionalPanel(
+                  condition = paste0('input["', ns("choice"), '"] == "yes"'),
+                  tagList(
+                    fileInput(
+                      inputId = ns("mapfile"),
+                      label = "Upload Map file",
+                      accept = ".csv",
+                      width = "100%"
+                    ),
+                    selectInput(
+                      inputId = ns("snp_id"), #
+                      label = "Select Column for SNP ID",
+                      choices = NULL,
+                      width = "100%"
+                    )
+                  )
+                ),
+                conditionalPanel(
+                  condition = paste0('input["', ns("choice"), '"] == "no"'),
+                  tagList(
+                    textInput(
+                      inputId = ns("prefix_marker"),
+                      label = "Enter Prefix for Marker ID",
+                      value = "S",
+                      width = "100%"
+                    ),
+                    textInput(
+                      inputId = ns("sep_marker"),
+                      label = "Enter Separator for Marker ID",
+                      value = "_",
+                      width = "100%"
+                    )
+                  )
+                ),
+
+                # Batch  & genotype settings.
+                selectInput(
+                  inputId = ns("genotype_col"),
+                  label = "Select Genotype Column",
+                  choices = NULL,
+                  width = "100%"
+                ),
+                selectInput(
+                  inputId = ns("batch_col"),
+                  label = "Select Batch Column",
+                  choices = NULL,
+                  width = "100%"
+                ), # select batch column will populates
+
+                selectInput(
+                  inputId = ns("batch"),
+                  label = "Select Focused Batch",
+                  choices = NULL,
+                  width = "100%"
+                ), # unique batches will come here.
+
+                uiOutput(ns("marker_sep")), # this must be dynamic based on users choice
+
                 selectInput(
                   inputId = ns("dp"),
                   label = "Select Donor Parent",
@@ -80,6 +125,28 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                   label = "Select Recurrent Parent",
                   choices = NULL,
                   width = "100%"
+                )
+              ),
+              tagList(
+                bslib::input_switch(
+                  id = ns("apply_par_poly"),
+                  label = "Remove Polymorphic Parents",
+                  value = TRUE
+                ),
+                bslib::input_switch(
+                  id = ns("apply_par_miss"),
+                  label = "Remove Missing Parent Data",
+                  value = TRUE
+                ),
+                bslib::input_switch(
+                  id = ns("apply_geno_good"),
+                  label = "Apply Genotype Error Check",
+                  value = TRUE
+                ),
+                bslib::input_switch(
+                  id = ns("apply_par_homo"),
+                  label = "Filter Heterozygous Parents",
+                  value = TRUE
                 )
               ),
               card_footer(
@@ -94,179 +161,183 @@ mod_ds_marker_ass_bac_ui <- function(id) {
             )
           ),
 
-          # Main content area
-          fluidRow(
-            # Card 1: Heatmap Configuration
-            column(
-              width = 4,
-              bslib::card(
-                max_height = "600px",
-                height = "100%",
-                bslib::card_header("RPP Calculation Settings for BC Progenies", class = "bg-success"),
-                bslib::card_body(
-                  selectInput(
-                    inputId = ns("snp_ids"),
-                    label = "Select Column for SNP ID",
-                    choices = NULL,
-                    width = "100%"
-                  ),
-                  selectInput(
-                    inputId = ns("chr"),
-                    label = "Select Column for Chromosome",
-                    choices = NULL,
-                    width = "100%"
-                  ),
-                  selectInput(
-                    inputId = ns("chr_pos"),
-                    label = "Select Column for Chromosome Position",
-                    choices = NULL,
-                    width = "100%"
-                  ),
-                  numericInput(
-                    inputId = ns("rp_index"),
-                    label = "Set Row Index for Reccurent Parent",
-                    value = 1,
-                    min = 1,
-                    step = 1,
-                    width = "100%"
-                  ),
-                  numericInput(
-                    inputId = ns("rp_num_code"),
-                    label = "Numeric Code for RP Background",
-                    value = 1,
-                    min = 1,
-                    step = 1,
-                    width = "100%"
-                  ),
-                  numericInput(
-                    inputId = ns("het_code"),
-                    label = "Numeric Code for Heterozygous Background",
-                    value = 0.5,
-                    min = 0.5,
-                    max = 0.5,
-                    width = "100%"
-                  ),
-                  numericInput(
-                    inputId = ns("na_code"),
-                    label = "Value Indicating Missing Data",
-                    value = -5
-                  ),
-                  radioButtons(
-                    inputId = ns("weight_rpp"),
-                    label = "Weight RPP Values?",
-                    choices = c("Yes" = TRUE, "No" = FALSE),
-                    selected = FALSE,
-                    inline = TRUE
+          bslib::input_switch(id = ns('configure'),label = 'Configure Plot',value = FALSE),
+          conditionalPanel(
+            condition = paste0('input["', ns('configure'), '"] == true'),
+            # Main content area
+            fluidRow(
+              # Card 1: Heatmap Configuration
+              column(
+                width = 4,
+                bslib::card(
+                  max_height = "600px",
+                  height = "100%",
+                  bslib::card_header("RPP Calculation Settings for BC Progenies", class = "bg-success"),
+                  bslib::card_body(
+                    selectInput(
+                      inputId = ns("snp_ids"),
+                      label = "Select Column for SNP ID",
+                      choices = NULL,
+                      width = "100%"
+                    ),
+                    selectInput(
+                      inputId = ns("chr"),
+                      label = "Select Column for Chromosome",
+                      choices = NULL,
+                      width = "100%"
+                    ),
+                    selectInput(
+                      inputId = ns("chr_pos"),
+                      label = "Select Column for Chromosome Position",
+                      choices = NULL,
+                      width = "100%"
+                    ),
+                    numericInput(
+                      inputId = ns("rp_index"),
+                      label = "Set Row Index for Reccurent Parent",
+                      value = 1,
+                      min = 1,
+                      step = 1,
+                      width = "100%"
+                    ),
+                    numericInput(
+                      inputId = ns("rp_num_code"),
+                      label = "Numeric Code for RP Background",
+                      value = 1,
+                      min = 1,
+                      step = 1,
+                      width = "100%"
+                    ),
+                    numericInput(
+                      inputId = ns("het_code"),
+                      label = "Numeric Code for Heterozygous Background",
+                      value = 0.5,
+                      min = 0.5,
+                      max = 0.5,
+                      width = "100%"
+                    ),
+                    numericInput(
+                      inputId = ns("na_code"),
+                      label = "Value Indicating Missing Data",
+                      value = -5
+                    ),
+                    radioButtons(
+                      inputId = ns("weight_rpp"),
+                      label = "Weight RPP Values?",
+                      choices = c("Yes" = TRUE, "No" = FALSE),
+                      selected = FALSE,
+                      inline = TRUE
+                    )
                   )
                 )
-              )
-            ),
+              ),
 
-            # Card 2: BC Progenies RPP Plot Settings
-            column(
-              width = 8,
-              bslib::card(
-                max_height = "600px",
-                height = "100%",
-                bslib::card_header("BC Progenies RPP Plot Settings", class = "bg-info"),
-                bslib::card_body(
-                  fluidRow(
-                    # Left Column - 4 widgets
-                    column(
-                      width = 6,
-                      selectInput(
-                        inputId = ns("rpp_col"),
-                        label = "Select RPP Values Column",
-                        choices = NULL,
-                        width = "100%"
+              # Card 2: BC Progenies RPP Plot Settings
+              column(
+                width = 8,
+                bslib::card(
+                  max_height = "600px",
+                  height = "100%",
+                  bslib::card_header("BC Progenies RPP Plot Settings", class = "bg-info"),
+                  bslib::card_body(
+                    fluidRow(
+                      # Left Column - 4 widgets
+                      column(
+                        width = 6,
+                        selectInput(
+                          inputId = ns("rpp_col"),
+                          label = "Select RPP Values Column",
+                          choices = NULL,
+                          width = "100%"
+                        ),
+                        selectInput(
+                          inputId = ns("rpp_sample_id"),
+                          label = "Select Progeny ID Column",
+                          choices = NULL,
+                          width = "100%"
+                        ),
+                        numericInput(
+                          inputId = ns("bc_gen"),
+                          label = "Specify BC Generation for Progenies",
+                          value = NULL,
+                          min = 1,
+                          width = "100%"
+                        ),
+                        numericInput(
+                          inputId = ns("rpp_threshold"),
+                          label = "Set RPP Threshold for Selecting BC Progenies ",
+                          value = 0.93,
+                          min = 0,
+                          max = 1,
+                          width = "100%"
+                        ),
+                        selectInput(
+                          inputId = ns("thresh_line_col"),
+                          label = "Color of Threshold Line",
+                          choices = grDevices::colors(),
+                          selected = "firebrick",
+                          width = "100%"
+                        ),
+                        bslib::input_switch(
+                          id = ns("show_above_thresh"),
+                          label = "Show  Progenies with RPP \u2265 Threshold",
+                          value = FALSE
+                        )
                       ),
-                      selectInput(
-                        inputId = ns("rpp_sample_id"),
-                        label = "Select Progeny ID Column",
-                        choices = NULL,
-                        width = "100%"
-                      ),
-                      numericInput(
-                        inputId = ns("bc_gen"),
-                        label = "Specify BC Generation for Progenies",
-                        value = NULL,
-                        min = 1,
-                        width = "100%"
-                      ),
-                      numericInput(
-                        inputId = ns("rpp_threshold"),
-                        label = "Set RPP Threshold for Selecting BC Progenies ",
-                        value = 0.93,
-                        min = 0,
-                        max = 1,
-                        width = "100%"
-                      ),
-                      selectInput(
-                        inputId = ns("thresh_line_col"),
-                        label = "Color of Threshold Line",
-                        choices = grDevices::colors(),
-                        selected = "firebrick",
-                        width = "100%"
-                      ),
-                      bslib::input_switch(
-                        id = ns("show_above_thresh"),
-                        label = "Show  Progenies with RPP ≥ Threshold",
-                        value = FALSE
-                      )
-                    ),
-                    # Right Column - 4 widgets
-                    column(
-                      width = 6,
-                      selectInput(
-                        inputId = ns("bar_col"),
-                        label = "Set Bar Fill Color",
-                        choices = grDevices::colors(),
-                        selected = "cornflowerblue",
-                        width = "100%"
-                      ),
-                      numericInput(
-                        inputId = ns("alpha"),
-                        label = "Point Transparency",
-                        value = 0.9,
-                        min = 0,
-                        max = 1,
-                        step = 0.1,
-                        width = "100%"
-                      ),
-                      numericInput(
-                        inputId = ns("text_size"),
-                        label = "Text Size",
-                        value = 15,
-                        min = 1,
-                        width = "100%"
-                      ),
-                      numericInput(
-                        inputId = ns("bar_width"),
-                        label = "Set Bar Width",
-                        value = 0.5,
-                        min = 0.1,
-                        width = "100%"
-                      ),
-                      numericInput(
-                        inputId = ns("aspect_ratio"),
-                        label = "Set Aspect Ratio of Barplot",
-                        value = 0.5,
-                        min = 0.1,
-                        width = "100%"
-                      ),
-                      numericInput(
-                        inputId = ns("text_scale_fct"),
-                        label = "Set Text Size Scaling Factor",
-                        value = 0.1,
-                        min = 0.1,
-                        width = "100%"
+                      # Right Column - 4 widgets
+                      column(
+                        width = 6,
+                        selectInput(
+                          inputId = ns("bar_col"),
+                          label = "Set Bar Fill Color",
+                          choices = grDevices::colors(),
+                          selected = "cornflowerblue",
+                          width = "100%"
+                        ),
+                        numericInput(
+                          inputId = ns("alpha"),
+                          label = "Point Transparency",
+                          value = 0.9,
+                          min = 0,
+                          max = 1,
+                          step = 0.1,
+                          width = "100%"
+                        ),
+                        numericInput(
+                          inputId = ns("text_size"),
+                          label = "Text Size",
+                          value = 15,
+                          min = 1,
+                          width = "100%"
+                        ),
+                        numericInput(
+                          inputId = ns("bar_width"),
+                          label = "Set Bar Width",
+                          value = 0.5,
+                          min = 0.1,
+                          width = "100%"
+                        ),
+                        numericInput(
+                          inputId = ns("aspect_ratio"),
+                          label = "Set Aspect Ratio of Barplot",
+                          value = 0.5,
+                          min = 0.1,
+                          width = "100%"
+                        ),
+                        numericInput(
+                          inputId = ns("text_scale_fct"),
+                          label = "Set Text Size Scaling Factor",
+                          value = 0.1,
+                          min = 0.1,
+                          width = "100%"
+                        )
                       )
                     )
                   )
                 )
               )
             )
-          ),
+            ),
 
           # Results Section
           fluidRow(
@@ -349,7 +420,6 @@ mod_ds_marker_ass_bac_ui <- function(id) {
 #' @param id Unique namespace ID
 #'
 #' @importFrom shiny moduleServer observeEvent req reactive renderUI observe
-#' @importFrom DT renderDT datatable
 #' @importFrom utils read.csv
 #' @importFrom stats setNames
 #' @noRd
@@ -358,23 +428,176 @@ mod_ds_marker_ass_bac_server <- function(id) {
     ns <- session$ns
     # Process file.
     # Dynamic ui based on choice of individual.
+    # observe({
+    #   req(input$choice)
+    #   if (input$choice == "yes") {
+    #     output$map_upld <- renderUI({
+    #       fileInput(
+    #         inputId = ns("mapfile"),
+    #         label = "Upload Map file",
+    #         accept = ".csv",
+    #         width = "100%"
+    #       )
+    #     })
+    #   } else if (input$choice == "no") {
+    #     output$map_upld <- renderUI({
+    #       NULL
+    #     })
+    #   }
+    # })
+    #
+    # # Read the csv file uploadeed.
+    # data <- reactive({
+    #   req(input$data_id)
+    #   read.csv(file = input$data_id$datapath) |> as.data.frame()
+    # })
+    #
+    # # Get unique batch from it.
+    # uniq_batch <- reactive({
+    #   req(data())
+    #   batch <- grep(pattern = "batch", x = colnames(data()), ignore.case = TRUE, value = TRUE)
+    #   data()[[batch]] |> unique()
+    # })
+    #
+    # # Populate batch widget
+    # observe({
+    #   req(uniq_batch())
+    #   updateSelectInput(session,
+    #     inputId = "batch",
+    #     choices = uniq_batch(),
+    #     selected = uniq_batch()[1]
+    #   )
+    # })
+    #
+    # # Get genotypes and populate for parents.
+    # Genotype_names <- reactive({
+    #   req(input$batch, data())
+    #   Genotypes_user(data = data(), Batch = input$batch)
+    # })
+    #
+    # observe({
+    #   req(Genotype_names())
+    #   updateSelectInput(session, inputId = "dp", choices = Genotype_names())
+    #   updateSelectInput(session, inputId = "rp", choices = Genotype_names())
+    # })
+    #
+    # # Read map file if user has.
+    # map_file <- reactive({
+    #   if (is.null(input$mapfile)) {
+    #     NULL
+    #   } else {
+    #     read.csv(file = input$mapfile$datapath)
+    #   }
+    # })
+    #
+    # #-- Allow users to submit.
+    # Result <- reactiveVal(NULL) # empty reactive value to store result.
+    #
+    # observeEvent(input$config, {
+    #   req(
+    #     data(), input$batch, input$sep_marker, Genotype_names(), input$na_code,
+    #     input$data_type, input$allele_sep, input$rp, input$dp, input$choice
+    #   )
+    #   # Cleaning and numeric coding
+    #   result <- marker_file(
+    #     data = data(),
+    #     Batch = input$batch,
+    #     sep = input$sep_marker,
+    #     sep_2 = check_sep(input$allele_sep),
+    #     data_type = input$data_type,
+    #     rp = input$rp,
+    #     dp = input$dp,
+    #     geno_vec = Genotype_names(),
+    #     na_code = input$na_code,
+    #     feedback = input$choice,
+    #     mapfile_path = if (is.null(map_file())) NULL else map_file()
+    #   )
+    #
+    #   # Store result in reactive value
+    #   Result(result)
+    #
+    #   # Reset the parents selection to avoid stale selections
+    #   updateSelectInput(session,
+    #     inputId = "parents",
+    #     choices = Genotype_names(),
+    #     selected = NULL
+    #   )
+    #
+    #   # Then set default selection after a brief delay
+    #   Sys.sleep(0.1)
+    #   updateSelectInput(session,
+    #     inputId = "parents",
+    #     choices = Genotype_names(),
+    #     selected = Genotype_names()[c(1, min(3, length(Genotype_names())))]
+    #   )
+    # })
+    #
+    # # Update select input.
+    # # Get colnames of Mapfile
+    # map_file_col <- reactive({
+    #   req(Result()$mapfile)
+    #   colnames(Result()$mapfile)
+    # })
+    #
+    # # observer for updating map-related inputs
+    # observeEvent(Result(), {
+    #   req(Result()$mapfile, map_file_col(), Genotype_names())
+    #
+    #   # Update SNP ID selection
+    #   updateSelectInput(session,
+    #     inputId = "snp_ids",
+    #     choices = map_file_col(),
+    #     selected = grep(
+    #       pattern = "id", x = map_file_col(),
+    #       ignore.case = TRUE, value = TRUE
+    #     )[1]
+    #   )
+    #
+    #   # Update Chromosome selection
+    #   updateSelectInput(session,
+    #     inputId = "chr",
+    #     choices = map_file_col(),
+    #     selected = grep(
+    #       pattern = "chr", x = map_file_col(),
+    #       ignore.case = TRUE, value = TRUE
+    #     )[1]
+    #   )
+    #
+    #   # Update Position selection
+    #   updateSelectInput(session,
+    #     inputId = "chr_pos",
+    #     choices = map_file_col(),
+    #     selected = grep(
+    #       pattern = "pos", x = map_file_col(),
+    #       ignore.case = TRUE, value = TRUE
+    #     )[1]
+    #   )
+    # })
+
+
+    # # Dynamic ui based on choice of individual.
     observe({
-      req(input$choice)
-      if (input$choice == "yes") {
-        output$map_upld <- renderUI({
-          fileInput(
-            inputId = ns("mapfile"),
-            label = "Upload Map file",
-            accept = ".csv",
-            width = "100%"
+      if (input$choice == "no") {
+        showModal(
+          modalDialog(
+            title = "📌 Important Note",
+            tagList(
+              p("Marker names must follow a structured format to be parsed into the map file."),
+              tags$ul(
+                tags$li("A common prefix before each marker (e.g., 'S')."),
+                tags$li("Chromosome number immediately after the prefix (e.g., '1')."),
+                tags$li("A separator character (e.g., '_')."),
+                tags$li("Position number after the separator (e.g., '101').")
+              ),
+              p("Example: 'S1_101' — where 'S' is the prefix, '1' is the chromosome number, and '101' is the position.")
+            ),
+            easyClose = FALSE,
+            footer = modalButton("Got it!")
           )
-        })
-      } else if (input$choice == "no") {
-        output$map_upld <- renderUI({
-          NULL
-        })
+        )
       }
     })
+
 
     # Read the csv file uploadeed.
     data <- reactive({
@@ -382,128 +605,186 @@ mod_ds_marker_ass_bac_server <- function(id) {
       read.csv(file = input$data_id$datapath) |> as.data.frame()
     })
 
+    # Get colnames of data and populate.
+    data_colnames <- reactive({
+      req(data())
+      Get_dt_coln(data())
+    })
+
+    # Populate batch and genotype columns with data colnames
+    observe({
+      updateSelectInput(session,
+                        inputId = "batch_col",
+                        choices = data_colnames(),
+                        selected = grep("batch",
+                                        x = data_colnames(),
+                                        ignore.case = TRUE,
+                                        value = TRUE
+                        )[1]
+      )
+
+      updateSelectInput(session,
+                        inputId = "genotype_col",
+                        choices = data_colnames(),
+                        selected = grep("genotype",
+                                        x = data_colnames(),
+                                        ignore.case = TRUE,
+                                        value = TRUE
+                        )[1]
+      )
+    })
+
+
+
+
     # Get unique batch from it.
     uniq_batch <- reactive({
-      req(data())
-      batch <- grep(pattern = "batch", x = colnames(data()), ignore.case = TRUE, value = TRUE)
-      data()[[batch]] |> unique()
+      req(data(), input$batch_col)
+      data()[[input$batch_col]] |> unique()
     })
 
     # Populate batch widget
     observe({
       req(uniq_batch())
       updateSelectInput(session,
-        inputId = "batch",
-        choices = uniq_batch(),
-        selected = uniq_batch()[1]
+                        inputId = "batch",
+                        choices = uniq_batch(),
+                        selected = uniq_batch()[1]
       )
     })
 
     # Get genotypes and populate for parents.
     Genotype_names <- reactive({
       req(input$batch, data())
-      Genotypes_user(data = data(), Batch = input$batch)
+      Genotypes_user(data = data(), Batch = input$batch )
     })
 
     observe({
       req(Genotype_names())
       updateSelectInput(session, inputId = "dp", choices = Genotype_names())
-      updateSelectInput(session, inputId = "rp", choices = Genotype_names())
+      updateSelectInput(session, inputId = "rp", choices = Genotype_names(), selected = Genotype_names()[3])
     })
 
     # Read map file if user has.
     map_file <- reactive({
-      if (is.null(input$mapfile)) {
-        NULL
-      } else {
-        read.csv(file = input$mapfile$datapath)
-      }
+      req(input$mapfile)
+      read_mapfile(file = input$mapfile$datapath)
+
     })
 
-    #-- Allow users to submit.
-    Result <- reactiveVal(NULL) # empty reactive value to store result.
+    # Populate field for snp id column based on mapfile
+    observe({
+      req(map_file())
+      updateSelectInput(session,
+                        inputId = "snp_id",
+                        choices = colnames(map_file()),
+                        selected = grep("id",
+                                        x = colnames(map_file()), ignore.case = TRUE,
+                                        value = TRUE)[1]
+      )
+    })
 
+
+    # store the parents selection temporary
+    # values <- reactiveValues(
+    #   locked_parents = NULL
+    # )
+
+
+    Result <- reactiveVal(NULL) # empty reactiveval object
+
+    # Generate list of mapfile, proccess data etc when submit is clicked
     observeEvent(input$config, {
       req(
-        data(), input$batch, input$sep_marker, Genotype_names(), input$na_code,
-        input$data_type, input$allele_sep, input$rp, input$dp, input$choice
+        data(), input$batch, input$batch_col,
+        input$data_type, input$allele_sep,
+        input$rp, input$dp, input$choice,
+        input$genotype_col
       )
-      # Cleaning and numeric coding
-      result <- marker_file(
+
+      # Process the data
+      result <- proc_nd_map_func(
         data = data(),
         Batch = input$batch,
-        sep = input$sep_marker,
-        sep_2 = check_sep(input$allele_sep),
+        batch_col = input$batch_col,
+        marker_sep = if(input$choice == "no") input$sep_marker else NULL,
+        apply_par_poly = input$apply_par_poly,
+        apply_par_miss = input$apply_par_miss,
+        apply_geno_good = input$apply_geno_good,
+        apply_par_homo = input$apply_par_homo,
+        genotype = input$genotype_col,
+        snp_id = if (input$choice == "yes") input$snp_id else NULL,
+        calls_sep = check_sep(input$allele_sep),
         data_type = input$data_type,
         rp = input$rp,
         dp = input$dp,
+        Prefix = if (input$choice == "no") isolate(input$prefix_marker) else NULL,
         geno_vec = Genotype_names(),
-        na_code = input$na_code,
         feedback = input$choice,
-        mapfile_path = if (is.null(map_file())) NULL else map_file()
+        na_code = NA,
+        data_col = data_colnames(),
+        mapfile_path = map_file()
       )
 
-      # Store result in reactive value
+      # Store result
       Result(result)
 
-      # Reset the parents selection to avoid stale selections
+      # Update parents selection
+      req(Genotype_names())
+
       updateSelectInput(session,
-        inputId = "parents",
-        choices = Genotype_names(),
-        selected = NULL
+                        inputId = "parents",
+                        choices = Genotype_names(),
+                        selected = Genotype_names()[c(1, 3)]
       )
 
-      # Then set default selection after a brief delay
-      Sys.sleep(0.1)
-      updateSelectInput(session,
-        inputId = "parents",
-        choices = Genotype_names(),
-        selected = Genotype_names()[c(1, min(3, length(Genotype_names())))]
-      )
+      # # Locking  parents selection
+      # values$locked_parents <- Genotype_names()[c(1, 3)]
     })
 
-    # Update select input.
+
+
     # Get colnames of Mapfile
     map_file_col <- reactive({
       req(Result()$mapfile)
       colnames(Result()$mapfile)
     })
 
-    # observer for updating map-related inputs
-    observeEvent(Result(), {
-      req(Result()$mapfile, map_file_col(), Genotype_names())
+
+    # Observer for updating map-related inputs
+    observe({
+      req(Result()$mapfile, map_file_col())
 
       # Update SNP ID selection
       updateSelectInput(session,
-        inputId = "snp_ids",
-        choices = map_file_col(),
-        selected = grep(
-          pattern = "id", x = map_file_col(),
-          ignore.case = TRUE, value = TRUE
-        )[1]
+                        inputId = "snp_ids",
+                        choices = map_file_col(),
+                        selected = grep(
+                          pattern = "id", x = map_file_col(),
+                          ignore.case = TRUE, value = TRUE
+                        )[1]
       )
 
       # Update Chromosome selection
       updateSelectInput(session,
-        inputId = "chr",
-        choices = map_file_col(),
-        selected = grep(
-          pattern = "chr", x = map_file_col(),
-          ignore.case = TRUE, value = TRUE
-        )[1]
+                        inputId = "chr",
+                        choices = map_file_col(),
+                        selected = grep(
+                          pattern = "chr", x = map_file_col(),
+                          ignore.case = TRUE, value = TRUE
+                        )[1]
       )
 
       # Update Position selection
       updateSelectInput(session,
-        inputId = "chr_pos",
-        choices = map_file_col(),
-        selected = grep(
-          pattern = "pos", x = map_file_col(),
-          ignore.case = TRUE, value = TRUE
-        )[1]
+                        inputId = "chr_pos",
+                        choices = map_file_col(),
+                        selected = grep(
+                          pattern = "pos", x = map_file_col(),
+                          ignore.case = TRUE, value = TRUE
+                        )[1]
       )
     })
-
 
 
     # calculate recurrent parent
@@ -529,7 +810,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
 
 
     # Render output.
-    output$comp_rpp_val <- renderDT({
+    output$comp_rpp_val <- DT::renderDT({
       req(calc_rpp_bc_result())
       DT::datatable(calc_rpp_bc_result(), options = list(scrollX = TRUE))
     })
@@ -603,19 +884,19 @@ mod_ds_marker_ass_bac_server <- function(id) {
     # Information to the user
     #------------------------------------------------------
     # parent missing
-    output$par_missing_tbl <- renderDT({
+    output$par_missing_tbl <- DT::renderDT({
       req(Result())
       DT::datatable(Result()$par_missing_dat, options = list(scrollX = TRUE))
     })
 
     # Genotype error
-    output$geno_error_tbl <- renderDT({
+    output$geno_error_tbl <- DT::renderDT({
       req(Result())
       DT::datatable(Result()$genotype_error, options = list(scrollX = TRUE))
     })
 
     # # parent hetero
-    output$par_het_tbl <- renderDT({
+    output$par_het_tbl <- DT::renderDT({
       req(Result())
       DT::datatable(Result()$parent_het, options = list(scrollX = TRUE))
     })

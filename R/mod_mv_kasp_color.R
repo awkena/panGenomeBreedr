@@ -8,8 +8,6 @@
 #'
 #' @importFrom shiny NS tagList sidebarLayout sidebarPanel mainPanel selectInput textInput actionButton icon div
 #' @importFrom bslib accordion accordion_panel
-#' @importFrom DT dataTableOutput
-#' @importFrom grDevices colors
 #'
 mod_mv_kasp_color_ui <- function(id) {
   ns <- NS(id)
@@ -54,29 +52,17 @@ mod_mv_kasp_color_ui <- function(id) {
         selectInput(
           inputId = ns("color_choose"),
           label = "Select Respective Colors for | FAM | HEX | Het | ",
-          choices = colors(),
+          choices = grDevices::colors(),
           multiple = TRUE,
           selected = c("blue", "gold", "forestgreen")
         )
-        # div(
-        #   style = "display: flex; justify-content: center;",
-        #   actionButton(
-        #     inputId = ns("run_analysis"), label = "Run",
-        #     icon = icon("palette"), class = "btn-primary",
-        #     width = "50%",
-        #     style = "color: white;
-        #                   border-radius: 6px; padding: 10px 20px;
-        #                   font-size: 16px; border: none;
-        #                   cursor: pointer;"
-        #   )
-        # )
       ),
       mainPanel(
         bslib::accordion(
           open = TRUE,
           bslib::accordion_panel(
             title = "Plate Status After FAM & HEX Color-Coding by LGC Genomics",
-            DT::dataTableOutput(outputId = ns("kasp_color_code_stat"))
+            DT::DTOutput(outputId = ns("kasp_color_code_stat"))
           ),
           style = "margin-bottom: 15px;"
         ),
@@ -88,7 +74,7 @@ mod_mv_kasp_color_ui <- function(id) {
               choices = NULL,
               label = "Select Plate", multiple = FALSE
             ),
-            DT::dataTableOutput(outputId = ns("kasp_color_code"))
+            DT::DTOutput(outputId = ns("kasp_color_code"))
           ),
           style = "margin-bottom: 15px;"
         )
@@ -105,10 +91,6 @@ mod_mv_kasp_color_ui <- function(id) {
 #'
 #' @importFrom shiny moduleServer req observeEvent reactiveVal reactive
 #' @importFrom shiny updateSelectInput
-#' @importFrom DT renderDT datatable
-#' @importFrom shinyWidgets show_alert
-#' @importFrom shinybusy show_modal_spinner remove_modal_spinner
-#' @importFrom stringr str_squish
 #'
 mod_mv_kasp_color_server <- function(id, kasp_data) {
   moduleServer(id, function(input, output, session) {

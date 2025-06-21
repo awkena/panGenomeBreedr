@@ -95,6 +95,7 @@ reference:
       - rpp_barplot
       - cross_qc_annotate
       - cross_qc_heatmap
+      - cross_qc_heatmap2
       - sim_snp_dat
       - order_markers
       - hapmap_ns_fmt

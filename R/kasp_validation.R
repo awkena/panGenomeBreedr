@@ -650,7 +650,7 @@ pred_summary <- function(x,
 #'
 #' @export
 #' @import ggplot2
-#' @import gridExtra
+#' @importFrom gridExtra marrangeGrob
 
 kasp_qc_ggplot <- function(x,
                            FAM = "X",
@@ -865,15 +865,16 @@ kasp_qc_ggplot <- function(x,
     gg_plts[[i]] <- plt
   }
 
-  if (pdf == TRUE) {
-    ggplot2::ggsave(
-      filename = paste0(filename, ".pdf"),
-      plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
-      device = "pdf",
-      units = "in",
-      width = width,
-      height = height
-    )
+  if (pdf) {
+
+    ggplot2::ggsave(filename = paste0(filename, ".pdf"),
+                    plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
+                    device = "pdf",
+                    units = "in",
+                    width = width,
+                    height = height)
+
+
   } else {
     return(gg_plts)
   }
@@ -962,7 +963,7 @@ kasp_qc_ggplot <- function(x,
 #'
 #' @export
 #' @import ggplot2
-#' @import gridExtra
+#' @importFrom gridExtra marrangeGrob
 
 
 kasp_qc_ggplot2 <- function(x,
@@ -1375,13 +1376,15 @@ plot_plate <- function(x,
     gg_plts[[i]] <- gg_plate()
   }
 
-  if (pdf == TRUE) {
-    ggplot2::ggsave(
-      filename = paste0(filename, ".pdf"),
-      plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
-      device = "pdf",
-      units = "in", width = width, height = height
-    )
+
+  if (pdf) {
+
+    ggplot2::ggsave(filename = paste0(filename, ".pdf"),
+           plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
+           device = "pdf",
+           units = "in", width = width, height = height)
+
+
   } else {
     return(gg_plts)
   }
@@ -2046,17 +2049,19 @@ pred_summary_plot <- function(x,
     gg_plts[[i]] <- plt
   }
 
-  if (pdf == TRUE) {
-    ggplot2::ggsave(
-      filename = paste0(filename, ".pdf"),
-      plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
-      device = "pdf",
-      units = "in",
-      width = width,
-      height = height
-    )
+  if (pdf) {
+
+    ggplot2::ggsave(filename = paste0(filename, ".pdf"),
+                    plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
+                    device = "pdf",
+                    units = "in",
+                    width = width,
+                    height = height)
+
   } else {
+
     return(gg_plts)
+
   }
 }
 
