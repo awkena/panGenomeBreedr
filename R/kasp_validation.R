@@ -691,7 +691,7 @@ pred_summary <- function(x,
 #'
 #' @export
 #' @import ggplot2
-#' @import gridExtra
+#' @importFrom gridExtra marrangeGrob
 
 kasp_qc_ggplot <- function(x,
                            FAM = 'X',
@@ -898,7 +898,7 @@ kasp_qc_ggplot <- function(x,
 
   }
 
-  if (pdf == TRUE) {
+  if (pdf) {
 
     ggplot2::ggsave(filename = paste0(filename, ".pdf"),
                     plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
@@ -994,7 +994,7 @@ kasp_qc_ggplot <- function(x,
 #'
 #' @export
 #' @import ggplot2
-#' @import gridExtra
+#' @importFrom gridExtra marrangeGrob
 
 
 kasp_qc_ggplot2 <- function(x,
@@ -1385,7 +1385,7 @@ plot_plate <- function(x,
 
   }
 
-  if (pdf == TRUE) {
+  if (pdf) {
 
     ggplot2::ggsave(filename = paste0(filename, ".pdf"),
            plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
@@ -2052,7 +2052,7 @@ pred_summary_plot <- function(x,
 
   }
 
-  if (pdf == TRUE) {
+  if (pdf) {
 
     ggplot2::ggsave(filename = paste0(filename, ".pdf"),
                     plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
