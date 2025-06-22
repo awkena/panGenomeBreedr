@@ -233,14 +233,14 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                         ),
                         selectInput(
                           inputId = ns("col_mapping"),
-                          label = "Choose Heatmap Colors (6 Genotypes)",
+                          label = "Choose Heatmap Colors",
                           choices = grDevices::colors(),
                           multiple = TRUE,
                           width = "100%"
                         ),
                         selectInput(
                           inputId = ns("col_labels"),
-                          label = "Genotype Labels (comma-separated)",
+                          label = "Genotype Labels",
                           choices = NULL,
                           multiple = TRUE,
                           width = "100%"
@@ -485,7 +485,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     # Read the csv file uploadeed.
     data <- reactive({
       req(input$data_id)
-      read.csv(file = input$data_id$datapath) |> as.data.frame()
+      read.csv(file = input$data_id$datapath,stringsAsFactors = FALSE, colClasses="character") |> as.data.frame()
     })
 
     # Get colnames of data and populate.
@@ -621,10 +621,15 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
                         selected = Genotype_names()[c(1, 3)]
       )
 
-      # Locking  parents selection
-      values$locked_parents <- Genotype_names()[c(1, 3)]
+
     })
 
+    observe({
+      input$config
+      req(input$parents)
+      # Locking  parents selection
+      values$locked_parents <- input$parents
+    })
 
 
     # Get colnames of Mapfile
@@ -638,14 +643,17 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     # Update the verbatim print out put.
 
     color_code_checker_res <- reactive({
-      req(Result())
-      color_code_checker(Result()$proc_kasp_f)
+      req(Result() , values$locked_parents)
+      color_code_checker(Result()$proc_kasp_f ,
+                         par_1 = values$locked_parents[1],
+                         par_2 = values$locked_parents[2])
     })
 
 
     output$color_format <- renderText({
       req(color_code_checker_res())
-      paste(names(color_code_checker_res()$color_code_in), collapse = ' --> ')
+      paste(color_code_checker_res(), collapse = ' --> ')
+
     })
 
 
@@ -687,8 +695,8 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       # Update Position selection
       updateSelectInput(session,
                         inputId = "col_labels",
-                        choices = color_code_checker_res()$just_num,
-                        selected = color_code_checker_res()$just_num
+                        choices = color_code_checker_res() |> unname(),
+                        selected = color_code_checker_res() |> unname()
       )
 
     })
@@ -705,38 +713,70 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
 
 
-
-
-
-
-    #Using locked parents in heat map to prevent crashes when batch number changes
     no_annotate <- reactive({
       req(
         values$locked_parents, input$chr, input$chr_pos, input$group_sz,
         input$legend_title, input$text_size, input$snp_ids, Result()
       )
 
-      # Validate locked parents selection
       if (length(values$locked_parents) < 2) {
         return(NULL)
       }
 
-      cross_qc_heatmap(
-        x = Result()$proc_kasp_f,
-        map_file = Result()$mapfile,
-        snp_ids = input$snp_ids,
-        chr = input$chr,
-        chr_pos = input$chr_pos,
-        parents = values$locked_parents, # Use LOCKED parents, not input$parents
-        group_sz = if (input$group_sz == 0) nrow(Result()$proc_kasp_f) - 2 else input$group_sz,
-        legend_title = input$legend_title,
-        text_size = input$text_size,
-        alpha = input$alpha,
-        panel_fill = input$panel_fill,
-        panel_col = input$panel_col,
-        pdf = FALSE
-      )
+      col_mapping <- input$col_mapping
+      col_labels  <- input$col_labels
+
+      # Wait until both inputs are non-null and same length — or safely fallback
+      if (!is.null(col_mapping) && !is.null(col_labels) && length(col_mapping) >= length(col_labels)) {
+          tryCatch({
+            cross_qc_heatmap(
+              col_mapping = col_mapping[seq_len(length(col_labels))],
+              col_labels  = col_labels,
+              x = Result()$proc_kasp_f,
+              map_file = Result()$mapfile,
+              snp_ids = input$snp_ids,
+              chr = input$chr,
+              chr_pos = input$chr_pos,
+              parents = values$locked_parents,
+              group_sz = if (input$group_sz == 0) nrow(Result()$proc_kasp_f) - 2 else input$group_sz,
+              legend_title = input$legend_title,
+              text_size = input$text_size,
+              alpha = input$alpha,
+              panel_fill = input$panel_fill,
+              panel_col = input$panel_col,
+              pdf = FALSE
+            )
+          }, error = function(e) {
+            message("Heatmap generation error: ", e$message)
+            return(NULL)
+          })
+
+
+      } else {
+          tryCatch({
+            cross_qc_heatmap(
+              x = Result()$proc_kasp_f,
+              map_file = Result()$mapfile,
+              snp_ids = input$snp_ids,
+              chr = input$chr,
+              chr_pos = input$chr_pos,
+              parents = values$locked_parents,
+              group_sz = if (input$group_sz == 0) nrow(Result()$proc_kasp_f) - 2 else input$group_sz,
+              legend_title = input$legend_title,
+              text_size = input$text_size,
+              alpha = input$alpha,
+              panel_fill = input$panel_fill,
+              panel_col = input$panel_col,
+              pdf = FALSE
+            )
+          }, error = function(e) {
+            message("Heatmap generation error: ", e$message)
+            return(NULL)
+          })
+
+      }
     })
+
 
     # Find the number of batches heatmap has been drawn for
     observe({
@@ -755,10 +795,22 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       }
     })
 
-    # Render default heatmap
+    # Print plot
     output$heatmap <- renderPlot({
-      req(heatmap_1())
-      print(heatmap_1())
+      tryCatch({
+        plot_obj <- heatmap_1()
+        req(plot_obj)
+
+        if (inherits(plot_obj, "ggplot")) {
+          print(plot_obj)
+        } else {
+
+          plot_obj
+        }
+
+      }, error = function(e) {
+        return(NULL)
+      })
     })
 
 
