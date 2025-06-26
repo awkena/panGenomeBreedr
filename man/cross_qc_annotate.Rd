@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{cross_qc_annotate}
 \alias{cross_qc_annotate}
-\title{Annotate a heatmap to show introgressed loci positions.}
+\title{Annotate start and end positions of loci on a heatmap.}
 \usage{
 cross_qc_annotate(
   x,
@@ -11,19 +11,21 @@ cross_qc_annotate(
   chr = "chr",
   chr_pos = "pos",
   parents,
-  trait_pos,
+  trait_pos = NULL,
   group_sz = nrow(x) - 2,
   pdf = FALSE,
   filename = "background_heatmap",
   legend_title = "Heatmap_key",
   col_mapping,
   col_labels,
+  panel_fill = "grey80",
+  panel_col = "white",
   alpha = 0.9,
   text_size = 12,
   text_scale_fct = 0.5,
-  width = 10.5,
-  height = 8.5,
-  ...
+  label_offset = 0.5,
+  width = 9,
+  height = 6.5
 )
 }
 \arguments{
@@ -43,8 +45,8 @@ positions in \code{x}.}
 
 \item{parents}{A character vector of length = 2 for the IDs of parents.}
 
-\item{trait_pos}{A list object where the components correspond to the start and
-end positions of trait loci to annotate on the heapmap.}
+\item{trait_pos}{A list object where the components correspond to the chromosome number,
+start and end positions of trait loci to annotate on the heapmap.}
 
 \item{group_sz}{A positive integer value indicating the batch size for progenies
 to include in heatmap.}
@@ -61,6 +63,10 @@ device when TRUE or output plot in R when FALSE.}
 \item{col_labels}{A character vector of length = 6 for labels corresponding to
 the color mapping.}
 
+\item{panel_fill}{A character value for setting the panel background fill color.}
+
+\item{panel_col}{A character value for setting the panel background border color.}
+
 \item{alpha}{A numeric value between 0 and 1 for modifying the
 opacity of colors.}
 
@@ -69,17 +75,20 @@ opacity of colors.}
 \item{text_scale_fct}{A numeric value for scaling text size. The default value
 is `50\%` of the defined text size.}
 
+\item{label_offset}{A numeric value indicating the position of the trait loci
+text labels on the heatmap. It is positioned on the donor parent by default.}
+
 \item{width}{A numeric value for the width of pdf device.}
 
 \item{height}{A numeric value for the height of pdf device.}
-
-\item{...}{Other valid arguments that can be passed to ggplot2.}
 }
 \value{
-A graphic object or ggplot.
+A ggplot graphical object.
 }
 \description{
-Annotate a heatmap to show introgressed loci positions.
+Adds two vertical dashed lines to mark the start and end positions of each
+locus (e.g., gene or QTL) on a background genotype heatmap, and places a
+single label at the midpoint between the two positions.
 }
 \examples{
 \donttest{
@@ -99,16 +108,16 @@ colnames(num_dat) <- paste0('S1', '_', c(floor(seq(1000, 10000, len = 8)),
 # Get map file by parsing SNP IDs
 map_file <- parse_marker_ns(colnames(num_dat))
 
-# Annotate a heatmap to show trait loci positions
+# Annotate a heatmap to show QTL positions with vertical lines
 cross_qc_annotate(x = num_dat,
                 map_file = map_file,
                 snp_ids = 'snpid',
                 chr = 'chr',
                 chr_pos = 'pos',
                 parents = c('rp', 'dp'),
-                trait_pos = list(loc1 = c(start = 2900, end = 4200),
-                loc2 = c(start = 14200, end = 15800)),
-                text_scale_fct = 0.5,
+                list(loc1 = c(chr = 1, start = 2900, end = 4200),
+                loc2 = c(chr = 1, start = 14200, end = 15800)),
+                text_scale_fct = 0.3,
                 group_sz = 3L,
                 pdf = FALSE,
                 legend_title = 'BC1',

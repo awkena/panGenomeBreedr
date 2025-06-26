@@ -699,259 +699,6 @@ rpp_barplot <- function(rpp_df,
 
 }
 
-
-#' Annotate a heatmap to show introgressed loci positions.
-#' @inheritParams cross_qc_ggplot
-#' @param trait_pos A list object where the components correspond to the start and
-#' end positions of trait loci to annotate on the heapmap.
-#' @param text_scale_fct A numeric value for scaling text size. The default value
-#' is `50\%` of the defined text size.
-#'
-#' @return A graphic object or ggplot.
-#'
-#' @examples
-#' \donttest{
-#' # example code
-#' library(panGenomeBreedr)
-#' # Create a numeric matrix of genotype scores for 10 markers and 5 samples
-#' num_dat <- matrix(c(rep(1, 10), rep(0, 10),
-#'                     1, 1, 0.5, 1, 1, 1, 1, 1, 0, 1,
-#'                     1, 1, 0, 1, 1, 1, 1, 1, 1, 1,
-#'                     1, 1, 0, 1, 1, 1, 1, 1, 1, 0.5 ),
-#'                   byrow = TRUE, ncol = 10)
-#'
-#' rownames(num_dat) <- c('rp', 'dp', paste0('bc1_', 1:3))
-#' colnames(num_dat) <- paste0('S1', '_', c(floor(seq(1000, 10000, len = 8)),
-#'                                          15000, 20000))
-#'
-#' # Get map file by parsing SNP IDs
-#' map_file <- parse_marker_ns(colnames(num_dat))
-#'
-#' # Annotate a heatmap to show trait loci positions
-#' cross_qc_annotate(x = num_dat,
-#'                 map_file = map_file,
-#'                 snp_ids = 'snpid',
-#'                 chr = 'chr',
-#'                 chr_pos = 'pos',
-#'                 parents = c('rp', 'dp'),
-#'                 trait_pos = list(loc1 = c(start = 2900, end = 4200),
-#'                 loc2 = c(start = 14200, end = 15800)),
-#'                 text_scale_fct = 0.5,
-#'                 group_sz = 3L,
-#'                 pdf = FALSE,
-#'                 legend_title = 'BC1',
-#'                 alpha = 0.8,
-#'                 text_size = 15)
-#'
-#' }
-#'
-#' @export
-cross_qc_annotate <- function(x,
-                              map_file,
-                              snp_ids = 'snpid',
-                              chr = 'chr',
-                              chr_pos = 'pos',
-                              parents,
-                              trait_pos,
-                              group_sz = nrow(x)-2,
-                              pdf = FALSE,
-                              filename = 'background_heatmap',
-                              legend_title = 'Heatmap_key',
-                              col_mapping,
-                              col_labels,
-                              alpha = 0.9,
-                              text_size = 12,
-                              text_scale_fct = 0.5,
-                              width = 10.5,
-                              height = 8.5,
-                              ...) {
-
-  if (missing(x)) stop("Please provide a numeric matrix for the `x` argument.")
-  if (!inherits(x, what = 'matrix')) stop("Argument `x` must be a matrix object.")
-  if (missing(map_file)) stop("Please provide a map file for the `map_file` argument.")
-  if (!inherits(map_file, what = 'data.frame')) stop("Argument `map_file` must be a data.frame object.")
-  if (missing(parents)) stop("Please provide the value for the 'parents' argument.")
-  if (length(parents) != 2) stop("The `parents` argument must be a character vector of length = 2.")
-  if (missing(trait_pos)) stop("Please provide a trait positions for the `trait_pos` argument.")
-  if (!inherits(trait_pos, what = 'list')) stop("Argument `trait_pos` must be a list object.")
-
-  snpid <- value <- map_dist <- pos  <- NULL # Define global variables
-
-  # Sort data in ascending order of chromosomes
-  map_file <- order_markers(map_file, chr_col = chr, pos_col = chr_pos)
-
-  # Calculate inter-marker distances and add it to map file
-  map_dist <- lapply(split(map_file[, chr_pos], map_file[, chr]), FUN = diff)
-
-  map_dist <- unlist(lapply(map_dist, FUN = function(x) c(0, x)))
-
-  map_file <- cbind(map_file, map_dist = map_dist)
-
-  # Subset parents data
-  parent_dat <- rbind(x[which(rownames(x) == parents[1]),],
-                      x[which(rownames(x) == parents[2]),])
-  rownames(parent_dat) <- parents
-
-  # Melt x into a data frame
-  parent_dat <- gg_dat(num_mat = parent_dat,
-                       map_file = map_file,
-                       map_pos = chr_pos,
-                       map_chr = chr,
-                       map_snp_ids = snp_ids)
-
-  # Subset progeny data
-  progeny_dat <- x[!rownames(x) %in% unique(parent_dat$x),]
-
-  # Create an index to split by
-  grp_index <- rep(1:ceiling(nrow(progeny_dat) / group_sz), each = group_sz,
-                   length.out = nrow(progeny_dat))
-
-  # Split data frame into list of smaller data frames
-  batches <- split(as.data.frame(progeny_dat), grp_index)
-
-  batches <- lapply(batches, FUN = function(x) {
-
-    progeny_dat <- gg_dat(num_mat = x,
-                          map_file = map_file,
-                          map_pos = chr_pos,
-                          map_chr = chr,
-                          map_snp_ids = snp_ids)
-
-    grp <- rbind(parent_dat, progeny_dat)
-
-    # Re-order levels of the sample ids
-    grp$x <- factor(grp$x, levels = rev(c(sort(unique(parent_dat$x)),
-                                          sort(unique(progeny_dat$x)))))
-    grp$snpid <- factor(grp$snpid, levels = unique(grp$snpid))
-
-    grp
-
-
-  })
-
-  nbatches <- length(batches) # Number of batches to plot
-
-  # Create an empty list object to hold ggplots
-  gg_plts <- vector(mode = 'list', length = nbatches)
-  names(gg_plts) <- paste0('Batch', seq_len(nbatches))
-
-  # Color and labels for plotting
-  # Black = NAs; coral1 = RP; gold = Het; purple = DP; grey70 = Mono;
-  # cornflowerblue = geno_error
-
-  if (missing(col_mapping)) {
-
-    col_mapping <- c('-5' = 'black',
-                     '-2' = 'cornflowerblue',
-                     '-1' = 'grey80',
-                     '0' = 'purple2',
-                     '0.5' = 'gold',
-                     '1' = 'coral2')
-
-  }
-
-  if (missing(col_labels)) {
-
-    col_labels <- c('-5' = "Missing",
-                    '-2' = 'Error',
-                    '-1' = "Monomorphic",
-                    '0' = parents[2],
-                    '0.5' = "Heterozygous",
-                    '1' = parents[1])
-  }
-
-
-  # Annotate plot to show loci positions
-  annotate_loc <- function(gg_obj, trait_pos) {
-
-    # Get trait locus names if present, else generate names to use
-    if (!is.null(names(trait_pos))) {
-
-      pos_ns <- names(trait_pos)
-
-    } else {
-
-      pos_ns <- paste0('loc', 1:length(trait_pos))
-
-    }
-
-    gg_obj <- gg_obj
-
-    for (i in seq_len(length(pos_ns))) {
-
-      mid_pos <- mean(trait_pos[[i]], na.rm = TRUE)
-      locus_ns <- pos_ns[i]
-
-      gg_obj <- gg_obj +
-        ggplot2::geom_vline(xintercept = trait_pos[[i]], linetype = 2,
-                            lwd = 2, col = 'black') +
-        ggplot2::geom_text(x = mid_pos,
-                           y = length(unique(grp$x)) + 0.65,
-                           label = locus_ns,
-                           size = text_size/(text_scale_fct*text_size))
-    }
-
-    return(gg_obj)
-
-  }
-
-  for(i in seq_len(nbatches)) {
-
-    grp <- batches[[i]]
-    # Plot heat map
-    plt <- ggplot2::ggplot(grp, ggplot2::aes(x = pos, y = x, fill = value,
-                                             width = map_dist)) +
-      ggplot2::geom_tile(lwd = 1, linetype = 1) +
-      ggplot2::geom_rug(ggplot2::aes(x = pos),
-                        sides = "b", length = grid::unit(0.02, "npc")) +
-      ggplot2::scale_fill_manual( values = ggplot2::alpha(col_mapping, alpha),
-                                  label = col_labels,
-                                  name = legend_title) +
-
-      ggplot2::xlab('Marker position (Mbp)') +
-      ggplot2::scale_x_continuous(labels = function(x) paste0(x/1e6)) +
-      ggplot2::expand_limits(y = c(1, length(unique(grp$x)) + 0.8)) +
-      ggplot2::theme(axis.text.y = ggplot2::element_text(size = text_size,
-                                                         face = 'bold'),
-                     axis.ticks.length.y = ggplot2::unit(0.25, 'cm'),
-                     axis.text.x = ggplot2::element_text(angle = 0, hjust = 0,
-                                                         size = text_size),
-                     axis.title.x = ggplot2::element_text(size = text_size,
-                                                          face = 'bold'),
-                     axis.title.y = ggplot2::element_blank(),
-                     panel.background = ggplot2::element_blank(),
-                     legend.text = ggplot2::element_text(size = text_size),
-                     legend.title = ggplot2::element_text(size = text_size)) +
-      ggplot2::geom_hline(yintercept = c(as.numeric(grp$x) + .5, .5),
-                          col = 'white', lwd = 2.5)
-
-    # Annotate heatmap to show locus positions
-    plt <- annotate_loc(gg_obj = plt, trait_pos)
-
-    gg_plts[[i]] <- plt
-
-  } # End of the loop
-
-  if (pdf) {
-
-    ggplot2::ggsave(filename = paste0(filename, ".pdf"),
-                    plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
-                    device = "pdf",
-                    units = "in",
-                    width = width,
-                    height = height)
-  } else {
-
-    return(gg_plts)
-
-  }
-
-}
-
-
-
-
-
 #' Simulate raw SNP loci for any chromosome with or without LD.
 #' @param nsnp An integer value specifying the number of SNPs to simulate.
 #' @param nobs An integer value specifying the number of individuals to simulate.
@@ -2221,6 +1968,255 @@ cross_qc_heatmap2 <- function(x,
     grp <- batches[[i]]
 
     plt <- ggplot2::ggplot(grp, ggplot2::aes(x = pos, y = x, fill = value, width = map_dist)) +
+      ggplot2::geom_tile(lwd = 1, linetype = 1) +
+
+      ggplot2::scale_fill_manual(values = ggplot2::alpha(col_mapping, alpha),
+                                 label = col_labels,
+                                 name = legend_title) +
+      ggplot2::guides(fill = ggplot2::guide_legend(override.aes = list(size = 5))) +
+      ggplot2::xlab('Chromosome') +
+
+      ggplot2::scale_x_continuous(expand = c(0, 0),
+                                  labels = function(x) paste0(x / 1e6)) +
+      ggplot2::scale_y_discrete(expand = c(0, 0)) +
+      ggplot2::geom_hline(yintercept = c(as.numeric(grp$x) + 0.5, 0.5),
+                          col = 'white', lwd = 2.5) +
+      ggplot2::coord_cartesian(clip = "off") +
+
+      ggplot2::facet_grid(rows = NULL, cols = ggplot2::vars(chr),
+                          space = "free", scales = "free_x", switch = 'x') +
+      # ggplot2::facet_wrap(~ chr, nrow = 1, scales = "free_x",
+      #                     strip.position = "bottom") +
+      ggplot2::theme(axis.text.y = ggplot2::element_text(size = text_size, face = 'bold'),
+                     axis.ticks.length.y = ggplot2::unit(0.25, 'cm'),
+                     axis.ticks.x = ggplot2::element_blank(),
+                     axis.text.x = ggplot2::element_blank(),
+                     axis.title.x = ggplot2::element_text(size = text_size, face = 'bold'),
+                     axis.title.y = ggplot2::element_blank(),
+                     panel.grid.major = ggplot2::element_blank(),
+                     panel.grid.minor = ggplot2::element_blank(),
+                     panel.border = ggplot2::element_blank(),
+                     strip.placement = "outside",
+                     plot.margin = ggplot2::margin(t = 20, r = 5, b = 5, l = 5),
+                     panel.background = ggplot2::element_rect(fill = panel_fill, colour = panel_col,
+                                                              linewidth = 2, linetype = "solid"),
+                     legend.text = ggplot2::element_text(size = text_size),
+                     legend.title = ggplot2::element_text(size = text_size),
+                     strip.background = ggplot2::element_rect(fill = "grey90", colour = "grey90",
+                                                              linewidth = 0.5, linetype = "solid"),
+                     strip.text = ggplot2::element_text(size = text_size))
+
+    if (!is.null(trait_pos)) {
+      if (!inherits(trait_pos, what = 'list')) {
+        stop("Argument `trait_pos` must be a list object.")
+      }
+
+      plt <- annotate_loc(gg_obj = plt, trait_pos = trait_pos, grp = grp)
+    }
+
+    gg_plts[[i]] <- plt
+  }
+
+  if (pdf) {
+    ggplot2::ggsave(filename = paste0(filename, ".pdf"),
+                    plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
+                    device = "pdf",
+                    units = "in",
+                    width = width,
+                    height = height)
+  } else {
+    return(gg_plts)
+  }
+}
+
+
+#' Annotate start and end positions of loci on a heatmap.
+#' @description
+#' Adds two vertical dashed lines to mark the start and end positions of each
+#' locus (e.g., gene or QTL) on a background genotype heatmap, and places a
+#' single label at the midpoint between the two positions.
+#' @inheritParams cross_qc_heatmap2
+#' @return A ggplot graphical object.
+#'
+#' @examples
+#' \donttest{
+#' # example code
+#' library(panGenomeBreedr)
+#' # Create a numeric matrix of genotype scores for 10 markers and 5 samples
+#' num_dat <- matrix(c(rep(1, 10), rep(0, 10),
+#'                     1, 1, 0.5, 1, 1, 1, 1, 1, 0, 1,
+#'                     1, 1, 0, 1, 1, 1, 1, 1, 1, 1,
+#'                     1, 1, 0, 1, 1, 1, 1, 1, 1, 0.5 ),
+#'                   byrow = TRUE, ncol = 10)
+#'
+#' rownames(num_dat) <- c('rp', 'dp', paste0('bc1_', 1:3))
+#' colnames(num_dat) <- paste0('S1', '_', c(floor(seq(1000, 10000, len = 8)),
+#'                                          15000, 20000))
+#'
+#' # Get map file by parsing SNP IDs
+#' map_file <- parse_marker_ns(colnames(num_dat))
+#'
+#' # Annotate a heatmap to show QTL positions with vertical lines
+#' cross_qc_annotate(x = num_dat,
+#'                 map_file = map_file,
+#'                 snp_ids = 'snpid',
+#'                 chr = 'chr',
+#'                 chr_pos = 'pos',
+#'                 parents = c('rp', 'dp'),
+#'                 list(loc1 = c(chr = 1, start = 2900, end = 4200),
+#'                 loc2 = c(chr = 1, start = 14200, end = 15800)),
+#'                 text_scale_fct = 0.3,
+#'                 group_sz = 3L,
+#'                 pdf = FALSE,
+#'                 legend_title = 'BC1',
+#'                 alpha = 0.8,
+#'                 text_size = 15)
+#'
+#' }
+#'
+#' @export
+cross_qc_annotate <- function(x,
+                              map_file,
+                              snp_ids = 'snpid',
+                              chr = 'chr',
+                              chr_pos = 'pos',
+                              parents,
+                              trait_pos = NULL,
+                              group_sz = nrow(x) - 2,
+                              pdf = FALSE,
+                              filename = 'background_heatmap',
+                              legend_title = 'Heatmap_key',
+                              col_mapping,
+                              col_labels,
+                              panel_fill = 'grey80',
+                              panel_col = 'white',
+                              alpha = 0.9,
+                              text_size = 12,
+                              text_scale_fct = 0.5,
+                              label_offset = 0.5,
+                              width = 9,
+                              height = 6.5) {
+
+  if (missing(x)) stop("Please provide a numeric matrix for the `x` argument.")
+  if (!inherits(x, what = 'matrix')) stop("Argument `x` must be a matrix object.")
+  if (missing(map_file)) stop("Please provide a map file for the `map_file` argument.")
+  if (!inherits(map_file, what = 'data.frame')) stop("Argument `map_file` must be a data.frame object.")
+  if (missing(parents)) stop("Please provide the value for the 'parents' argument.")
+  if (length(parents) != 2) stop("The `parents` argument must be a character vector of length = 2.")
+
+  snpid <- value <- map_dist <- pos <- cum_dist <- NULL
+
+  if (inherits(map_file[, chr], what = 'numeric')) {
+    map_file[, chr] <- sprintf('Chr%02s', map_file[, chr])
+    map_file[, chr] <- factor(map_file[, chr], levels = unique(map_file[, chr]))
+  }
+
+  map_file <- order_markers(map_file, chr_col = chr, pos_col = chr_pos)
+  map_dist <- lapply(split(map_file[, chr_pos], map_file[, chr]), FUN = diff)
+  cum_dist <- unname(unlist(lapply(map_dist, FUN = function(x) c(0, cumsum(x)))))
+  map_dist <- unname(unlist(lapply(map_dist, FUN = function(x) c(0, x))))
+  map_file <- cbind(map_file, map_dist = map_dist, cum_dist)
+
+  parent_dat <- rbind(x[which(rownames(x) == parents[1]),],
+                      x[which(rownames(x) == parents[2]),])
+  rownames(parent_dat) <- parents
+
+  parent_dat <- gg_dat(num_mat = parent_dat,
+                       map_file = map_file,
+                       map_pos = chr_pos,
+                       map_chr = chr,
+                       map_snp_ids = snp_ids)
+
+  progeny_dat <- x[!rownames(x) %in% unique(parent_dat$x),]
+  grp_index <- rep(1:ceiling(nrow(progeny_dat) / group_sz), each = group_sz,
+                   length.out = nrow(progeny_dat))
+  batches <- split(as.data.frame(progeny_dat), grp_index)
+
+  batches <- lapply(batches, FUN = function(x) {
+    progeny_dat <- gg_dat(num_mat = x,
+                          map_file = map_file,
+                          map_pos = chr_pos,
+                          map_chr = chr,
+                          map_snp_ids = snp_ids)
+    grp <- rbind(parent_dat, progeny_dat)
+    grp$x <- factor(grp$x, levels = rev(c(sort(unique(parent_dat$x)),
+                                          sort(unique(progeny_dat$x)))))
+    grp
+  })
+
+  nbatches <- length(batches)
+  gg_plts <- vector(mode = 'list', length = nbatches)
+  names(gg_plts) <- paste0('Batch', seq_len(nbatches))
+
+  if (missing(col_mapping)) {
+    col_mapping <- c('-5' = 'deeppink', '-2' = 'cornflowerblue', '-1' = 'beige',
+                     '0' = 'purple2', '0.5' = 'gold', '1' = 'coral2')
+  }
+  if (missing(col_labels)) {
+    col_labels <- c('-5' = "Missing", '-2' = 'Error', '-1' = "Monomorphic",
+                    '0' = parents[2], '0.5' = "Heterozygous", '1' = parents[1])
+  }
+
+  annotate_loc <- function(gg_obj, trait_pos, grp) {
+    if (is.null(names(trait_pos))) {
+      names(trait_pos) <- paste0('loc', seq_along(trait_pos))
+    }
+
+    loc_ns <- mid_pos <- NULL
+    loc_names <- names(trait_pos)
+
+    # Build data.frame of annotations using base R
+    trait_lab_list <- lapply(seq_along(trait_pos), function(i) {
+      pos <- trait_pos[[i]]
+      name <- loc_names[i]
+      chr_val <- if (is.numeric(pos[1])) sprintf("Chr%02s", pos[1]) else as.character(pos[1])
+      start_pos <- as.numeric(pos[2])
+      end_pos <- as.numeric(pos[3])
+      mid_pos <- mean(c(start_pos, end_pos), na.rm = TRUE)
+      data.frame(chr = chr_val,
+                 loc_ns = name,
+                 start_pos = start_pos,
+                 end_pos = end_pos,
+                 mid_pos = mid_pos,
+                 stringsAsFactors = FALSE)
+    })
+
+    trait_lab_df <- do.call(rbind, trait_lab_list)
+
+    # Create long format manually for vertical lines
+    line_data <- data.frame(
+      chr = rep(trait_lab_df$chr, each = 2),
+      loc_ns = rep(trait_lab_df$loc_ns, each = 2),
+      pos = c(trait_lab_df$start_pos, trait_lab_df$end_pos)
+    )
+
+    # Add start and end vertical lines
+    gg_obj <- gg_obj +
+      ggplot2::geom_vline(data = line_data,
+                          ggplot2::aes(xintercept = pos),
+                          linetype = "dashed",
+                          color = "black",
+                          linewidth = 1)
+
+    # Add label at midpoint
+    gg_obj <- gg_obj +
+      ggplot2::geom_text(data = trait_lab_df,
+                         ggplot2::aes(x = mid_pos, label = loc_ns),
+                         col = "black",
+                         angle = 60,
+                         hjust = 0,
+                         y = length(unique(grp$x)) + label_offset,
+                         size = text_size / (text_scale_fct * text_size),
+                         inherit.aes = FALSE)
+
+    return(gg_obj)
+  }
+
+  for (i in seq_len(nbatches)) {
+    grp <- batches[[i]]
+
+    plt <- ggplot2::ggplot(grp, ggplot2::aes(x = pos, y = x, fill = value,
+                                             width = map_dist)) +
       ggplot2::geom_tile(lwd = 1, linetype = 1) +
 
       ggplot2::scale_fill_manual(values = ggplot2::alpha(col_mapping, alpha),
