@@ -1767,9 +1767,7 @@ geno_error <- function(x,
 
   # Find markers with errors
   snp_error <- function(x, y) {
-
-    any(!x %in% y)
-
+    any(!x[!is.na(x)] %in% y)
   }
 
   # Check each progeny genotype against the set of possible genotypes
