@@ -2223,7 +2223,7 @@ cross_qc_annotate <- function(x,
                                  label = col_labels,
                                  name = legend_title) +
       ggplot2::guides(fill = ggplot2::guide_legend(override.aes = list(size = 5))) +
-      ggplot2::xlab('Chromosome') +
+      ggplot2::xlab('Position (Mb)') +
 
       ggplot2::scale_x_continuous(expand = c(0, 0),
                                   labels = function(x) paste0(x / 1e6)) +
@@ -2238,12 +2238,12 @@ cross_qc_annotate <- function(x,
       #                     strip.position = "bottom") +
       ggplot2::theme(axis.text.y = ggplot2::element_text(size = text_size, face = 'bold'),
                      axis.ticks.length.y = ggplot2::unit(0.25, 'cm'),
-                     axis.ticks.x = ggplot2::element_blank(),
-                     axis.text.x = ggplot2::element_blank(),
                      axis.title.x = ggplot2::element_text(size = text_size, face = 'bold'),
                      axis.title.y = ggplot2::element_blank(),
                      panel.grid.major = ggplot2::element_blank(),
                      panel.grid.minor = ggplot2::element_blank(),
+                     strip.text.x = ggplot2::element_blank(),
+                     strip.background.x = ggplot2::element_blank(),
                      panel.border = ggplot2::element_blank(),
                      strip.placement = "outside",
                      plot.margin = ggplot2::margin(t = 20, r = 5, b = 5, l = 5),
