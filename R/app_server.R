@@ -4,7 +4,32 @@
 #'     DO NOT REMOVE.
 #' @import shiny
 #' @noRd
+#'
 app_server <- function(input, output, session) {
+  # Check all suggested packages at the start
+  suggested_packages <- c(
+    "DT", "data.table", "fontawesome", "openxlsx", "reactable",
+    "readxl", "shinyWidgets", "shinyalert", "shinybusy", "shinyjs",
+    "stringr", "vcfR", "writexl"
+  )
+
+  missing_packages <- suggested_packages[!sapply(suggested_packages,
+                                                 requireNamespace,
+                                                 quietly = TRUE
+  )]
+
+  if (length(missing_packages) > 0) {
+    stop(
+      sprintf(
+        "Required packages missing: %s\nInstall with: install.packages(c(%s))",
+        paste(missing_packages, collapse = ", "),
+        paste(sprintf("'%s'", missing_packages), collapse = ", ")
+      ),
+      call. = FALSE
+    )
+  }
+
+
   # Let user referesh application.
   observeEvent(input$refresh_btn, {
     # Show confirmation modal
@@ -25,8 +50,12 @@ app_server <- function(input, output, session) {
           ),
           div(
             style = "text-align: right;",
-            actionButton("confirm_refresh", "Confirm", class = "btn-secondary"),
-            actionButton("cancel_refresh", "Cancel", class = "btn-danger")
+            actionButton("confirm_refresh", "Confirm",
+                         class = "btn-secondary"
+            ),
+            actionButton("cancel_refresh", "Cancel",
+                         class = "btn-danger"
+            )
           )
         )
       )
@@ -59,15 +88,19 @@ app_server <- function(input, output, session) {
   mod_kasp_marker_design_server(id = "kasp_marker_design_1")
 
 
- ##------------------------- Marker Validation Server side -------------------##
+  ## ------------------------- Marker Validation Server side -------------------##
   # import_data_entities; returns kasp data after being read
   import_data_entities <- mod_mv_read_kasp_csv_server("mv_read_kasp_csv_1")
 
   # nsamples & alleles
   observe({
     req(import_data_entities())
-    mod_mv_nsamples_plate_server("mv_nsamples_plate_1", kasp_data = import_data_entities())
-    mod_mv_get_alleles_server("mv_get_alleles_1", kasp_data = import_data_entities())
+    mod_mv_nsamples_plate_server("mv_nsamples_plate_1",
+                                 kasp_data = import_data_entities()
+    )
+    mod_mv_get_alleles_server("mv_get_alleles_1",
+                              kasp_data = import_data_entities()
+    )
   })
 
   # Color coding server side
@@ -76,7 +109,9 @@ app_server <- function(input, output, session) {
   observe({
     req(import_data_entities())
     color_code_res(
-      mod_mv_kasp_color_server("mv_kasp_color_1", kasp_data = import_data_entities())
+      mod_mv_kasp_color_server("mv_kasp_color_1",
+                               kasp_data = import_data_entities()
+      )
     )
   })
 
@@ -85,8 +120,8 @@ app_server <- function(input, output, session) {
     req(import_data_entities(), color_code_res())
 
     mod_mv_pred_sum_stat_server("mv_pred_sum_stat_1",
-      color_code_res = color_code_res(),
-      kasp_data = import_data_entities()
+                                color_code_res = color_code_res(),
+                                kasp_data = import_data_entities()
     )
   })
 
@@ -101,12 +136,12 @@ app_server <- function(input, output, session) {
     )
     # server side for  plate layout
     mod_mv_plate_plot_server("mv_plate_plot_1",
-      kasp_data = import_data_entities(),
-      color_coded = color_code_res()
+                             kasp_data = import_data_entities(),
+                             color_coded = color_code_res()
     )
   })
 
- ##-------------------- Decision support, server-side ------------------------##
+  ## -------------------- Decision support, server-side ------------------------##
   mod_ds_trait_introg_hypothesis_test_server("ds_trait_introg_hypothesis_test_1")
 
   mod_ds_marker_ass_bac_server("ds_marker_ass_bac_1") # marker assisted back-cross
