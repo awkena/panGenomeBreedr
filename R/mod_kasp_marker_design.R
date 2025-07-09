@@ -19,7 +19,9 @@ mod_kasp_marker_design_ui <- function(id) {
         title = "KASP Marker Design Parameters",
         width = 400,
 
+        #-----------------------------------
         # File Uploads Card
+        #-----------------------------------
         bslib::card(
           bslib::card_header(tags$b("File Uploads")),
           fileInput(ns("genome_file"),
@@ -34,8 +36,9 @@ mod_kasp_marker_design_ui <- function(id) {
           ),
           uiOutput(ns("choice_output")),
         ),
-
+        #---------------------------------
         # Column Mapping Card
+        #---------------------------------
         bslib::card(
           bslib::card_header(tags$b("Column Mapping")),
           selectizeInput(ns("variant_id_col"),
@@ -63,8 +66,9 @@ mod_kasp_marker_design_ui <- function(id) {
             value = 10
           )
         ),
-
+        #----------------------------------
         # Marker Selection Card
+        #----------------------------------
         bslib::card(
           bslib::card_header(tags$b("Marker Selection")),
           selectizeInput(ns("chr_ID"),
@@ -83,8 +87,9 @@ mod_kasp_marker_design_ui <- function(id) {
             placeholder = "e.g., drought resistance locus"
           )
         ),
-
+        #-----------------------------------
         # Analysis Parameters Card
+        #-----------------------------------
         bslib::card(
           bslib::card_header(tags$b("Analysis Parameters")),
           numericInput(ns("maf"),
@@ -102,14 +107,16 @@ mod_kasp_marker_design_ui <- function(id) {
             actionButton(ns("run_but"),
               label = "Design Marker",
               icon = icon("drafting-compass"),
-              class = "btn-primary",
+              class = "btn-info",
               width = "100%"
             )
           )
         )
       ),
-      # Main panel
-      # Results container
+      #-----------------------------------
+      # Main panel Section
+      #-----------------------------------
+      # Dataframe output
       bslib::accordion(
         style = "margin-bottom: 70px;",
         id = ns("results_accordion"),
@@ -118,15 +125,8 @@ mod_kasp_marker_design_ui <- function(id) {
         bslib::accordion_panel(
           "Comprehensive Table of KASP Marker Design Data and DNA Sequence Alignment to the Reference Genome",
           # preview for other generated markers
+          DT::DTOutput(ns("kasp_table")), # data.table output
 
-          selectizeInput(
-            inputId = ns("done_markers"),
-            label = "Select Marker ID",
-            choices = NULL,
-            width = "30%"
-          ),
-          DT::DTOutput(ns("kasp_table"), height = "200px"), # data.table output
-          bslib::card(
             bslib::card_footer(
               fluidRow(
                 column(width = 3, selectInput(
@@ -152,11 +152,11 @@ mod_kasp_marker_design_ui <- function(id) {
 
               )
             )
-          )
+
         )
       ),
 
-      # Conditional plot panel
+      # Plot Output - conditional!
       uiOutput(ns("plot_container"))
     )
   )
@@ -176,7 +176,8 @@ mod_kasp_marker_design_server <- function(id){
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    # Server logic goes here
+#---------
+    #Dynamic rendering of file upload
     observeEvent(input$upload_choice, {
       if (input$upload_choice == "snpEff Annotated VCF (.vcf)") {
         output$choice_output <- renderUI({
@@ -196,40 +197,25 @@ mod_kasp_marker_design_server <- function(id){
       }
     })
 
+#--------
 
-    # Read VCF data
+    # Read VCF file and extract unique markers and chromosome ID
     vcf_data <- reactive({
-      if (is.null(input$vcf_file)) {
-        return(NULL)
-      }
-      result <- marker.chr_ID(input$vcf_file$datapath)
-      return(result)
+       req(input$vcf_file)
+       marker.chr_ID(input$vcf_file$datapath)
+
     })
 
-    # Update other parameter column for user.
-    read_vcf_as_df <- function(vcf_file) {
-      # Read VCF header to get column names
-      header_lines <- readLines(vcf_file)
-      header <- header_lines[grep("^#CHROM", header_lines)]
-      colnames <- strsplit(header, "\t")[[1]]
-      colnames[1] <- "CHROM" # fix formatting
 
-      # Read VCF data (skip header lines)
-      vcf_df <- utils::read.table(vcf_file,
-
-        comment.char = "#", header = FALSE, sep = "\t",
-        col.names = colnames, stringsAsFactors = FALSE
-      )
-
-      return(vcf_df)
-    }
-
-    # Reactive expression to populate inputs
+    #Get column names of VCF file
     vcf_colnames <- reactive({
       req(input$vcf_file)
       colnames(read_vcf_as_df(input$vcf_file$datapath))
     })
 
+
+#------------------------------
+    #If user prefers to upload excel sheet containing genotype matrix
     # Read Excel file
     gt_data <- reactive({
       req(input$gt_df)
@@ -246,11 +232,10 @@ mod_kasp_marker_design_server <- function(id){
             timer = 2000,
             position = "bottom-end"
           )
-          NULL
+          return(NULL)
         }
       )
     })
-
 
     # Extract column names
     gt_colnames <- reactive({
@@ -272,7 +257,9 @@ mod_kasp_marker_design_server <- function(id){
       unique(gt_data()[[gt_colnames()[1]]])
     })
 
-    # Update column selection dropdowns
+#----------------------
+
+    # Reactively update select inputs depending on which file was available
     observe({
       if (!is.null(input$vcf_file)) {
         # For VCF files
@@ -320,6 +307,18 @@ mod_kasp_marker_design_server <- function(id){
             ignore.case = TRUE
           )[1]]
         )
+
+        req(vcf_data())
+        updateSelectizeInput(
+          server = TRUE, session, "marker_ID",
+          choices = vcf_data()$vcf_matrix_markerID
+        )
+
+        updateSelectizeInput(
+          server = TRUE, session, "chr_ID",
+          choices = vcf_data()$vcf_matrix_chromID
+        )
+
       } else if (!is.null(gt_data())) {
         # For Excel files
         updateSelectizeInput(
@@ -366,42 +365,24 @@ mod_kasp_marker_design_server <- function(id){
             ignore.case = TRUE
           )[1]]
         )
+
+        ## Update marker/chromosome dropdowns excel
+        req(unique_chrom(), gt_data(), unique_marker_id())
+
+        updateSelectizeInput(
+          server = TRUE, session, "marker_ID",
+          choices = unique_marker_id()
+        )
+        updateSelectizeInput(
+          server = TRUE, session, "chr_ID",
+          choices = unique_chrom()
+        )
       }
     })
 
-    # Update marker/chromosome dropdowns vcf
-    observe({
-      req(vcf_data())
-
-      updateSelectizeInput(
-        server = TRUE, session, "marker_ID",
-        choices = vcf_data()$vcf_matrix_markerID
-      )
-
-      updateSelectizeInput(
-        server = TRUE, session, "chr_ID",
-        choices = vcf_data()$vcf_matrix_chromID
-      )
-    })
-
-    # Update marker/chromosome dropdowns excel
-    observe({
-      # Excel file logic
-      req(unique_chrom(), gt_data(), unique_marker_id())
-
-      updateSelectizeInput(
-        server = TRUE, session, "marker_ID",
-        choices = unique_marker_id()
-      )
-      updateSelectizeInput(
-        server = TRUE, session, "chr_ID",
-        choices = unique_chrom()
-      )
-    })
-
-    # Reactive values
-    kasp_des.result <- reactiveVal(NULL) # for dataframes
-    kasp_des.plot <- reactiveVal(NULL) # for plots
+    # Empty reactive objects
+    kasp_des.result <- reactiveVal(NULL) # Store dataframes
+    kasp_des.plot <- reactiveVal(NULL) # store plots
 
 
     # Check which input is available and make use of it
@@ -450,7 +431,7 @@ mod_kasp_marker_design_server <- function(id){
           }
 
 
-          kasp_des.result(list_markers) # store dataframes
+          kasp_des.result(data.table::rbindlist(list_markers)) # store dataframes
           kasp_des.plot(list_plots) # store  plots
 
           shinyWidgets::show_alert(
@@ -503,7 +484,7 @@ mod_kasp_marker_design_server <- function(id){
             list_plots[[marker]] <- result_data$plot
           }
 
-          kasp_des.result(list_markers) # store dataframes
+          kasp_des.result(data.table::rbindlist(list_markers))  # store dataframes
           kasp_des.plot(list_plots) # store plots
 
           # Success alert for gt_data processing
@@ -536,10 +517,11 @@ mod_kasp_marker_design_server <- function(id){
       }
     })
 
-    # Update select input.
-    observe({
 
+    # Update select input for user results preview
+    observe({
       req(kasp_des.result(), kasp_des.plot())
+
       updateSelectizeInput(session,
         inputId = "done_markers",
         choices = names(kasp_des.result())
@@ -552,14 +534,14 @@ mod_kasp_marker_design_server <- function(id){
 
     # Render KASP table
     output$kasp_table <- DT::renderDT({
-      req(kasp_des.result(), input$done_markers)
-      DT::datatable(kasp_des.result()[[input$done_markers]],
+      req(kasp_des.result())
+      DT::datatable(kasp_des.result(),
         options = list(pageLength = 10, scrollX = TRUE)
       )
     })
 
 
-    # Download Table
+    # Download table as batch
     output$download_table <- downloadHandler(
       filename = function() {
         # Clean file name
@@ -568,9 +550,9 @@ mod_kasp_marker_design_server <- function(id){
       },
       content = function(file) {
         if (input$exten == ".csv") {
-          write.csv(data.table::rbindlist(kasp_des.result()), file, row.names = FALSE)
+          write.csv(kasp_des.result(), file, row.names = FALSE)
         } else if (input$exten == ".xlsx") {
-          openxlsx::write.xlsx(data.table::rbindlist(kasp_des.result()), file)
+          openxlsx::write.xlsx(kasp_des.result(), file)
         }
       }
     )
@@ -614,7 +596,7 @@ mod_kasp_marker_design_server <- function(id){
       print(kasp_des.plot()[[input$plot_choice]])
     })
 
-
+    # Batch download plots
     output$download_plot <- downloadHandler(
       filename = function() {
         clean_marker <- gsub("[^[:alnum:]_-]", "_", input$marker_ID)
@@ -624,9 +606,7 @@ mod_kasp_marker_design_server <- function(id){
         plots <- kasp_des.plot()
 
         # Start PDF
-
         grDevices::pdf(file, width = 24, height = 9, onefile = TRUE)
-
 
         # Print plots
         if (is.list(plots)) lapply(plots, print) else print(plots)
