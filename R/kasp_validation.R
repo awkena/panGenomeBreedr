@@ -2135,6 +2135,7 @@ gg_dat <- function(num_mat,
     colnames(dat) <- colnames(num_mat)
     rownames(dat) <- rownames(num_mat)
 
+
   } else {
 
     dat <- apply(num_mat, 2, as.character, simplify = TRUE)
