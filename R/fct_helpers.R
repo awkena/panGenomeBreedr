@@ -20,7 +20,7 @@
 #' @details The function uses the vcfR package to read the VCF file and extracts the
 #' marker IDs from the ID field and chromosome identifiers from the CHROM field in the VCF.
 #' @noRd
-#' @importFrom vcfR read.vcfR
+#'
 marker.chr_ID <- function(vcf_path) {
   vcf_data <- vcfR::read.vcfR(vcf_path, verbose = FALSE)
 
@@ -50,7 +50,7 @@ marker.chr_ID <- function(vcf_path) {
 #' @return A data frame with plate column added if not present
 #'
 #' @noRd
-#' @importFrom data.table copy
+#'
 plates_col <- function(x) {
   copied_data <- data.table::copy(x) # Copy the dataset
 
@@ -97,7 +97,7 @@ uniq_plates <- function(x) {
 #' @returns a data frame for kasp marker map
 #'
 #' @noRd
-#' @importFrom stringr str_match
+#'
 kasp_marker_map <- function(kasp_data) {
   # Validate input
   if (is.data.frame(kasp_data) != TRUE) {
@@ -266,7 +266,7 @@ alleles_df <- function(x) {
   }
 
   # Create allele column names
-  allele_cols <- paste("allele", LETTERS[1:length(x)], sep = "_")
+  allele_cols <- paste("allele", LETTERS[seq_len(x)], sep = "_")
 
   # Create and populate data frame
   df <- as.data.frame(matrix(
@@ -387,24 +387,24 @@ new_colnames_nsamples <- function(MasterPlate,
 #' @return A numeric vector of length 2, where the first element is height and the second is width
 #'
 #' @noRd
-height_width <- function(string){
+height_width <- function(string) {
   # Check if input is a character and length 1
-  if(!is.character(string) || length(string) != 1) {
+  if (!is.character(string) || length(string) != 1) {
     stop("Input must be a single character string")
   }
 
   # Split the string by comma
-  splitted <- strsplit(string, split = ',')[[1]]
+  splitted <- strsplit(string, split = ",")[[1]]
 
   # Check if exactly two values were provided
-  if(length(splitted) < 2) {
+  if (length(splitted) < 2) {
     stop("Input must contain exactly two values separated by a comma")
   }
 
   # Convert to numeric and handle potential NA values
   h_w_vector <- as.numeric(splitted)[1:2]
 
-  if(any(is.na(h_w_vector))) {
+  if (any(is.na(h_w_vector))) {
     stop("Both values must be convertible to numbers")
   }
 
@@ -460,30 +460,75 @@ Genotypes_user <- function(data, Batch) {
   return(just_geno) # return genotypes of selected batch.
 }
 
-#' Generate Map File and Process KASP Data
+
+#' Read Map File from CSV or Excel Format
 #'
-#' This function takes Agriplex data and processes it to generate a map file and
+#' This function reads a map file containing marker information from either
+#' CSV or Excel formats and returns it as a data frame. The function automatically
+#' detects the file type based on the file extension and uses the appropriate
+#' reading method.
+#'
+#' @param filepath Character. Full path to the map file including file name and extension.
+#'   Supported formats are CSV (.csv), Excel (.xlsx), and legacy Excel (.xls).
+#'
+#' @return A data frame containing the map file data with marker information.
+#'   All data is returned as a standard data.frame regardless of input format.
+#'
+#' @noRd
+#'
+read_mapfile <- function(filepath) {
+  # Get file extension
+  file_ext <- tools::file_ext(filepath)
+
+  # Read according to file type
+  if (file_ext == "csv") {
+    data <- read.csv(file = filepath, stringsAsFactors = FALSE)
+  } else if (file_ext %in% c("xlsx", "xls")) {
+    data <- readxl::read_excel(path = filepath)
+  } else {
+    stop("Unsupported file type. Only CSV and Excel files are allowed.")
+  }
+
+  # Ensure it's a data.frame
+  return(as.data.frame(data))
+}
+
+
+#' Generate Mapfile, Process KASP Data, and other user decision support info
+#'
+#' This function takes genotype data and processes it to generate a map file and
 #' convert KASP genotype data to numeric format. It handles SNP marker parsing,
-#' removes monomorphic markers, and processes parent-offspring data.
+#' removes monomorphic markers, and processes parent-offspring data with various
+#' quality control filters.
 #'
-#' @param data Character. Path to the CSV file containing the raw genotype data.
+#' @param data Data frame or tibble. The input dataset containing genotype data.
 #' @param Batch Numeric. The batch number to filter and process from the dataset.
-#' @param sep Character. Separator used in marker IDs for parsing (e.g., "_").
-#' @param sep_2 Character. Separator used in genotype data (e.g., " / " for Agriplex).
-#' @param data_type Character. Type of genotyping data (e.g., "agriplex").
-#' @param rp Character. Name/ID of the first parent (recurrent parent).
-#' @param dp Character. Name/ID of the second parent (donor parent).
-#' @param geno_vec Character vector. Vector of genotype names/IDs in the dataset.
+#' @param batch_col Character. Name of the column containing batch information.
+#' @param marker_sep Character. Separator used in marker IDs for parsing (e.g., "_").
+#' @param apply_par_poly Logical. Whether to remove polymorphic parent markers. Default is TRUE.
+#' @param apply_par_miss Logical. Whether to remove markers with missing parent data. Default is TRUE.
+#' @param apply_geno_good Logical. Whether to apply genotype error checking. Default is TRUE.
+#' @param apply_par_homo Logical. Whether to filter out heterozygous parent markers. Default is TRUE.
+#' @param genotype Character. Column name for genotype identifiers.
+#' @param snp_id Character. Column name for SNP-ID markers (used when feedback = "yes").
+#' @param calls_sep Character. Separator used in genotype calls (e.g., " / " for Agriplex).
+#' @param data_type Character. Type of genotyping data (e.g., "agriplex", "kasp").
+#' @param rp Character. Name/ID of the recurrent parent.
+#' @param dp Character. Name/ID of the donor parent.
+#' @param Prefix Character. Prefix for generating marker names. Default is "S".
+#' @param geno_vec Character vector. Vector of genotype names/IDs corresponding to rows in the dataset.
 #' @param feedback Character. One of "yes" or "no". If "yes", uses existing map file;
 #'   if "no", generates new map file from marker names.
+#' @param na_code Numeric. Code used for missing values. Default is NA.
+#' @param data_col Character vector. Names of data columns to exclude from processing.
 #' @param mapfile_path Character. Path to existing map file (required when feedback = "yes").
 #'
-#' @return A list containing two elements:
-#'   \item{mapfile}{Data frame containing the marker map information}
-#'   \item{proc_kasp_f}{Processed and numeric-converted KASP data}
-#'   \item{par_missing_dat}{loci with any parent missing genotype}
-#'   \item{genotype_error}{SNP loci with potential genotype call errors}
-#'   \item{parent_het}{Heterozygous parent genotypes}
+#' @return A list containing five elements:
+#'   \item{mapfile}{Data frame containing the marker map information with SNP positions}
+#'   \item{proc_kasp_f}{Processed and numeric-converted KASP data ready for analysis}
+#'   \item{par_missing_dat}{Data frame of loci with any parent missing genotype}
+#'   \item{genotype_error}{Data frame of SNP loci with potential genotype call errors}
+#'   \item{parent_het}{Data frame of heterozygous parent genotypes that were identified}
 #'
 #' @details The function performs the following steps:
 #'   1. Reads the input CSV file and identifies genotype data columns
@@ -496,35 +541,37 @@ Genotypes_user <- function(data, Batch) {
 #'
 #'
 
-marker_file <- function(data = NULL,
-                        Batch = NULL,
-                        sep = NULL,
-                        sep_2 = NULL,
-                        data_type = NULL,
-                        rp = NULL,
-                        dp = NULL,
-                        geno_vec = NULL,
-                        feedback = c("yes", "no"),
-                        na_code = -5,
+proc_nd_map_func <- function(data = NULL,
+                        Batch = NULL, # batch number
+                        batch_col = NULL, # user selected batch column
+                        marker_sep = NULL, # sep for marker
+                        apply_par_poly = TRUE, # response for parent poly removal
+                        apply_par_miss = TRUE, # response for parent missing
+                        apply_geno_good = TRUE, # response for genotype good.
+                        apply_par_homo = TRUE, # filter out heterozygote parent.
+                        genotype = NULL, # column names for genotypes
+                        snp_id = NULL, # snp-id column for markers
+                        calls_sep = NULL, # genotype calls sep-- agriplex or kasp
+                        data_type = NULL, # agriplex or kasp
+                        rp = NULL, # recurrent parent
+                        dp = NULL, # donor parent
+                        Prefix = "S", # prefix if to generate marker file
+                        geno_vec = NULL, # rownames for genotype calls
+                        feedback = c("yes", "no"), # whether to generate mapfile or not
+                        na_code = NA, # Na codes present.
+                        data_col = NULL, # data colnames
                         mapfile_path = NULL) {
-  read_data <-  data |> as.data.frame()
-  # Get first 100 columns for possible extraction.
-  first_hun_col <- read_data[1, 1:100]
+  if (rp == dp) {
+    stop("Error: The recurrent parent must not be the same as the donor parent")
+  }
+  # Validate data class. Must be a datafram or tibble
+  if (!(class(data)[1] %in% c("data.frame", "tbl_df", "tbl"))) {
+    stop("Please check file. Must be a dataframe or tibble.")
+  }
 
-  store_position <- which(first_hun_col %in% c("A", "G", "C", "T", NA))[1]
+  read_data <- data
 
-  #- Batch
-  batch <- grep("batch", x = colnames(first_hun_col), ignore.case = TRUE, value = TRUE)
-  #- Genotype
-  genotype <- grep("genotype", x = colnames(first_hun_col), ignore.case = TRUE, value = TRUE)
-
-  # Return just the data column.
-  return_data <- read_data[read_data[batch] == Batch, store_position:ncol(read_data)]
-
-  # Get colnames for first.
-  col_first <- colnames(return_data)[[1]]
-
-  Prefix <- substr(x = col_first, start = 1, stop = 1) # get prefix
+  return_data <- read_data[read_data[batch_col] == Batch, !(colnames(read_data) %in% data_col)]
 
 
   dp_val <- which(geno_vec %in% c(rp, dp)) # get row index of rp and dp
@@ -532,55 +579,108 @@ marker_file <- function(data = NULL,
   # Get rownames of data.
   rownames(return_data) <- geno_vec
 
-  # Remove monomorphs.
-  no_mono_return_dat <- parent_poly(
-    x = return_data,
-    rp_row = dp_val[1],
-    dp_row = dp_val[2],
-    sep = sep_2
-  )
+  processed_data <- return_data # rename object
 
-  # Parent Present
-  no_mono_return_data <- parent_missing(
-    x = no_mono_return_dat,
-    rp_row = dp_val[1],
-    dp_row = dp_val[2]
-  )$par_present
+  # 1. Remove monomorphic markers if requested
+  if (apply_par_poly) {
+    processed_data <- parent_poly(
+      x = processed_data,
+      rp_row = dp_val[1],
+      dp_row = dp_val[2],
+      sep = calls_sep
+    )
+  }
 
- # Parent Missing
-  par_missing_dat <- parent_missing(
-    x = no_mono_return_dat,
-    rp_row = dp_val[1],
-    dp_row = dp_val[2]
-  )$par_missing
+  # 2. Remove missing parents if requested
+  if (apply_par_miss) {
+    input_data <- if (!is.null(processed_data)) processed_data else return_data
 
-  # Genotype error.
-  genotype_error <- geno_error(x = no_mono_return_dat ,
-                               rp_row = dp_val[1],
-                               dp_row = dp_val[2],
-                               sep = sep_2,
-                               data_type = data_type)$geno_err
+    processed_data <- parent_missing(
+      x = input_data,
+      rp_row = dp_val[1],
+      dp_row = dp_val[2]
+    )$par_present
 
-  # Parent Hetero.
-  parent_het <- parent_het(x = no_mono_return_dat ,
-                           rp_row = dp_val[1],
-                           dp_row = dp_val[2],
-                           sep = sep_2,
-                           na_code = na_code )$par_het
+    # Parent Missing
+    par_missing_dat <- parent_missing(
+      x = input_data,
+      rp_row = dp_val[1],
+      dp_row = dp_val[2]
+    )$par_missing
 
+  } else{
+    par_missing_dat <- NULL # don't compute missing parents
+  }
 
-  snps <- colnames(no_mono_return_data)
+  # 3. Apply genotype error check if requested
+  if (apply_geno_good) {
+    input_data <- if (!is.null(processed_data)) processed_data else return_data
+
+    processed_data <- geno_error(
+      x = input_data,
+      rp_row = dp_val[1],
+      dp_row = dp_val[2],
+      sep = calls_sep,
+      data_type = data_type
+    )$geno_good
+
+    # Genotype error.
+    genotype_error <- geno_error(
+      x = input_data,
+      rp_row = dp_val[1],
+      dp_row = dp_val[2],
+      sep = calls_sep,
+      data_type = data_type
+    )$geno_err
+
+  }else{
+    genotype_error <- NULL # don't compute
+  }
+
+  # 4. Remove heterozygote parents.
+  if (apply_par_homo) {
+    input_data <- if (!is.null(processed_data)) processed_data else return_data
+
+    # Parent Hetero.
+    processed_data <- parent_het(
+      x = input_data,
+      rp_row = dp_val[1],
+      dp_row = dp_val[2],
+      sep = calls_sep,
+      na_code = na_code
+    )$par_hom
+
+    # Parent Hetero.
+    parent_het <- parent_het(
+      x = input_data,
+      rp_row = dp_val[1],
+      dp_row = dp_val[2],
+      sep = calls_sep,
+      na_code = NA
+    )$par_het
+  } else {
+    parent_het <- NULL
+  }
+
+  # Final output handling
+  if (is.null(processed_data)) {
+    final_result <- return_data
+  } else {
+    final_result <- processed_data
+  }
 
   # Parse snpids to generate mapfile.
-  # Based on feedback
+  # if user prompts for mapfile to be generated automatic
   if (feedback == "no") {
-    mapfile <- parse_marker_ns(x = snps, sep = sep, prefix = Prefix) |> order_markers()
+    snps <- colnames(processed_data)
+
+    mapfile <- parse_marker_ns(x = snps, sep = marker_sep, prefix = Prefix) |> order_markers()
 
     # # View(return_data)
     # parent_missing(x = return_data  ,rp_row = dp_val[1] ,dp_row =dp_val[2] )$par_missing |> View()
     # Process and convert to numeric
     proc_kasp_f <- proc_kasp(
-      x = no_mono_return_data,
+      x = processed_data,
       sample_id = genotype,
       map_snp_id = "snpid",
       marker_start = 1,
@@ -589,37 +689,57 @@ marker_file <- function(data = NULL,
       kasp_numeric(
         rp_row = dp_val[1],
         dp_row = dp_val[2],
-        sep = sep_2,
+        sep = calls_sep,
         data_type = data_type
       )
   } else if (feedback == "yes") {
-    mapfile <- read.csv(file = mapfile_path, stringsAsFactors = FALSE) |> as.data.frame()
+    mapfile <- read_mapfile(filepath = mapfile_path) |> as.data.frame()
 
     proc_kasp_f <- proc_kasp(
-      x = no_mono_return_data,
-      sample_id = "Genotype", # to be selected by user
-      map_snp_id = "snpid", # to be selected by user
+      x = processed_data,
+      sample_id = genotype, # to be selected by user
+      map_snp_id = snp_id, # to be selected by user
       marker_start = 1,
       kasp_map = mapfile
     ) |>
       kasp_numeric(
         rp_row = dp_val[1],
         dp_row = dp_val[2],
-        sep = sep_2,
+        sep = calls_sep,
         data_type = data_type
       )
   }
-
-
-  return(list(mapfile = mapfile,
-              proc_kasp_f = proc_kasp_f,
-              par_missing_dat = par_missing_dat,
-              genotype_error = genotype_error,
-              parent_het =  parent_het
-
-              ))
+  return(list(
+    mapfile = mapfile,
+    proc_kasp_f = proc_kasp_f,
+    par_missing_dat = par_missing_dat,
+    genotype_error = genotype_error,
+    parent_het = parent_het
+  ))
 }
 
+#
+# gg <- proc_nd_map_func(data = geno,
+#                  Batch = 3 ,
+#                  batch_col = 'Batch' ,
+#                  marker_sep = '_',
+#                  apply_par_poly = TRUE,
+#                  apply_par_miss = TRUE ,
+#                  apply_geno_good = TRUE,
+#                  apply_par_homo = TRUE,
+#                  genotype = 'Genotype' ,
+#                  snp_id = 'snpid',
+#                  calls_sep = ' / ',
+#                  data_type = 'agriplex',
+#                  rp = "BTx623a",
+#                  dp = "BTx642a" ,
+#                  Prefix = 'S' ,
+#                  geno_vec = genotype_names,
+#                  feedback = 'no' ,
+#                  na_code = NA ,
+#                  data_col = data_colnames,
+#                  mapfile_path = NULL
+#                   )
 
 
 
@@ -644,12 +764,12 @@ marker_file <- function(data = NULL,
 #'   5. Returns other single characters unchanged
 #'
 #' @examples
-#' check_sep("/")     # Returns " / "
-#' check_sep(":")     # Returns ":"
+#' check_sep("/") # Returns " / "
+#' check_sep(":") # Returns ":"
 #'
 #' # This will throw an error:
 #' \dontrun{
-#' check_sep("//")    # Error: separator must be single character
+#' check_sep("//") # Error: separator must be single character
 #' }
 #'
 #' @noRd
@@ -698,7 +818,6 @@ check_sep <- function(sep) {
 #' # $cherry
 #' # NULL
 #'
-#'
 #' @noRd
 
 generate_named_list <- function(x) {
@@ -731,26 +850,189 @@ generate_named_list <- function(x) {
 }
 
 
-#' Call functions from suggested packages
+#' Title
 #'
-#' @param pkg_func String in format "package::function"
-#' @param ... Arguments passed to the function
-#' @return Result of the called function
+#' @param list_loc  a list containing the start, end , chromosome and locus name
+#' @param map_doc  a mapfile of the genotype calls
+#' @param genofile a genotype file containing the genotype calls
+#'
+#' @returns a list of the subsetted individual map file and
+#'
 #' @noRd
-call_suggested <- function(pkg_func, ...) {
-  parts <- strsplit(pkg_func, "::")[[1]]
-  if (length(parts) != 2) {
-    stop("pkg_func must be in format 'package::function'", call. = FALSE)
+#'
+combi_func <- function(list_loc,
+                       map_doc,
+                       genofile) {
+  starts <- sapply(list_loc, function(x) x["start"]) # get all starts entered
+  ends <- sapply(list_loc, function(x) x["end"]) # get all ends
+  chr <- sapply(list_loc, function(x) x["chr"]) # get chromosome
+
+  # Convert mapfile columns to lower text is they haven't
+  # colnames(map_doc) <- tolower(colnames(map_doc))
+
+  # Chromosomes must be the same
+  if (length(unique(chr)) != 1) {
+    # Throw an error
+    stop("Chromosome of focus must be the same") # one chromosome at a time
+  } else {
+    chr_markers <- map_doc[map_doc["chr"] == unique(chr), ] # map file only selected chr
   }
 
-  pkg <- parts[1]
-  func <- parts[2]
+  starts_min <- min(starts) # find the mini of the subsetted
+  ends_max <- max(ends) # find max of selected
 
-  if (!requireNamespace(pkg, quietly = TRUE)) {
-    stop(sprintf("Package '%s' is required. Install with: install.packages('%s')",
-                 pkg, pkg),
-         call. = FALSE)
+  # Must be within range.
+  map_range <- range(chr_markers[["pos"]])
+
+  user_def_reg <- c(starts_min, ends_max) # user defined start and end
+
+  # Show range and then if user enters beyond the range, flage error.
+  flag_err <- all(map_range[2] > user_def_reg)
+  if (isFALSE(flag_err)) {
+    stop(sprintf("Start and End positions must be within the range %d - %d", map_range[1], map_range[2]))
   }
 
-  do.call(getFromNamespace(func, pkg), list(...))
+  # subset actual postions from markers and determine the length
+  actual_range <- chr_markers[["pos"]][chr_markers[["pos"]] >= starts_min & chr_markers[["pos"]] <= ends_max]
+
+  less_min <- chr_markers[["pos"]][chr_markers[["pos"]] < starts_min]
+
+  greater_max <- chr_markers[["pos"]][chr_markers[["pos"]] > ends_max]
+
+  if (length(actual_range) < 20) {
+    len_actual <- 20 - length(actual_range) # get excess
+
+    bulk_up <- c(less_min, greater_max)[1:len_actual] # merge max and min
+
+    set_pos <- sort(c(actual_range, bulk_up))
+  } else if (length(actual_range) >= 20) {
+    set_pos <- actual_range[seq_len(20)]
+  }
+
+  # Get marker ID for selected range
+  markers_in_region <- chr_markers[chr_markers[["pos"]] %in% set_pos, ][["snpid"]]
+
+  # Get the subset data - use the same data for both x and the chr_a calculation
+  chr_a <- genofile[, colnames(genofile) %in% markers_in_region]
+
+  chr_map <- parse_marker_ns(colnames(chr_a))
+
+  return(list(chr_a = chr_a, chr_map = chr_map)) # return map and chromosome
 }
+
+
+
+# Get data colnames.
+#' Extract colnames of Agriplex file.
+#'
+#' @param data  a dataframe containing genotype calls
+#'
+#' @returns a vector of column names from the data uploaded
+#' @noRd
+#'
+Get_dt_coln <- function(data) {
+  read_data <- data |> as.data.frame()
+  # Get first 100 columns for possible extraction.
+  first_hun_col <- read_data[1, 1:100]
+
+  store_position <- which(first_hun_col %in% c("A", "G", "C", "T", NA))[1]
+
+  data_colnames <- colnames(first_hun_col)[seq_len(store_position - 1)]
+
+  # Return
+  data_colnames
+}
+
+
+#' Extract colnames of Agriplex file.
+#'
+#' @param data  a dataframe containing genotype calls
+#' @param mapfile Mapfile for genotype calls
+#' @param chr chromosome number of interest.
+#'
+#' @returns a vector of column names from the data uploaded
+#' @noRd
+# Function for window size manipulation.
+window_size_func <- function(data, mapfile, chr) {
+  # Validate if colnames of mapfile contains snpid
+  snpid <- grep(x = colnames(mapfile), pattern = "id", ignore.case = TRUE, value = TRUE)
+
+  just_1 <- data[, mapfile[mapfile["chr"] == chr, ][[snpid]]]
+
+  return(just_1) # return
+}
+
+
+
+#' Check and Categorize Genetic Numeric Codes
+#'
+#' This function checks genetic numeric codes present in the recoded data and categorizes
+#' them into valid genetic markers and potential issues (monomorphic, error, or missing loci).
+#'
+#' @param data A dataframe containing color codes to be checked against predefined
+#'   genetic marker categories.
+#'
+#' @return A list containing two elements:
+#' \describe{
+#'   \item{color_code_in}{A named numeric vector of color codes present in the input data,
+#'     with names corresponding to genetic marker categories}
+#'   \item{na_code}{A named numeric vector containing only the problematic loci codes
+#'     (monomorphic, genotype error, and missing parental loci) that were found in the input}
+#' }
+#' @noRd
+#'
+
+color_code_checker <- function(data , par_1 , par_2){
+  # Define color codes
+  color_code_names<- c( 1, 0 , 0.5 , -1 , -2, -5 ) |> sort()
+  # Respective names for color codes
+  col_labels <- c('Missing', 'Error','Monomorphic',par_2,
+                  'Heterozygous' , par_1
+  )
+
+  # Assign names to it.
+  names(col_labels) <- as.character(color_code_names)
+
+  result <- color_code_names[color_code_names %in% data] |> sort()
+
+  # Get values present in data
+  in_data <- result[ result  %in% color_code_names]
+
+  needed_res <- col_labels[as.character(in_data)] # subset labels
+
+
+  return(needed_res)
+
+
+}
+
+
+
+#' Validate Required Column Names
+#'
+#' Checks if the required column names ('Batch' and 'Genotype') are present
+#' in the input data frame. The function performs case-insensitive matching.
+#'
+#' @param data A data frame to validate column names for
+#'
+#' @return NULL (invisible). The function is called for its side effect of
+#'   validation. If validation passes, the function completes silently.
+#'
+#' @details This function requires that both 'Batch' and 'Genotype' columns
+#'   are present in the input data frame. Column name matching is case-insensitive,
+#'   so 'batch', 'BATCH', 'Batch' are all acceptable.
+#' @noRd
+#'
+#
+check_colnames_validate <- function(data){
+  must_hv_names <- c('Batch', 'Genotype') |> tolower() # required columns
+
+  if(!(all(must_hv_names %in% tolower(colnames(data))))){
+
+    stop(paste("Missing required columns: 'Batch', 'Genotype'"))
+  }
+}
+
+
+
+
