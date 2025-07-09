@@ -264,7 +264,7 @@ kasp_marker_design <- function(vcf_file = NULL,
     variants_100bp <- variants_100bp[order(variants_100bp$MAF, decreasing = TRUE),]
 
     #selecting the two variants with higher MAF
-    variants_100bp <- stats::na.omit(variants_100bp[c(1,2),])
+    # variants_100bp <- stats::na.omit(variants_100bp[c(1,2),])
 
     #ordering by pos
     variants_100bp <- variants_100bp[order(variants_100bp$pos, decreasing = FALSE),]
