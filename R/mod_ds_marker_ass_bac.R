@@ -15,6 +15,7 @@
 #' @importFrom grDevices colors
 #' @importFrom fontawesome fa
 #' @noRd
+#'
 mod_ds_marker_ass_bac_ui <- function(id) {
   ns <- NS(id)
   tagList(
