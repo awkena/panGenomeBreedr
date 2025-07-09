@@ -2277,4 +2277,3 @@ cross_qc_annotate <- function(x,
     return(gg_plts)
   }
 }
-
