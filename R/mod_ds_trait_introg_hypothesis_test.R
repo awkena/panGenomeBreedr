@@ -570,7 +570,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     # Read map file if user has.
     map_file <- reactive({
       req(input$mapfile)
-      read_mapfile(file = input$mapfile$datapath)
+      read_mapfile(filepath = input$mapfile$datapath)
 
     })
 
