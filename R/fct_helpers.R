@@ -1036,3 +1036,32 @@ check_colnames_validate <- function(data){
 
 
 
+#' Read VCF file and return as data frame
+#'
+#' This function reads a Variant Call Format (VCF) file and converts it into
+#' a data frame with appropriate column names extracted from the VCF header.
+#'
+#' @param vcf_file Character string specifying the path to the VCF file to read
+#'
+#' @return A data frame containing the VCF data with columns named according to
+#'   the VCF header (CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO, FORMAT, and
+#'   any sample columns)
+#'
+#'
+#' @noRd
+#'
+read_vcf_as_df <- function(vcf_file) {
+  # Read VCF header to get column names
+  header_lines <- readLines(vcf_file)
+  header <- header_lines[grep("^#CHROM", header_lines)]
+  colnames <- strsplit(header, "\t")[[1]]
+  colnames[1] <- "CHROM" # fix formatting
+  # Read VCF data (skip header lines)
+  vcf_df <- utils::read.table(vcf_file,
+                              comment.char = "#", header = FALSE, sep = "\t",
+                              col.names = colnames, stringsAsFactors = FALSE
+  )
+  return(vcf_df)
+}
+
+
