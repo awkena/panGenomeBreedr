@@ -131,7 +131,7 @@ mod_mv_nsamples_plate_server <- function(id, kasp_data) {
           )
         },
         error = function(e) {
-          show_alert(
+          shinyWidgets::show_alert(
             title = "Error",
             text = paste("Failed to update input fields:", e$message),
             type = "error",
@@ -163,7 +163,7 @@ mod_mv_nsamples_plate_server <- function(id, kasp_data) {
         },
         error = function(e) {
           # Show error message
-          show_alert(
+          shinyWidgets::show_alert(
             title = "Error",
             text = paste("Error processing plate samples:", e$message),
             type = "error",
@@ -197,7 +197,7 @@ mod_mv_nsamples_plate_server <- function(id, kasp_data) {
         },
         error = function(e) {
           # Show alert when there is an error
-          show_alert(
+          shinyWidgets::show_alert(
             title = "Error",
             text = paste("Error displaying results:", e$message),
             type = "error",
