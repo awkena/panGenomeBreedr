@@ -107,9 +107,6 @@ mod_mv_plate_plot_ui <- function(id) {
 #'
 #' @importFrom shiny moduleServer reactive observeEvent req updateSelectInput renderPlot downloadHandler
 #' @importFrom shinybusy show_modal_spinner remove_modal_spinner
-#' @importFrom shinyWidgets show_alert
-#' @importFrom shinyjs delay
-#' @importFrom grid grid.draw
 #'
 mod_mv_plate_plot_server <- function(id, kasp_data, color_coded) {
   moduleServer(id, function(input, output, session) {
