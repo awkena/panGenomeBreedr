@@ -15,7 +15,6 @@
 #' @importFrom bslib navset_card_underline sidebar card card_header
 #' @importFrom bslib card_body card_footer nav_panel navset_card_tab
 #' @importFrom bslib layout_column_wrap input_switch
-#' @importFrom reactable reactableOutput
 #'
 mod_variant_discovery_ui <- function(id) {
   ns <- NS(id)
@@ -43,7 +42,7 @@ mod_variant_discovery_ui <- function(id) {
         actionButton(ns("connect_btn"), "Connect to Database",
           icon = icon("plug"),
           width = "100%",
-          class = "btn-primary"
+          class = "btn-info"
         )
       ),
       conditionalPanel(
@@ -178,7 +177,7 @@ mod_variant_discovery_ui <- function(id) {
           style = "display: flex; justify-content: center;",
           actionButton(
             inputId = ns("query_dbase_btn"), label = "Query Database",
-            width = "70%", icon = icon("database"), class = "btn-primary"
+            width = "70%", icon = icon("database"), class = "btn-info"
           )
         )
       )
@@ -211,7 +210,7 @@ mod_variant_discovery_ui <- function(id) {
           style = "display: flex; justify-content: center;",
           actionButton(
             inputId = ns("get_pcv_btn"), label = "Extract PCVs",
-            class = "btn-primary",
+            class = "btn-warning",
             width = "70%",
             icon = icon("filter")
           )
@@ -257,34 +256,13 @@ mod_variant_discovery_ui <- function(id) {
 #' @description Server logic for variant discovery module.
 #'
 #' @param id Internal parameter for {shiny}.
-#'
-#' @importFrom shinybusy show_modal_spinner remove_modal_spinner
-#' @importFrom shinyalert shinyalert
 #' @importFrom RSQLite dbConnect dbDisconnect
-#' @importFrom writexl write_xlsx
-#' @importFrom shinyWidgets show_alert show_toast
-#' @importFrom reactable reactable renderReactable reactableOutput reactableTheme colDef
 #' @importFrom shiny showModal modalDialog
 #'
 #' @noRd
 mod_variant_discovery_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-
-    # Conditional logic
-    required_pkgs <- c("writexl", "shinyalert", "readxl", "shinyWidgets", "shinybusy")
-
-    for (pkg in required_pkgs) {
-      if (!requireNamespace(pkg, quietly = TRUE)) {
-        stop(sprintf("The '%s' package is required for this feature
-                   Please install it using install.packages(%s).", pkg, pkg),
-          call. = FALSE
-        )
-      }
-    }
-
-
-
 
     # Reactive values to store application state
     rv <- reactiveValues(
@@ -485,7 +463,7 @@ mod_variant_discovery_server <- function(id) {
         )
       }
 
-      reactable(
+      reactable::reactable(
         data,
         defaultColDef = reactable::colDef(
           headerClass = "header",
@@ -589,6 +567,14 @@ mod_variant_discovery_server <- function(id) {
         modalDialog(
           title = div("Get Genotype Co-ordinates", style = "text-align: center;"),
           easyClose = FALSE,
+          footer = tagList(
+            actionButton(
+              inputId = ns("dismiss_modal1"),
+              label = "Cancel",
+              class = "btn-danger",
+              icon = icon("times")
+            )
+          ),
           bslib::card(
             # bslib::card_header("Gene Parameters"),
             textInput(
@@ -618,14 +604,21 @@ mod_variant_discovery_server <- function(id) {
             ),
             bslib::card_footer(
               actionButton(
-                inputId = ns("submit"), label = "Get Coordinates",
-                class = "btn-primary w-100",
+                inputId = ns("submit"),
+                label = "Get Coordinates",
+                width = '100%',
+                class = "btn-info",
                 icon = icon("search")
               )
             )
           )
         )
       )
+    })
+
+    # Remove modal if cancel is clicked.
+    observeEvent(input$dismiss_modal1, {
+      removeModal()
     })
 
     # Get gene coordinates
@@ -682,7 +675,17 @@ mod_variant_discovery_server <- function(id) {
     observeEvent(input$set_cord, {
       showModal(
         modalDialog(
-          title = div(style = "text-align: center;", "Set Genotype Co-ordinates Manually"), easyClose = FALSE,
+          title = div(style = "text-align: center;",
+                      "Set Genotype Co-ordinates Manually"),
+          easyClose = FALSE,
+          footer = tagList(
+            actionButton(
+              inputId = ns("dismiss_modal"),
+              label = "Cancel",
+              class = "btn-danger",
+              icon = icon("times")
+            )
+          ),
           tagList(
             bslib::card(
               textInput(
@@ -708,7 +711,8 @@ mod_variant_discovery_server <- function(id) {
                 actionButton(
                   inputId = ns("set_genocod_btn"),
                   label = "Submit",
-                  class = "btn-primary w-100",
+                  width = '100%',
+                  class = "btn-info",
                   icon = icon("edit")
                 )
               )
@@ -716,6 +720,11 @@ mod_variant_discovery_server <- function(id) {
           )
         )
       )
+    })
+
+    # Close modal is close is clicked.
+    observeEvent(input$dismiss_modal, {
+      removeModal()
     })
 
     # Close modal after manual setting
@@ -1106,13 +1115,6 @@ mod_variant_discovery_server <- function(id) {
                 open = TRUE,
                 bslib::accordion_panel(
                   "KASP Marker Data & Sequence Alignment Table",
-                  # preview for other generated markers
-                  selectizeInput(
-                    inputId = ns("done_markers"),
-                    label = "Select Marker ID",
-                    choices = NULL,
-                    width = "45%"
-                  ),
                   DT::DTOutput(ns("kasp_table"), height = "200px"),
                   bslib::card(
                     bslib::card_footer(
@@ -1207,7 +1209,7 @@ mod_variant_discovery_server <- function(id) {
           }
 
 
-          kasp_des.result(list_markers) # marker dataframes
+          kasp_des.result(data.table::rbindlist(list_markers)) # marker dataframes
           kasp_des.plot(list_plots) # plots
 
           # Success alert for VCF processing
@@ -1248,7 +1250,7 @@ mod_variant_discovery_server <- function(id) {
     output$kasp_table <- DT::renderDT({
       req(kasp_des.result())
       DT::datatable(
-        data = kasp_des.result()[[input$done_markers]],
+        data = kasp_des.result(),
         options = list(
           scrollX = TRUE,
           pageLength = 10,
@@ -1268,9 +1270,9 @@ mod_variant_discovery_server <- function(id) {
       },
       content = function(file) {
         if (input$exten == ".csv") {
-          write.csv(data.table::rbindlist(kasp_des.result()), file, row.names = FALSE)
+          write.csv(kasp_des.result(), file, row.names = FALSE)
         } else if (input$exten == ".xlsx") {
-          openxlsx::write.xlsx(data.table::rbindlist(kasp_des.result()), file)
+          openxlsx::write.xlsx(kasp_des.result(), file)
         }
       }
     )
@@ -1320,12 +1322,12 @@ mod_variant_discovery_server <- function(id) {
         plots <- kasp_des.plot()
 
         # Start PDF
-        pdf(file, width = 24, height = 9, onefile = TRUE)
+        grDevices::pdf(file, width = 24, height = 9, onefile = TRUE)
 
         # Print plots
         if (is.list(plots)) lapply(plots, print) else print(plots)
 
-        dev.off() # Close PDF
+        grDevices::dev.off() # Close PDF
       }
     )
   })
