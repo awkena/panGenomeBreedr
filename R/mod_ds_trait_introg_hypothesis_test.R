@@ -158,7 +158,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                   label = "Submit",
                   icon = icon("check"),
                   width = "100%",
-                  class = "btn-success"
+                  class = "btn-info"
                 )
               )
             )

@@ -295,8 +295,9 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
 
       # Show success message with appropriate delay
         shinyWidgets::show_toast(
+          text = "Predictive Status Generated Successfully",
           title = "Success!",
-          type = "Predictive Status Generated Successfully",
+          type = 'success',
           timer = 2000
         )
 

@@ -11,9 +11,6 @@
 #' @importFrom bslib navset_card_underline nav_panel layout_sidebar sidebar
 #' @importFrom bslib card card_header card_body card_footer accordion
 #' @importFrom bslib accordion_panel navset_card_tab input_switch
-#' @importFrom DT DTOutput
-#' @importFrom grDevices colors
-#' @importFrom fontawesome fa
 #' @noRd
 #'
 mod_ds_marker_ass_bac_ui <- function(id) {
@@ -89,7 +86,7 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                   label = "Submit",
                   icon = icon("check"),
                   width = "100%",
-                  class = "btn-success"
+                  class = "btn-info"
                 )
               )
             )
@@ -350,7 +347,6 @@ mod_ds_marker_ass_bac_ui <- function(id) {
 #' @param id Unique namespace ID
 #'
 #' @importFrom shiny moduleServer observeEvent req reactive renderUI observe
-#' @importFrom DT renderDT datatable
 #' @importFrom utils read.csv
 #' @importFrom stats setNames
 #' @noRd

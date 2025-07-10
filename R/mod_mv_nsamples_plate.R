@@ -8,7 +8,7 @@
 #'
 #' @importFrom shiny NS tagList sidebarLayout sidebarPanel mainPanel selectInput actionButton icon div
 #' @importFrom bslib accordion accordion_panel
-#' @importFrom DT DTOutput
+#'
 mod_mv_nsamples_plate_ui <- function(id) {
   ns <- NS(id)
   tagList(
@@ -66,8 +66,6 @@ mod_mv_nsamples_plate_ui <- function(id) {
 #' @noRd
 #'
 #' @importFrom shiny moduleServer reactive reactiveVal observeEvent req updateSelectInput invalidateLater
-#' @importFrom shinyWidgets show_alert
-#' @importFrom DT renderDT datatable
 #'
 mod_mv_nsamples_plate_server <- function(id, kasp_data) {
   moduleServer(id, function(input, output, session) {
