@@ -213,7 +213,7 @@ mod_mv_plate_plot_server <- function(id, kasp_data, color_coded) {
         tryCatch(
           {
             # Start PDF (onefile=TRUE ensures multi-page)
-            pdf(file,
+            grDevices::pdf(file,
                 width = input$width,
                 height = input$height,
                 onefile = TRUE)
