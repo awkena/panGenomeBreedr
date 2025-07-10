@@ -6,29 +6,6 @@
 #' @noRd
 #'
 app_server <- function(input, output, session) {
-  # Check all suggested packages at the start
-  suggested_packages <- c(
-    "DT", "data.table", "fontawesome", "openxlsx", "reactable",
-    "readxl", "shinyWidgets", "shinyalert", "shinybusy", "shinyjs",
-    "stringr", "vcfR", "writexl"
-  )
-
-  missing_packages <- suggested_packages[!sapply(suggested_packages,
-                                                 requireNamespace,
-                                                 quietly = TRUE
-  )]
-
-  if (length(missing_packages) > 0) {
-    stop(
-      sprintf(
-        "Required packages missing: %s\nInstall with: install.packages(c(%s))",
-        paste(missing_packages, collapse = ", "),
-        paste(sprintf("'%s'", missing_packages), collapse = ", ")
-      ),
-      call. = FALSE
-    )
-  }
-
 
   # Let user referesh application.
   observeEvent(input$refresh_btn, {
