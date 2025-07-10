@@ -1,6 +1,7 @@
 #' Run the Shiny Application
 #'
 #' @param ... arguments to pass to golem_opts.
+#' @param auto_install installs used packages not found in namespace.
 #' See `?golem::get_golem_options` for more details.
 #' @inheritParams shiny::shinyApp
 #'
