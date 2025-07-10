@@ -10,7 +10,7 @@
 #'
 #' @importFrom shiny NS tagList sidebarLayout sidebarPanel mainPanel fileInput radioButtons numericInput textInput div actionButton icon
 #' @importFrom bslib accordion accordion_panel navset_card_tab nav_panel
-#' @importFrom DT DTOutput
+#'
 mod_mv_read_kasp_csv_ui <- function(id) {
   ns <- NS(id)
   tagList(
@@ -44,7 +44,7 @@ mod_mv_read_kasp_csv_ui <- function(id) {
           style = "display: flex; justify-content: center;",
           actionButton(ns("submit_btn"),
             label = "Submit",
-            icon = icon("rocket"), class = "btn-primary", width = "70%"
+            icon = icon("rocket"), class = "btn-info", width = "80%"
           )
         )
       ),
@@ -71,9 +71,6 @@ mod_mv_read_kasp_csv_ui <- function(id) {
 
 #' mv_read_kasp_csv Server Functions
 #' @import shiny
-#' @importFrom shinybusy show_modal_spinner remove_modal_spinner
-#' @importFrom shinyWidgets show_alert
-#' @importFrom DT renderDT datatable
 #'
 #' @noRd
 
