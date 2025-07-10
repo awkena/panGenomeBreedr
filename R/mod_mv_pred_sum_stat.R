@@ -75,7 +75,7 @@ mod_mv_pred_sum_stat_ui <- function(id) {
                   width = 4,
                   selectInput(
                     inputId = ns("pred_col_id"), label = "Pos. Ctrl Colors (F | T | U)",
-                    choices = colors(),
+                    choices =  grDevices::colors(),
                     selected = c("red", "blue", "orange"),
                     multiple = TRUE
                   )
@@ -345,7 +345,7 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
           error_msg <- paste("Error generating prediction plots:", e$message)
           message(error_msg)
 
-          show_alert(
+          shinyWidgets::show_alert(
             title = "Error!",
             text = error_msg,
             type = "error",
