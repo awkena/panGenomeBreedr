@@ -10,11 +10,12 @@ app_ui <- function(request) {
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # Your application UI logic
+
     navbarPage(
       theme = bslib::bs_theme(
         version = 5,
         bootswatch = "flatly",
-        primary = "#303F9F",
+        primary = "#302F9F",
         success = "#FF8A65"
       ),
       fluid = TRUE,
@@ -28,6 +29,7 @@ app_ui <- function(request) {
           icon = icon("sync-alt"),
           style = "background-color: transparent; border: none;"
         )
+
       ),
 
       ## Home / Welcome  Tab
@@ -37,7 +39,7 @@ app_ui <- function(request) {
       ),
       bslib::nav_item(), bslib::nav_item(), # space home tab from the rest of the tab
 
-       ## Variant Annotation Tab
+      ## Variant Annotation Tab
       bslib::nav_panel(
         title = "Variant Discovery",
         icon = icon("microscope"),
@@ -63,7 +65,8 @@ app_ui <- function(request) {
           bslib::nav_panel(
             title = tags$strong("Import Data"),
             icon = icon("file-import"),
-            bslib::card(height =  '700px',
+            bslib::card(
+              height = "700px",
               bslib::card_header(h5(tags$b("Import KASP Genotyping File"))),
               mod_mv_read_kasp_csv_ui("mv_read_kasp_csv_1")
             )
@@ -192,4 +195,4 @@ golem_add_external_resources <- function() {
   )
 }
 
-devtools::check()
+
