@@ -334,7 +334,7 @@ mod_variant_discovery_server <- function(id) {
           timer = 5000
         )
       }, error = function(e) {
-        show_alert(
+        shinyWidgets::show_alert(
           title = "Failed!",
           text = "Unable to connect to database",
           type = "danger",
@@ -645,7 +645,7 @@ mod_variant_discovery_server <- function(id) {
 
         values$result <- gene_coord_gff(input$gene_name, gff_path)
 
-        show_alert(
+        shinyWidgets::show_alert(
           title = "Found Gene Co-ordinates",
           # Informative message to confirm that cordinates have been found
           text = sprintf(
@@ -657,7 +657,7 @@ mod_variant_discovery_server <- function(id) {
           timer = 5000
         )
       }, error = function(e) {
-        show_alert(
+        shinyWidgets::show_alert(
           title = "Failed!",
           text = e$message,
           type = "danger",
@@ -738,7 +738,7 @@ mod_variant_discovery_server <- function(id) {
         end = input$end
       )
 
-      show_alert(
+      shinyWidgets::show_alert(
         title = "Gene Coordinates Set",
         text = sprintf(
           "Chromosome: %s | Start: %d | End: %d",
@@ -848,7 +848,7 @@ mod_variant_discovery_server <- function(id) {
           values$last_action <- "annotation_summ"
         }
       }, error = function(e) {
-        show_alert(
+        shinyWidgets::show_alert(
           title = "Failed!",
           text = e$message,
           type = "danger",
@@ -1001,7 +1001,7 @@ mod_variant_discovery_server <- function(id) {
           )
         },
         error = function(e) {
-          show_alert(
+          shinyWidgets::show_alert(
             title = "No Putative Causal Variants Found!",
             text = "Confirm Impact Level and Allele Frequency Threshold Using Annotation Summary",
             type = "error",
