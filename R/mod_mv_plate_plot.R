@@ -106,7 +106,6 @@ mod_mv_plate_plot_ui <- function(id) {
 #' @noRd
 #'
 #' @importFrom shiny moduleServer reactive observeEvent req updateSelectInput renderPlot downloadHandler
-#' @importFrom shinybusy show_modal_spinner remove_modal_spinner
 #'
 mod_mv_plate_plot_server <- function(id, kasp_data, color_coded) {
   moduleServer(id, function(input, output, session) {
@@ -155,7 +154,7 @@ mod_mv_plate_plot_server <- function(id, kasp_data, color_coded) {
           )
         },
         error = function(e) {
-          show_alert(
+          shinyWidgets::show_alert(
             title = "Error!",
             text = paste("Failed to generate plot:", e$message),
             type = "error",
@@ -228,63 +227,20 @@ mod_mv_plate_plot_server <- function(id, kasp_data, color_coded) {
               }
             }
 
-            dev.off()
+          grDevices::dev.off()
           },
           error = function(e) {
-            showNotification(
-              paste("Download failed:", e$message),
+         shinyWidgets::show_toast(
+              title = 'error' ,
               type = "error",
-              duration = 5
+              text = paste("Download failed:", e$message),
+              timer = 5000
             )
           }
         )
       }
     )
 
-    # # Download plate layout plot
-    # output$download_plateplot <- downloadHandler(
-    #   filename = function() {
-    #     req(input$file_name)
-    #     paste0(input$file_name, ".pdf")
-    #   },
-    #   content = function(file) {
-    #     req(plot_plate_result())
-    #
-    #     tryCatch(
-    #       {
-    #         # Determine if we need grid.draw or print
-    #         plot_obj <- plot_plate_result()[[1]]
-    #
-    #         if (inherits(plot_obj, "grob")) {
-    #           pdf(file, width = input$width, height = input$height)
-    #           grid::grid.draw(plot_obj)
-    #           dev.off()
-    #         } else if (inherits(plot_obj, "ggplot")) {
-    #           ggsave(
-    #             file,
-    #             plot = plot_obj,
-    #             width = input$width,
-    #             height = input$height,
-    #             units = "in"
-    #           )
-    #         } else {
-    #           pdf(file, width = input$width, height = input$height)
-    #           print(plot_obj)
-    #           dev.off()
-    #         }
-    #       },
-    #       error = function(e) {
-    #         show_alert(
-    #           title = "Download Error!",
-    #           text = paste("Failed to save plot:", e$message),
-    #           type = "error",
-    #           showCloseButton = TRUE,
-    #           timer = 5000
-    #         )
-    #       }
-    #     )
-    #   }
-    # )
   })
 }
 
