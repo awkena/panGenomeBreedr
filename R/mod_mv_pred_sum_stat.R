@@ -12,8 +12,7 @@
 #' @importFrom shiny NS tagList sidebarLayout sidebarPanel mainPanel selectInput textInput
 #'   actionButton icon div conditionalPanel column fluidRow numericInput plotOutput downloadButton
 #' @importFrom bslib input_switch accordion accordion_panel card card_footer
-#' @importFrom DT DTOutput
-#' @importFrom grDevices colors
+#'
 mod_mv_pred_sum_stat_ui <- function(id) {
   ns <- NS(id)
   tagList(
@@ -137,11 +136,6 @@ mod_mv_pred_sum_stat_ui <- function(id) {
 #' @noRd
 #'
 #' @importFrom shiny moduleServer reactive observeEvent req validate need updateSelectInput renderPlot downloadHandler
-#' @importFrom shinybusy show_modal_spinner remove_modal_spinner
-#' @importFrom shinyjs delay
-#' @importFrom shinyWidgets show_alert
-#' @importFrom DT renderDT datatable
-#' @importFrom grid grid.draw
 #'
 mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
   moduleServer(id, function(input, output, session) {
@@ -198,7 +192,7 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
             if (!is.null(pred_result)) {
               pred_sum_result(pred_result)
             } else {
-              show_alert(
+              shinyWidgets::show_alert(
                 title = "Warning!",
                 text = "Prediction analysis produced no results. Please check your inputs.",
                 type = "warning",
@@ -210,7 +204,7 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
           error = function(e) {
             error_msg <- paste("Error in prediction analysis:", e$message)
             print(error_msg)
-            show_alert(
+            shinyWidgets::show_alert(
               title = "Error!",
               text = error_msg,
               type = "error",
@@ -221,7 +215,7 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
           warning = function(w) {
             warning_msg <- paste("Warning in prediction analysis:", w$message)
             print(warning_msg)
-            show_alert(
+            shinyWidgets::show_alert(
               title = "Warning!",
               text = warning_msg,
               type = "warning",
@@ -248,7 +242,7 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
             updateSelectInput(session, inputId = "pred_stat_dd", choices = plates, selected = plates[1])
           } else {
             updateSelectInput(session, inputId = "pred_stat_dd", choices = character(0))
-            show_alert(
+            shinyWidgets::show_alert(
               title = "Warning",
               text = "No plates found in the prediction results.",
               type = "warning",
@@ -385,7 +379,7 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
             updateSelectInput(session, inputId = "SNP_id", choices = snp_names)
           } else {
             updateSelectInput(session, inputId = "SNP_id", choices = character(0))
-            show_alert(
+            shinyWidgets::show_alert(
               title = "Warning",
               text = "No SNP IDs found in the prediction results.",
               type = "warning",
@@ -485,11 +479,11 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
         plot_obj <- pred_sum_plot()[[grep(input$SNP_id, names(pred_sum_plot()), ignore.case = TRUE, value = TRUE)]]
 
         if (is.null(plot_obj)) {
-          show_alert("Error", "Plot not found for selected SNP", type = "error")
+          shinyWidgets::show_alert("Error", "Plot not found for selected SNP", type = "error")
           return()
         }
 
-        ggsave(
+      ggplot2::ggsave(
           file,
           plot = plot_obj,
           width = as.numeric(input$width_id),
