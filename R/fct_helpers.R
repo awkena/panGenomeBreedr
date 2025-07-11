@@ -266,7 +266,7 @@ alleles_df <- function(x) {
   }
 
   # Create allele column names
-  allele_cols <- paste("allele", LETTERS[seq_len(x)], sep = "_")
+  allele_cols <- paste("allele", LETTERS[seq_len(length(x))], sep = "_")
 
   # Create and populate data frame
   df <- as.data.frame(matrix(
@@ -278,6 +278,7 @@ alleles_df <- function(x) {
 
   return(df)
 }
+
 
 #' Generate summary statistics for KASP genotyping plates
 #'
