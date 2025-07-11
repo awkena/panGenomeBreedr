@@ -66,33 +66,76 @@ mod_variant_discovery_ui <- function(id) {
   info_tab <- function(ns) {
     conditionalPanel(
       condition = paste0("output['", ns("is_connected"), "'] == true"),
-      bslib::layout_column_wrap(
-        width = "100%",
-        bslib::card(
-          primary_card_header("Variant Impact Summary"),
-          bslib::card_body(reactable::reactableOutput(ns("table_impact_id")))
+      tagList(
+        #   bslib::card(
+        #     primary_card_header("Variant Impact Summary"),
+        #     bslib::card_body(reactable::reactableOutput(ns("table_impact_id")))
+        #   ),
+        #   bslib::card(
+        #     primary_card_header("Variant Statistics"),
+        #     bslib::card_body(reactable::reactableOutput(ns("table_var_stats_id")))
+        #   )
+        # ),
+        # bslib::layout_column_wrap(
+        #   width = 1 / 2,
+        #   bslib::card(
+        #     primary_card_header("Summarised SQLite Tables"),
+        #     bslib::card_body(reactable::reactableOutput(ns("sum_sqlite_id")))
+        #   ),
+        #   bslib::card(
+        #     primary_card_header("Variant Type Count"),
+        #     bslib::card_body(reactable::reactableOutput(ns("count_variant_typ_id")))
+        #   )
+        # ),
+        # bslib::layout_column_wrap(
+        #   width = "100%",
+        #   bslib::card(
+        #     primary_card_header("Inspect SQlite Table Schema"),
+        #     bslib::card_body(
+        #       selectInput(
+        #         inputId = ns("table_name_lst"),
+        #         label = "Table to Query",
+        #         choices = c("variants", "annotations", "genotypes"),
+        #         selected = "genotypes"
+        #       ),
+        #       reactable::reactableOutput(ns("results_lst"))
+        #     )
+        #   )
+        bslib::accordion(
+          style = "margin-bottom: 10px;",
+          open = TRUE,
+          bslib::accordion_panel(
+            "Variant Impact Summary",
+            reactable::reactableOutput(ns("table_impact_id"))
+          )
         ),
-        bslib::card(
-          primary_card_header("Variant Statistics"),
-          bslib::card_body(reactable::reactableOutput(ns("table_var_stats_id")))
-        )
-      ),
-      bslib::layout_column_wrap(
-        width = 1 / 2,
-        bslib::card(
-          primary_card_header("Summarised SQLite Tables"),
-          bslib::card_body(reactable::reactableOutput(ns("sum_sqlite_id")))
+        bslib::accordion(
+          style = "margin-bottom: 10px;",
+          open = TRUE,
+          bslib::accordion_panel(
+            "Variant Statistics",
+            reactable::reactableOutput(ns("table_var_stats_id"))
+          )
         ),
-        bslib::card(
-          primary_card_header("Variant Type Count"),
-          bslib::card_body(reactable::reactableOutput(ns("count_variant_typ_id")))
-        )
-      ),
-      bslib::layout_column_wrap(
-        width = "100%",
-        bslib::card(
-          primary_card_header("Inspect SQlite Table Schema"),
-          bslib::card_body(
+        bslib::accordion(
+          style = "margin-bottom: 10px;",
+          open = TRUE,
+          splitLayout(
+            bslib::accordion_panel(
+              "Summarised SQLite Tables",
+              reactable::reactableOutput(ns("sum_sqlite_id"))
+            ),
+            bslib::accordion_panel(
+              "Variant Type Count",
+              reactable::reactableOutput(ns("count_variant_typ_id"))
+            )
+          )
+        ),
+        bslib::accordion(
+          style = "margin-bottom: 5px;",
+          open = TRUE,
+          bslib::accordion_panel(
+            "Inspect SQLite Table Schema",
             selectInput(
               inputId = ns("table_name_lst"),
               label = "Table to Query",
