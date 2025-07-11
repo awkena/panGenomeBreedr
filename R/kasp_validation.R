@@ -865,7 +865,7 @@ kasp_qc_ggplot <- function(x,
         ggplot2::geom_point(size = 4, pch = 21) +
         ggplot2::scale_fill_manual(values = ggplot2::alpha(cols, alpha),
                                    breaks = calls,
-                                   name = 'Observation')
+                                   name = 'KASP Call')
     }
 
     plt <- plt + ggplot2::theme_classic() + ggplot2::xlim(c(0, axis_max)) +
@@ -1154,7 +1154,7 @@ kasp_qc_ggplot2 <- function(x,
         ggplot2::geom_point(size = 4) +
         ggplot2::scale_shape_manual(values = pch_uniq,
                                     breaks = pch_brks,
-                                    name = 'Observation') +
+                                    name = 'KASP Call') +
 
         ggplot2::guides(shape = ggplot2::guide_legend(order = 0)) +
 
@@ -1171,7 +1171,7 @@ kasp_qc_ggplot2 <- function(x,
         ggplot2::geom_point(size = 4, pch = 21) +
         ggplot2::scale_fill_manual(values = ggplot2::alpha(cols, alpha),
                                    breaks = col_brks,
-                                   name = 'Observation')
+                                   name = 'KASP Call')
     }
 
 
@@ -1206,7 +1206,7 @@ kasp_qc_ggplot2 <- function(x,
   }
 
 
-  if (pdf == TRUE) {
+  if (pdf) {
 
     ggplot2::ggsave(filename = paste0(filename, ".pdf"),
                     plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
