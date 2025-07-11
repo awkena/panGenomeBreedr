@@ -150,14 +150,18 @@ mod_variant_discovery_ui <- function(id) {
         div(
           style = "display: flex; justify-content: center;",
           actionButton(
-            inputId = ns("get_cord"), label = "Get Genotype Co-ordinates from GFF",
+            inputId = ns("get_cord"),
+            label = "Get Genotype Co-ordinates from GFF",
+            icon = icon("cloud-arrow-down"),
             width = "70%"
           )
         ),
         div(
           style = "display: flex; justify-content: center;",
           actionButton(
-            inputId = ns("set_cord"), label = "Set Genotype Co-ordinates Manually",
+            inputId = ns("set_cord"),
+            icon = icon("pencil"),
+            label = "Set Genotype Co-ordinates Manually",
             width = "70%"
           )
         )
@@ -246,7 +250,6 @@ mod_variant_discovery_ui <- function(id) {
         ),
         info_tab(ns)
       )
-
     )
   )
 }
@@ -606,7 +609,7 @@ mod_variant_discovery_server <- function(id) {
               actionButton(
                 inputId = ns("submit"),
                 label = "Get Coordinates",
-                width = '100%',
+                width = "100%",
                 class = "btn-info",
                 icon = icon("search")
               )
@@ -675,8 +678,10 @@ mod_variant_discovery_server <- function(id) {
     observeEvent(input$set_cord, {
       showModal(
         modalDialog(
-          title = div(style = "text-align: center;",
-                      "Set Genotype Co-ordinates Manually"),
+          title = div(
+            style = "text-align: center;",
+            "Set Genotype Co-ordinates Manually"
+          ),
           easyClose = FALSE,
           footer = tagList(
             actionButton(
@@ -711,7 +716,7 @@ mod_variant_discovery_server <- function(id) {
                 actionButton(
                   inputId = ns("set_genocod_btn"),
                   label = "Submit",
-                  width = '100%',
+                  width = "100%",
                   class = "btn-info",
                   icon = icon("edit")
                 )
@@ -991,7 +996,6 @@ mod_variant_discovery_server <- function(id) {
         text = "Getting Putative Causal Variants... Please wait."
       )
 
-
       tryCatch(
         {
           values$query_geno_react <- query_genotypes(
@@ -1002,8 +1006,8 @@ mod_variant_discovery_server <- function(id) {
         },
         error = function(e) {
           shinyWidgets::show_alert(
-            title = "No Putative Causal Variants Found!",
-            text = "Confirm Impact Level and Allele Frequency Threshold Using Annotation Summary",
+            title = "Error",
+            text = "No Putative Causal Variants Found!",
             type = "error",
             showCloseButton = TRUE,
             timer = 8000
@@ -1011,9 +1015,7 @@ mod_variant_discovery_server <- function(id) {
         }, finally = {
           shinyjs::delay(1000, {
             shinybusy::remove_modal_spinner()
-            if (is.null(values$query_geno_react)) {
-              show_toast_success(text = paste("Found No Putative Causal Variants"), type = "error")
-            } else {
+            if (!is.null(values$query_geno_react)) {
               show_toast_success(text = paste("Found", nrow(values$query_geno_react), "Putative Causal Variants"))
             }
           })
@@ -1053,70 +1055,75 @@ mod_variant_discovery_server <- function(id) {
 
       showModal(
         modalDialog(
-          title = div(
-            style = "text-align: center;",
-            "Design KASP Marker From Putative Causal Variants"
-          ),
+          title = tags$b("Design KASP Markers"),
           size = "xl",
           footer = modalButton("Close"),
-          fluidRow(
-            column(
-              width = 4,
-              bslib::card(
-                bslib::card_header("Analysis Parameters",
-                  class = "bg-primary text-white"
-                ),
-                bslib::card_body(
-                  fileInput(
-                    ns("modal_genome_file"),
-                    label = "Genome Reference File",
-                    accept = c(".fa", ".fasta", ".gz")
+          bslib::card(
+            full_screen = TRUE,
+            fluidRow(
+              column(
+                width = 4,
+                bslib::card(
+                  bslib::card_header(
+                    h4(tags$b("Input Parameters"))
+
+                    # class = "bg-primary text-white"
                   ),
-                  selectizeInput(
-                    ns("modal_marker_ID"),
-                    label = "Marker ID",
-                    choices = values$query_geno_react$variant_id,
-                    options = list(placeholder = "Select variants..."),
-                    multiple = TRUE
+                  bslib::card_body(
+                    fileInput(
+                      ns("modal_genome_file"),
+                      label = "Genome Reference File",
+                      accept = c(".fa", ".fasta", ".gz"),
+                      width = "100%"
+                    ),
+                    selectizeInput(
+                      ns("modal_marker_ID"),
+                      label = "Marker ID",
+                      choices = values$query_geno_react$variant_id,
+                      options = list(placeholder = "Select variants..."),
+                      multiple = TRUE,
+                      width = "100%"
+                    ),
+                    textInput(
+                      ns("modal_reg_name"),
+                      label = "Region Name",
+                      width = "100%",
+                      placeholder = "e.g., drought resistance locus"
+                    ),
+                    numericInput(
+                      ns("modal_maf"),
+                      width = "100%",
+                      label = "Minor Allele Frequency (MAF)",
+                      value = 0.05, min = 0, max = 1, step = 0.01
+                    ),
+                    bslib::input_switch(
+                      ns("modal_draw_plot"),
+                      width = "100%",
+                      label = "Generate Alignment Plot",
+                      value = TRUE
+                    )
                   ),
-                  textInput(
-                    ns("modal_reg_name"),
-                    label = "Region Name",
-                    placeholder = "e.g., drought resistance locus"
-                  ),
-                  numericInput(
-                    ns("modal_maf"),
-                    label = "Minor Allele Frequency (MAF)",
-                    value = 0.05, min = 0, max = 1, step = 0.01
-                  ),
-                  bslib::input_switch(
-                    ns("modal_draw_plot"),
-                    label = "Generate Alignment Plot",
-                    value = TRUE
-                  )
-                ),
-                bslib::card_footer(
-                  actionButton(
-                    width = "100%",
-                    ns("modal_run_but"),
-                    label = "Design Marker",
-                    icon = icon("drafting-compass"),
-                    class = "btn-primary"
+                  bslib::card_footer(
+                    actionButton(
+                      width = "100%",
+                      ns("modal_run_but"),
+                      label = "Design Marker",
+                      icon = icon("drafting-compass"),
+                      class = "btn-info"
+                    )
                   )
                 )
-              )
-            ),
-            column(
-              width = 8,
-              bslib::accordion(
-                style = "margin-bottom: 70px;",
-                id = ns("results_accordion"),
-                width = "100%",
-                open = TRUE,
-                bslib::accordion_panel(
-                  "KASP Marker Data & Sequence Alignment Table",
-                  DT::DTOutput(ns("kasp_table"), height = "200px"),
-                  bslib::card(
+              ),
+              column(
+                width = 8,
+                bslib::accordion(
+                  style = "margin-bottom: 70px;",
+                  id = ns("results_accordion"),
+                  width = "100%",
+                  open = TRUE,
+                  bslib::accordion_panel(
+                    "KASP Marker Data & Sequence Alignment Table",
+                    DT::DTOutput(ns("kasp_table")),
                     bslib::card_footer(
                       fluidRow(
                         column(width = 3, selectInput(
@@ -1141,9 +1148,9 @@ mod_variant_discovery_server <- function(id) {
                         icon = icon("download")
                       )
                     )
-                  )
-                ),
-                uiOutput(ns("plot_container"))
+                  ),
+                  uiOutput(ns("plot_container"))
+                )
               )
             )
           )
@@ -1156,12 +1163,20 @@ mod_variant_discovery_server <- function(id) {
     kasp_des.plot <- reactiveVal(NULL) # store kasp plots
 
     observeEvent(input$modal_run_but, {
-      show_toast_success(text = "Designing KASP Markers... Please Wait!", type = "info", timer = 8000)
-
       req(
         values$query_geno_react, input$modal_genome_file$datapath,
         input$modal_maf, input$modal_marker_ID
       )
+
+      shinyWidgets::show_alert(
+        title = "Important!",
+        text = "Designing KASP markers... Please wait. Do not close this window",
+        type = "info",
+        showCloseButton = TRUE,
+        timer = 9000
+      )
+
+
 
       list_markers <- list() # list object for markers
       list_plots <- list() # list object for plots
@@ -1226,7 +1241,8 @@ mod_variant_discovery_server <- function(id) {
         },
         error = function(e) {
           kasp_des.result(NULL)
-          show_toast_success(
+          shinyWidgets::show_alert(
+            title = "Error",
             text = paste("Error: ", e$message),
             type = "error"
           )
