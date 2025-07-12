@@ -10,8 +10,9 @@ app_ui <- function(request) {
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # Your application UI logic
-
+   shinybusy::add_busy_bar(color = 'white' ,height = '10px'),
     navbarPage(
+      collapsible = TRUE,
       theme = bslib::bs_theme(
         version = 5,
         bootswatch = "flatly",
@@ -19,7 +20,7 @@ app_ui <- function(request) {
         success = "#FF8A65"
       ),
       fluid = TRUE,
-      title = "panGB prototype 1",
+      title = "panGenomeBreedr",
       id = "nav_bar",
       header = tags$div(
         style = "position: absolute; right: 10px; top: 20px;",
@@ -63,18 +64,47 @@ app_ui <- function(request) {
 
           # Read Kasp file Tab
           bslib::nav_panel(
-            title = tags$strong("Import Data"),
+            title = tags$strong("Upload Genotyping Data"),
             icon = icon("file-import"),
             bslib::card(
               height = "700px",
-              bslib::card_header(h5(tags$b("Import KASP Genotyping File"))),
+              bslib::card_header(h5(tags$b(" Upload KASP Genotyping File"))),
               mod_mv_read_kasp_csv_ui("mv_read_kasp_csv_1")
+            )
+          ),
+          # Tab for color coding
+          bslib::nav_panel(
+            title = tags$strong("Color-Code Genotype Calls"),
+            icon = icon("palette"),
+            bslib::card(
+              bslib::card_header(h5(tags$b("Apply Genotype Color Coding"))),
+              mod_mv_kasp_color_ui("mv_kasp_color_1")
+            )
+          ),
+
+          # Tab for QC plots
+          bslib::nav_panel(
+            title = tags$strong("QC Plots & Plate Layout"),
+            icon = icon("chart-bar"),
+            bslib::card(
+              bslib::card_header(h5(tags$b("QC Plots with Prediction Overlays"))),
+              mod_mv_kasp_qc_ggplot_ui("mv_kasp_qc_ggplot_1")
+            )
+          ),
+
+          # Tab for Predictions & Plots
+          bslib::nav_panel(
+            title = tags$strong("Run QC Predictions"),
+            icon = icon("chart-line"),
+            bslib::card(
+              bslib::card_header(h5(tags$b("Run QC Predictions and Plots"))),
+              mod_mv_pred_sum_stat_ui("mv_pred_sum_stat_1")
             )
           ),
 
           # Tab for Kasp file Summary / Statistics
           bslib::nav_panel(
-            title = tags$strong("Data Summary"),
+            title = tags$strong("View Data Summary"),
             icon = icon("table"),
             bslib::layout_column_wrap(
               width = 1,
@@ -83,50 +113,21 @@ app_ui <- function(request) {
                 mod_mv_nsamples_plate_ui("mv_nsamples_plate_1") # plate count
               ),
               bslib::card(
-                bslib::card_header(h5(tags$b("Allele Information"))),
+                bslib::card_header(h5(tags$b("Allele Call Information"))),
                 mod_mv_get_alleles_ui("mv_get_alleles_1") # allele info
               )
             )
-          ),
-
-          # Tab for color coding
-          bslib::nav_panel(
-            title = tags$strong("Color Code"),
-            icon = icon("palette"),
-            bslib::card(
-              bslib::card_header(h5(tags$b("Color Code Calls"))),
-              mod_mv_kasp_color_ui("mv_kasp_color_1")
-            )
-          ),
-
-          # Tab for QC plots
-          bslib::nav_panel(
-            title = tags$strong("QC Plots"),
-            icon = icon("chart-bar"),
-            bslib::card(
-              bslib::card_header(h5(tags$b("Quality Control Plots Overlayed with Predictions"))),
-              mod_mv_kasp_qc_ggplot_ui("mv_kasp_qc_ggplot_1")
-            )
-          ),
-
-          # Tab for Predictions & Plots
-          bslib::nav_panel(
-            title = tags$strong("QC Predictions"),
-            icon = icon("chart-line"),
-            bslib::card(
-              bslib::card_header(h5(tags$b("Quality Control Predictions"))),
-              mod_mv_pred_sum_stat_ui("mv_pred_sum_stat_1")
-            )
-          ),
-          # Tab for Plate layout
-          bslib::nav_panel(
-            title = tags$strong("Plate Layout"),
-            icon = icon("chart-bar"),
-            bslib::card(
-              bslib::card_header(h5(tags$b("Plot Plate Design"))),
-              mod_mv_plate_plot_ui("mv_plate_plot_1")
-            )
           )
+          #---Combined with QC plots
+          # # Tab for Plate layout
+          # bslib::nav_panel(
+          #   title = tags$strong("Plate Layout"),
+          #   icon = icon("chart-bar"),
+          #   bslib::card(
+          #     bslib::card_header(h5(tags$b("Plot Plate Design"))),
+          #     mod_mv_plate_plot_ui("mv_plate_plot_1")
+          #   )
+          # )
         )
       ), bslib::nav_item(),
 

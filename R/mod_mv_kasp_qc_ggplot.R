@@ -13,222 +13,273 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
   ns <- NS(id)
 
   tagList(
-    # uiOutput(ns("error_messages")),
-
     bslib::card(
       bslib::card_header("QC Plot Configuration", class = "bg-dark text-white"),
-      bslib::card_body(
-        fluidRow(
-          # Card 1: Core Data Mapping
-          column(
-            width = 3,
-            bslib::card(
-              height = "100%",
-              bslib::card_header("Core Data Mapping", class = "bg-primary"),
-              bslib::card_body(
-                selectInput(
-                  inputId = ns("fam_id"),
-                  label = "FAM Signal Column",
-                  choices = NULL,
-                  width = "100%"
-                ),
-                selectInput(
-                  inputId = ns("Hex_id"),
-                  label = "HEX Signal Column",
-                  choices = NULL,
-                  width = "100%"
-                ),
-                selectInput(
-                  inputId = ns("snp_id"),
-                  label = "SNP ID Column",
-                  choices = NULL,
-                  width = "100%"
-                ),
-                selectInput(
-                  inputId = ns("geno_call"),
-                  label = "Genotype Calls Column",
-                  choices = NULL,
-                  width = "100%"
-                ),
-                selectInput(
-                  inputId = ns("group_id"),
-                  label = "Control Group Column",
-                  choices = NULL,
-                  width = "100%"
+      bslib::input_switch(id = ns("configure"), label = "Configure Plot", value = FALSE),
+      conditionalPanel(
+        condition = paste0('input["', ns("configure"), '"] == true'),
+        tagList(
+          bslib::card_body(
+            fluidRow(
+              # Card 1: Core Data Mapping
+              column(
+                width = 3,
+                bslib::card(
+                  height = "100%",
+                  bslib::card_header("Core Data Mapping", class = "bg-primary"),
+                  bslib::card_body(
+                    selectInput(
+                      inputId = ns("well_id"),
+                      label = "Select Plate Well Column",
+                      choices = NULL,
+                      multiple = FALSE,
+                      width = "100%"
+                    ),
+                    selectInput(
+                      inputId = ns("fam_id"),
+                      label = "FAM Signal Column",
+                      choices = NULL,
+                      width = "100%"
+                    ),
+                    selectInput(
+                      inputId = ns("Hex_id"),
+                      label = "HEX Signal Column",
+                      choices = NULL,
+                      width = "100%"
+                    ),
+                    selectInput(
+                      inputId = ns("snp_id"),
+                      label = "SNP ID Column",
+                      choices = NULL,
+                      width = "100%"
+                    ),
+                    selectInput(
+                      inputId = ns("geno_call"),
+                      label = "Genotype Calls Column",
+                      choices = NULL,
+                      width = "100%"
+                    ),
+                    selectInput(
+                      inputId = ns("group_id"),
+                      label = "Control Group Column",
+                      choices = NULL,
+                      width = "100%"
+                    )
+                  )
                 )
-              )
-            )
-          ),
+              ),
 
-          # Card 2: Quality Thresholds
-          column(
-            width = 3,
-            bslib::card(
-              height = "100%",
-              bslib::card_header(" Quality Thresholds", class = "bg-danger"),
-              bslib::card_body(
-                textInput(
-                  inputId = ns("group_unknown"),
-                  label = "Unknown Genotype Value",
-                  value = "?",
-                  width = "100%"
-                ),
-                textInput(
-                  inputId = ns("unused"),
-                  label = "Unused Calls Value",
-                  value = "?",
-                  width = "100%"
-                ),
-                textInput(
-                  inputId = ns("blank"),
-                  label = "NTC (Negative Control) Value",
-                  value = "NTC",
-                  width = "100%"
-                ),
-                textInput(
-                  inputId = ns("uncallable"),
-                  label = "Uncallable Genotype Value",
-                  value = "uncallable",
-                  width = "100%"
-                ),
-                textInput(
-                  inputId = ns("others"),
-                  label = "Other Problematic Values (comma-separated)",
-                  value = "Missing, Bad, Dupe, Over, Short",
-                  width = "100%"
+              # Card 2: Quality Thresholds
+              column(
+                width = 3,
+                bslib::card(
+                  height = "100%",
+                  bslib::card_header(" Quality Thresholds", class = "bg-danger"),
+                  bslib::card_body(
+                    textInput(
+                      inputId = ns("group_unknown"),
+                      label = "Unknown Genotype Value",
+                      value = "?",
+                      width = "100%"
+                    ),
+                    textInput(
+                      inputId = ns("unused"),
+                      label = "Unused Calls Value",
+                      value = "?",
+                      width = "100%"
+                    ),
+                    textInput(
+                      inputId = ns("blank"),
+                      label = "NTC (Negative Control) Value",
+                      value = "NTC",
+                      width = "100%"
+                    ),
+                    textInput(
+                      inputId = ns("uncallable"),
+                      label = "Uncallable Genotype Value",
+                      value = "uncallable",
+                      width = "100%"
+                    ),
+                    textInput(
+                      inputId = ns("others"),
+                      label = "Other Problematic Values (comma-separated)",
+                      value = "Missing, Bad, Dupe, Over, Short",
+                      width = "100%"
+                    )
+                  )
                 )
-              )
-            )
-          ),
+              ),
 
-          # Card 3: Visualization Parameters
-          column(
-            width = 3,
-            bslib::card(
-              height = "100%",
-              bslib::card_header("Visualization Parameters", class = "bg-info"),
-              bslib::card_body(
-                selectInput(
-                  inputId = ns("scale"),
-                  label = "Scale Coordinates (0-1)",
-                  choices = c(TRUE, FALSE),
-                  selected = TRUE,
-                  width = "100%"
-                ),
-                numericInput(
-                  inputId = ns("legendx_id"),
-                  label = "Legend X Position",
-                  value = 0.6, min = 0, max = 1, step = 0.05,
-                  width = "100%"
-                ),
-                numericInput(
-                  inputId = ns("legendy_id"),
-                  label = "Legend Y Position",
-                  value = 0.8, min = 0, max = 1, step = 0.05,
-                  width = "100%"
-                ),
-                selectInput(
-                  inputId = ns("legend_box"),
-                  label = "Legend Orientation",
-                  choices = c("horizontal", "vertical"),
-                  width = "100%"
-                ),
-                selectInput(
-                  inputId = ns("legend_pos"),
-                  label = "Legend Placement",
-                  choices = c("inside", "left", "right", "bottom", "top", "none"),
-                  width = "100%"
+              # Card 3: Visualization Parameters
+              column(
+                width = 3,
+                bslib::card(
+                  height = "100%",
+                  bslib::card_header("Visualization Parameters", class = "bg-info"),
+                  bslib::card_body(
+                    selectInput(
+                      inputId = ns("scale"),
+                      label = "Scale Coordinates (0-1)",
+                      choices = c(TRUE, FALSE),
+                      selected = TRUE,
+                      width = "100%"
+                    ),
+                    numericInput(
+                      inputId = ns("legendx_id"),
+                      label = "Legend X Position",
+                      value = 0.6, min = 0, max = 1, step = 0.05,
+                      width = "100%"
+                    ),
+                    numericInput(
+                      inputId = ns("legendy_id"),
+                      label = "Legend Y Position",
+                      value = 0.8, min = 0, max = 1, step = 0.05,
+                      width = "100%"
+                    ),
+                    selectInput(
+                      inputId = ns("legend_box"),
+                      label = "Legend Orientation",
+                      choices = c("horizontal", "vertical"),
+                      width = "100%"
+                    ),
+                    selectInput(
+                      inputId = ns("legend_pos"),
+                      label = "Legend Placement",
+                      choices = c("inside", "left", "right", "bottom", "top", "none"),
+                      width = "100%"
+                    )
+                  )
                 )
-              )
-            )
-          ),
+              ),
 
-          # Card 4: Aesthetic Controls
-          column(
-            width = 3,
-            bslib::card(
-              height = "100%",
-              bslib::card_header("Aesthetic Controls", class = "bg-success"),
-              bslib::card_body(
-                selectInput(
-                  inputId = ns("pred_col_id"),
-                  label = "Prediction Colors (Blank|False|True|Unverified)",
-                  choices = grDevices::colors(),
-                  selected = c("blue", "orange", "forestgreen", "black"),
-                  multiple = TRUE,
-                  width = "100%"
-                ),
-                numericInput(
-                  inputId = ns("textsize_id"),
-                  label = "Text Size (pt)",
-                  value = 12, min = 1, max = 30, step = 1,
-                  width = "100%"
-                ),
-                numericInput(
-                  inputId = ns("alpha_id"),
-                  label = "Point Transparency",
-                  value = 0.8, min = 0, max = 1, step = 0.05,
-                  width = "100%"
-                ),
-                numericInput(
-                  inputId = ns("expand_id"),
-                  label = "Axis Padding",
-                  value = 0.6, min = 0, max = 1, step = 0.05,
-                  width = "100%"
+              # Card 4: Aesthetic Controls
+              column(
+                width = 3,
+                bslib::card(
+                  height = "100%",
+                  bslib::card_header("Aesthetic Controls", class = "bg-success"),
+                  bslib::card_body(
+                    selectInput(
+                      inputId = ns("pred_col_id"),
+                      label = "Prediction Colors (Blank|False|True|Unverified)",
+                      choices = grDevices::colors(),
+                      selected = c("blue", "orange", "forestgreen", "black"),
+                      multiple = TRUE,
+                      width = "100%"
+                    ),
+                    numericInput(
+                      inputId = ns("textsize_id"),
+                      label = "Text Size (pt)",
+                      value = 12, min = 1, max = 30, step = 1,
+                      width = "100%"
+                    ),
+                    numericInput(
+                      inputId = ns("alpha_id"),
+                      label = "Point Transparency",
+                      value = 0.8, min = 0, max = 1, step = 0.05,
+                      width = "100%"
+                    ),
+                    numericInput(
+                      inputId = ns("expand_id"),
+                      label = "Axis Padding",
+                      value = 0.6, min = 0, max = 1, step = 0.05,
+                      width = "100%"
+                    )
+                  )
                 )
               )
             )
           )
         )
-      )
+        )
     ),
-    bslib::accordion(
-      width = "100%",
-      open = "KASP marker genotyping QC plot overlaid with predicitons",
-      bslib::accordion_panel(
-        title = "KASP marker genotyping QC plot overlaid with predicitons",
-        selectInput(
-          inputId = ns("plate_choice"),
-          label = "Plate Selection",
-          choices = NULL,
-          width = "30%"
-        ),
-        div(
-          style = "display: flex; justify-content: center;",
-          plotOutput(outputId = ns("qc_plot2"), width = "60%", height = "600px")
-        ),
-        card(card_footer(fluidRow(
-          column(
-            3,
-            textInput(inputId = ns("file_name2"), label = "Enter Filename", value = "QC_plot_with_prediction")
+    splitLayout(
+      bslib::accordion(
+        width = "100%",
+        open = TRUE,
+        bslib::accordion_panel(
+          title = "KASP marker genotyping QC plot overlaid with predicitons",
+          selectInput(
+            inputId = ns("plate_choice"),
+            label = "Plate Selection",
+            choices = NULL,
+            width = "60%"
           ),
-          column(
-            3,
-            selectInput(
-              inputId = ns("file_type2"), label = "File Format",
-              choices = c("PDF" = "pdf", "PNG" = "png", "JPEG" = "jpeg", "TIFF" = "tiff"),
-              selected = "pdf"
-            )
+          div(
+            style = "display: flex; justify-content: center;",
+            plotOutput(outputId = ns("qc_plot2"), width = "100%", height = "500px")
           ),
-          column(
-            3,
-            numericInput(
-              inputId = ns("width"),
-              label = "Set Plot width",
-              value = 6,
-              min = 1
+          card(card_footer(fluidRow(
+            column(
+              3,
+              textInput(inputId = ns("file_name2"), label = "Enter Filename", value = "QC_plot_with_prediction")
+            ),
+            column(
+              3,
+              selectInput(
+                inputId = ns("file_type2"), label = "File Format",
+                choices = c("PDF" = "pdf", "PNG" = "png", "JPEG" = "jpeg", "TIFF" = "tiff"),
+                selected = "pdf"
+              )
+            ),
+            column(
+              3,
+              numericInput(
+                inputId = ns("width"),
+                label = "Set Plot width",
+                value = 6,
+                min = 1
+              )
+            ),
+            column(
+              3,
+              numericInput(
+                inputId = ns("height"),
+                label = "Set Plot height",
+                value = 6,
+                min = 1
+              )
             )
-          ),
-          column(
-            3,
-            numericInput(
-              inputId = ns("height"),
-              label = "Set Plot height",
-              value = 6,
-              min = 1
+          ), downloadButton(outputId = ns("download_plot2"), label = "Download Plot", class = "btn-success")))
+        )
+      ),
+      bslib::accordion(
+        open = TRUE,
+        bslib::accordion_panel(
+          title = "KASP Genotyping Plate Layout",
+          plotOutput(outputId = ns("plate_layout_plot"), width = "100%", height = "580px"),
+          bslib::card(card_footer(
+            fluidRow(
+              column(
+                3,
+                textInput(
+                  inputId = ns("file_name"),
+                  label = "Enter Filename",
+                  value = "Plate layout 1"
+                )
+              ),
+              column(
+                3,
+                numericInput(
+                  inputId = ns("width"),
+                  label = "Set Plot Width",
+                  value = 8, min = 1
+                )
+              ), column(
+                3,
+                numericInput(
+                  inputId = ns("height"),
+                  label = "Set Plot Height",
+                  value = 5, min = 1
+                )
+              )
+            ),
+            downloadButton(
+              outputId = ns("download_plateplot"),
+              label = "Download Plot", class = "btn-success"
             )
-          )
-        ), downloadButton(outputId = ns("download_plot2"), label = "Download Plot", class = "btn-success")))
+          ))
+        )
       )
     )
   )
@@ -287,6 +338,14 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
             ignore.case = TRUE
           )[1]]
         )
+        updateSelectInput(session,
+          inputId = "well_id",
+          choices = names_pop(),
+          selected = names_pop()[grep("MasterWell",
+            x = names_pop(),
+            ignore.case = TRUE
+          )[1]]
+        )
 
         updateSelectInput(session,
           inputId = "Hex_id",
@@ -305,7 +364,9 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
           )[1]]
         )
 
-        updateSelectInput(session, inputId = "plate_choice", choices = names(color_coded()))
+        updateSelectInput(session,
+                          inputId = "plate_choice",
+                          choices = names(color_coded()))
       })
 
 
@@ -387,25 +448,73 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
           }
         )
       })
+      # Plate layout plot script.
+      # Reactive for generating plate plot with error handling
+      plot_plate_result <- reactive({
+        tryCatch(
+          {
+            # Validate inputs
+            req(color_coded(), input$snp_id,
+                input$geno_call, input$well_id,
+                input$plate_choice)
 
-      # Show success toast when plot generates successfully
-      observe({
-        req(result_plot(), input$plate_choice)
-        # Render QC plot
-        output$qc_plot2 <- renderPlot({
-          req(result_plot())
-          result_plot()[input$plate_choice]
+            # Generate plot
+            plot_plate(
+              x = color_coded()[input$plate_choice],
+              well = input$well_id,
+              geno_call = input$geno_call,
+              snp_id = input$snp_id,
+              filename = NULL,
+              pdf = FALSE
+            )
+          },
+          error = function(e) {
+            shinyWidgets::show_alert(
+              title = "Error!",
+              text = paste("Failed to generate plot:", e$message),
+              type = "error",
+              showCloseButton = TRUE,
+              timer = 5000
+            )
+            return(NULL)
+          }
+        )
+      })
+
+        # Render plot for plate layout.
+        output$plate_layout_plot <- renderPlot({
+          req(plot_plate_result() , input$plate_choice)
+
+          plot_obj <- plot_plate_result()[[input$plate_choice]]
+
+          if (is.null(plot_obj)) {
+            shinyWidgets::show_toast(title = 'Error',
+                                     text = "No plot found for selected plate",
+                                     type = "error")
+            return(NULL)
+          }
+
+          print(plot_obj)
         })
 
 
-        shinyWidgets::show_toast(
+
+
+
+        # Render QC plot
+        output$qc_plot2 <- renderPlot({
+          req(result_plot(),input$plate_choice)
+         print(result_plot()[input$plate_choice])
+
+          shinyWidgets::show_toast(
           title = "Success",
           text = "Plot generated successfully",
           type = "success",
           timer = 2000,
           position = "bottom-end"
         )
-      })
+        })
+
 
       output$download_plot2 <- downloadHandler(
         filename = function() {
@@ -428,6 +537,7 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
               for (plot in result_plot()) {
                 print(plot)
               }
+             # print(result_plot()[[input$plate_choice]])
 
               grDevices::dev.off()
             },
@@ -441,6 +551,44 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
         }
       )
 
+      output$download_plateplot <- downloadHandler(
+        filename = function() {
+          req(input$file_name)
+          paste0(input$file_name, ".pdf")  # Single PDF containing ALL plots
+        },
+        content = function(file) {
+          req(plot_plate_result())  # Ensure plots exist
+
+          tryCatch(
+            {
+              # Start PDF (onefile=TRUE ensures multi-page)
+              grDevices::pdf(file,
+                             width = input$width,
+                             height = input$height,
+                             onefile = TRUE)
+
+              # Print ALL plots regardless of type
+              for (plot_obj in plot_plate_result()) {
+                # if (inherits(plot_obj, "grob")) {
+                #   grid::grid.draw(plot_obj)  # Handle grid graphics
+                # } else {
+                  print(plot_obj)  # Handle ggplot2/base R plots
+               # }
+              }
+
+              grDevices::dev.off()
+            },
+            error = function(e) {
+              shinyWidgets::show_toast(
+                title = 'error' ,
+                type = "error",
+                text = paste("Download failed:", e$message),
+                timer = 5000
+              )
+            }
+          )
+        }
+      )
     }
   )
 }

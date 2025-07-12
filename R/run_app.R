@@ -42,7 +42,7 @@ run_app <- function(
   }
 
   # A humour message
-   cat('From the Green Evolution Project to the World!')
+   cat('From the Green Evolution Project to the World!\n')
 
 
   with_golem_options(

@@ -16,27 +16,27 @@ mod_mv_kasp_color_ui <- function(id) {
       sidebarPanel(
         selectInput(
           inputId = ns("Subset_names"),
-          label = "Select Column for Substetting",
+          label = "Select Plate Subsetting Column",
           choices = NULL, multiple = FALSE
         ),
         selectInput(
           inputId = ns("geno_call_col"),
-          label = "Select Column for Genotype Calls",
+          label = "Select Genotype Call Column",
           choices = NULL, multiple = FALSE
         ),
         textInput(
           inputId = ns("sep"),
-          label = "Enter Separator for Genotype Calls",
+          label = "Specify Genotype Call Separator",
           value = ":"
         ),
         textInput(
           inputId = ns("uncallable"),
-          label = "Enter Uncallable Genotype Calls",
+          label = "List Uncallable Genotype Values",
           value = "Uncallable"
         ),
         textInput(
           inputId = ns("unused"),
-          label = "Enter Unused Genotype Calls",
+          label = "List Unused Genotype Values",
           value = "?"
         ),
         textInput(
@@ -46,12 +46,12 @@ mod_mv_kasp_color_ui <- function(id) {
         ),
         textInput(
           inputId = ns("others"),
-          label = "Enter Non-genotype Calls",
+          label = "List Non-genotype Call Values",
           value = "Missing , Bad , Dupe , Over , Short"
         ),
         selectInput(
           inputId = ns("color_choose"),
-          label = "Select Respective Colors for | FAM | HEX | Het | ",
+          label = "Colors for FAM, HEX, Het (in order)",
           choices = grDevices::colors(),
           multiple = TRUE,
           selected = c("blue", "gold", "forestgreen")
@@ -61,14 +61,14 @@ mod_mv_kasp_color_ui <- function(id) {
         bslib::accordion(
           open = TRUE,
           bslib::accordion_panel(
-            title = "Plate Status After FAM & HEX Color-Coding by LGC Genomics",
+            title = "Plate Status After Applying FAM & HEX Colors",
             DT::DTOutput(outputId = ns("kasp_color_code_stat"))
           ),
           style = "margin-bottom: 15px;"
         ),
         bslib::accordion(
           bslib::accordion_panel(
-            title = "KASP Genotype Calls Color-Coded by LGC Genomics (FAM & HEX)",
+            title = "Color-Coded KASP Genotype Calls",
             selectInput(
               inputId = ns("subplates"),
               choices = NULL,

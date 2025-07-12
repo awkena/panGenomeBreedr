@@ -15,21 +15,21 @@ mod_mv_plate_plot_ui <- function(id) {
       sidebarPanel(
         selectInput(
           inputId = ns("well_id"),
-          label = "Select Column for Genotyping Plate wells",
+          label = "Select Plate Well Column",
           choices = NULL,
           multiple = FALSE,
           width = "100%"
         ),
         selectInput(
           inputId = ns("Geno_call_id"),
-          label = "Select Column for Genotypes",
+          label = "Select Genotype Call Column",
           choices = NULL,
           multiple = FALSE,
           width = "100%"
         ),
         selectInput(
           inputId = ns("snp_idd"),
-          label = "Select Column for SNP ID",
+          label = "Select SNP Identifier Column",
           choices = NULL,
           multiple = FALSE,
           width = "100%"
@@ -37,7 +37,7 @@ mod_mv_plate_plot_ui <- function(id) {
         selectInput(
           inputId = ns("cplate_well"),
           choices = NULL,
-          label = "Select Plate",
+          label = "Select Genotyping Plate",
           multiple = FALSE,
           width = "100%"
         )
@@ -51,7 +51,7 @@ mod_mv_plate_plot_ui <- function(id) {
       ),
       mainPanel(
         bslib::accordion(
-          open = "KASP Genotyping Plate Layout",
+          open = TRUE,
           bslib::accordion_panel(
             title = "KASP Genotyping Plate Layout",
             plotOutput(outputId = ns("plate_layout_plot"),width = '100%' ,height = '500px' ),

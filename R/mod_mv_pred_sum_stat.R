@@ -20,35 +20,35 @@ mod_mv_pred_sum_stat_ui <- function(id) {
       sidebarPanel(
         selectInput(
           inputId = ns("snp_id"),
-          label = "Select Column for SNP ID",
+          label = "Select SNP Identifier Column",
           choices = NULL,
           multiple = FALSE
         ),
         selectInput(
           inputId = ns("geno_call_id"),
-          label = "Select Column for Genotype Calls",
+          label = "Select Genotype Call Column",
           choices = NULL,
           multiple = FALSE
         ),
         selectInput(
           inputId = ns("group_id"),
-          label = "Select Column for Group ID",
+          label = "Select Group Identifier Column",
           choices = NULL,
           multiple = FALSE
         ),
         textInput(
           inputId = ns("group_unknown"),
-          label = "Unverified Genotype Indicator",
+          label = "Unverified Genotype Call Value",
           value = "?"
         ),
         textInput(
           inputId = ns("blank"),
-          label = "Specify No Template Control Calls",
+          label = "No Template Control (NTC) Call Value",
           value = "NTC"
         ),
         bslib::input_switch(
           id = ns("rate_out_id"),
-          label = "Return Proportions",
+          label = "	Return Genotype Proportions",
           value = TRUE
         )
       ),

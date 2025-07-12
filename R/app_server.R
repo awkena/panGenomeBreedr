@@ -111,11 +111,12 @@ app_server <- function(input, output, session) {
       kasp_data = import_data_entities(),
       color_coded = color_code_res()
     )
-    # server side for  plate layout
-    mod_mv_plate_plot_server("mv_plate_plot_1",
-                             kasp_data = import_data_entities(),
-                             color_coded = color_code_res()
-    )
+    #--Knitted with qc plot
+    # # server side for  plate layout
+    # mod_mv_plate_plot_server("mv_plate_plot_1",
+    #                          kasp_data = import_data_entities(),
+    #                          color_coded = color_code_res()
+    # )
   })
 
   ## -------------------- Decision support, server-side ------------------------##

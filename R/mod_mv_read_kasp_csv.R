@@ -18,25 +18,25 @@ mod_mv_read_kasp_csv_ui <- function(id) {
       sidebarPanel(
         # Widget to upload kasp csv file
         fileInput(ns("Kasp_csv.file"),
-          label = "Upload KASP Genotyping Results",
+          label = "Select KASP Genotyping File",
           accept = ".csv"
         ),
         # Widget to choose data type
         radioButtons(
           inputId = ns("datatype"),
-          label = "Choose Data Format",
+          label = "Select Data Format",
           choices = c("raw", "polished"),
           selected = "raw"
         ),
         # Widget for spacing
         numericInput(ns("data_space"),
-          label = "Rows Between Segments",
+          label = "Number of Rows Between Data Segments",
           value = 2, min = 0, max = 100, step = 1
         ),
         # Widget for row tags
         textInput(
           inputId = ns("row_tags"),
-          label = "Row Tags (ordered, comma-separated)",
+          label = "Row Tags (in order, separated by commas)",
           value = "Statistics , DNA , SNPs , Scaling , Data"
         ),
         # action button widget

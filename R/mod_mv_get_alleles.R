@@ -18,13 +18,13 @@ mod_mv_get_alleles_ui <- function(id) {
       sidebarPanel(
         selectInput(
           inputId = ns("data_type_id"),
-          label = "Select Data Source",
+          label = "Select Genotype Data Source",
           choices = c("kasp", "agriplex"),
           multiple = FALSE
         ),
         textInput(
           inputId = ns("sep_id"),
-          label = "Genotype Call Separator",
+          label = "Specify Genotype Call Separator",
           value = ":"
         )
       ),
@@ -109,6 +109,7 @@ mod_mv_get_alleles_server <- function(id, kasp_data) {
     # Display alleles from get_alleles()
     observe({
       req(obtain_alleles())
+
       output$alleles_output <- DT::renderDT({
         req(obtain_alleles())
         alleles_df(x = obtain_alleles()$alleles)

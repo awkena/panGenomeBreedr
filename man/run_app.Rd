@@ -18,6 +18,9 @@ run_app(
 This is only needed for \code{shinyAppObj}, since in the \code{shinyAppDir}
 case, a \code{global.R} file can be used for this purpose.}
 
+\item{auto_install}{installs used packages not found in namespace.
+See `?golem::get_golem_options` for more details.}
+
 \item{options}{Named options that should be passed to the \code{runApp} call
 (these can be any of the following: "port", "launch.browser", "host", "quiet",
 "display.mode" and "test.mode"). You can also specify \code{width} and
@@ -34,8 +37,7 @@ request to determine whether the \code{ui} should be used to handle the
 request. Note that the entire request path must match the regular
 expression in order for the match to be considered successful.}
 
-\item{...}{arguments to pass to golem_opts.
-See `?golem::get_golem_options` for more details.}
+\item{...}{arguments to pass to golem_opts.}
 }
 \description{
 Run the Shiny Application

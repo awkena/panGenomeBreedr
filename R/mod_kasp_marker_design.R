@@ -126,7 +126,6 @@ mod_kasp_marker_design_ui <- function(id) {
           "Comprehensive Table of KASP Marker Design Data and DNA Sequence Alignment to the Reference Genome",
           # preview for other generated markers
           DT::DTOutput(ns("kasp_table")), # data.table output
-
             bslib::card_footer(
               fluidRow(
                 column(width = 3, selectInput(
