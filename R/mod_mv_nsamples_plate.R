@@ -75,70 +75,39 @@ mod_mv_nsamples_plate_server <- function(id, kasp_data) {
     # Get colnames from Kasp data
     subset_names <- reactive({
       req(kasp_data)
-
-      tryCatch(
-        {
-          if (length(colnames(kasp_data)) == 0) {
-            shinyWidgets::show_alert("KASP data has no columns.", type = "error")
-
-            return(NULL)
-          }
           return(colnames(kasp_data))
-        },
-        error = function(e) {
-          shinyWidgets::show_alert(paste("Error getting column names:", e$message),
-            type = "error"
-          )
-        }
-      )
+
     })
 
 
     # Update select inputs field
     observe({
       req(subset_names())
-
-      tryCatch(
-        {
-          # Determine best defaults based on available columns
-          plates_col <- grep("plate", subset_names(), ignore.case = TRUE)[1]
-          snp_col <- grep("snp", subset_names(), ignore.case = TRUE)[1]
-          master_col <- grep("master", subset_names(), ignore.case = TRUE)[1]
-
-          # Set defaults or first column if not found
-          plates_default <- ifelse(!is.na(plates_col), subset_names()[plates_col], subset_names()[1])
-          snp_default <- ifelse(!is.na(snp_col), subset_names()[snp_col], subset_names()[1])
-          master_default <- ifelse(!is.na(master_col), subset_names()[master_col], subset_names()[1])
-
           # Update the inputs
           updateSelectizeInput(session,
             server = TRUE,
             inputId = "subset_id",
             choices = subset_names(),
-            selected = plates_default
+            selected = safe_grep_match(pattern = 'plates',
+                                       choices = subset_names())
           )
+
           updateSelectizeInput(session,
             server = TRUE,
             inputId = "snps_id",
             choices = subset_names(),
-            selected = snp_default
+            selected = safe_grep_match(pattern = 'snp',
+                                       choices = subset_names())
           )
+
           updateSelectizeInput(session,
             server = TRUE,
             inputId = "plates_id",
             choices = subset_names(),
-            selected = master_default
+            selected = safe_grep_match(pattern = 'master',
+                                       choices = subset_names())
           )
-        },
-        error = function(e) {
-          shinyWidgets::show_alert(
-            title = "Error",
-            text = paste("Failed to update input fields:", e$message),
-            type = "error",
-            showCloseButton = TRUE
-          )
-        }
-      )
+
     })
 
     # Get summary of number of samples per plate

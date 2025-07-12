@@ -518,21 +518,15 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       updateSelectInput(session,
                         inputId = "batch_col",
                         choices = data_colnames(),
-                        selected = grep("batch",
-                                        x = data_colnames(),
-                                        ignore.case = TRUE,
-                                        value = TRUE
-                        )[1]
+                        selected = safe_grep_match(pattern = 'batch',
+                                                   choices = names_pop())
       )
 
       updateSelectInput(session,
                         inputId = "genotype_col",
                         choices = data_colnames(),
-                        selected = grep("genotype",
-                                        x = data_colnames(),
-                                        ignore.case = TRUE,
-                                        value = TRUE
-                        )[1]
+                        selected = safe_grep_match(pattern = 'genotype',
+                                                   choices = names_pop())
       )
     })
 
@@ -580,9 +574,8 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       updateSelectInput(session,
                         inputId = "snp_id",
                         choices = colnames(map_file()),
-                        selected = grep("id",
-                                        x = colnames(map_file()), ignore.case = TRUE,
-                                        value = TRUE)[1]
+                        selected = safe_grep_match(pattern = 'id',
+                                                   choices = colnames(map_file()))
       )
     })
 

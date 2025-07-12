@@ -163,7 +163,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                       inputId = ns("pred_col_id"),
                       label = "Prediction Colors (Blank|False|True|Unverified)",
                       choices = grDevices::colors(),
-                      selected = c("blue", "orange", "forestgreen", "black"),
+                      selected = c("black", "firebrick", "cornflowerblue", "beige"),
                       multiple = TRUE,
                       width = "100%"
                     ),
@@ -191,7 +191,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
             )
           )
         )
-        )
+      )
     ),
     splitLayout(
       bslib::accordion(
@@ -325,48 +325,49 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
         updateSelectInput(session,
           inputId = "geno_call",
           choices = names_pop(),
-          selected = names_pop()[grep("Call",
-            x = names_pop(),
-            ignore.case = TRUE
-          )[1]]
+          selected = safe_grep_match(
+            pattern = "call",
+            choices = names_pop()
+          )
         )
         updateSelectInput(session,
           inputId = "snp_id",
           choices = names_pop(),
-          selected = names_pop()[grep("SNP",
-            x = names_pop(),
-            ignore.case = TRUE
-          )[1]]
+          selected = safe_grep_match(
+            pattern = "snp",
+            choices = names_pop()
+          )
         )
         updateSelectInput(session,
           inputId = "well_id",
           choices = names_pop(),
-          selected = names_pop()[grep("MasterWell",
-            x = names_pop(),
-            ignore.case = TRUE
-          )[1]]
+          selected = safe_grep_match(
+            pattern = "MasterWell",
+            choices = names_pop()
+          )
         )
 
         updateSelectInput(session,
           inputId = "Hex_id",
           choices = names_pop(),
-          selected = names_pop()[grep("Y",
-            x = names_pop(),
-            ignore.case = TRUE
-          )[1]]
+          selected = safe_grep_match(
+            pattern = "Y",
+            choices = names_pop()
+          )
         )
         updateSelectInput(session,
           inputId = "fam_id",
           choices = names_pop(),
-          selected = names_pop()[grep("X",
-            x = names_pop(),
-            ignore.case = TRUE
-          )[1]]
+          selected = safe_grep_match(
+            pattern = "X",
+            choices = names_pop()
+          )
         )
 
         updateSelectInput(session,
-                          inputId = "plate_choice",
-                          choices = names(color_coded()))
+          inputId = "plate_choice",
+          choices = names(color_coded())
+        )
       })
 
 
@@ -384,15 +385,7 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
           input$scale, input$pred_col_id,
           input$blank, input$uncallable,
           input$others, input$group_unknown,
-          input$unused
-        )
-
-        # Validate exactly 4 colors selected
-        validate(
-          need(
-            length(input$pred_col_id) == 4,
-            "Please select 4 colors for prediction legend"
-          )
+          input$unused, length(input$pred_col_id) == 4
         )
 
         tryCatch(
@@ -425,9 +418,11 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
               text_size = input$textsize_id,
               legend.pos = input$legend_pos,
               scale = input$scale,
-              pred_cols = stats::setNames(
-                input$pred_col_id[1:4],
-                c("Blank", "False", "True", "Unverified")
+              pred_cols = c(
+                 Blank = input$pred_col_id[1],
+                 False = input$pred_col_id[2],
+                 True = input$pred_col_id[3],
+                 Unverified = input$pred_col_id[4]
               ),
               expand_axis = input$expand_id
             )
@@ -451,13 +446,15 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
       # Plate layout plot script.
       # Reactive for generating plate plot with error handling
       plot_plate_result <- reactive({
+        # Validate inputs
+        req(
+          color_coded(), input$snp_id,
+          input$geno_call, input$well_id,
+          input$plate_choice
+        )
+
         tryCatch(
           {
-            # Validate inputs
-            req(color_coded(), input$snp_id,
-                input$geno_call, input$well_id,
-                input$plate_choice)
-
             # Generate plot
             plot_plate(
               x = color_coded()[input$plate_choice],
@@ -481,39 +478,47 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
         )
       })
 
-        # Render plot for plate layout.
-        output$plate_layout_plot <- renderPlot({
-          req(plot_plate_result() , input$plate_choice)
+      # Render plot for plate layout.
+      output$plate_layout_plot <- renderPlot({
+        req(plot_plate_result(), input$plate_choice)
 
-          plot_obj <- plot_plate_result()[[input$plate_choice]]
+        plot_obj <- plot_plate_result()[[input$plate_choice]]
 
-          if (is.null(plot_obj)) {
-            shinyWidgets::show_toast(title = 'Error',
-                                     text = "No plot found for selected plate",
-                                     type = "error")
-            return(NULL)
-          }
-
-          print(plot_obj)
-        })
-
-
-
-
-
-        # Render QC plot
-        output$qc_plot2 <- renderPlot({
-          req(result_plot(),input$plate_choice)
-         print(result_plot()[input$plate_choice])
-
+        if (is.null(plot_obj)) {
           shinyWidgets::show_toast(
+            title = "Error",
+            text = "No plot found for selected plate",
+            type = "error"
+          )
+          return(NULL)
+        }
+
+        print(plot_obj)
+      })
+
+      # Render QC plot
+      output$qc_plot2 <- renderPlot({
+        req(result_plot(), input$plate_choice)
+      tryCatch({
+        print(result_plot()[input$plate_choice])
+
+        shinyWidgets::show_toast(
           title = "Success",
           text = "Plot generated successfully",
           type = "success",
           timer = 2000,
           position = "bottom-end"
         )
-        })
+      },error = function(e){
+        shinyWidgets::show_toast(
+          title = "Error",
+          text = e$message,
+          type = "error",
+          timer = 2000,
+          position = "bottom-end"
+        )
+      })
+      })
 
 
       output$download_plot2 <- downloadHandler(
@@ -537,7 +542,7 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
               for (plot in result_plot()) {
                 print(plot)
               }
-             # print(result_plot()[[input$plate_choice]])
+              # print(result_plot()[[input$plate_choice]])
 
               grDevices::dev.off()
             },
@@ -554,33 +559,34 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
       output$download_plateplot <- downloadHandler(
         filename = function() {
           req(input$file_name)
-          paste0(input$file_name, ".pdf")  # Single PDF containing ALL plots
+          paste0(input$file_name, ".pdf") # Single PDF containing ALL plots
         },
         content = function(file) {
-          req(plot_plate_result())  # Ensure plots exist
+          req(plot_plate_result()) # Ensure plots exist
 
           tryCatch(
             {
               # Start PDF (onefile=TRUE ensures multi-page)
               grDevices::pdf(file,
-                             width = input$width,
-                             height = input$height,
-                             onefile = TRUE)
+                width = input$width,
+                height = input$height,
+                onefile = TRUE
+              )
 
               # Print ALL plots regardless of type
               for (plot_obj in plot_plate_result()) {
                 # if (inherits(plot_obj, "grob")) {
                 #   grid::grid.draw(plot_obj)  # Handle grid graphics
                 # } else {
-                  print(plot_obj)  # Handle ggplot2/base R plots
-               # }
+                print(plot_obj) # Handle ggplot2/base R plots
+                # }
               }
 
               grDevices::dev.off()
             },
             error = function(e) {
               shinyWidgets::show_toast(
-                title = 'error' ,
+                title = "error",
                 type = "error",
                 text = paste("Download failed:", e$message),
                 timer = 5000

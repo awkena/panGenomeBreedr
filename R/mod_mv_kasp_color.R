@@ -102,21 +102,21 @@ mod_mv_kasp_color_server <- function(id, kasp_data) {
     })
 
     # Populate choices in subset
-    observeEvent(req(sub_names()), {
-
+    observe({
+      req(sub_names())
       updateSelectInput(session,
                         inputId = "Subset_names",
                         choices = sub_names(),
-                        selected = sub_names()[grep(pattern = 'plates',
-                                                    x = sub_names(),
-                                                    ignore.case = TRUE)[1]])
+                        selected = safe_grep_match(pattern = 'plates',
+                                                   choices =sub_names())
+      )
 
       updateSelectInput(session,
                         inputId = "geno_call_col",
                         choices = sub_names(),
-                        selected = sub_names()[grep(pattern = 'call',
-                                                    x = sub_names(),
-                                                    ignore.case = TRUE)[1]])
+                        selected = safe_grep_match(pattern = 'call',
+                                                   choices = sub_names())
+                        )
     })
 
     # Color code.

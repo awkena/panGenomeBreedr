@@ -259,125 +259,115 @@ mod_kasp_marker_design_server <- function(id){
 #----------------------
 
     # Reactively update select inputs depending on which file was available
-    observe({
-      if (!is.null(input$vcf_file)) {
+    observeEvent(input$vcf_file,{
+      req(vcf_data() ,  vcf_colnames())
+
         # For VCF files
         updateSelectizeInput(
           server = TRUE, session, "variant_id_col",
           choices = vcf_colnames(),
-          selected = vcf_colnames()[grep("id",
-            x = vcf_colnames(),
-            ignore.case = TRUE
-          )[1]]
+          selected = safe_grep_match(pattern = 'id',
+                                     choices = vcf_colnames())
         )
 
         updateSelectizeInput(
           server = TRUE, session, "chrom_col",
           choices = vcf_colnames(),
-          selected = vcf_colnames()[grep("chro",
-            x = vcf_colnames(),
-            ignore.case = TRUE
-          )[1]]
+          selected = safe_grep_match(pattern = 'chro',
+                                     choices = vcf_colnames())
         )
 
         updateSelectizeInput(
           server = TRUE, session, "pos_col",
           choices = vcf_colnames(),
-          selected = vcf_colnames()[grep("pos",
-            x = vcf_colnames(),
-            ignore.case = TRUE
-          )[1]]
+          selected = safe_grep_match(pattern = 'pos',
+                                     choices = vcf_colnames())
         )
 
         updateSelectizeInput(
           server = TRUE, session, "ref_al_col",
           choices = vcf_colnames(),
-          selected = vcf_colnames()[grep("ref",
-            x = vcf_colnames(),
-            ignore.case = TRUE
-          )[1]]
+          selected = safe_grep_match(pattern = 'ref',
+                                     choices = vcf_colnames())
         )
 
         updateSelectizeInput(
           server = TRUE, session, "alt_al_col",
           choices = vcf_colnames(),
-          selected = vcf_colnames()[grep("alt",
-            x = vcf_colnames(),
-            ignore.case = TRUE
-          )[1]]
+          selected = safe_grep_match(pattern = 'alt',
+                                    choices = vcf_colnames())
         )
 
-        req(vcf_data())
         updateSelectizeInput(
-          server = TRUE, session, "marker_ID",
+          server = TRUE,
+          session = session,
+          inputId = "marker_ID",
           choices = vcf_data()$vcf_matrix_markerID
         )
 
         updateSelectizeInput(
-          server = TRUE, session, "chr_ID",
+          server = TRUE,
+          session = session,
+          inputId =  "chr_ID",
           choices = vcf_data()$vcf_matrix_chromID
         )
 
-      } else if (!is.null(gt_data())) {
-        # For Excel files
-        updateSelectizeInput(
-          server = TRUE, session, "variant_id_col",
-          choices = gt_colnames(),
-          selected = gt_colnames()[grep("id",
-            x = gt_colnames(),
-            ignore.case = TRUE
-          )[1]]
-        )
-
-        updateSelectizeInput(
-          server = TRUE, session, "chrom_col",
-          choices = gt_colnames(),
-          selected = gt_colnames()[grep("chro",
-            x = gt_colnames(),
-            ignore.case = TRUE
-          )[1]]
-        )
-
-        updateSelectizeInput(
-          server = TRUE, session, "pos_col",
-          choices = gt_colnames(),
-          selected = gt_colnames()[grep("pos",
-            x = gt_colnames(),
-            ignore.case = TRUE
-          )[1]]
-        )
-
-        updateSelectizeInput(
-          server = TRUE, session, "ref_al_col",
-          choices = gt_colnames(),
-          selected = gt_colnames()[grep("ref",
-            x = gt_colnames(),
-            ignore.case = TRUE
-          )[1]]
-        )
-
-        updateSelectizeInput(
-          server = TRUE, session, "alt_al_col",
-          choices = gt_colnames(),
-          selected = gt_colnames()[grep("alt",
-            x = gt_colnames(),
-            ignore.case = TRUE
-          )[1]]
-        )
-
-        ## Update marker/chromosome dropdowns excel
-        req(unique_chrom(), gt_data(), unique_marker_id())
-
-        updateSelectizeInput(
-          server = TRUE, session, "marker_ID",
-          choices = unique_marker_id()
-        )
-        updateSelectizeInput(
-          server = TRUE, session, "chr_ID",
-          choices = unique_chrom()
-        )
-      }
     })
+
+    # Observer for matrix upload
+    observeEvent( input$gt_df,{
+        req(unique_marker_id(),unique_chrom(), gt_colnames())
+          # For Excel files
+          updateSelectizeInput(
+            server = TRUE, session, "variant_id_col",
+            choices = gt_colnames(),
+            selected = safe_grep_match(pattern = 'id',
+                                       choices = gt_colnames())
+          )
+
+          updateSelectizeInput(
+            server = TRUE, session, "chrom_col",
+            choices = gt_colnames(),
+            selected = safe_grep_match(pattern = "chro",
+                                       choices = gt_colnames())
+          )
+
+          updateSelectizeInput(
+            server = TRUE, session, "pos_col",
+            choices = gt_colnames(),
+            selected = safe_grep_match(pattern = 'pos',
+                                       choices = gt_colnames())
+          )
+
+          updateSelectizeInput(
+            server = TRUE, session, "ref_al_col",
+            choices = gt_colnames(),
+            selected = safe_grep_match(pattern = 'ref',
+                                       choices = gt_colnames())
+          )
+
+          updateSelectizeInput(
+            server = TRUE,
+            session = session,
+            inputId = "alt_al_col",
+            choices = gt_colnames(),
+            selected = safe_grep_match(pattern = 'alt',
+                                       choices = gt_colnames())
+          )
+
+          updateSelectizeInput(
+            server = TRUE,
+            session =  session,
+            inputId =  "marker_ID",
+            choices = unique_marker_id()
+          )
+          updateSelectizeInput(
+            server = TRUE,
+            session =  session,
+            inputId =  "chr_ID",
+            choices = unique_chrom()
+          )
+      })
 
     # Empty reactive objects
     kasp_des.result <- reactiveVal(NULL) # Store dataframes

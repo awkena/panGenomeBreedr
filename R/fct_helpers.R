@@ -1066,3 +1066,25 @@ read_vcf_as_df <- function(vcf_file) {
 }
 
 
+
+
+#' Safe Pattern Matching in Character Vector
+#'
+#' Safely searches for a pattern in a character vector and returns the first match.
+#' If no match is found, returns the first element of the vector. If the vector
+#' is empty, returns NULL.
+#'
+#' @param pattern A character string containing a regular expression pattern to search for.
+#' @param choices A character vector to search within. Can be empty.
+#' @noRd
+#'
+safe_grep_match <- function(pattern, choices) {
+  if (length(choices) == 0) return(NULL)
+
+  matches <- grep(pattern, choices, ignore.case = TRUE)
+  if (length(matches) > 0) {
+    return(choices[matches[1]])
+  }else{
+    return(choices[[1]])
+  }
+}
