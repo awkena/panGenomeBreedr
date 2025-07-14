@@ -26,128 +26,147 @@ mod_ds_marker_ass_bac_ui <- function(id) {
             position = "left",
             bslib::card(
               height = "100%",
-              bslib::card_header("Upload & Configure Data"), # class = "bg-primary"),
               bslib::card_body(
-                fileInput(
-                  inputId = ns("data_id"),
-                  label = "Upload Kasp/Agriplex File",
-                  multiple = FALSE,
-                  accept = ".csv",
-                  width = "100%"
-                ),
-                selectInput(
-                  inputId = ns("data_type"),
-                  label = "Indicate Data Format",
-                  choices = c("agriplex", "Kasp"),
-                  selected = "agriplex",
-                  width = "100%"
-                ), # user defines data format
-
-                textInput(
-                  inputId = ns("allele_sep"),
-                  label = "Enter Allele Separator for Data Format",
-                  value = " / ",
-                  width = "100%"
-                ),
-                radioButtons(
-                  inputId = ns("choice"),
-                  label = "Do you have a map file?",
-                  choices = c("Yes" = "yes", "No, generate one for me" = "no"),
-                  selected = "yes"
-                ),
-
-                # Dynamic rendering based on choice
-                conditionalPanel(
-                  condition = paste0('input["', ns("choice"), '"] == "yes"'),
-                  tagList(
+                bslib::card(
+                  bslib::card_header(tags$b('Upload Input Files')),
+                  bslib::card_body(
                     fileInput(
-                      inputId = ns("mapfile"),
-                      label = "Upload Map file",
+                      inputId = ns("data_id"),
+                      label = "Upload Kasp/Agriplex File",
+                      multiple = FALSE,
                       accept = ".csv",
                       width = "100%"
                     ),
                     selectInput(
-                      inputId = ns("snp_id"), #
-                      label = "Select Column for SNP ID",
+                      inputId = ns("data_type"),
+                      label = "Indicate Data Format",
+                      choices = c("agriplex", "Kasp"),
+                      selected = "agriplex",
+                      width = "100%"
+                    ), # user defines data format
+
+                    textInput(
+                      inputId = ns("allele_sep"),
+                      label = "Enter Allele Separator for Data Format",
+                      value = " / ",
+                      width = "100%"
+                    )
+                  )
+                ),
+                bslib::card(
+                  bslib::card_header(tags$b('Mapfile Setup')),
+                  bslib::card_body(
+                    radioButtons(
+                      inputId = ns("choice"),
+                      label = "Do you have a map file?",
+                      choices = c("Yes" = "yes", "No, generate one for me" = "no"),
+                      selected = "yes"
+                    ),
+
+                    # Dynamic rendering based on choice
+                    conditionalPanel(
+                      condition = paste0('input["', ns("choice"), '"] == "yes"'),
+                      tagList(
+                        fileInput(
+                          inputId = ns("mapfile"),
+                          label = "Upload Map file",
+                          accept = ".csv",
+                          width = "100%"
+                        ),
+                        selectInput(
+                          inputId = ns("snp_id"), #
+                          label = "Select Column for SNP ID",
+                          choices = NULL,
+                          width = "100%"
+                        )
+                      )
+                    ),
+                    conditionalPanel(
+                      condition = paste0('input["', ns("choice"), '"] == "no"'),
+                      tagList(
+                        textInput(
+                          inputId = ns("prefix_marker"),
+                          label = "Enter Prefix for Marker ID",
+                          value = "S",
+                          width = "100%"
+                        ),
+                        textInput(
+                          inputId = ns("sep_marker"),
+                          label = "Enter Separator for Marker ID",
+                          value = "_",
+                          width = "100%"
+                        )
+                      )
+                    )
+                  )
+                ),
+
+                bslib::card(
+                  bslib::card_header(tags$b('Genotype & Batch Settings')),
+                  bslib::card_body(
+                    # Batch  & genotype settings.
+                    selectInput(
+                      inputId = ns("genotype_col"),
+                      label = "Select Genotype Column",
+                      choices = NULL,
+                      width = "100%"
+                    ),
+                    selectInput(
+                      inputId = ns("batch_col"),
+                      label = "Select Batch Column",
+                      choices = NULL,
+                      width = "100%"
+                    ), # select batch column will populates
+
+                    selectInput(
+                      inputId = ns("batch"),
+                      label = "Select Focused Batch",
+                      choices = NULL,
+                      width = "100%"
+                    ), # unique batches will come here.
+
+                    uiOutput(ns("marker_sep")), # this must be dynamic based on users choice
+
+                    selectInput(
+                      inputId = ns("dp"),
+                      label = "Select Donor Parent",
+                      choices = NULL,
+                      width = "100%"
+                    ),
+                    selectInput(
+                      inputId = ns("rp"),
+                      label = "Select Recurrent Parent",
                       choices = NULL,
                       width = "100%"
                     )
                   )
-                ),
-                conditionalPanel(
-                  condition = paste0('input["', ns("choice"), '"] == "no"'),
-                  tagList(
-                    textInput(
-                      inputId = ns("prefix_marker"),
-                      label = "Enter Prefix for Marker ID",
-                      value = "S",
-                      width = "100%"
-                    ),
-                    textInput(
-                      inputId = ns("sep_marker"),
-                      label = "Enter Separator for Marker ID",
-                      value = "_",
-                      width = "100%"
-                    )
-                  )
-                ),
-
-                # Batch  & genotype settings.
-                selectInput(
-                  inputId = ns("genotype_col"),
-                  label = "Select Genotype Column",
-                  choices = NULL,
-                  width = "100%"
-                ),
-                selectInput(
-                  inputId = ns("batch_col"),
-                  label = "Select Batch Column",
-                  choices = NULL,
-                  width = "100%"
-                ), # select batch column will populates
-
-                selectInput(
-                  inputId = ns("batch"),
-                  label = "Select Focused Batch",
-                  choices = NULL,
-                  width = "100%"
-                ), # unique batches will come here.
-
-                uiOutput(ns("marker_sep")), # this must be dynamic based on users choice
-
-                selectInput(
-                  inputId = ns("dp"),
-                  label = "Select Donor Parent",
-                  choices = NULL,
-                  width = "100%"
-                ),
-                selectInput(
-                  inputId = ns("rp"),
-                  label = "Select Recurrent Parent",
-                  choices = NULL,
-                  width = "100%"
                 )
               ),
-              tagList(
-                bslib::input_switch(
-                  id = ns("apply_par_poly"),
-                  label = "Remove Polymorphic Parents",
-                  value = TRUE
-                ),
-                bslib::input_switch(
-                  id = ns("apply_par_miss"),
-                  label = "Remove Missing Parent Data",
-                  value = TRUE
-                ),
-                bslib::input_switch(
-                  id = ns("apply_geno_good"),
-                  label = "Apply Genotype Error Check",
-                  value = TRUE
-                ),
-                bslib::input_switch(
-                  id = ns("apply_par_homo"),
-                  label = "Filter Heterozygous Parents",
-                  value = TRUE
+              bslib::card(
+                bslib::card_header(tags$b('Quality Control Switches')),
+                bslib::card_body(
+                  tagList(
+                    bslib::input_switch(
+                      id = ns("apply_par_poly"),
+                      label = "Remove Polymorphic Parents",
+                      value = TRUE
+                    ),
+                    bslib::input_switch(
+                      id = ns("apply_par_miss"),
+                      label = "Remove Missing Parent Data",
+                      value = TRUE
+                    ),
+                    bslib::input_switch(
+                      id = ns("apply_geno_good"),
+                      label = "Apply Genotype Error Check",
+                      value = TRUE
+                    ),
+                    bslib::input_switch(
+                      id = ns("apply_par_homo"),
+                      label = "Filter Heterozygous Parents",
+                      value = TRUE
+                    )
+                  )
                 )
               ),
               card_footer(
@@ -163,177 +182,182 @@ mod_ds_marker_ass_bac_ui <- function(id) {
           ),
 
           # Main content area
-          fluidRow(
-            # Card 1: Heatmap Configuration
-            column(
-              width = 4,
-              bslib::card(
-                max_height = "600px",
-                height = "100%",
-                bslib::card_header("RPP Calculation Settings for BC Progenies", class = "bg-success"),
-                bslib::card_body(
-                  selectInput(
-                    inputId = ns("snp_ids"),
-                    label = "Select Column for SNP ID",
-                    choices = NULL,
-                    width = "100%"
-                  ),
-                  selectInput(
-                    inputId = ns("chr"),
-                    label = "Select Column for Chromosome",
-                    choices = NULL,
-                    width = "100%"
-                  ),
-                  selectInput(
-                    inputId = ns("chr_pos"),
-                    label = "Select Column for Chromosome Position",
-                    choices = NULL,
-                    width = "100%"
-                  ),
-                  numericInput(
-                    inputId = ns("rp_index"),
-                    label = "Set Row Index for Reccurent Parent",
-                    value = 1,
-                    min = 1,
-                    step = 1,
-                    width = "100%"
-                  ),
-                  numericInput(
-                    inputId = ns("rp_num_code"),
-                    label = "Numeric Code for RP Background",
-                    value = 1,
-                    min = 1,
-                    step = 1,
-                    width = "100%"
-                  ),
-                  numericInput(
-                    inputId = ns("het_code"),
-                    label = "Numeric Code for Heterozygous Background",
-                    value = 0.5,
-                    min = 0.5,
-                    max = 0.5,
-                    width = "100%"
-                  ),
-                  numericInput(
-                    inputId = ns("na_code"),
-                    label = "Value Indicating Missing Data",
-                    value = -5
-                  ),
-                  radioButtons(
-                    inputId = ns("weight_rpp"),
-                    label = "Weight RPP Values?",
-                    choices = c("Yes" = TRUE, "No" = FALSE),
-                    selected = FALSE,
-                    inline = TRUE
+          bslib::input_switch(id = ns("configure"), label = "Configure Plot", value = FALSE),
+          conditionalPanel(
+            condition = paste0('input["', ns("configure"), '"] == true'),
+            fluidRow(
+              # Card 1: Heatmap Configuration
+              column(
+                width = 4,
+                bslib::card(
+                  max_height = "600px",
+                  height = "100%",
+                  bslib::card_header(tags$b("RPP Calculation Settings for BC Progenies"), class = "bg-success"),
+                  bslib::card_body(
+                    selectInput(
+                      inputId = ns("snp_ids"),
+                      label = "Select Column for SNP ID",
+                      choices = NULL,
+                      width = "100%"
+                    ),
+                    selectInput(
+                      inputId = ns("chr"),
+                      label = "Select Column for Chromosome",
+                      choices = NULL,
+                      width = "100%"
+                    ),
+                    selectInput(
+                      inputId = ns("chr_pos"),
+                      label = "Select Column for Chromosome Position",
+                      choices = NULL,
+                      width = "100%"
+                    ),
+                    numericInput(
+                      inputId = ns("rp_index"),
+                      label = "Set Row Index for Reccurent Parent",
+                      value = 1,
+                      min = 1,
+                      step = 1,
+                      width = "100%"
+                    ),
+                    numericInput(
+                      inputId = ns("rp_num_code"),
+                      label = "Numeric Code for RP Background",
+                      value = 1,
+                      min = 1,
+                      step = 1,
+                      width = "100%"
+                    ),
+                    numericInput(
+                      inputId = ns("het_code"),
+                      label = "Numeric Code for Heterozygous Background",
+                      value = 0.5,
+                      min = 0.5,
+                      max = 0.5,
+                      width = "100%"
+                    ),
+                    numericInput(
+                      inputId = ns("na_code"),
+                      label = "Value Indicating Missing Data",
+                      value = -5
+                    ),
+                    radioButtons(
+                      inputId = ns("weight_rpp"),
+                      label = "Weight RPP Values?",
+                      choices = c("Yes" = TRUE, "No" = FALSE),
+                      selected = FALSE,
+                      inline = TRUE
+                    )
                   )
                 )
-              )
-            ),
+              ),
 
-            # Card 2: BC Progenies RPP Plot Settings
-            column(
-              width = 8,
-              bslib::card(
-                max_height = "600px",
-                height = "100%",
-                bslib::card_header("BC Progenies RPP Plot Settings", class = "bg-info"),
-                bslib::card_body(
-                  fluidRow(
-                    # Left Column - 4 widgets
-                    column(
-                      width = 6,
-                      selectInput(
-                        inputId = ns("rpp_col"),
-                        label = "Select RPP Values Column",
-                        choices = NULL,
-                        width = "100%"
+              # Card 2: BC Progenies RPP Plot Settings
+              column(
+                width = 8,
+                bslib::card(
+                  max_height = "600px",
+                  height = "100%",
+                  bslib::card_header(tags$b("BC Progenies RPP Plot Settings"), class = "bg-info"),
+                  bslib::card_body(
+                    fluidRow(
+                      # Left Column - 4 widgets
+                      column(
+                        width = 6,
+                        selectInput(
+                          inputId = ns("rpp_col"),
+                          label = "Select RPP Values Column",
+                          choices = NULL,
+                          width = "100%"
+                        ),
+                        selectInput(
+                          inputId = ns("rpp_sample_id"),
+                          label = "Select Progeny ID Column",
+                          choices = NULL,
+                          width = "100%"
+                        ),
+                        numericInput(
+                          inputId = ns("bc_gen"),
+                          label = "Specify BC Generation for Progenies",
+                          value = NULL,
+                          min = 1,
+                          width = "100%"
+                        ),
+                        numericInput(
+                          inputId = ns("rpp_threshold"),
+                          label = "Set RPP Threshold for Selecting BC Progenies ",
+                          value = 0.93,
+                          min = 0,
+                          max = 1,
+                          width = "100%"
+                        ),
+                        selectInput(
+                          inputId = ns("thresh_line_col"),
+                          label = "Color of Threshold Line",
+                          choices = grDevices::colors(),
+                          selected = "firebrick",
+                          width = "100%"
+                        ),
+                        bslib::input_switch(
+                          id = ns("show_above_thresh"),
+                          label = "Show  Progenies with RPP ≥ Threshold",
+                          value = FALSE
+                        )
                       ),
-                      selectInput(
-                        inputId = ns("rpp_sample_id"),
-                        label = "Select Progeny ID Column",
-                        choices = NULL,
-                        width = "100%"
-                      ),
-                      numericInput(
-                        inputId = ns("bc_gen"),
-                        label = "Specify BC Generation for Progenies",
-                        value = NULL,
-                        min = 1,
-                        width = "100%"
-                      ),
-                      numericInput(
-                        inputId = ns("rpp_threshold"),
-                        label = "Set RPP Threshold for Selecting BC Progenies ",
-                        value = 0.93,
-                        min = 0,
-                        max = 1,
-                        width = "100%"
-                      ),
-                      selectInput(
-                        inputId = ns("thresh_line_col"),
-                        label = "Color of Threshold Line",
-                        choices = grDevices::colors(),
-                        selected = "firebrick",
-                        width = "100%"
-                      ),
-                      bslib::input_switch(
-                        id = ns("show_above_thresh"),
-                        label = "Show  Progenies with RPP ≥ Threshold",
-                        value = FALSE
-                      )
-                    ),
-                    # Right Column - 4 widgets
-                    column(
-                      width = 6,
-                      selectInput(
-                        inputId = ns("bar_col"),
-                        label = "Set Bar Fill Color",
-                        choices = grDevices::colors(),
-                        selected = "cornflowerblue",
-                        width = "100%"
-                      ),
-                      numericInput(
-                        inputId = ns("alpha"),
-                        label = "Point Transparency",
-                        value = 0.9,
-                        min = 0,
-                        max = 1,
-                        step = 0.1,
-                        width = "100%"
-                      ),
-                      numericInput(
-                        inputId = ns("text_size"),
-                        label = "Text Size",
-                        value = 15,
-                        min = 1,
-                        width = "100%"
-                      ),
-                      numericInput(
-                        inputId = ns("bar_width"),
-                        label = "Set Bar Width",
-                        value = 0.5,
-                        min = 0.1,
-                        width = "100%"
-                      ),
-                      numericInput(
-                        inputId = ns("aspect_ratio"),
-                        label = "Set Aspect Ratio of Barplot",
-                        value = 0.5,
-                        min = 0.1,
-                        width = "100%"
-                      ),
-                      numericInput(
-                        inputId = ns("text_scale_fct"),
-                        label = "Set Text Size Scaling Factor",
-                        value = 0.1,
-                        min = 0.1,
-                        width = "100%"
+                      # Right Column - 4 widgets
+                      column(
+                        width = 6,
+                        selectInput(
+                          inputId = ns("bar_col"),
+                          label = "Set Bar Fill Color",
+                          choices = grDevices::colors(),
+                          selected = "cornflowerblue",
+                          width = "100%"
+                        ),
+                        numericInput(
+                          inputId = ns("alpha"),
+                          label = "Point Transparency",
+                          value = 0.9,
+                          min = 0,
+                          max = 1,
+                          step = 0.1,
+                          width = "100%"
+                        ),
+                        numericInput(
+                          inputId = ns("text_size"),
+                          label = "Text Size",
+                          value = 15,
+                          min = 1,
+                          width = "100%"
+                        ),
+                        numericInput(
+                          inputId = ns("bar_width"),
+                          label = "Set Bar Width",
+                          value = 0.5,
+                          min = 0.1,
+                          width = "100%"
+                        ),
+                        numericInput(
+                          inputId = ns("aspect_ratio"),
+                          label = "Set Aspect Ratio of Barplot",
+                          value = 0.5,
+                          min = 0.1,
+                          width = "100%"
+                        ),
+                        numericInput(
+                          inputId = ns("text_scale_fct"),
+                          label = "Set Text Size Scaling Factor",
+                          value = 0.1,
+                          min = 0.1,
+                          width = "100%"
+                        )
                       )
                     )
                   )
                 )
               )
             )
+
           ),
 
           # Results Section

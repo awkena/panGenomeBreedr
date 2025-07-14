@@ -26,7 +26,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                 width = 3,
                 bslib::card(
                   height = "100%",
-                  bslib::card_header("Core Data Mapping", class = "bg-primary"),
+                  bslib::card_header(tags$b("Core Data Mapping"), class = "bg-primary"),
                   bslib::card_body(
                     selectInput(
                       inputId = ns("well_id"),
@@ -74,7 +74,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                 width = 3,
                 bslib::card(
                   height = "100%",
-                  bslib::card_header(" Quality Thresholds", class = "bg-danger"),
+                  bslib::card_header(tags$b("Quality Thresholds"), class = "bg-danger"),
                   bslib::card_body(
                     textInput(
                       inputId = ns("group_unknown"),
@@ -115,11 +115,11 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                 width = 3,
                 bslib::card(
                   height = "100%",
-                  bslib::card_header("Visualization Parameters", class = "bg-info"),
+                  bslib::card_header(tags$b("Visualization Parameters"), class = "bg-info"),
                   bslib::card_body(
                     selectInput(
                       inputId = ns("scale"),
-                      label = "Scale Coordinates (0-1)",
+                      label = "Scale Coordinates",
                       choices = c(TRUE, FALSE),
                       selected = TRUE,
                       width = "100%"
@@ -157,7 +157,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                 width = 3,
                 bslib::card(
                   height = "100%",
-                  bslib::card_header("Aesthetic Controls", class = "bg-success"),
+                  bslib::card_header(tags$b("Aesthetic Controls"), class = "bg-success"),
                   bslib::card_body(
                     selectInput(
                       inputId = ns("pred_col_id"),
@@ -169,7 +169,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                     ),
                     numericInput(
                       inputId = ns("textsize_id"),
-                      label = "Text Size (pt)",
+                      label = "Text Size",
                       value = 12, min = 1, max = 30, step = 1,
                       width = "100%"
                     ),

@@ -28,128 +28,147 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
             position = "left",
             bslib::card(
               height = "100%",
-              bslib::card_header("Upload & Configure Data"), # class = "bg-primary"),
               bslib::card_body(
-                fileInput(
-                  inputId = ns("data_id"),
-                  label = "Upload Kasp/Agriplex File",
-                  multiple = FALSE,
-                  accept = ".csv",
-                  width = "100%"
-                ),
-                selectInput(
-                  inputId = ns("data_type"),
-                  label = "Indicate Data Format",
-                  choices = c("agriplex", "Kasp"),
-                  selected = "agriplex",
-                  width = "100%"
-                ), # user defines data format
+              bslib::card(
+                bslib::card_header(tags$b('Upload Input Files')),
+                bslib::card_body(
+                  fileInput(
+                    inputId = ns("data_id"),
+                    label = "Upload Kasp/Agriplex File",
+                    multiple = FALSE,
+                    accept = ".csv",
+                    width = "100%"
+                  ),
+                  selectInput(
+                    inputId = ns("data_type"),
+                    label = "Indicate Data Format",
+                    choices = c("agriplex", "Kasp"),
+                    selected = "agriplex",
+                    width = "100%"
+                  ), # user defines data format
 
-                textInput(
-                  inputId = ns("allele_sep"),
-                  label = "Enter Allele Separator for Data Format",
-                  value = " / ",
-                  width = "100%"
-                ),
-                radioButtons(
-                  inputId = ns("choice"),
-                  label = "Do you have a map file?",
-                  choices = c("Yes" = "yes", "No, generate one for me" = "no"),
-                  selected = "yes"
-                ),
-
-                # Dynamic rendering based on choice
-                conditionalPanel(
-                  condition = paste0('input["', ns("choice"), '"] == "yes"'),
-                  tagList(
-                    fileInput(
-                      inputId = ns("mapfile"),
-                      label = "Upload Map file",
-                      accept = ".csv",
-                      width = "100%"
-                    ),
-                    selectInput(
-                      inputId = ns("snp_id"), #
-                      label = "Select Column for SNP ID",
-                      choices = NULL,
-                      width = "100%"
-                    )
+                  textInput(
+                    inputId = ns("allele_sep"),
+                    label = "Enter Allele Separator for Data Format",
+                    value = " / ",
+                    width = "100%"
                   )
-                ),
-                conditionalPanel(
-                  condition = paste0('input["', ns("choice"), '"] == "no"'),
-                  tagList(
-                    textInput(
-                      inputId = ns("prefix_marker"),
-                      label = "Enter Prefix for Marker ID",
-                      value = "S",
-                      width = "100%"
-                    ),
-                    textInput(
-                      inputId = ns("sep_marker"),
-                      label = "Enter Separator for Marker ID",
-                      value = "_",
-                      width = "100%"
-                    )
-                  )
-                ),
-
-                # Batch  & genotype settings.
-                selectInput(
-                  inputId = ns("genotype_col"),
-                  label = "Select Genotype Column",
-                  choices = NULL,
-                  width = "100%"
-                ),
-                selectInput(
-                  inputId = ns("batch_col"),
-                  label = "Select Batch Column",
-                  choices = NULL,
-                  width = "100%"
-                ), # select batch column will populates
-
-                selectInput(
-                  inputId = ns("batch"),
-                  label = "Select Focused Batch",
-                  choices = NULL,
-                  width = "100%"
-                ), # unique batches will come here.
-
-                uiOutput(ns("marker_sep")), # this must be dynamic based on users choice
-
-                selectInput(
-                  inputId = ns("dp"),
-                  label = "Select Donor Parent",
-                  choices = NULL,
-                  width = "100%"
-                ),
-                selectInput(
-                  inputId = ns("rp"),
-                  label = "Select Recurrent Parent",
-                  choices = NULL,
-                  width = "100%"
                 )
               ),
-              tagList(
-                bslib::input_switch(
-                  id = ns("apply_par_poly"),
-                  label = "Remove Polymorphic Parents",
-                  value = TRUE
-                ),
-                bslib::input_switch(
-                  id = ns("apply_par_miss"),
-                  label = "Remove Missing Parent Data",
-                  value = TRUE
-                ),
-                bslib::input_switch(
-                  id = ns("apply_geno_good"),
-                  label = "Apply Genotype Error Check",
-                  value = TRUE
-                ),
-                bslib::input_switch(
-                  id = ns("apply_par_homo"),
-                  label = "Filter Heterozygous Parents",
-                  value = TRUE
+              bslib::card(
+                bslib::card_header(tags$b('Mapfile Setup')),
+                bslib::card_body(
+                  radioButtons(
+                    inputId = ns("choice"),
+                    label = "Do you have a map file?",
+                    choices = c("Yes" = "yes", "No, generate one for me" = "no"),
+                    selected = "yes"
+                  ),
+
+                  # Dynamic rendering based on choice
+                  conditionalPanel(
+                    condition = paste0('input["', ns("choice"), '"] == "yes"'),
+                    tagList(
+                      fileInput(
+                        inputId = ns("mapfile"),
+                        label = "Upload Map file",
+                        accept = ".csv",
+                        width = "100%"
+                      ),
+                      selectInput(
+                        inputId = ns("snp_id"), #
+                        label = "Select Column for SNP ID",
+                        choices = NULL,
+                        width = "100%"
+                      )
+                    )
+                  ),
+                  conditionalPanel(
+                    condition = paste0('input["', ns("choice"), '"] == "no"'),
+                    tagList(
+                      textInput(
+                        inputId = ns("prefix_marker"),
+                        label = "Enter Prefix for Marker ID",
+                        value = "S",
+                        width = "100%"
+                      ),
+                      textInput(
+                        inputId = ns("sep_marker"),
+                        label = "Enter Separator for Marker ID",
+                        value = "_",
+                        width = "100%"
+                      )
+                    )
+                  )
+                )
+              ),
+
+              bslib::card(
+                bslib::card_header(tags$b('Genotype & Batch Settings')),
+                bslib::card_body(
+                  # Batch  & genotype settings.
+                  selectInput(
+                    inputId = ns("genotype_col"),
+                    label = "Select Genotype Column",
+                    choices = NULL,
+                    width = "100%"
+                  ),
+                  selectInput(
+                    inputId = ns("batch_col"),
+                    label = "Select Batch Column",
+                    choices = NULL,
+                    width = "100%"
+                  ), # select batch column will populates
+
+                  selectInput(
+                    inputId = ns("batch"),
+                    label = "Select Focused Batch",
+                    choices = NULL,
+                    width = "100%"
+                  ), # unique batches will come here.
+
+                  uiOutput(ns("marker_sep")), # this must be dynamic based on users choice
+
+                  selectInput(
+                    inputId = ns("dp"),
+                    label = "Select Donor Parent",
+                    choices = NULL,
+                    width = "100%"
+                  ),
+                  selectInput(
+                    inputId = ns("rp"),
+                    label = "Select Recurrent Parent",
+                    choices = NULL,
+                    width = "100%"
+                  )
+                )
+                )
+              ),
+              bslib::card(
+                bslib::card_header(tags$b('Quality Control Switches')),
+                bslib::card_body(
+                  tagList(
+                    bslib::input_switch(
+                      id = ns("apply_par_poly"),
+                      label = "Remove Polymorphic Parents",
+                      value = TRUE
+                    ),
+                    bslib::input_switch(
+                      id = ns("apply_par_miss"),
+                      label = "Remove Missing Parent Data",
+                      value = TRUE
+                    ),
+                    bslib::input_switch(
+                      id = ns("apply_geno_good"),
+                      label = "Apply Genotype Error Check",
+                      value = TRUE
+                    ),
+                    bslib::input_switch(
+                      id = ns("apply_par_homo"),
+                      label = "Filter Heterozygous Parents",
+                      value = TRUE
+                    )
+                  )
                 )
               ),
               card_footer(
@@ -175,7 +194,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                 bslib::card(
                   max_height = "850px",
                   height = "100%",
-                  bslib::card_header("Heatmap Configuration", class = "bg-success"),
+                  bslib::card_header(tags$b("Heatmap Configuration"), class = "bg-success"),
                   bslib::card_body(
                     selectInput(
                       inputId = ns("snp_ids"),
@@ -220,7 +239,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                 bslib::card(
                   max_height = "850px",
                   height = "100%",
-                  bslib::card_header("Heatmap Visualization Controls", class = "bg-info"),
+                  bslib::card_header(tags$b("Heatmap Visualization Controls"), class = "bg-info"),
                   bslib::card_body(
                     fluidRow(
                       # Left Column - 4 widgets
@@ -464,16 +483,23 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       if (input$choice == "no") {
         showModal(
           modalDialog(
-            title = "📌 Important Note",
+            title = tags$b("Important Note!!"),
             tagList(
               p("Marker names must follow a structured format to be parsed into the map file."),
               tags$ul(
-                tags$li("A common prefix before each marker (e.g., 'S')."),
-                tags$li("Chromosome number immediately after the prefix (e.g., '1')."),
-                tags$li("A separator character (e.g., '_')."),
-                tags$li("Position number after the separator (e.g., '101').")
-              ),
-              p("Example: 'S1_101' — where 'S' is the prefix, '1' is the chromosome number, and '101' is the position.")
+                tags$li("A common prefix before each marker (e.g. ", tags$b("S"), ")."),
+                tags$li("Chromosome number immediately after the prefix (e.g. ", tags$b("1"), ")."),
+                tags$li("A separator character (e.g. ", tags$b("_"), ")."),
+                tags$li("Position number after the separator (e.g. ", tags$b("101"), ").")
+              )
+              ,
+              p(
+                "Example: ", tags$b("S1_101"),
+                " — where ", tags$b("S"), " is the prefix, ",
+                tags$b("1"), " is the chromosome number, and ",
+                tags$b("101"), " is the position."
+              )
+
             ),
             easyClose = FALSE,
             footer = modalButton("Got it!")
@@ -519,14 +545,14 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
                         inputId = "batch_col",
                         choices = data_colnames(),
                         selected = safe_grep_match(pattern = 'batch',
-                                                   choices = names_pop())
+                                                   choices = data_colnames())
       )
 
       updateSelectInput(session,
                         inputId = "genotype_col",
                         choices = data_colnames(),
                         selected = safe_grep_match(pattern = 'genotype',
-                                                   choices = names_pop())
+                                                   choices = data_colnames())
       )
     })
 
@@ -671,36 +697,31 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
     # Observer for updating map-related inputs
     observe({
-      req(Result()$mapfile, map_file_col())
+      req(map_file_col())
 
       # Update SNP ID selection
       updateSelectInput(session,
                         inputId = "snp_ids",
                         choices = map_file_col(),
-                        selected = grep(
-                          pattern = "id", x = map_file_col(),
-                          ignore.case = TRUE, value = TRUE
-                        )[1]
+                        selected = safe_grep_match(pattern = 'id',
+                                                   choices = map_file_col())
+
       )
 
       # Update Chromosome selection
       updateSelectInput(session,
                         inputId = "chr",
                         choices = map_file_col(),
-                        selected = grep(
-                          pattern = "chr", x = map_file_col(),
-                          ignore.case = TRUE, value = TRUE
-                        )[1]
+                        selected = safe_grep_match(pattern = 'chr',
+                                                   choices = map_file_col())
       )
 
       # Update Position selection
       updateSelectInput(session,
                         inputId = "chr_pos",
                         choices = map_file_col(),
-                        selected = grep(
-                          pattern = "pos", x = map_file_col(),
-                          ignore.case = TRUE, value = TRUE
-                        )[1]
+                        selected = safe_grep_match(pattern = 'pos',
+                                                   choices = map_file_col())
       )
 
       req(color_code_checker_res())
