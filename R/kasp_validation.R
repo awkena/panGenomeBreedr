@@ -1763,7 +1763,12 @@ geno_error <- function(x,
 
   exp_geno <- apply(par_dat, MARGIN = 2, FUN = get_geno)
 
-  exp_geno <- as.list(as.data.frame(exp_geno))
+  if(is.list(exp_geno)){
+    # maintain as is
+    exp_geno <- exp_geno
+  } else{
+    exp_geno <- as.list(as.data.frame(exp_geno))
+  }
 
   # Find markers with errors
   snp_error <- function(x, y) {
