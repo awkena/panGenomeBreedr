@@ -604,7 +604,7 @@ proc_nd_map_func <- function(data = NULL,
 
     # Parent Missing
     par_missing_dat <- parent_missing(
-      x = input_data,
+      x = return_data,
       rp_row = dp_val[1],
       dp_row = dp_val[2]
     )$par_missing
@@ -627,7 +627,7 @@ proc_nd_map_func <- function(data = NULL,
 
     # Genotype error.
     genotype_error <- geno_error(
-      x = input_data,
+      x = return_data,
       rp_row = dp_val[1],
       dp_row = dp_val[2],
       sep = calls_sep,
@@ -653,7 +653,7 @@ proc_nd_map_func <- function(data = NULL,
 
     # Parent Hetero.
     parent_het <- parent_het(
-      x = input_data,
+      x = return_data,
       rp_row = dp_val[1],
       dp_row = dp_val[2],
       sep = calls_sep,
@@ -664,10 +664,10 @@ proc_nd_map_func <- function(data = NULL,
   }
 
   # Final output handling
-  if (is.null(processed_data)) {
-    final_result <- return_data
-  } else {
+  if (any(apply_par_poly ,apply_par_miss ,apply_geno_good ,apply_par_homo)) {
     final_result <- processed_data
+  } else {
+    final_result <- return_data
   }
 
   # Parse snpids to generate mapfile.

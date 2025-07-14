@@ -454,16 +454,23 @@ mod_ds_marker_ass_bac_server <- function(id) {
       if (input$choice == "no") {
         showModal(
           modalDialog(
-            title = "📌 Important Note",
+            title = tags$b("Important Note!!"),
             tagList(
               p("Marker names must follow a structured format to be parsed into the map file."),
               tags$ul(
-                tags$li("A common prefix before each marker (e.g., 'S')."),
-                tags$li("Chromosome number immediately after the prefix (e.g., '1')."),
-                tags$li("A separator character (e.g., '_')."),
-                tags$li("Position number after the separator (e.g., '101').")
-              ),
-              p("Example: 'S1_101' — where 'S' is the prefix, '1' is the chromosome number, and '101' is the position.")
+                tags$li("A common prefix before each marker (e.g. ", tags$b("S"), ")."),
+                tags$li("Chromosome number immediately after the prefix (e.g. ", tags$b("1"), ")."),
+                tags$li("A separator character (e.g. ", tags$b("_"), ")."),
+                tags$li("Position number after the separator (e.g. ", tags$b("101"), ").")
+              )
+              ,
+              p(
+                "Example: ", tags$b("S1_101"),
+                " — where ", tags$b("S"), " is the prefix, ",
+                tags$b("1"), " is the chromosome number, and ",
+                tags$b("101"), " is the position."
+              )
+
             ),
             easyClose = FALSE,
             footer = modalButton("Got it!")

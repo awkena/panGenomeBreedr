@@ -150,7 +150,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                   tagList(
                     bslib::input_switch(
                       id = ns("apply_par_poly"),
-                      label = "Remove Polymorphic Parents",
+                      label = "Remove Monomorphic Parents",
                       value = TRUE
                     ),
                     bslib::input_switch(
@@ -363,7 +363,38 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                             outputId = ns("heatmap"),
                             width = "100%",
                             height = "600px"
-                          )
+                          ),
+                          bslib::card(card_footer(
+                            fluidRow(
+                              column(
+                                3,
+                                textInput(
+                                  inputId = ns("file_name"),
+                                  label = "Enter Filename",
+                                  value = "Heatmap_result"
+                                )
+                              ),
+                              column(
+                                3,
+                                numericInput(
+                                  inputId = ns("width"),
+                                  label = "Set Plot Width",
+                                  value = 14, min = 1
+                                )
+                              ), column(
+                                3,
+                                numericInput(
+                                  inputId = ns("height"),
+                                  label = "Set Plot Height",
+                                  value = 6, min = 1
+                                )
+                              )
+                            ),
+                            downloadButton(
+                              outputId = ns("download_plot1"),
+                              label = "Download Plot", class = "btn-success"
+                            )
+                          ))
                         )
                       ),
 
@@ -412,7 +443,38 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                             outputId = ns("ant_heatmap"),
                             width = "100%",
                             height = "600px"
-                          )
+                          ),
+                          bslib::card(card_footer(
+                            fluidRow(
+                              column(
+                                3,
+                                textInput(
+                                  inputId = ns("file_name2"),
+                                  label = "Enter Filename",
+                                  value = "Heatmap_result"
+                                )
+                              ),
+                              column(
+                                3,
+                                numericInput(
+                                  inputId = ns("width2"),
+                                  label = "Set Plot Width",
+                                  value = 8, min = 1
+                                )
+                              ), column(
+                                3,
+                                numericInput(
+                                  inputId = ns("height2"),
+                                  label = "Set Plot Height",
+                                  value = 6, min = 1
+                                )
+                              )
+                            ),
+                            downloadButton(
+                              outputId = ns("download_plot2"),
+                              label = "Download Plot", class = "btn-success"
+                            )
+                          ))
                         )
 
                       )
@@ -614,7 +676,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
     Result <- reactiveVal(NULL) # empty reactiveval object
 
-    # Generate list of mapfile, proccess data etc when submit is clicked
+    # Generate list of mapfile, process data etc when submit is clicked
     observeEvent(input$config, {
       req(
         validated_data(), input$batch, input$batch_col,
@@ -622,45 +684,64 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
         input$rp, input$dp, input$choice,
         input$genotype_col
       )
-
-      # Process the data
-      result <- proc_nd_map_func(
-        data = validated_data(),
-        Batch = input$batch,
-        batch_col = input$batch_col,
-        marker_sep = if(input$choice == "no") input$sep_marker else NULL,
-        apply_par_poly = input$apply_par_poly,
-        apply_par_miss = input$apply_par_miss,
-        apply_geno_good = input$apply_geno_good,
-        apply_par_homo = input$apply_par_homo,
-        genotype = input$genotype_col,
-        snp_id = if (input$choice == "yes") input$snp_id else NULL,
-        calls_sep = check_sep(input$allele_sep),
-        data_type = input$data_type,
-        rp = input$rp,
-        dp = input$dp,
-        Prefix = if (input$choice == "no") isolate(input$prefix_marker) else NULL,
-        geno_vec = Genotype_names(),
-        feedback = input$choice,
-        na_code = NA,
-        data_col = data_colnames(),
-        mapfile_path = map_file()
+      shinybusy::show_modal_spinner(
+        spin = "fading-circle",
+        color = "#0dc5c1",
+        text = "Getting results... Please wait."
       )
 
-      # Store result
-      Result(result)
+      tryCatch({
 
-      # Update parents selection
-      req(Genotype_names())
+        # Process the data
+        result <- proc_nd_map_func(
+          data = validated_data(),
+          Batch = input$batch,
+          batch_col = input$batch_col,
+          marker_sep = if (input$choice == "no") input$sep_marker else NULL,
+          apply_par_poly = input$apply_par_poly,
+          apply_par_miss = input$apply_par_miss,
+          apply_geno_good = input$apply_geno_good,
+          apply_par_homo = input$apply_par_homo,
+          genotype = input$genotype_col,
+          snp_id = if (input$choice == "yes") input$snp_id else NULL,
+          calls_sep = check_sep(input$allele_sep),
+          data_type = input$data_type,
+          rp = input$rp,
+          dp = input$dp,
+          Prefix = if (input$choice == "no") isolate(input$prefix_marker) else NULL,
+          geno_vec = Genotype_names(),
+          feedback = input$choice,
+          na_code = NA,
+          data_col = data_colnames(),
+          mapfile_path = map_file()
+        )
 
-      updateSelectInput(session,
-                        inputId = "parents",
-                        choices = Genotype_names(),
-                        selected = Genotype_names()[c(1, 3)]
-      )
+        # Store result
+        Result(result)
 
+        # Update parents selection
+        req(Genotype_names())
+
+        updateSelectInput(session,
+                          inputId = "parents",
+                          choices = Genotype_names(),
+                          selected = Genotype_names()[c(1, 3)]
+        )
+
+      }, error = function(e) {
+        shinyWidgets::show_alert(
+          title = 'Error',
+          text = paste("An error occurred while processing the data:", e$message),
+          type = "error"
+        )
+      },finally = {
+       shinyjs::delay(ms = 5000,{
+         shinybusy::remove_modal_spinner()
+       })
+      })
 
     })
+
 
     observe({
       input$config
@@ -668,7 +749,11 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       # Locking  parents selection
       values$locked_parents <- input$parents
     })
+    observe({
 
+      req(Result())
+       print(Result())
+    })
 
     # Get colnames of Mapfile
     map_file_col <- reactive({
@@ -745,6 +830,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     })
 
 
+    # Get results for no annotation heatmap
 
     no_annotate <- reactive({
       req(
@@ -780,7 +866,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             pdf = FALSE
           )
         }, error = function(e) {
-          message("Heatmap generation error: ", e$message)
+        #  message("Heatmap generation error: ", e$message)
           return(NULL)
         })
 
@@ -803,7 +889,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             pdf = FALSE
           )
         }, error = function(e) {
-          message("Heatmap generation error: ", e$message)
+       #   message("Heatmap generation error: ", e$message)
           return(NULL)
         })
 
@@ -836,6 +922,11 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
         if (inherits(plot_obj, "ggplot")) {
           print(plot_obj)
+          shinyWidgets::show_toast(
+            title = 'Success',
+            text = 'Plot rendered successfully',
+            type = "success"
+          )
         } else {
 
           plot_obj
@@ -843,8 +934,53 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
       }, error = function(e) {
         return(NULL)
+        shinyWidgets::show_alert(
+          title = 'Error',
+          text = paste("An error occurred while generating plot", e$message),
+          type = "error"
+        )
       })
     })
+
+    # Download batch plot.
+    output$download_plot1 <- downloadHandler(
+      filename = function() {
+        req(input$file_name)
+        paste0(input$file_name, ".pdf")  # Single PDF containing ALL plots
+      },
+      content = function(file) {
+        req(no_annotate())  # Ensure plots exist
+
+        tryCatch(
+          {
+            # Start PDF (onefile=TRUE ensures multi-page)
+            grDevices::pdf(file,
+                           width = input$width,
+                           height = input$height,
+                           onefile = TRUE)
+
+            # Print ALL plots regardless of type
+            for (plot_obj in no_annotate()) {
+              if (inherits(plot_obj, "grob")) {
+                grid::grid.draw(plot_obj)  # Handle grid graphics
+              } else {
+                print(plot_obj)  # Handle ggplot2/base R plots
+              }
+            }
+
+            grDevices::dev.off()
+          },
+          error = function(e) {
+            shinyWidgets::show_toast(
+              title = 'error' ,
+              type = "error",
+              text = paste("Download failed:", e$message),
+              timer = 5000
+            )
+          }
+        )
+      }
+    )
 
 
 
@@ -1037,7 +1173,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             pdf = FALSE
           )
         }, error = function(e) {
-          message("Heatmap generation error: ", e$message)
+          # message("Heatmap generation error: ", e$message)
           return(NULL)
         })
 
@@ -1061,19 +1197,13 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             pdf = FALSE
           )
         }, error = function(e) {
-          message("Heatmap generation error: ", e$message)
+          # message("Heatmap generation error: ", e$message)
           return(NULL)
         })
 
       }
 
     })
-
-
-
-
-
-
 
     # Generate annotated heatmap with second option.
     annotated_2 <- reactive({
@@ -1114,8 +1244,9 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             pdf = FALSE
           )
         }, error = function(e) {
-          message("Heatmap generation error: ", e$message)
+          #message("Heatmap generation error: ", e$message)
           return(NULL)
+
         })
 
 
@@ -1138,7 +1269,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             pdf = FALSE
           )
         }, error = function(e) {
-          message("Heatmap generation error: ", e$message)
+         # message("Heatmap generation error: ", e$message)
           return(NULL)
         })
 
@@ -1163,6 +1294,46 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       }
     })
 
+    # Download batch plot.
+    output$download_plot2 <- downloadHandler(
+      filename = function() {
+        req(input$file_name2)
+        paste0(input$file_name2, ".pdf")  # Single PDF containing ALL plots
+      },
+      content = function(file) {
+        req(no_annotate())  # Ensure plots exist
+
+        tryCatch(
+          {
+            # Start PDF (onefile=TRUE ensures multi-page)
+            grDevices::pdf(file,
+                           width = input$width2,
+                           height = input$height2,
+                           onefile = TRUE)
+
+            # Print ALL plots regardless of type
+            for (plot_obj in list(annotated(),annotated_2())) {
+              if (inherits(plot_obj, "grob")) {
+                grid::grid.draw(plot_obj)  # Handle grid graphics
+              } else {
+                print(plot_obj)  # Handle ggplot2/base R plots
+              }
+            }
+
+            grDevices::dev.off()
+          },
+          error = function(e) {
+            shinyWidgets::show_toast(
+              title = 'error' ,
+              type = "error",
+              text = paste("Download failed:", e$message),
+              timer = 5000
+            )
+          }
+        )
+      }
+    )
+
 
 
     # Window size
@@ -1176,8 +1347,8 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     })
 
     #
-
-    wind_result <- eventReactive(input$chr_vw, {
+    wind_result <- reactiveVal()
+    observe({
       req(
         windowsize(),
         input$parents, input$chr, input$chr_pos, # input$group_sz,
@@ -1209,7 +1380,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       # Wait until both inputs are non-null and same length — or safely fallback
       if (!is.null(col_mapping) && !is.null(col_labels) && length(col_mapping) >= length(col_labels)) {
         tryCatch({
-          cross_qc_heatmap(
+        result <-  cross_qc_heatmap(
             col_mapping = col_mapping[seq_len(length(col_labels))],
             col_labels  = col_labels,
             x = windowsize(),
@@ -1227,6 +1398,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             panel_col = input$panel_col,
             pdf = FALSE
           )
+        wind_result(result)
         }, error = function(e) {
           message("Heatmap generation error: ", e$message)
           return(NULL)
@@ -1235,7 +1407,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
       } else {
         tryCatch({
-          cross_qc_heatmap(
+         result <-  cross_qc_heatmap(
             x = windowsize(),
             map_file = Result()$mapfile,
             snp_ids = input$snp_ids,
@@ -1251,6 +1423,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             panel_col = input$panel_col,
             pdf = FALSE
           )
+         wind_result(result)
         }, error = function(e) {
           message("Heatmap generation error: ", e$message)
           return(NULL)
@@ -1260,11 +1433,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
     })
 
-
-
-
-
-
+    # Render plot for window size
     output$wind_heatmap <- renderPlot({
       req(wind_result())
       print(wind_result())
