@@ -457,7 +457,7 @@ mod_variant_discovery_server <- function(id) {
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
         color = "#0dc5c1",
-        text = "Retrieving database information… This may take some time"
+        text = "Retrieving database information"
       )
 
       tryCatch({

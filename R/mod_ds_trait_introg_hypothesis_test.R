@@ -557,7 +557,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
               ,
               p(
                 "Example: ", tags$b("S1_101"),
-                " — where ", tags$b("S"), " is the prefix, ",
+                ".Where ", tags$b("S"), " is the prefix, ",
                 tags$b("1"), " is the chromosome number, and ",
                 tags$b("101"), " is the position."
               )
@@ -845,7 +845,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       col_mapping <- input$col_mapping
       col_labels  <- input$col_labels
 
-      # Wait until both inputs are non-null and same length — or safely fallback
+      # Wait until both inputs are non null and same length or safely fallback
       if (!is.null(col_mapping) && !is.null(col_labels) && length(col_mapping) >= length(col_labels)) {
         tryCatch({
           cross_qc_heatmap(
@@ -1151,7 +1151,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       col_mapping <- input$col_mapping
       col_labels  <- input$col_labels
 
-      # Wait until both inputs are non-null and same length — or safely fallback
+      # Wait until both inputs are non null and same length  or safely fallback
       if (!is.null(col_mapping) && !is.null(col_labels) && length(col_mapping) >= length(col_labels)) {
         tryCatch({
           cross_qc_heatmap(
@@ -1222,7 +1222,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       col_mapping <- input$col_mapping
       col_labels  <- input$col_labels
 
-      # Wait until both inputs are non-null and same length — or safely fallback
+      # Wait until both inputs are non null and same length or safely fallback
       if (!is.null(col_mapping) && !is.null(col_labels) && length(col_mapping) >= length(col_labels)) {
         tryCatch({
           cross_qc_heatmap2(
@@ -1377,7 +1377,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       col_mapping <- input$col_mapping
       col_labels  <- input$col_labels
 
-      # Wait until both inputs are non-null and same length — or safely fallback
+      # Wait until both inputs are non null and same length  or safely fallback
       if (!is.null(col_mapping) && !is.null(col_labels) && length(col_mapping) >= length(col_labels)) {
         tryCatch({
         result <-  cross_qc_heatmap(

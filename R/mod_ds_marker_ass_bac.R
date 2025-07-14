@@ -300,7 +300,7 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                         ),
                         bslib::input_switch(
                           id = ns("show_above_thresh"),
-                          label = "Show  Progenies with RPP ≥ Threshold",
+                          label = "Show Progenies Above Threshold",
                           value = FALSE
                         )
                       ),
@@ -466,7 +466,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
               ,
               p(
                 "Example: ", tags$b("S1_101"),
-                " — where ", tags$b("S"), " is the prefix, ",
+                ".Where ", tags$b("S"), " is the prefix, ",
                 tags$b("1"), " is the chromosome number, and ",
                 tags$b("101"), " is the position."
               )
