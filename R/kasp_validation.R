@@ -735,7 +735,7 @@ kasp_qc_ggplot <- function(x,
 
     snp_ns <- plate[, snp_id][1]
 
-    title <- paste0('Plate: ', plate_ns[i], ' | ', 'SNP: ', snp_ns)
+    title <- paste0('Plate: ', plate_ns[i], ' | ', 'Marker: ', snp_ns)
 
     # Generate plotting characters
     if (!is.null(Group_id)) {
@@ -852,10 +852,11 @@ kasp_qc_ggplot <- function(x,
 
         ggplot2::guides(shape = ggplot2::guide_legend(order = 2)) +
 
-        ggplot2::scale_fill_manual(values = ggplot2::alpha(cols, alpha),
-                                   breaks = calls,
-                                   name = 'Observation') +
-        ggplot2::guides(fill = ggplot2::guide_legend(order = 0, override.aes = list(shape = 21)))
+          ggplot2::scale_fill_manual(values = ggplot2::alpha(cols, alpha),
+                                     breaks = calls,
+                                     name = 'KASP Call') +
+          ggplot2::guides(fill = ggplot2::guide_legend(order = 0, override.aes = list(shape = 21)))
+
 
     } else {
 
@@ -870,7 +871,7 @@ kasp_qc_ggplot <- function(x,
 
     plt <- plt + ggplot2::theme_classic() + ggplot2::xlim(c(0, axis_max)) +
       ggplot2::ylim(c(0, axis_max)) +
-      ggplot2::labs(title = paste(title, '\n', 'SNP: ', snp_ns),
+      ggplot2::labs(title = paste(title, '\n', 'Marker: ', snp_ns),
                     x = "FAM fluorescence", y = "HEX fluorescence") +
       ggplot2::theme(panel.background = ggplot2::element_rect(color = "black",
                                                               linewidth = 1),
@@ -1049,7 +1050,7 @@ kasp_qc_ggplot2 <- function(x,
 
     snp_ns <- plate[, snp_id][i] # snp id
 
-    title <- paste0('Plate: ', plate_ns[i], ' | ', 'SNP: ', snp_ns)
+    title <- paste0('Plate: ', plate_ns[i], ' | ', 'Marker: ', snp_ns)
 
     # Extract geno calls
     Calls <- plate[, geno_call]
@@ -1177,7 +1178,7 @@ kasp_qc_ggplot2 <- function(x,
 
     plt <- plt + ggplot2::theme_classic() + ggplot2::xlim(c(0, axis_max)) +
       ggplot2::ylim(c(0, axis_max)) +
-      ggplot2::labs(title = paste(title, '\n', 'SNP: ', snp_ns),
+      ggplot2::labs(title = paste(title, '\n', 'Marker: ', snp_ns),
                     x = "FAM fluorescence", y = "HEX fluorescence") +
       ggplot2::theme(panel.background = ggplot2::element_rect(color = "black",
                                                               linewidth = 1),
