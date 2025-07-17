@@ -6,7 +6,7 @@
 \usage{
 run_app(
   onStart = NULL,
-  auto_install = FALSE,
+  auto_install = TRUE,
   options = list(),
   enableBookmarking = NULL,
   uiPattern = "/",

@@ -259,7 +259,7 @@ mod_kasp_marker_design_server <- function(id){
 #----------------------
 
     # Reactively update select inputs depending on which file was available
-    observeEvent(input$vcf_file,{
+    observeEvent(vcf_data() ,{
       req(vcf_data() ,  vcf_colnames())
 
         # For VCF files
@@ -315,7 +315,7 @@ mod_kasp_marker_design_server <- function(id){
     })
 
     # Observer for matrix upload
-    observeEvent( input$gt_df,{
+    observeEvent(gt_data(),{
         req(unique_marker_id(),unique_chrom(), gt_colnames())
           # For Excel files
           updateSelectizeInput(

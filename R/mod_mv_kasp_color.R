@@ -139,7 +139,7 @@ mod_mv_kasp_color_server <- function(id, kasp_data) {
           uncallable = input$uncallable,
           unused = input$unused,
           blank = input$blank,
-          others = stringr::str_trim(strsplit(input$others, ",")[[1]]),
+          others = trimws(strsplit(input$others, ",")[[1]]),
           sep = input$sep,
           subset = input$Subset_names,
           geno_call = input$geno_call_col,

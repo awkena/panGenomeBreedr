@@ -24,7 +24,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
         icon = icon("flask"),
         bslib::layout_sidebar(
           sidebar = bslib::sidebar(
-            width = 350,
+            width = 400,
             position = "left",
             bslib::card(
               height = "100%",
@@ -151,7 +151,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                     bslib::input_switch(
                       id = ns("apply_par_poly"),
                       label = "Remove Monomorphic Parents",
-                      value = TRUE
+                      value = TRUE,
                     ),
                     bslib::input_switch(
                       id = ns("apply_par_miss"),
@@ -570,64 +570,74 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       }
     })
 
-
-    # Read the csv file uploadeed.
-    data <- reactive({
+    # Read and validate uploaded CSV file
+    validated_data <- eventReactive(input$data_id, {
       req(input$data_id)
-      read.csv(file = input$data_id$datapath,stringsAsFactors = FALSE, colClasses="character") |> as.data.frame()
-    })
 
+      data <- read.csv(
+        file = input$data_id$datapath,
+        stringsAsFactors = FALSE,
+        colClasses = "character"
+      )
 
-    validated_data <- reactive({
-      req(data())
-
+      # Validate required column names
       tryCatch({
-        check_colnames_validate(data())
-        data() # Return the data if validation passes
+        check_colnames_validate(data)
+        data  # Return validated data
       }, error = function(e) {
         shinyWidgets::show_alert(
           title = "Column Validation Error",
           text = e$message,
           type = "error"
         )
-        NULL # Return NULL if validation fails
+        NULL
       })
     })
 
 
-    # Get colnames of data and populate.
+
+    # Get column names from the validated data
     data_colnames <- reactive({
       req(validated_data())
       Get_dt_coln(validated_data())
     })
 
-    # Populate batch and genotype columns with data colnames
+
+    # Populate Batch and Genotype column selectors dynamically
     observe({
-      updateSelectInput(session,
-                        inputId = "batch_col",
-                        choices = data_colnames(),
-                        selected = safe_grep_match(pattern = 'batch',
-                                                   choices = data_colnames())
+      req(data_colnames())
+
+      # Update batch column selector
+      updateSelectInput(
+        session,
+        inputId = "batch_col",
+        choices = data_colnames(),
+        selected = safe_grep_match(
+          pattern = "batch",
+          choices = data_colnames()
+        )
       )
 
-      updateSelectInput(session,
-                        inputId = "genotype_col",
-                        choices = data_colnames(),
-                        selected = safe_grep_match(pattern = 'genotype',
-                                                   choices = data_colnames())
+      # Update genotype column selector
+      updateSelectInput(
+        session,
+        inputId = "genotype_col",
+        choices = data_colnames(),
+        selected = safe_grep_match(
+          pattern = "genotype",
+          choices = data_colnames()
+        )
       )
     })
 
 
-
-
-    # Get unique batch from it.
+    # Get unique batch values from the validated dataset
     uniq_batch <- reactive({
       req(validated_data(), input$batch_col)
-      validated_data()[[input$batch_col]] |> unique()
+      unique(validated_data()[[input$batch_col]])
     })
 
-    # Populate batch widget
+    # Populate batch selector input
     observe({
       req(uniq_batch())
       updateSelectInput(session,
@@ -643,14 +653,21 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       Genotypes_user(data = validated_data(), Batch = input$batch )
     })
 
+    # Update recurrent and donor parent selector inputs
     observe({
       req(Genotype_names())
-      updateSelectInput(session, inputId = "dp", choices = Genotype_names())
-      updateSelectInput(session, inputId = "rp", choices = Genotype_names(), selected = Genotype_names()[3])
+      updateSelectInput(session,
+                        inputId = "dp",
+                        choices = Genotype_names())
+
+      updateSelectInput(session,
+                        inputId = "rp",
+                        choices = Genotype_names(),
+                        selected = Genotype_names()[3])
     })
 
     # Read map file if user has.
-    map_file <- reactive({
+    map_file <- eventReactive(input$mapfile,{
       req(input$mapfile)
       read_mapfile(filepath = input$mapfile$datapath)
 
@@ -682,13 +699,22 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
         validated_data(), input$batch, input$batch_col,
         input$data_type, input$allele_sep,
         input$rp, input$dp, input$choice,
-        input$genotype_col
+        input$genotype_col,Genotype_names()
       )
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
         color = "#0dc5c1",
         text = "Getting results... Please wait."
       )
+
+      Result(NULL)
+
+      updateSelectInput(session,
+                        inputId = "parents",
+                        choices = Genotype_names(),
+                        selected = Genotype_names()[c(1, 3)]
+      )
+
 
       tryCatch({
 
@@ -719,14 +745,6 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
         # Store result
         Result(result)
 
-        # Update parents selection
-        req(Genotype_names())
-
-        updateSelectInput(session,
-                          inputId = "parents",
-                          choices = Genotype_names(),
-                          selected = Genotype_names()[c(1, 3)]
-        )
 
       }, error = function(e) {
         shinyWidgets::show_alert(
@@ -735,7 +753,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
           type = "error"
         )
       },finally = {
-       shinyjs::delay(ms = 5000,{
+       shinyjs::delay(ms = 2000,{
          shinybusy::remove_modal_spinner()
        })
       })
@@ -744,15 +762,10 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
 
     observe({
-      input$config
-      req(input$parents)
+     # input$config
+      req(input$parents, Genotype_names())
       # Locking  parents selection
       values$locked_parents <- input$parents
-    })
-    observe({
-
-      req(Result())
-       print(Result())
     })
 
     # Get colnames of Mapfile
@@ -763,8 +776,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
 
 
-    # Update the verbatim print out put.
-
+   # Obtain the order of labels
     color_code_checker_res <- reactive({
       req(Result() , values$locked_parents)
       color_code_checker(Result()$proc_kasp_f ,
@@ -772,7 +784,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
                          par_2 = values$locked_parents[2])
     })
 
-
+    # Output the generated color code as a formatted string in the UI
     output$color_format <- renderText({
       req(color_code_checker_res())
       paste(color_code_checker_res(), collapse = ' --> ')
@@ -819,28 +831,25 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
     })
 
+    # Get unique chromosomes present
     uniqchr <- reactive({
       req(input$chr, Result()$mapfile)
       unique(Result()$mapfile[[input$chr]])
     })
 
-
+   # Update selector input for window or individual chromosome view
     observe({
       updateSelectInput(session, inputId = "chr_vw", choices = uniqchr())
     })
 
 
     # Get results for no annotation heatmap
-
     no_annotate <- reactive({
       req(
-        values$locked_parents, input$chr, input$chr_pos, input$group_sz,
-        input$legend_title, input$text_size, input$snp_ids, Result()
+        length(values$locked_parents) >= 2, input$chr, input$chr_pos, input$group_sz,
+        input$legend_title, input$text_size, input$snp_ids, Result(),
+        all(values$locked_parents %in% rownames(Result()$proc_kasp_f))
       )
-
-      if (length(values$locked_parents) < 2) {
-        return(NULL)
-      }
 
       col_mapping <- input$col_mapping
       col_labels  <- input$col_labels
@@ -866,8 +875,9 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             pdf = FALSE
           )
         }, error = function(e) {
-        #  message("Heatmap generation error: ", e$message)
+          message(e$message)
           return(NULL)
+          shinyWidgets::show_toast(title = 'Error',type = 'error',text = NULL)
         })
 
 
@@ -889,7 +899,8 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             pdf = FALSE
           )
         }, error = function(e) {
-       #   message("Heatmap generation error: ", e$message)
+          message(e$message)
+          shinyWidgets::show_toast(title = 'Error',type = 'error',text = NULL)
           return(NULL)
         })
 
@@ -1069,12 +1080,14 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       }
     })
 
+
+    # if batch changes render annotated heatmap as null.
+    observeEvent(input$batch, {
+      values$trait_data <- NULL
+    })
+
+
     observeEvent(input$submit, {
-      # shinybusy::show_modal_spinner(
-      #   spin = "fading-circle",
-      #   color = "#0dc5c1",
-      #   text = "Generating Annotated Heatmap... Please wait."
-      # )
       trait_list <- list()
 
       # Loop through all trait inputs and collect values
@@ -1122,13 +1135,11 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
           genofile = Result()$proc_kasp_f
         )
       }, error = function(e) {
-        if (exists("shinyWidgets") && "show_alert" %in% names(getNamespace("shinyWidgets"))) {
           shinyWidgets::show_alert(
             title = "Error",
             text = paste("Error processing trait data:", e$message),
             type = "error"
           )
-        }
         NULL
       })
     })
@@ -1138,16 +1149,13 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     # Generate annotated heatmap
     annotated <- reactive({
       req(
-        input$parents, input$chr, input$chr_pos,
+        length(values$locked_parents) >= 2, input$chr, input$chr_pos,
         input$text_scale_fct, input$legend_title,
         input$text_size, input$snp_ids,
         values$trait_data, neat_result()
       )
 
-      # Validate parents
-      if (length(input$parents) < 2) {
-        return(NULL)
-      }
+      # hold col mapping and labels
       col_mapping <- input$col_mapping
       col_labels  <- input$col_labels
 
@@ -1162,7 +1170,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             snp_ids = input$snp_ids,
             chr = input$chr,
             chr_pos = input$chr_pos,
-            parents = input$parents[1:2],
+            parents = values$locked_parents[1:2],
             trait_pos = values$trait_data,
             text_scale_fct = input$text_scale_fct,
             legend_title = input$legend_title,
@@ -1173,7 +1181,9 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             pdf = FALSE
           )
         }, error = function(e) {
-          # message("Heatmap generation error: ", e$message)
+          shinyWidgets::show_alert(title = 'Error',
+                                   text = e$message,
+                                   type = 'error')
           return(NULL)
         })
 
@@ -1186,7 +1196,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             snp_ids = input$snp_ids,
             chr = input$chr,
             chr_pos = input$chr_pos,
-            parents = input$parents[1:2],
+            parents = values$locked_parents[1:2],
             trait_pos = values$trait_data,
             text_scale_fct = input$text_scale_fct,
             legend_title = input$legend_title,
@@ -1197,7 +1207,9 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             pdf = FALSE
           )
         }, error = function(e) {
-          # message("Heatmap generation error: ", e$message)
+          shinyWidgets::show_alert(title = 'Error',
+                                   text = e$message,
+                                   type = 'error')
           return(NULL)
         })
 
@@ -1208,16 +1220,12 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     # Generate annotated heatmap with second option.
     annotated_2 <- reactive({
       req(
-        input$parents, input$chr, input$chr_pos,
+        length(values$locked_parents) >= 2, input$chr, input$chr_pos,
         input$text_scale_fct, input$legend_title,
         input$text_size, input$snp_ids,
         values$trait_data, neat_result()
       )
 
-      # Validate parents
-      if (length(input$parents) < 2) {
-        return(NULL)
-      }
 
       col_mapping <- input$col_mapping
       col_labels  <- input$col_labels
@@ -1233,7 +1241,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             snp_ids = input$snp_ids,
             chr = input$chr,
             chr_pos = input$chr_pos,
-            parents = input$parents[1:2],
+            parents = values$locked_parents[1:2],
             trait_pos = values$trait_data,
             text_scale_fct = input$text_scale_fct,
             legend_title = input$legend_title,
@@ -1244,7 +1252,9 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             pdf = FALSE
           )
         }, error = function(e) {
-          #message("Heatmap generation error: ", e$message)
+          shinyWidgets::show_alert(title = 'Error',
+                                   text = e$message,
+                                   type = 'error')
           return(NULL)
 
         })
@@ -1258,7 +1268,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             snp_ids = input$snp_ids,
             chr = input$chr,
             chr_pos = input$chr_pos,
-            parents = input$parents[1:2],
+            parents = values$locked_parents[1:2],
             trait_pos = values$trait_data,
             text_scale_fct = input$text_scale_fct,
             legend_title = input$legend_title,
@@ -1269,7 +1279,9 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             pdf = FALSE
           )
         }, error = function(e) {
-         # message("Heatmap generation error: ", e$message)
+         shinyWidgets::show_alert(title = 'Error',
+                                  text = e$message,
+                                  type = 'error')
           return(NULL)
         })
 
@@ -1351,28 +1363,28 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     observe({
       req(
         windowsize(),
-        input$parents, input$chr, input$chr_pos, # input$group_sz,
+        length(values$locked_parents) >= 2, input$chr, input$chr_pos, # input$group_sz,
         input$legend_title, input$text_size, input$snp_ids, Result()
       )
 
       # Validate that selected parents still exist in current genotype names
-      current_genotypes <- Genotype_names()
-      valid_parents <- input$parents[input$parents %in% current_genotypes]
+      # current_genotypes <- Genotype_names()
+      # valid_parents <- values$locked_parents[values$locked_parents %in% current_genotypes]
 
-      # Ensure we have at least 2 valid parents
-      if (length(valid_parents) < 2) {
-        # Show alert
-        shinyWidgets::show_alert(
-          title = "Error",
-          text = "Select a Recurrent & Donor Parent",
-          type = "error"
-        )
-
-        return(NULL)
-      }
+      # # Ensure we have at least 2 valid parents
+      # if (length(valid_parents) < 2) {
+      #   # Show alert
+      #   shinyWidgets::show_alert(
+      #     title = "Error",
+      #     text = "Select a Recurrent & Donor Parent",
+      #     type = "error"
+      #   )
+      #
+      #   return(NULL)
+      # }
 
       # Use only the first 2 valid parents
-      parents_to_use <- valid_parents[1:2]
+      # parents_to_use <- valid_parents[1:2]
 
       col_mapping <- input$col_mapping
       col_labels  <- input$col_labels
@@ -1388,7 +1400,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             snp_ids = input$snp_ids,
             chr = input$chr,
             chr_pos = input$chr_pos,
-            parents = parents_to_use,
+            parents = values$locked_parents,
             # trait_pos = values$trait_data,
             # text_scale_fct = input$text_scale_fct,
             legend_title = input$legend_title,
@@ -1400,7 +1412,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
           )
         wind_result(result)
         }, error = function(e) {
-          message("Heatmap generation error: ", e$message)
+         # message("Heatmap generation error: ", e$message)
           return(NULL)
         })
 
@@ -1413,7 +1425,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             snp_ids = input$snp_ids,
             chr = input$chr,
             chr_pos = input$chr_pos,
-            parents = parents_to_use,
+            parents = values$locked_parents,
             # trait_pos = values$trait_data,
             # text_scale_fct = input$text_scale_fct,
             legend_title = input$legend_title,
@@ -1425,7 +1437,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
           )
          wind_result(result)
         }, error = function(e) {
-          message("Heatmap generation error: ", e$message)
+         # message("Heatmap generation error: ", e$message)
           return(NULL)
         })
 

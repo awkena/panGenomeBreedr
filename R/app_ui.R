@@ -150,7 +150,8 @@ app_ui <- function(request) {
 
         # Tab for Foreground Selection
         bslib::nav_panel(
-          title = "Foreground Selection Support"
+          title = "Foreground Selection Support",
+          mod_ds_foreground_select_ui("ds_foreground_select_1")
         )
       ),
       bslib::nav_item(),

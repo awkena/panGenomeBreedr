@@ -43,6 +43,7 @@ Depends:
 Suggests: 
     Biostrings,
     BSgenome,
+    config,
     data.table,
     DT,
     GenomicRanges,

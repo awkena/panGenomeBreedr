@@ -10,7 +10,7 @@
 #' @importFrom golem with_golem_options
 run_app <- function(
     onStart = NULL,
-    auto_install = FALSE,
+    auto_install = TRUE,
     options = list(),
     enableBookmarking = NULL,
     uiPattern = "/",
@@ -19,7 +19,7 @@ run_app <- function(
   suggested_packages <- c(
     "DT", "data.table", "fontawesome", "openxlsx", "reactable",
     "readxl", "shinyWidgets", "shinyalert", "shinybusy", "shinyjs",
-    "stringr", "vcfR", "writexl"
+    "vcfR", "writexl",'UpSetR'
   )
 
   missing_packages <- suggested_packages[!sapply(suggested_packages,
@@ -42,7 +42,11 @@ run_app <- function(
   }
 
   # A humour message
+   cat('================================================\n')
    cat('From the Green Evolution Project to the World!\n')
+   cat('================================================\n')
+   # force open in web browser
+   options(shiny.launch.browser = TRUE)
 
 
   with_golem_options(

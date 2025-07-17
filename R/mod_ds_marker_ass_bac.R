@@ -22,7 +22,7 @@ mod_ds_marker_ass_bac_ui <- function(id) {
         icon = icon("flask"),
         bslib::layout_sidebar(
           sidebar = bslib::sidebar(
-            width = 350,
+            width = 400,
             position = "left",
             bslib::card(
               height = "100%",
@@ -148,7 +148,7 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                   tagList(
                     bslib::input_switch(
                       id = ns("apply_par_poly"),
-                      label = "Remove Polymorphic Parents",
+                      label = "Remove Monomorphic Parents",
                       value = TRUE
                     ),
                     bslib::input_switch(

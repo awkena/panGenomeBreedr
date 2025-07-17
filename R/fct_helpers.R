@@ -131,10 +131,7 @@ kasp_marker_map <- function(kasp_data) {
 
     # Insert value into snpid_2
     #- Split and format first
-    formatted_ids <- stringr::str_match(
-      string = SNP_ids[variable],
-      pattern = "([a-zA-Z]+)(\\d+)"
-    ) |> as.vector()
+    formatted_ids <- as.vector(regmatches(SNP_ids[variable], regexec("([a-zA-Z]+)(\\d+)", SNP_ids[variable]))[[1]])
 
     #- if statement to check and validate, also to crop of..
     if (SNP_ids[variable] %in% formatted_ids) {
@@ -1088,3 +1085,72 @@ safe_grep_match <- function(pattern, choices) {
     return(choices[[1]])
   }
 }
+
+
+
+#' Generate an UpSet Plot for Foreground Marker Selection
+#'
+#' @description
+#' This function generates an UpSet plot using the \pkg{UpSetR} package to visualize
+#' marker intersections from a foreground selection matrix, annotated with metadata
+#' extracted from a corresponding marker information table.
+#'
+#' @param foreground_matrix A binary matrix or data frame of foreground selection data
+#'        with markers as columns and genotypes (or individuals) as rows.
+#' @param marker_info A data frame containing marker metadata.
+#'        Must include columns for marker names and loci.
+#' @param mainbar_y_label A character string specifying the y-axis label for the main intersection bar plot.
+#' @param sets_x_label A character string specifying the x-axis label for the set size bars.
+#' @param text_scale A numeric value controlling the scaling of plot text labels.
+#' @param plot_type The type of metadata plot to display in the set metadata panel.
+#'        Defaults to `"text"`.
+#' @param assign An integer specifying the position along the axis where the metadata plot should be displayed.
+#' @param column The name of the metadata column to use for annotating the set metadata panel.
+#' @param colors A character string or vector of color names to apply to the metadata plot.
+#'
+#'@noRd
+#'
+run_upset_plot <- function(foreground_matrix,
+                           marker_info,
+                           mainbar_y_label = "Locus Intersection Size",
+                           sets_x_label = "Locus Size",
+                           text_scale = 1.2,
+                           plot_type = "text",
+                           assign = 8,
+                           column = "locus",
+                           colors = "firebrick2") {
+
+  # Create metadata
+  metadata <- data.frame(
+    sets = marker_info[[safe_grep_match(pattern = 'mark',choices = colnames(marker_info) )]],
+    locus = marker_info[[safe_grep_match(pattern = 'locus',choices = colnames(marker_info))]]
+  )
+
+  # Number of markers / sets
+  nl <- ncol(foreground_matrix)
+
+  # Prepare colors (recycle as needed)
+  color_vec <- rep(colors, length.out = nl)
+
+  plot <-   # Generate UpSet plot
+    UpSetR::upset(
+      foreground_matrix,
+      nsets = nl,
+      mainbar.y.label = mainbar_y_label,
+      sets.x.label = sets_x_label,
+      text.scale = text_scale,
+      set.metadata = list(
+        data = metadata,
+        plots = list(
+          list(
+            type = plot_type,
+            assign = assign,
+            column = column,
+            colors = color_vec
+          )
+        )
+      )
+    )
+  return(plot)
+}
+

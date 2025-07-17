@@ -123,4 +123,6 @@ app_server <- function(input, output, session) {
   mod_ds_trait_introg_hypothesis_test_server("ds_trait_introg_hypothesis_test_1")
 
   mod_ds_marker_ass_bac_server("ds_marker_ass_bac_1") # marker assisted back-cross
+
+  mod_ds_foreground_select_server("ds_foreground_select_1") # foreground
 }
