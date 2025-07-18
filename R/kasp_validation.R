@@ -28,85 +28,70 @@
 #' @import utils
 
 read_kasp_csv <- function(file,
-                          row_tags = c('Statistics', 'DNA', 'SNPs','Scaling', 'Data'),
+                          row_tags = c('Statistics', 'DNA', 'SNPs', 'Scaling', 'Data'),
                           spacing = 2L,
                           data_type = c('raw', 'polished')) {
 
-  # row_tags <- match.arg(row_tags)
   data_type <- match.arg(data_type)
+  file <- file.path(file)
 
-  file <- file.path(file) # File path
-
+  # Read and clean raw lines
   read_rows <- readLines(file, warn = FALSE)
+  read_rows <- gsub(",\\s*$", "", read_rows)  # remove trailing commas
 
-  # Row tags for components of input data
+  # Write cleaned lines to a temp file for reuse
+  tmp_file <- tempfile(fileext = ".csv")
+  writeLines(read_rows, tmp_file)
+
   tags <- row_tags
+  row_nums <- numeric(length(tags))
+  kasp_res <- vector(mode = 'list', length = length(tags))
+  names(row_nums) <- names(kasp_res) <- tags
 
-  # Empty numeric vector to hold temporary results
-  # Row numbers of tags in raw data file
-  row_nums <- vector(mode = 'numeric', length = length(tags))
-
-  # List components are data frames in raw kasp results file
-  kasp_res <- vector(mode = 'list', length = length(tags) )
-  names( row_nums) <- names(kasp_res) <- tags
-
-  if (data_type == 'polished'){
-
-    kasp_res[[5]] <- utils::read.csv(file, header = TRUE, na.strings = c("", NA))
-
+  if (data_type == 'polished') {
+    kasp_res[[5]] <- utils::read.csv(tmp_file, header = TRUE, na.strings = c("", NA))
   } else {
-
-  # Get row numbers for each tag
-  for (i in seq_len(length(tags))) {
-
-    if (any(grepl(tags[i], read_rows)) == FALSE){
-
-      stop(paste(tags[i], 'is not contained in the input file.'))
-
+    # Locate row numbers for each section
+    for (i in seq_along(tags)) {
+      idx <- grep(tags[i], read_rows)
+      if (length(idx) == 0) stop(sprintf("Tag '%s' not found in the input file.", tags[i]))
+      row_nums[i] <- idx[1]
     }
 
-    row_nums[i] <- grep(tags[i], read_rows)
+    for (d in seq_along(tags)) {
+      section_start <- row_nums[d] + 1
+      section_end <- if (d < length(tags)) row_nums[d + 1] - spacing else length(read_rows)
+      block_lines <- read_rows[section_start:section_end]
 
-  }
+      # Parse header and extract data lines
+      header_line <- block_lines[1]
+      data_lines <- block_lines[-1]
+      current_tag <- tags[d]
 
-  for (d in seq_len(length(tags))) {
+      # Filter: keep only non-empty, non-tag lines
+      filtered_lines <- data_lines[
+        nzchar(trimws(data_lines)) &
+          !trimws(data_lines) %in% tags
+      ]
 
-    # Read csv data of genotype calls and FAM/HEX coordinates
-    dat <- utils::read.csv(file, skip = row_nums[d], header = TRUE,
-                           na.strings = c("", NA))
+      # Parse cleaned block
+      section_temp <- tempfile(fileext = ".csv")
+      writeLines(c(header_line, filtered_lines), section_temp)
+      dat <- utils::read.csv(section_temp, header = TRUE, na.strings = c("", NA))
 
-    if (d == length(tags)) {
+      # Clean up: drop NA-only rows and columns
+      if (nrow(dat) > 0 && ncol(dat) > 1) {
+        dat <- dat[rowSums(is.na(dat[, 2:ncol(dat)])) != (ncol(dat) - 1), ]
+        dat <- dat[, colSums(is.na(dat)) != nrow(dat)]
+      }
 
-      # Subset data for each component
-      aa <- dat
-
-      # Remove rows with all NAs
-      bb <- aa[rowSums(is.na(aa[, 2:ncol(aa)])) != (ncol(aa)-1),]
-
-      # Remove columns with all NAs and pass data frame to kasp_res list object
-      kasp_res[[d]] <- bb[, colSums(is.na(bb)) != nrow(bb)]
-
-    } else {
-
-      dd <- row_nums - (row_nums[d] + 1)
-
-      # Subset data for each component
-      aa <- dat[1:(dd[(d+1)] - spacing),]
-
-      # Remove rows with all NAs
-      bb <- aa[rowSums(is.na(aa[, 2:ncol(aa)])) != (ncol(aa)-1),]
-
-      # Remove columns with all NAs
-      kasp_res[[d]] <- bb[, colSums(is.na(bb)) != nrow(bb)]
-
+      kasp_res[[d]] <- dat
     }
-
-    }
-
   }
 
   return(kasp_res)
 }
+
 
 
 #' Get SNP or InDel alleles and possible genotypes from genotype calls in KASP data.
