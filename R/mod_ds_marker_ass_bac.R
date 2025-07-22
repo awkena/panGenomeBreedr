@@ -381,16 +381,43 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                     bslib::nav_panel(
                       title = "RPP Barplot",
                       icon = icon("tags"),
-                      fluidRow(
-                        column(
-                          width = 12,
                           plotOutput(
                             outputId = ns("rpp_bar"),
                             width = "100%",
                             height = "600px"
+                          ),
+                      bslib::card(card_footer(
+                        fluidRow(
+                          column(
+                            3,
+                            textInput(
+                              inputId = ns("file_name2"),
+                              label = "Enter Filename",
+                              value = "rpp_barplot"
+                            )
+                          ),
+                          column(
+                            3,
+                            numericInput(
+                              inputId = ns("width2"),
+                              label = "Set Plot Width",
+                              value = 8, min = 1
+                            )
+                          ), column(
+                            3,
+                            numericInput(
+                              inputId = ns("height2"),
+                              label = "Set Plot Height",
+                              value = 6, min = 1
+                            )
                           )
+                        ),
+                        downloadButton(
+                          outputId = ns("download_plot2"),
+                          label = "Download Plot", class = "btn-success"
                         )
-                      )
+                      ))
+
                     )
                   )
                 )
@@ -761,7 +788,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
             bar_col = input$bar_col,
             thresh_line_col = input$thresh_line_col,
             show_above_thresh = input$show_above_thresh,
-            bc_gen = input$bc_gen,
+            bc_gen = if(is.null(input$bc_gen)) NULL else input$bc_gen,
             pdf = FALSE
           )
         },
@@ -778,6 +805,38 @@ mod_ds_marker_ass_bac_server <- function(id) {
       req(rpp_barplot_result())
       print(rpp_barplot_result())
     })
+
+    # Download rpp plot
+    output$download_plot2 <- downloadHandler(
+      filename = function() {
+        req(input$file_name2)
+        paste0(input$file_name2, ".pdf")
+      },
+      content = function(file) {
+        req(rpp_barplot_result())
+
+        tryCatch({
+          grDevices::pdf(file,
+                         width = input$width2,
+                         height = input$height2,
+                         onefile = FALSE)
+
+          # Just print the single plot
+          print(rpp_barplot_result())
+
+          grDevices::dev.off()
+        },
+        error = function(e) {
+          shinyWidgets::show_toast(
+            title = 'Error',
+            type = "error",
+            text = paste("Download failed:", e$message),
+            timer = 5000
+          )
+        })
+      }
+    )
+
 
     #------------------------------------------------------
     # Information to the user
