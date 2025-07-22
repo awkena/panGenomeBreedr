@@ -107,8 +107,11 @@ mod_kasp_marker_design_ui <- function(id) {
             actionButton(ns("run_but"),
               label = "Design Marker",
               icon = icon("drafting-compass"),
-              class = "btn-info",
-              width = "100%"
+              #class = "btn-info",
+              width = "100%",
+              style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
+              `onmouseover` = "this.style.backgroundColor='#145214'",
+              `onmouseout` = "this.style.backgroundColor='forestgreen'"
             )
           )
         )
