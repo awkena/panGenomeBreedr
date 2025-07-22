@@ -177,7 +177,10 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                   label = "Submit",
                   icon = icon("check"),
                   width = "100%",
-                  class = "btn-info"
+                  #class = "btn-info"
+                  style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
+                  `onmouseover` = "this.style.backgroundColor='#145214'",
+                  `onmouseout` = "this.style.backgroundColor='forestgreen'"
                 )
               )
             )
@@ -425,8 +428,11 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                             inputId = ns("newBtn"),
                             label = "Create Trait Positions",
                             icon = icon("plus-circle"),
-                            class = "btn-primary mb-3",
-                            width = '30%'
+                            #class = "btn-primary mb-3",
+                            width = '30%',
+                            style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
+                            `onmouseover` = "this.style.backgroundColor='#145214'",
+                            `onmouseout` = "this.style.backgroundColor='forestgreen'"
                           ),
                           radioButtons(
                             inputId = ns("options"),
@@ -664,13 +670,18 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
                         inputId = "rp",
                         choices = Genotype_names(),
                         selected = Genotype_names()[3])
+
+      updateSelectInput(session,
+                        inputId = "parents",
+                        choices = Genotype_names(),
+                        selected = Genotype_names()[c(1, 3)]
+      )
     })
 
     # Read map file if user has.
-    map_file <- eventReactive(input$mapfile,{
+    map_file <- reactive({
       req(input$mapfile)
       read_mapfile(filepath = input$mapfile$datapath)
-
     })
 
     # Populate field for snp id column based on mapfile
@@ -691,35 +702,23 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     )
 
 
-    Result <- reactiveVal(NULL) # empty reactiveval object
-
-    # Generate list of mapfile, process data etc when submit is clicked
-    observeEvent(input$config, {
+    # process data.
+   Result <- eventReactive(input$config, {
       req(
         validated_data(), input$batch, input$batch_col,
         input$data_type, input$allele_sep,
-        input$rp, input$dp, input$choice,
-        input$genotype_col,Genotype_names()
+        input$rp, input$dp, input$choice, data_colnames(),
+        input$genotype_col, Genotype_names()
       )
+
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
         color = "#0dc5c1",
         text = "Getting results... Please wait."
       )
 
-      Result(NULL)
-
-      updateSelectInput(session,
-                        inputId = "parents",
-                        choices = Genotype_names(),
-                        selected = Genotype_names()[c(1, 3)]
-      )
-
-
-      tryCatch({
-
-        # Process the data
-        result <- proc_nd_map_func(
+      result <- tryCatch({
+        proc_nd_map_func(
           data = validated_data(),
           Batch = input$batch,
           batch_col = input$batch_col,
@@ -734,38 +733,35 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
           data_type = input$data_type,
           rp = input$rp,
           dp = input$dp,
-          Prefix = if (input$choice == "no") isolate(input$prefix_marker) else NULL,
+          Prefix = if (input$choice == "no") input$prefix_marker else NULL,
           geno_vec = Genotype_names(),
           feedback = input$choice,
           na_code = NA,
           data_col = data_colnames(),
-          mapfile_path = map_file()
+          mapfile_path = if (!is.null(map_file())) map_file() else NULL
         )
-
-        # Store result
-        Result(result)
-
-
       }, error = function(e) {
         shinyWidgets::show_alert(
           title = 'Error',
           text = paste("An error occurred while processing the data:", e$message),
           type = "error"
         )
-      },finally = {
-       shinyjs::delay(ms = 2000,{
-         shinybusy::remove_modal_spinner()
-       })
+        return(NULL)
+      }, finally = {
+        shinyjs::delay(ms = 2000, {
+          shinybusy::remove_modal_spinner()
+        })
       })
 
+      result
     })
-
 
     observe({
      # input$config
-      req(input$parents, Genotype_names())
+      req(Result(),input$parents, Genotype_names())
       # Locking  parents selection
       values$locked_parents <- input$parents
+      print(Result())
     })
 
     # Get colnames of Mapfile

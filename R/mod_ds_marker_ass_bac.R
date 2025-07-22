@@ -169,13 +169,16 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                   )
                 )
               ),
-              card_footer(
+              bslib::card_footer(
                 actionButton(
                   inputId = ns("config"),
                   label = "Submit",
                   icon = icon("check"),
                   width = "100%",
-                  class = "btn-info"
+                  #class = "btn-info"
+                  style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
+                  `onmouseover` = "this.style.backgroundColor='#145214'",
+                  `onmouseout` = "this.style.backgroundColor='forestgreen'"
                 )
               )
             )
@@ -587,8 +590,19 @@ mod_ds_marker_ass_bac_server <- function(id) {
 
     observe({
       req(Genotype_names())
-      updateSelectInput(session, inputId = "dp", choices = Genotype_names())
-      updateSelectInput(session, inputId = "rp", choices = Genotype_names(), selected = Genotype_names()[3])
+      updateSelectInput(session, inputId = "dp",
+                        choices = Genotype_names())
+
+      updateSelectInput(session, inputId = "rp",
+                        choices = Genotype_names(),
+                        selected = Genotype_names()[3])
+
+      updateSelectInput(session,
+                        inputId = "parents",
+                        choices = Genotype_names(),
+                        selected = Genotype_names()[c(1, 3)]
+      )
+
     })
 
     # Read map file if user has.
@@ -611,55 +625,60 @@ mod_ds_marker_ass_bac_server <- function(id) {
     })
 
 
-    Result <- reactiveVal(NULL) # empty reactiveval object
-
-    # Generate list of mapfile, proccess data etc when submit is clicked
-    observeEvent(input$config, {
+    # process data.
+    Result <- eventReactive(input$config, {
       req(
         validated_data(), input$batch, input$batch_col,
         input$data_type, input$allele_sep,
-        input$rp, input$dp, input$choice,
-        input$genotype_col
+        input$rp, input$dp, input$choice, data_colnames(),
+        input$genotype_col, Genotype_names()
       )
 
-      # Process the data
-      result <- proc_nd_map_func(
-        data = validated_data(),
-        Batch = input$batch,
-        batch_col = input$batch_col,
-        marker_sep = if(input$choice == "no") input$sep_marker else NULL,
-        apply_par_poly = input$apply_par_poly,
-        apply_par_miss = input$apply_par_miss,
-        apply_geno_good = input$apply_geno_good,
-        apply_par_homo = input$apply_par_homo,
-        genotype = input$genotype_col,
-        snp_id = if (input$choice == "yes") input$snp_id else NULL,
-        calls_sep = check_sep(input$allele_sep),
-        data_type = input$data_type,
-        rp = input$rp,
-        dp = input$dp,
-        Prefix = if (input$choice == "no") isolate(input$prefix_marker) else NULL,
-        geno_vec = Genotype_names(),
-        feedback = input$choice,
-        na_code = NA,
-        data_col = data_colnames(),
-        mapfile_path = map_file()
+      shinybusy::show_modal_spinner(
+        spin = "fading-circle",
+        color = "#0dc5c1",
+        text = "Getting results... Please wait."
       )
 
-      # Store result
-      Result(result)
+      result <- tryCatch({
+        proc_nd_map_func(
+          data = validated_data(),
+          Batch = input$batch,
+          batch_col = input$batch_col,
+          marker_sep = if (input$choice == "no") input$sep_marker else NULL,
+          apply_par_poly = input$apply_par_poly,
+          apply_par_miss = input$apply_par_miss,
+          apply_geno_good = input$apply_geno_good,
+          apply_par_homo = input$apply_par_homo,
+          genotype = input$genotype_col,
+          snp_id = if (input$choice == "yes") input$snp_id else NULL,
+          calls_sep = check_sep(input$allele_sep),
+          data_type = input$data_type,
+          rp = input$rp,
+          dp = input$dp,
+          Prefix = if (input$choice == "no") input$prefix_marker else NULL,
+          geno_vec = Genotype_names(),
+          feedback = input$choice,
+          na_code = NA,
+          data_col = data_colnames(),
+          mapfile_path = if (!is.null(map_file())) map_file() else NULL
+        )
+      }, error = function(e) {
+        shinyWidgets::show_alert(
+          title = 'Error',
+          text = paste("An error occurred while processing the data:", e$message),
+          type = "error"
+        )
+        return(NULL)
+      }, finally = {
+        shinyjs::delay(ms = 2000, {
+          shinybusy::remove_modal_spinner()
+        })
+      })
 
-      # Update parents selection
-      req(Genotype_names())
-
-      updateSelectInput(session,
-                        inputId = "parents",
-                        choices = Genotype_names(),
-                        selected = Genotype_names()[c(1, 3)]
-      )
-
-
+      result
     })
+
 
     observe({
       input$config
@@ -802,9 +821,35 @@ mod_ds_marker_ass_bac_server <- function(id) {
 
     # plot it.
     output$rpp_bar <- renderPlot({
-      req(rpp_barplot_result())
-      print(rpp_barplot_result())
+
+      tryCatch({
+        plot_obj <- rpp_barplot_result()
+        req(plot_obj)
+
+        if (inherits(plot_obj, "ggplot")) {
+          print(plot_obj)
+          shinyWidgets::show_toast(
+            title = 'Success',
+            text = 'Plot rendered successfully',
+            type = "success"
+          )
+        } else {
+
+          plot_obj
+        }
+
+      }, error = function(e) {
+        return(NULL)
+        shinyWidgets::show_alert(
+          title = 'Error',
+          text = paste("An error occurred while generating plot", e$message),
+          type = "error"
+        )
+      })
+
     })
+
+
 
     # Download rpp plot
     output$download_plot2 <- downloadHandler(

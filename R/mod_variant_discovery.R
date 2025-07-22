@@ -42,7 +42,10 @@ mod_variant_discovery_ui <- function(id) {
         actionButton(ns("connect_btn"), "Connect to Database",
           icon = icon("plug"),
           width = "100%",
-          class = "btn-info"
+          #class = "btn-info"
+          style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
+          `onmouseover` = "this.style.backgroundColor='#145214'",
+          `onmouseout` = "this.style.backgroundColor='forestgreen'"
         )
       ),
       conditionalPanel(
@@ -223,8 +226,14 @@ mod_variant_discovery_ui <- function(id) {
         div(
           style = "display: flex; justify-content: center;",
           actionButton(
-            inputId = ns("query_dbase_btn"), label = "Query Database",
-            width = "70%", icon = icon("database"), class = "btn-info"
+            inputId = ns("query_dbase_btn"),
+            label = "Query Database",
+            width = "70%",
+            icon = icon("database"),
+            #class = "btn-info"
+            style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
+            `onmouseover` = "this.style.backgroundColor='#145214'",
+            `onmouseout` = "this.style.backgroundColor='forestgreen'"
           )
         )
       )
@@ -653,7 +662,10 @@ mod_variant_discovery_server <- function(id) {
                 inputId = ns("submit"),
                 label = "Get Coordinates",
                 width = "100%",
-                class = "btn-info",
+               # class = "btn-info",
+               style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
+               `onmouseover` = "this.style.backgroundColor='#145214'",
+               `onmouseout` = "this.style.backgroundColor='forestgreen'",
                 icon = icon("search")
               )
             )
@@ -760,7 +772,10 @@ mod_variant_discovery_server <- function(id) {
                   inputId = ns("set_genocod_btn"),
                   label = "Submit",
                   width = "100%",
-                  class = "btn-info",
+                 # class = "btn-info",
+                 style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
+                 `onmouseover` = "this.style.backgroundColor='#145214'",
+                 `onmouseout` = "this.style.backgroundColor='forestgreen'",
                   icon = icon("edit")
                 )
               )
@@ -1152,7 +1167,10 @@ mod_variant_discovery_server <- function(id) {
                       ns("modal_run_but"),
                       label = "Design Marker",
                       icon = icon("drafting-compass"),
-                      class = "btn-info"
+                      # class = "btn-info"
+                      style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
+                      `onmouseover` = "this.style.backgroundColor='#145214'",
+                      `onmouseout` = "this.style.backgroundColor='forestgreen'"
                     )
                   )
                 )
