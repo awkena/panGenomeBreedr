@@ -480,9 +480,9 @@ read_mapfile <- function(filepath) {
 
   # Read according to file type
   if (file_ext == "csv") {
-    data <- read.csv(file = filepath, stringsAsFactors = FALSE)
+    data <- read.csv(file = filepath,col.names = c('character'), stringsAsFactors = FALSE)
   } else if (file_ext %in% c("xlsx", "xls")) {
-    data <- readxl::read_excel(path = filepath)
+    data <- readxl::read_excel(path = filepath,.name_repair = 'minimal')
   } else {
     stop("Unsupported file type. Only CSV and Excel files are allowed.")
   }
@@ -555,26 +555,26 @@ proc_nd_map_func <- function(data = NULL,
                         dp = NULL, # donor parent
                         Prefix = "S", # prefix if to generate marker file
                         geno_vec = NULL, # rownames for genotype calls
-                        feedback = c("yes", "no"), # whether to generate mapfile or not
+                        feedback = "yes", # whether to generate mapfile or not
                         na_code = NA, # Na codes present.
                         data_col = NULL, # data colnames
                         mapfile_path = NULL) {
   if (rp == dp) {
     stop("Error: The recurrent parent must not be the same as the donor parent")
   }
+
   # Validate data class. Must be a datafram or tibble
   if (!(class(data)[1] %in% c("data.frame", "tbl_df", "tbl"))) {
     stop("Please check file. Must be a dataframe or tibble.")
   }
 
-  read_data <- data
+  read_data <- data |> as.data.frame()
 
   return_data <- read_data[read_data[batch_col] == Batch, !(colnames(read_data) %in% data_col)]
 
 
   dp_val <- which(geno_vec %in% c(rp, dp)) # get row index of rp and dp
 
-  # Get rownames of data.
   rownames(return_data) <- geno_vec
 
   processed_data <- return_data # rename object
@@ -667,21 +667,26 @@ proc_nd_map_func <- function(data = NULL,
     final_result <- return_data
   }
 
-  # Parse snpids to generate mapfile.
-  # if user prompts for mapfile to be generated automatic
+
+  # If user prompts for mapfile to be generated automatically
   if (feedback == "no") {
     snps <- colnames(processed_data)
 
-    mapfile <- parse_marker_ns(x = snps, sep = marker_sep, prefix = Prefix) |> order_markers()
+    mapfile <- tryCatch({
+      parse_marker_ns(x = snps, sep = marker_sep, prefix = Prefix) |>
+        order_markers()
+    }, error = function(e) {
+      stop(paste("Failed to generate mapfile automatically:", e$message))
+    })
 
-    # # View(return_data)
-    # parent_missing(x = return_data  ,rp_row = dp_val[1] ,dp_row =dp_val[2] )$par_missing |> View()
-    # Process and convert to numeric
+    # Process and numeric code the data
     proc_kasp_f <- proc_kasp(
       x = processed_data,
       sample_id = genotype,
       map_snp_id = "snpid",
       marker_start = 1,
+      chr = safe_grep_match('chr',choices = colnames(mapfile)),
+      chr_pos = safe_grep_match('pos',choices = colnames(mapfile) ),
       kasp_map = mapfile
     ) |>
       kasp_numeric(
@@ -690,14 +695,19 @@ proc_nd_map_func <- function(data = NULL,
         sep = calls_sep,
         data_type = data_type
       )
-  } else if (feedback == "yes") {
-    mapfile <- read_mapfile(filepath = mapfile_path) |> as.data.frame()
 
+  } else if (feedback == "yes") {
+    # User provides mapfile manually
+    mapfile <- mapfile_path
+
+    # Process and numeric code the data
     proc_kasp_f <- proc_kasp(
       x = processed_data,
-      sample_id = genotype, # to be selected by user
-      map_snp_id = snp_id, # to be selected by user
+      sample_id = genotype,
+      map_snp_id = snp_id,
       marker_start = 1,
+      chr = safe_grep_match('chr',choices = colnames(mapfile)),
+      chr_pos = safe_grep_match('pos',choices = colnames(mapfile) ),
       kasp_map = mapfile
     ) |>
       kasp_numeric(
@@ -706,7 +716,10 @@ proc_nd_map_func <- function(data = NULL,
         sep = calls_sep,
         data_type = data_type
       )
+  } else {
+    stop("Invalid 'feedback' value. Must be either 'yes' or 'no'.")
   }
+
   return(list(
     mapfile = mapfile,
     proc_kasp_f = proc_kasp_f,
@@ -716,28 +729,8 @@ proc_nd_map_func <- function(data = NULL,
   ))
 }
 
-#
-# gg <- proc_nd_map_func(data = geno,
-#                  Batch = 3 ,
-#                  batch_col = 'Batch' ,
-#                  marker_sep = '_',
-#                  apply_par_poly = TRUE,
-#                  apply_par_miss = TRUE ,
-#                  apply_geno_good = TRUE,
-#                  apply_par_homo = TRUE,
-#                  genotype = 'Genotype' ,
-#                  snp_id = 'snpid',
-#                  calls_sep = ' / ',
-#                  data_type = 'agriplex',
-#                  rp = "BTx623a",
-#                  dp = "BTx642a" ,
-#                  Prefix = 'S' ,
-#                  geno_vec = genotype_names,
-#                  feedback = 'no' ,
-#                  na_code = NA ,
-#                  data_col = data_colnames,
-#                  mapfile_path = NULL
-#                   )
+
+
 
 
 
