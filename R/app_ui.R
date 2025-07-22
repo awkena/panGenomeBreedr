@@ -16,7 +16,7 @@ app_ui <- function(request) {
       theme = bslib::bs_theme(
         version = 5,
         bootswatch = "flatly",
-        primary = "#302F9F",
+        primary = "#145214"  ,#"#228B22", # "#2E8B57",
         success = "#FF8A65"
       ),
       fluid = TRUE,
