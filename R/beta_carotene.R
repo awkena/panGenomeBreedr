@@ -16,5 +16,5 @@
 #'   \item{\code{Group}}{\code{character} Predicted genotype for positive controls.}
 #'   \item{\code{plates}}{\code{character} Derived plate IDs for each 96-well KASP reaction plate.}
 #'
-#'}
+#' }
 "beta_carotene"
