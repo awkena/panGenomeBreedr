@@ -171,12 +171,15 @@ If the package does not run as expected, check the following:
 
 - [Cruet Burgos](https://www.morrislab.org/people/clara-cruet-burgos)
 
+- [Fanna Maina](https://www.morrislab.org/people/fanna-maina)
+
 - [Linly Banda](https://www.biofortificationlab.org/people/linly-banda)
 
 - [Jacques
   Faye](https://sites.google.com/site/morrislaboratory/people/jacques-faye)
 
-- [Fanna Maina](https://www.morrislab.org/people/fanna-maina)
+- [Benjamin
+  Annor](https://webapps.knust.edu.gh/staff/dirsearch/profile/summary/093520aa7216.html)
 
 - [Terry
   Felderhoff](https://www.agronomy.k-state.edu/about/people/faculty/felderhoff-terry/)
