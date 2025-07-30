@@ -1147,3 +1147,30 @@ run_upset_plot <- function(foreground_matrix,
   return(plot)
 }
 
+
+
+
+
+#' Compute summary result from par missing function.
+#'
+#' @param df a dataframe from parent missing for summary
+#'
+#' @returns a data frame of summarised snps
+#' @noRd
+par_missing_dat <- function(df){
+  #Count of missing genotype calls per SNP locus (column)
+  missing_per_locus <- colSums(is.na(df))
+
+  # Count of missing genotype calls per sample (row)
+  missing_per_sample <- rowSums(is.na(df))
+
+  # Print missing calls per sample separately for reference
+  missing_samples_df <- data.frame(
+    Sample = rownames(df),
+    Missing_Calls = missing_per_sample,
+    Total_SNPs = colnames(df) |> length() ,
+    row.names = NULL
+  )
+
+  return(missing_samples_df)
+}

@@ -1454,7 +1454,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     # parent missing
     output$par_missing_tbl <- DT::renderDT({
       req(Result())
-      DT::datatable(Result()$par_missing_dat, options = list(scrollX = TRUE))
+      DT::datatable(par_missing_dat(Result()$par_missing_dat), options = list(scrollX = TRUE))
     })
 
 
