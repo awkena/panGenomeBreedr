@@ -474,13 +474,13 @@ pred_status <- function(plate,
 
   if(!is.null(Group_unknown )) {
 
-  # Add status for samples with true genotype calls
-  df1$status <- ifelse(df1[, geno_call] == df1[, Group_id], 'True',
-                       ifelse(df1[, geno_call] != df1[, Group_id] &
-                                df1[, Group_id] == Group_unknown, 'Unverified', 'False'))
+    # Add status for samples with true genotype calls
+    df1$status <- ifelse(df1[, geno_call] == df1[, Group_id], 'True',
+                         ifelse(df1[, geno_call] != df1[, Group_id] &
+                                  df1[, Group_id] == Group_unknown, 'Unverified', 'False'))
 
-  # Add status for samples with non-genotype calls and NTC
-  df2$status <- ifelse(df2[, geno_call] == blank, 'Blank', 'Unverified')
+    # Add status for samples with non-genotype calls and NTC
+    df2$status <- ifelse(df2[, geno_call] == blank, 'Blank', 'Unverified')
 
   } else {
 
@@ -490,7 +490,7 @@ pred_status <- function(plate,
     # Add status for samples with non-genotype calls and NTC
     df2$status <- ifelse(df2[, geno_call] == blank, 'Blank', 'Unverified')
 
-}
+  }
   # rbind the two data frames df1 and df2
   df3 <- rbind(df1, df2)
 
@@ -826,21 +826,22 @@ kasp_qc_ggplot <- function(x,
     if (!is.null(Group_id)) {
 
 
-        plt <- ggplot2::ggplot(plate, ggplot2::aes(x = X,
-                                                   y = Y,
-                                                   fill = Call,
-                                                   shape = Group_pch)) +
-          ggplot2::geom_point(size = 4) +
-          ggplot2::scale_shape_manual(values = grp_pch,
-                                      breaks = grp,
-                                      name = 'Prediction') +
+      plt <- ggplot2::ggplot(plate, ggplot2::aes(x = X,
+                                                 y = Y,
+                                                 fill = Call,
+                                                 shape = Group_pch)) +
+        ggplot2::geom_point(size = 4) +
+        ggplot2::scale_shape_manual(values = grp_pch,
+                                    breaks = grp,
+                                    name = 'Prediction') +
 
-          ggplot2::guides(shape = ggplot2::guide_legend(order = 2)) +
+        ggplot2::guides(shape = ggplot2::guide_legend(order = 2)) +
 
           ggplot2::scale_fill_manual(values = ggplot2::alpha(cols, alpha),
                                      breaks = calls,
                                      name = 'KASP Call') +
           ggplot2::guides(fill = ggplot2::guide_legend(order = 0, override.aes = list(shape = 21)))
+
 
     } else {
 
@@ -1306,76 +1307,76 @@ plot_plate <- function(x,
 
   for (i in seq_len(nplates)) {
 
-  # Subset plate
-  plate <- x[[i]]
-  # Get well column for wells
-  MasterWell <- plate[, well]
-  well_freq <- table(MasterWell)
+    # Subset plate
+    plate <- x[[i]]
+    # Get well column for wells
+    MasterWell <- plate[, well]
+    well_freq <- table(MasterWell)
 
-  # Stop function if well IDs are not unique.
-  if( any(well_freq > 1)) {
+    # Stop function if well IDs are not unique.
+    if( any(well_freq > 1)) {
 
-    stop("Plate well IDs are not unique! Check the plate layout.")
+      stop("Plate well IDs are not unique! Check the plate layout.")
 
-  }
+    }
 
-  # Get Color column for genotype calls
-  Color <- plate[, color]
-  myCol <- unique(Color)
+    # Get Color column for genotype calls
+    Color <- plate[, color]
+    myCol <- unique(Color)
 
-  # Get geno call
-  Call <- plate[, geno_call]
+    # Get geno call
+    Call <- plate[, geno_call]
 
-  # Replace NTC with Blank and ? with Unused
-  Call[Call == 'NTC'] <- 'Blank'
-  Call[Call == '?'] <- 'Unused'
+    # Replace NTC with Blank and ? with Unused
+    Call[Call == 'NTC'] <- 'Blank'
+    Call[Call == '?'] <- 'Unused'
 
-  calls <- unique(Call)
-  names(calls) <- myCol
+    calls <- unique(Call)
+    names(calls) <- myCol
 
-  # Subset and sort genotype calls
-  calls2 <- sort(calls[calls != 'Blank' & calls != 'Uncallable' & calls != 'Unused'])
+    # Subset and sort genotype calls
+    calls2 <- sort(calls[calls != 'Blank' & calls != 'Uncallable' & calls != 'Unused'])
 
-  # Subset and sort non-genotype calls
-  calls3 <- sort(calls[calls == 'Blank' | calls == 'Uncallable' | calls == 'Unused'])
+    # Subset and sort non-genotype calls
+    calls3 <- sort(calls[calls == 'Blank' | calls == 'Uncallable' | calls == 'Unused'])
 
-  # Re-combine unique calls
-  calls <- c(calls2, calls3)
-  myCol <- names(calls)
+    # Re-combine unique calls
+    calls <- c(calls2, calls3)
+    myCol <- names(calls)
 
 
-  # Get SNP name
-  snp_ns <- plate[, snp_id][1]
+    # Get SNP name
+    snp_ns <- plate[, snp_id][1]
 
-  # Plot title
-  title <- paste0('Plate: ', plate_ns[i])
+    # Plot title
+    title <- paste0('Plate: ', plate_ns[i])
 
-  # Split alphanumeric well IDs into alphabet and numeric
-  pcr_plate <- strsplit(MasterWell, split = "(?<=[a-zA-Z])(?=[0-9])",
-                        perl = TRUE)
+    # Split alphanumeric well IDs into alphabet and numeric
+    pcr_plate <- strsplit(MasterWell, split = "(?<=[a-zA-Z])(?=[0-9])",
+                          perl = TRUE)
 
-  # Make a data frame from split well IDs
-  pcr_plate <- t(as.data.frame(pcr_plate))
-  pcr_plate <- as.data.frame(cbind(pcr_plate,
-                                   MasterWell = MasterWell,
-                                   Call = Call,
-                                   Color = Color))
+    # Make a data frame from split well IDs
+    pcr_plate <- t(as.data.frame(pcr_plate))
+    pcr_plate <- as.data.frame(cbind(pcr_plate,
+                                     MasterWell = MasterWell,
+                                     Call = Call,
+                                     Color = Color))
 
-  # Convert Column 1 and 2 into a data frame
-  pcr_plate$V1 <- as.factor(pcr_plate$V1)
-  pcr_plate$V2 <- as.factor(pcr_plate$V2)
-  # pcr_plate$Call <- as.factor(pcr_plate$Call)
+    # Convert Column 1 and 2 into a data frame
+    pcr_plate$V1 <- as.factor(pcr_plate$V1)
+    pcr_plate$V2 <- as.factor(pcr_plate$V2)
+    # pcr_plate$Call <- as.factor(pcr_plate$Call)
 
-  gg_plts[[i]] <- gg_plate()
+    gg_plts[[i]] <- gg_plate()
 
   }
 
   if (pdf) {
 
     ggplot2::ggsave(filename = paste0(filename, ".pdf"),
-           plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
-           device = "pdf",
-           units = "in", width = width, height = height)
+                    plot = gridExtra::marrangeGrob(gg_plts, nrow = 1, ncol = 1),
+                    device = "pdf",
+                    units = "in", width = width, height = height)
 
   } else {
 
@@ -1655,14 +1656,14 @@ proc_kasp <- function(x,
 
   # Function to match SNP IDs in map file and geno file
 
-    new_snpids <- data.frame(snpid = rownames(geno_mat))
+  new_snpids <- data.frame(snpid = rownames(geno_mat))
 
-    # Match SNPID in geno_mat and kasp_map files
-    df1 <- merge(x = new_snpids,
-                 y = kasp_map,
-                 by.x = 'snpid',
-                 by.y = map_snp_id,
-                 sort = FALSE)
+  # Match SNPID in geno_mat and kasp_map files
+  df1 <- merge(x = new_snpids,
+               y = kasp_map,
+               by.x = 'snpid',
+               by.y = map_snp_id,
+               sort = FALSE)
 
   # Column bind chr number and position to snp data
   geno_mat <- cbind(df1, geno_mat)
@@ -1748,7 +1749,12 @@ geno_error <- function(x,
 
   exp_geno <- apply(par_dat, MARGIN = 2, FUN = get_geno)
 
-  exp_geno <- as.list(as.data.frame(exp_geno))
+  if(is.list(exp_geno)){
+    # maintain as is
+    exp_geno <- exp_geno
+  } else{
+    exp_geno <- as.list(as.data.frame(exp_geno))
+  }
 
   # Find markers with errors
   snp_error <- function(x, y) {
@@ -1828,11 +1834,11 @@ geno_error <- function(x,
 #'
 #'@export
 kasp_numeric <- function(x,
-                        rp_row,
-                        dp_row,
-                        sep = ':',
-                        data_type = c('kasp', 'agriplex')
-                        ) {
+                         rp_row,
+                         dp_row,
+                         sep = ':',
+                         data_type = c('kasp', 'agriplex')
+) {
 
   if (missing(rp_row)) stop("Parent 1 row index number is missing!")
   if (missing(dp_row)) stop("Parent 2 row index number is missing!")
@@ -2120,6 +2126,7 @@ gg_dat <- function(num_mat,
     colnames(dat) <- colnames(num_mat)
     rownames(dat) <- rownames(num_mat)
 
+
   } else {
 
     dat <- apply(num_mat, 2, as.character, simplify = TRUE)
@@ -2149,5 +2156,4 @@ gg_dat <- function(num_mat,
   return(df)
 
 }
-
 
