@@ -66,6 +66,7 @@ Suggests:
     rtracklayer,
     shinyalert,
     shinybusy,
+    shinyFiles,
     shinyjs,
     shinyWidgets,
     testthat (>= 3.0.0),
