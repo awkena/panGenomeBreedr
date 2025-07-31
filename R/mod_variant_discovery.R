@@ -36,8 +36,11 @@ mod_variant_discovery_ui <- function(id) {
       ),
       conditionalPanel(
         condition = paste0("output['", ns("is_connected"), "'] == false"),
-        textInput(ns("db_path"), "Database Path:",
-          placeholder = "Enter the full path to your SQLite database"
+        shinyFilesButton(id = ns("Btn_GetFile"), label = "Set Path to Database" ,
+                         icon = icon("folder-open"),title = '', multiple = FALSE,
+                         buttonType = "default"),
+        bslib::card(
+          textOutput(outputId = ns("txt_file"))
         ),
         actionButton(ns("connect_btn"), "Connect to Database",
           icon = icon("plug"),
@@ -349,10 +352,29 @@ mod_variant_discovery_server <- function(id) {
 
     # DATABASE CONNECTION MANAGEMENT
     #--------------------------------------------
+    volumes <- getVolumes()()
+    file_load <- reactiveVal(NULL)  # empty reactive object for filepath
+
+    # Setup file chooser
+    shinyFileChoose(input, "Btn_GetFile", roots = volumes, session = session)
+
+    # Capture the file when selected
+    observeEvent(input$Btn_GetFile, {
+      file_selected <- parseFilePaths(volumes, input$Btn_GetFile)
+      if (nrow(file_selected) > 0) {
+        file_load(file_selected)
+      }
+    })
+
+    # Renderpath for user to see.
+    output$txt_file <- renderText({
+      req(file_load())
+      as.character(file_load()$datapath)
+      })
 
     # Connect to database
     observeEvent(input$connect_btn, {
-      req(input$db_path)
+      req(file_load())
 
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
@@ -361,25 +383,23 @@ mod_variant_discovery_server <- function(id) {
       )
 
       tryCatch({
-        if (!file.exists(input$db_path)) {
+        db_path <- as.character(file_load()$datapath)
+
+        if (!file.exists(db_path)) {
           shinyWidgets::show_toast("Error: Database file not found", type = "error")
           return()
         }
 
-        # Close existing connection if any
         if (!is.null(rv$conn)) {
           dbDisconnect(rv$conn)
           rv$conn <- NULL
         }
 
-        # Connect to database
-        rv$conn <- dbConnect(RSQLite::SQLite(), input$db_path)
-
-        # Update state
+        rv$conn <- dbConnect(RSQLite::SQLite(), db_path)
         rv$connected <- TRUE
-        rv$tables <- list_sqlite_tables(input$db_path)
+        rv$tables <- list_sqlite_tables(db_path)
         rv$status_message <- paste("Connected with", length(rv$tables), "tables")
-        rv$db_path <- input$db_path
+        rv$db_path <- db_path
 
         shinyWidgets::show_alert(
           title = "Success!",
@@ -400,6 +420,7 @@ mod_variant_discovery_server <- function(id) {
         shinybusy::remove_modal_spinner()
       })
     })
+
 
     # Disconnect from database
     observeEvent(input$disconnect_btn, {
