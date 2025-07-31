@@ -36,7 +36,7 @@ mod_variant_discovery_ui <- function(id) {
       ),
       conditionalPanel(
         condition = paste0("output['", ns("is_connected"), "'] == false"),
-        shinyFilesButton(id = ns("Btn_GetFile"), label = "Set Path to Database" ,
+        shinyFiles::shinyFilesButton(id = ns("Btn_GetFile"), label = "Set Path to Database" ,
                          icon = icon("folder-open"),title = '', multiple = FALSE,
                          buttonType = "default"),
         bslib::card(
@@ -352,15 +352,15 @@ mod_variant_discovery_server <- function(id) {
 
     # DATABASE CONNECTION MANAGEMENT
     #--------------------------------------------
-    volumes <- getVolumes()()
+    volumes <- shinyFiles::getVolumes()
     file_load <- reactiveVal(NULL)  # empty reactive object for filepath
 
     # Setup file chooser
-    shinyFileChoose(input, "Btn_GetFile", roots = volumes, session = session)
+    shinyFiles::shinyFileChoose(input, "Btn_GetFile", roots = volumes, session = session)
 
     # Capture the file when selected
     observeEvent(input$Btn_GetFile, {
-      file_selected <- parseFilePaths(volumes, input$Btn_GetFile)
+      file_selected <- shinyFiles::parseFilePaths(volumes, input$Btn_GetFile)
       if (nrow(file_selected) > 0) {
         file_load(file_selected)
       }
