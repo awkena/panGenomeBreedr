@@ -176,13 +176,13 @@ mod_variant_discovery_ui <- function(id) {
           query_action_card(ns)
         ),
         bslib::navset_card_tab(
-          id = ns("nav_id"), selected = "Main Database Query Result",
+          id = ns("nav_id"), selected = "Main Database Results ",
           bslib::nav_panel(
-            title = "Main Database Query Result",
+            title = "Main Database Results ",
             uiOutput(ns("query_db_display"))
           ),
           bslib::nav_panel(
-            title = "Results Showing PCVs for KASP Marker Design",
+            title = "PCVs for KASP Marker Design",
             uiOutput(ns("pcvs_kasp_marker_design_result"))
           )
         )
@@ -194,13 +194,13 @@ mod_variant_discovery_ui <- function(id) {
   query_database_card <- function(ns) {
     # Card for genotype cordinate management and database query.
     bslib::card(
-      bslib::card_header(tags$strong("Genotype Coordinates & Database Query")),
+      bslib::card_header(tags$strong("Set Genomic Region & Query Database")),
       tagList(
         div(
           style = "display: flex; justify-content: center;",
           actionButton(
             inputId = ns("get_cord"),
-            label = "Get Genotype Co-ordinates from GFF",
+            label = "Load Genomic Region from GFF",
             icon = icon("cloud-arrow-down"),
             width = "70%"
           )
@@ -210,7 +210,7 @@ mod_variant_discovery_ui <- function(id) {
           actionButton(
             inputId = ns("set_cord"),
             icon = icon("pencil"),
-            label = "Set Genotype Co-ordinates Manually",
+            label = "Enter Genomic Region Manually",
             width = "70%"
           )
         )
@@ -219,8 +219,8 @@ mod_variant_discovery_ui <- function(id) {
         width = "100%",
         inputId = ns("query_database"), label = "",
         choices = c(
-          "Query Database Using Coordinates" = "q_entire",
-          "Annotation Summary for Defined Region" = "q_annt"
+          "Query Database by Coordinates" = "q_entire",
+          "View Annotation Summary for Region" = "q_annt"
         ),
         selected = character(0)
       ),
@@ -230,7 +230,7 @@ mod_variant_discovery_ui <- function(id) {
           style = "display: flex; justify-content: center;",
           actionButton(
             inputId = ns("query_dbase_btn"),
-            label = "Query Database",
+            label = tags$b("Query"),
             width = "70%",
             icon = icon("database"),
             #class = "btn-info"
@@ -247,7 +247,7 @@ mod_variant_discovery_ui <- function(id) {
   # Query Action Card Component
   query_action_card <- function(ns) {
     bslib::card(
-      bslib::card_header(tags$strong("Get Putative Causal Variants")),
+      bslib::card_header(tags$strong("Filter Putative Causal Variants")),
       # Input widget for Impact levels
       selectInput(
         inputId = ns("impact_level"), label = "Impact Level",
@@ -268,7 +268,8 @@ mod_variant_discovery_ui <- function(id) {
         div(
           style = "display: flex; justify-content: center;",
           actionButton(
-            inputId = ns("get_pcv_btn"), label = "Extract PCVs",
+            inputId = ns("get_pcv_btn"),
+            label = tags$b("Extract PCVs"),
             class = "btn-warning",
             width = "70%",
             icon = icon("filter")
@@ -918,7 +919,7 @@ mod_variant_discovery_server <- function(id) {
 
         # Second: Annotation summary
         if (!is.null(input$table_name_v) && !is.null(input$table_name_a)) {
-          updateTabsetPanel(session, "nav_id", selected = "Main Database Query Result")
+          updateTabsetPanel(session, "nav_id", selected = "Main Database Result")
 
           values$query_ann_react <- query_ann_summary(
             db_path = rv$db_path,
@@ -1067,7 +1068,7 @@ mod_variant_discovery_server <- function(id) {
 
       req(query_by_alf_result(), rv$db_path)
 
-      updateTabsetPanel(session, inputId = "nav_id", selected = "Results Showing PCVs for KASP Marker Design")
+      updateTabsetPanel(session, inputId = "nav_id", selected = "PCVs for KASP Marker Design")
 
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
@@ -1167,7 +1168,7 @@ mod_variant_discovery_server <- function(id) {
                       ns("modal_reg_name"),
                       label = "Region Name",
                       width = "100%",
-                      placeholder = "e.g., drought resistance locus"
+                      placeholder = "lgs1"
                     ),
                     numericInput(
                       ns("modal_maf"),
