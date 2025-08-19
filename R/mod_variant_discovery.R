@@ -36,16 +36,18 @@ mod_variant_discovery_ui <- function(id) {
       ),
       conditionalPanel(
         condition = paste0("output['", ns("is_connected"), "'] == false"),
-        shinyFiles::shinyFilesButton(id = ns("Btn_GetFile"), label = "Set Path to Database" ,
-                         icon = icon("folder-open"),title = '', multiple = FALSE,
-                         buttonType = "default"),
+        shinyFiles::shinyFilesButton(
+          id = ns("Btn_GetFile"), label = "Set Path to Database",
+          icon = icon("folder-open"), title = "", multiple = FALSE,
+          buttonType = "default"
+        ),
         bslib::card(
           textOutput(outputId = ns("txt_file"))
         ),
         actionButton(ns("connect_btn"), "Connect to Database",
           icon = icon("plug"),
           width = "100%",
-          #class = "btn-info"
+          # class = "btn-info"
           style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
           `onmouseover` = "this.style.backgroundColor='#145214'",
           `onmouseout` = "this.style.backgroundColor='forestgreen'"
@@ -73,40 +75,6 @@ mod_variant_discovery_ui <- function(id) {
     conditionalPanel(
       condition = paste0("output['", ns("is_connected"), "'] == true"),
       tagList(
-        #   bslib::card(
-        #     primary_card_header("Variant Impact Summary"),
-        #     bslib::card_body(reactable::reactableOutput(ns("table_impact_id")))
-        #   ),
-        #   bslib::card(
-        #     primary_card_header("Variant Statistics"),
-        #     bslib::card_body(reactable::reactableOutput(ns("table_var_stats_id")))
-        #   )
-        # ),
-        # bslib::layout_column_wrap(
-        #   width = 1 / 2,
-        #   bslib::card(
-        #     primary_card_header("Summarised SQLite Tables"),
-        #     bslib::card_body(reactable::reactableOutput(ns("sum_sqlite_id")))
-        #   ),
-        #   bslib::card(
-        #     primary_card_header("Variant Type Count"),
-        #     bslib::card_body(reactable::reactableOutput(ns("count_variant_typ_id")))
-        #   )
-        # ),
-        # bslib::layout_column_wrap(
-        #   width = "100%",
-        #   bslib::card(
-        #     primary_card_header("Inspect SQlite Table Schema"),
-        #     bslib::card_body(
-        #       selectInput(
-        #         inputId = ns("table_name_lst"),
-        #         label = "Table to Query",
-        #         choices = c("variants", "annotations", "genotypes"),
-        #         selected = "genotypes"
-        #       ),
-        #       reactable::reactableOutput(ns("results_lst"))
-        #     )
-        #   )
         bslib::accordion(
           style = "margin-bottom: 10px;",
           open = TRUE,
@@ -233,7 +201,7 @@ mod_variant_discovery_ui <- function(id) {
             label = tags$b("Query"),
             width = "70%",
             icon = icon("database"),
-            #class = "btn-info"
+            # class = "btn-info"
             style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
             `onmouseover` = "this.style.backgroundColor='#145214'",
             `onmouseout` = "this.style.backgroundColor='forestgreen'"
@@ -283,14 +251,16 @@ mod_variant_discovery_ui <- function(id) {
   tagList(
     shinyjs::useShinyjs(),
     bslib::navset_card_underline(
+      id = ns('param_header'),
       sidebar = bslib::sidebar(
-        width = 350,
+        width = 320,
         title = "Database Connection",
         status = "primary",
         connection_panel(ns)
       ),
       # Display query frontend
       bslib::nav_panel(
+        value = 'query_tab',
         title = tags$b("Query Actions"), icon = icon("bolt"),
         query_actions_tab(ns)
       ),
@@ -305,6 +275,111 @@ mod_variant_discovery_ui <- function(id) {
           color = "primary"
         ),
         info_tab(ns)
+      ),
+      bslib::nav_panel_hidden(
+        value = "mark_design",
+          fluidRow(
+            column(
+              width = 4,
+              bslib::card(
+                # bslib::card_header(
+                #   h4(tags$b("Input Parameters"))
+                #
+                #   # class = "bg-primary text-white"
+                # ),
+                bslib::card_body(
+                  fileInput(
+                    ns("modal_genome_file"),
+                    label = "Genome Reference File",
+                    accept = c(".fa", ".fasta", ".gz"),
+                    width = "100%"
+                  ),
+                  selectizeInput(
+                    ns("modal_marker_ID"),
+                    label = "Marker ID",
+                    choices = NULL,
+                    options = list(placeholder = "Select variants..."),
+                    multiple = TRUE,
+                    width = "100%"
+                  ),
+                  textInput(
+                    ns("modal_reg_name"),
+                    label = "Region Name",
+                    width = "100%",
+                    placeholder = "lgs1"
+                  ),
+                  numericInput(
+                    ns("modal_maf"),
+                    width = "100%",
+                    label = "Minor Allele Frequency (MAF)",
+                    value = 0.05, min = 0, max = 1, step = 0.01
+                  ),
+                  bslib::input_switch(
+                    ns("modal_draw_plot"),
+                    width = "100%",
+                    label = "Generate Alignment Plot",
+                    value = TRUE
+                  )
+                ),
+                bslib::card_footer(
+                  actionButton(
+                    width = "100%",
+                    ns("modal_run_but"),
+                    label = "Design Marker",
+                    icon = icon("drafting-compass"),
+                    # class = "btn-info"
+                    style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
+                    `onmouseover` = "this.style.backgroundColor='#145214'",
+                    `onmouseout` = "this.style.backgroundColor='forestgreen'"
+                  )
+                )
+              )
+            ),
+            column(
+              width = 8,
+              bslib::accordion(
+                style = "margin-bottom: 70px;",
+                id = ns("results_accordion"),
+                width = "100%",
+                open = TRUE,
+                bslib::accordion_panel(
+                  "KASP Marker Data & Sequence Alignment Table",
+                  DT::DTOutput(ns("kasp_table")),
+                    fluidRow(
+                      column(width = 3, selectInput(
+                        inputId = ns("exten"),
+                        label = "Download file as?",
+                        choices = c(".csv", ".xlsx"),
+                        selected = ".xlsx",
+                        multiple = FALSE,
+                      )),
+                      column(
+                        width = 4,
+                        textInput(
+                          inputId = ns("file_name"),
+                          label = "Enter File Prefix",
+                          value = "Kasp M_D for Intertek"
+                        )
+                      )
+                    ),
+                    downloadButton(ns("download_table"),
+                      label = "Download File",
+                      class = "btn-success",
+                      icon = icon("download")
+                    )
+                )
+                ),
+                uiOutput(ns("plot_container"))
+
+            )
+          ),
+            actionButton(
+              inputId = ns("go_back"),
+              width = '10%',
+              label   = "Back",
+              icon    = icon("arrow-left"),
+              class   = "btn-secondary"
+            )
       )
     )
   )
@@ -354,7 +429,7 @@ mod_variant_discovery_server <- function(id) {
     # DATABASE CONNECTION MANAGEMENT
     #--------------------------------------------
     volumes <- shinyFiles::getVolumes()
-    file_load <- reactiveVal(NULL)  # empty reactive object for filepath
+    file_load <- reactiveVal(NULL) # empty reactive object for filepath
 
     # Setup file chooser
     shinyFiles::shinyFileChoose(input, "Btn_GetFile", roots = volumes, session = session)
@@ -371,7 +446,7 @@ mod_variant_discovery_server <- function(id) {
     output$txt_file <- renderText({
       req(file_load())
       as.character(file_load()$datapath)
-      })
+    })
 
     # Connect to database
     observeEvent(input$connect_btn, {
@@ -684,10 +759,10 @@ mod_variant_discovery_server <- function(id) {
                 inputId = ns("submit"),
                 label = "Get Coordinates",
                 width = "100%",
-               # class = "btn-info",
-               style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
-               `onmouseover` = "this.style.backgroundColor='#145214'",
-               `onmouseout` = "this.style.backgroundColor='forestgreen'",
+                # class = "btn-info",
+                style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
+                `onmouseover` = "this.style.backgroundColor='#145214'",
+                `onmouseout` = "this.style.backgroundColor='forestgreen'",
                 icon = icon("search")
               )
             )
@@ -774,6 +849,7 @@ mod_variant_discovery_server <- function(id) {
                 inputId = ns("chrom"),
                 label = "Chromosome",
                 value = NULL,
+                placeholder = 'Chr05',
                 width = "100%"
               ), # chromosome name input
               numericInput(
@@ -794,10 +870,10 @@ mod_variant_discovery_server <- function(id) {
                   inputId = ns("set_genocod_btn"),
                   label = "Submit",
                   width = "100%",
-                 # class = "btn-info",
-                 style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
-                 `onmouseover` = "this.style.backgroundColor='#145214'",
-                 `onmouseout` = "this.style.backgroundColor='forestgreen'",
+                  # class = "btn-info",
+                  style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
+                  `onmouseover` = "this.style.backgroundColor='#145214'",
+                  `onmouseout` = "this.style.backgroundColor='forestgreen'",
                   icon = icon("edit")
                 )
               )
@@ -1133,112 +1209,19 @@ mod_variant_discovery_server <- function(id) {
     observeEvent(input$push_1, {
       req(values$query_geno_react)
 
-      showModal(
-        modalDialog(
-          title = tags$b("Design KASP Markers"),
-          size = "xl",
-          footer = modalButton("Close"),
-          bslib::card(
-            full_screen = TRUE,
-            fluidRow(
-              column(
-                width = 4,
-                bslib::card(
-                  bslib::card_header(
-                    h4(tags$b("Input Parameters"))
-
-                    # class = "bg-primary text-white"
-                  ),
-                  bslib::card_body(
-                    fileInput(
-                      ns("modal_genome_file"),
-                      label = "Genome Reference File",
-                      accept = c(".fa", ".fasta", ".gz"),
-                      width = "100%"
-                    ),
-                    selectizeInput(
-                      ns("modal_marker_ID"),
-                      label = "Marker ID",
-                      choices = values$query_geno_react$variant_id,
-                      options = list(placeholder = "Select variants..."),
-                      multiple = TRUE,
-                      width = "100%"
-                    ),
-                    textInput(
-                      ns("modal_reg_name"),
-                      label = "Region Name",
-                      width = "100%",
-                      placeholder = "lgs1"
-                    ),
-                    numericInput(
-                      ns("modal_maf"),
-                      width = "100%",
-                      label = "Minor Allele Frequency (MAF)",
-                      value = 0.05, min = 0, max = 1, step = 0.01
-                    ),
-                    bslib::input_switch(
-                      ns("modal_draw_plot"),
-                      width = "100%",
-                      label = "Generate Alignment Plot",
-                      value = TRUE
-                    )
-                  ),
-                  bslib::card_footer(
-                    actionButton(
-                      width = "100%",
-                      ns("modal_run_but"),
-                      label = "Design Marker",
-                      icon = icon("drafting-compass"),
-                      # class = "btn-info"
-                      style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
-                      `onmouseover` = "this.style.backgroundColor='#145214'",
-                      `onmouseout` = "this.style.backgroundColor='forestgreen'"
-                    )
-                  )
-                )
-              ),
-              column(
-                width = 8,
-                bslib::accordion(
-                  style = "margin-bottom: 70px;",
-                  id = ns("results_accordion"),
-                  width = "100%",
-                  open = TRUE,
-                  bslib::accordion_panel(
-                    "KASP Marker Data & Sequence Alignment Table",
-                    DT::DTOutput(ns("kasp_table")),
-                    bslib::card_footer(
-                      fluidRow(
-                        column(width = 3, selectInput(
-                          inputId = ns("exten"),
-                          label = "Download file as?",
-                          choices = c(".csv", ".xlsx"),
-                          selected = ".xlsx",
-                          multiple = FALSE,
-                        )),
-                        column(
-                          width = 4,
-                          textInput(
-                            inputId = ns("file_name"),
-                            label = "Enter File Prefix",
-                            value = "Kasp M_D for Intertek"
-                          )
-                        )
-                      ),
-                      downloadButton(ns("download_table"),
-                        label = "Download File",
-                        class = "btn-success",
-                        icon = icon("download")
-                      )
-                    )
-                  ),
-                  uiOutput(ns("plot_container"))
-                )
-              )
-            )
-          )
-        )
+     updateTabsetPanel(inputId = 'param_header',selected = "mark_design")
+      updateSelectizeInput(
+        session,
+        inputId = "modal_marker_ID",
+        choices = values$query_geno_react$variant_id,
+        server = TRUE
       )
+
+    })
+
+    # When back button is clicked, go back to query panel
+    observeEvent(input$go_back,{
+      updateTabsetPanel(inputId = 'param_header',selected = 'query_tab')
     })
 
     # Server Side of kasp marker design
@@ -1251,14 +1234,11 @@ mod_variant_discovery_server <- function(id) {
         input$modal_maf, input$modal_marker_ID
       )
 
-      shinyWidgets::show_alert(
-        title = "Important!",
-        text = "Designing KASP markers... Please wait. Do not close this window",
-        type = "info",
-        showCloseButton = TRUE,
-        timer = 9000
+      shinybusy::show_modal_spinner(
+        spin = "fading-circle",
+        color = "#0dc5c1",
+        text = "Designing KASP Marker... Please wait."
       )
-
 
 
       list_markers <- list() # list object for markers
@@ -1329,6 +1309,8 @@ mod_variant_discovery_server <- function(id) {
             text = paste("Error: ", e$message),
             type = "error"
           )
+        },finally = {
+          shinybusy::remove_modal_spinner()
         }
       )
     })
