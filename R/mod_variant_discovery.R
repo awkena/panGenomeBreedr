@@ -35,6 +35,7 @@ mod_variant_discovery_ui <- function(id) {
         style = "display: flex; align-items: center; margin-bottom: 15px;"
       ),
       conditionalPanel(
+        #height:40px; font-size:16px; - increase button width.
         condition = paste0("output['", ns("is_connected"), "'] == false"),
         shinyFiles::shinyFilesButton(
           id = ns("connect_btn"),
