@@ -37,20 +37,15 @@ mod_variant_discovery_ui <- function(id) {
       conditionalPanel(
         condition = paste0("output['", ns("is_connected"), "'] == false"),
         shinyFiles::shinyFilesButton(
-          id = ns("Btn_GetFile"), label = "Set Path to Database",
-          icon = icon("folder-open"), title = "", multiple = FALSE,
-          buttonType = "default"
-        ),
-        bslib::card(
-          textOutput(outputId = ns("txt_file"))
-        ),
-        actionButton(ns("connect_btn"), "Connect to Database",
-          icon = icon("plug"),
-          width = "100%",
-          # class = "btn-info"
+          id = ns("connect_btn"),
+          label = "Connect to Database",
+          icon = icon("plug"), title = "",
+          multiple = FALSE,
           style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
           `onmouseover` = "this.style.backgroundColor='#145214'",
-          `onmouseout` = "this.style.backgroundColor='forestgreen'"
+          `onmouseout` = "this.style.backgroundColor='forestgreen'",
+          buttonType = 'btn-primary'
+
         )
       ),
       conditionalPanel(
@@ -253,7 +248,7 @@ mod_variant_discovery_ui <- function(id) {
     bslib::navset_card_underline(
       id = ns('param_header'),
       sidebar = bslib::sidebar(
-        width = 320,
+        width = 350,
         title = "Database Connection",
         status = "primary",
         connection_panel(ns)
@@ -428,38 +423,25 @@ mod_variant_discovery_server <- function(id) {
 
     # DATABASE CONNECTION MANAGEMENT
     #--------------------------------------------
-    volumes <- shinyFiles::getVolumes()
-    file_load <- reactiveVal(NULL) # empty reactive object for filepath
-
+    volumes <- shinyFiles::getVolumes() # extract all paths
     # Setup file chooser
-    shinyFiles::shinyFileChoose(input, "Btn_GetFile", roots = volumes, session = session)
-
-    # Capture the file when selected
-    observeEvent(input$Btn_GetFile, {
-      file_selected <- shinyFiles::parseFilePaths(volumes, input$Btn_GetFile)
-      if (nrow(file_selected) > 0) {
-        file_load(file_selected)
-      }
-    })
-
-    # Renderpath for user to see.
-    output$txt_file <- renderText({
-      req(file_load())
-      as.character(file_load()$datapath)
-    })
+    shinyFiles::shinyFileChoose(input, "connect_btn", roots = volumes, session = session)
 
     # Connect to database
     observeEvent(input$connect_btn, {
-      req(file_load())
+      file_selected <- shinyFiles::parseFilePaths(volumes, input$connect_btn)
 
-      shinybusy::show_modal_spinner(
-        spin = "fading-circle",
-        color = "#0dc5c1",
-        text = "Connecting to Database... Please wait."
-      )
+      if (nrow(file_selected) > 0) {
 
-      tryCatch({
-        db_path <- as.character(file_load()$datapath)
+        shinybusy::show_modal_spinner(
+          spin = "fading-circle",
+          color = "#0dc5c1",
+          text = "Connecting to Database... Please wait."
+        )
+
+        tryCatch({
+          # Extract file path
+          db_path <- as.character(file_selected$datapath)
 
         if (!file.exists(db_path)) {
           shinyWidgets::show_toast("Error: Database file not found", type = "error")
@@ -495,6 +477,7 @@ mod_variant_discovery_server <- function(id) {
       }, finally = {
         shinybusy::remove_modal_spinner()
       })
+      }
     })
 
 
