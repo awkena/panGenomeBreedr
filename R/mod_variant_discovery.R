@@ -210,7 +210,7 @@ mod_variant_discovery_ui <- function(id) {
 
   # Query Action Card Component
   query_action_card <- function(ns) {
-    bslib::card(
+    bslib::card(id = ns('impact_card'),
       bslib::card_header(tags$strong("Filter Putative Causal Variants")),
       # Input widget for Impact levels
       selectInput(
@@ -249,6 +249,7 @@ mod_variant_discovery_ui <- function(id) {
     bslib::navset_card_underline(
       id = ns('param_header'),
       sidebar = bslib::sidebar(
+        id = ns('db_sidebar'),
         width = 350,
         title = "Database Connection",
         status = "primary",
@@ -430,6 +431,7 @@ mod_variant_discovery_server <- function(id) {
 
     # Connect to database
     observeEvent(input$connect_btn, {
+      shinyjs::hide(id = 'impact_card') # hide query impact card
       file_selected <- shinyFiles::parseFilePaths(volumes, input$connect_btn)
 
       if (nrow(file_selected) > 0) {
@@ -795,6 +797,10 @@ mod_variant_discovery_server <- function(id) {
           showCloseButton = TRUE,
           timer = 5000
         )
+
+        #show impact query card.
+        shinyjs::show(id = 'impact_card')
+
       }, error = function(e) {
         shinyWidgets::show_alert(
           title = "Failed!",
@@ -876,23 +882,36 @@ mod_variant_discovery_server <- function(id) {
     observeEvent(input$set_genocod_btn, {
       req(input$chrom, input$start, input$end)
       removeModal()
+      tryCatch({
+        values$result <- list(
+          chrom = input$chrom,
+          start = input$start,
+          end = input$end
+        )
 
-      values$result <- list(
-        chrom = input$chrom,
-        start = input$start,
-        end = input$end
-      )
+        shinyWidgets::show_alert(
+          title = "Gene Coordinates Set",
+          text = sprintf(
+            "Chromosome: %s | Start: %d | End: %d",
+            input$chrom, input$start, input$end
+          ),
+          type = "success",
+          showCloseButton = TRUE,
+          timer = 5000
+        )
 
-      shinyWidgets::show_alert(
-        title = "Gene Coordinates Set",
-        text = sprintf(
-          "Chromosome: %s | Start: %d | End: %d",
-          input$chrom, input$start, input$end
-        ),
-        type = "success",
-        showCloseButton = TRUE,
-        timer = 5000
-      )
+        #show impact query card.
+        shinyjs::show(id = 'impact_card')
+
+
+      },error = function(e){
+          shinyWidgets::show_alert(
+            title = "Error Setting Coordinates",
+            text  =  e$message,
+            type  = "error",
+            showCloseButton = TRUE
+          )
+      })
     })
 
 
@@ -1189,9 +1208,10 @@ mod_variant_discovery_server <- function(id) {
 
     # Design Kasp marker within variant discovery.
     #----------------------------------------------
-    # Show modal window when user decides to design kasp Marker.
     observeEvent(input$push_1, {
       req(values$query_geno_react)
+
+     bslib::sidebar_toggle(id = 'db_sidebar',open = 'closed')# hide sidebar
 
      updateTabsetPanel(inputId = 'param_header',selected = "mark_design")
       updateSelectizeInput(
@@ -1206,6 +1226,8 @@ mod_variant_discovery_server <- function(id) {
     # When back button is clicked, go back to query panel
     observeEvent(input$go_back,{
       updateTabsetPanel(inputId = 'param_header',selected = 'query_tab')
+
+      bslib::sidebar_toggle(id = 'db_sidebar',open = 'open') # show side bar
     })
 
     # Server Side of kasp marker design
