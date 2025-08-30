@@ -30,7 +30,9 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
               height = "100%",
               bslib::card_body(
               bslib::card(
-                bslib::card_header(tags$b('Upload Input Files')),
+                bslib::card_header(tags$b('Upload Input Files'),
+                                   class = 'text-center',
+                                   style = "font-size:18px;"),
                 bslib::card_body(
                   fileInput(
                     inputId = ns("data_id"),
@@ -56,7 +58,9 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                 )
               ),
               bslib::card(
-                bslib::card_header(tags$b('Mapfile Setup')),
+                bslib::card_header(tags$b('Mapfile Setup'),
+                                   class = 'text-center',
+                                   style = "font-size:18px;"),
                 bslib::card_body(
                   radioButtons(
                     inputId = ns("choice"),
@@ -72,7 +76,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                       fileInput(
                         inputId = ns("mapfile"),
                         label = "Upload Map file",
-                        accept = ".csv",
+                        accept = c(".csv",".xlsx",".xls"),
                         width = "100%"
                       ),
                       selectInput(
@@ -104,7 +108,9 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
               ),
 
               bslib::card(
-                bslib::card_header(tags$b('Genotype & Batch Settings')),
+                bslib::card_header(tags$b('Genotype & Batch Settings'),
+                                   class = 'text-center',
+                                   style = "font-size:18px;"),
                 bslib::card_body(
                   # Batch  & genotype settings.
                   selectInput(
@@ -145,7 +151,9 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                 )
               ),
               bslib::card(
-                bslib::card_header(tags$b('Quality Control Switches')),
+                bslib::card_header(tags$b('Quality Control Switches'),
+                                   class = 'text-center',
+                                   style = "font-size:18px;"),
                 bslib::card_body(
                   tagList(
                     bslib::input_switch(
@@ -198,7 +206,10 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                   class = "shadow p",
                   max_height = "850px",
                   height = "100%",
-                  bslib::card_header(tags$b("Heatmap Configuration"), class = "bg-success"),
+                  bslib::card_header(tags$b("Heatmap Configuration"),
+                                     class = "bg-success text-center",
+                                     style = "font-size:18px;"
+                                     ),
                   bslib::card_body(
                     selectInput(
                       inputId = ns("snp_ids"),
@@ -244,7 +255,10 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                   class = "shadow p",
                   max_height = "850px",
                   height = "100%",
-                  bslib::card_header(tags$b("Heatmap Visualization Controls"), class = "bg-info"),
+                  bslib::card_header(tags$b("Heatmap Visualization Controls"),
+                                     class = "bg-info text-center",
+                                     style = "font-size:18px;"
+                                     ),
                   bslib::card_body(
                     fluidRow(
                       # Left Column - 4 widgets
@@ -582,16 +596,12 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     validated_data <- eventReactive(input$data_id, {
       req(input$data_id)
 
-      data <- read.csv(
-        file = input$data_id$datapath,
-        stringsAsFactors = FALSE,
-        colClasses = "character"
-      )
+      data <- read_mapfile(filepath = input$data_id$datapath)
 
       # Validate required column names
       tryCatch({
         check_colnames_validate(data)
-        data  # Return validated data
+        return(data)  # Return validated data
       }, error = function(e) {
         shinyWidgets::show_alert(
           title = "Column Validation Error",
@@ -763,7 +773,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       req(Result(),input$parents, Genotype_names())
       # Locking  parents selection
       values$locked_parents <- input$parents
-      print(Result())
+      #print(Result())
     })
 
     # Get colnames of Mapfile

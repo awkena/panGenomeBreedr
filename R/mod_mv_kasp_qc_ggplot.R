@@ -27,7 +27,8 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                 bslib::card(
                   class = "shadow p",
                   height = "100%",
-                  bslib::card_header(tags$b("Core Data Mapping"), class = "bg-primary"),
+                  bslib::card_header(tags$b("Core Data Mapping"),
+                                     class = "bg-primary text-center", style = "font-size:18px;"),
                   bslib::card_body(
                     selectInput(
                       inputId = ns("well_id"),
@@ -76,7 +77,8 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                 bslib::card(
                   class = "shadow p",
                   height = "100%",
-                  bslib::card_header(tags$b("Quality Thresholds"), class = "bg-danger"),
+                  bslib::card_header(tags$b("Quality Thresholds"),
+                                     class = "bg-danger text-center", style = "font-size:18px;"),
                   bslib::card_body(
                     textInput(
                       inputId = ns("group_unknown"),
@@ -118,7 +120,8 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                 bslib::card(
                   class = "shadow p",
                   height = "100%",
-                  bslib::card_header(tags$b("Visualization Parameters"), class = "bg-info"),
+                  bslib::card_header(tags$b("Visualization Parameters"),
+                                     class = "bg-info text-center",style = "font-size:18px;"),
                   bslib::card_body(
                     selectInput(
                       inputId = ns("scale"),
@@ -161,7 +164,9 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                 bslib::card(
                   class = "shadow p",
                   height = "100%",
-                  bslib::card_header(tags$b("Aesthetic Controls"), class = "bg-success"),
+                  bslib::card_header(tags$b("Aesthetic Controls"),
+                                     class = "bg-success text-center",
+                                     style = "font-size:18px;"),
                   bslib::card_body(
                     selectInput(
                       inputId = ns("pred_col_id"),

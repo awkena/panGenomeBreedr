@@ -16,14 +16,17 @@ mod_kasp_marker_design_ui <- function(id) {
   tagList(
     bslib::layout_sidebar(
       sidebar = bslib::sidebar(
-        title = "KASP Marker Design Parameters",
+        title = h4(tags$b("KASP Marker Design Parameters")),
         width = 400,
 
         #-----------------------------------
         # File Uploads Card
         #-----------------------------------
         bslib::card(
-          bslib::card_header(tags$b("File Uploads")),
+          bslib::card_header(tags$b("File Uploads"),
+                             class = 'text-center',
+                             style = "font-size:18px;"
+                             ),
           fileInput(ns("genome_file"),
             label = "Genome File (.fa, .fasta, .gz)",
             accept = c(".fa", ".fasta", ".gz")
@@ -40,7 +43,8 @@ mod_kasp_marker_design_ui <- function(id) {
         # Column Mapping Card
         #---------------------------------
         bslib::card(
-          bslib::card_header(tags$b("Column Mapping")),
+          bslib::card_header(tags$b("Column Mapping"),
+                             class = 'text-center',style = "font-size:20px;"),
           selectizeInput(ns("variant_id_col"),
             label = "Variant IDs Column",
             choices = NULL
@@ -70,7 +74,9 @@ mod_kasp_marker_design_ui <- function(id) {
         # Marker Selection Card
         #----------------------------------
         bslib::card(
-          bslib::card_header(tags$b("Marker Selection")),
+          bslib::card_header(tags$b("Marker Selection") ,
+                             class = 'text-center',
+                             style = "font-size:18px;"),
           selectizeInput(ns("chr_ID"),
 
             label = "Chromosome ID",
@@ -91,7 +97,10 @@ mod_kasp_marker_design_ui <- function(id) {
         # Analysis Parameters Card
         #-----------------------------------
         bslib::card(
-          bslib::card_header(tags$b("Analysis Parameters")),
+          bslib::card_header(tags$b("Analysis Parameters"),
+                             class = 'text-center',
+                             style = "font-size:18px;"
+                             ),
           numericInput(ns("maf"),
             label = "Minor Allele Frequency (MAF)",
             value = 0.05, min = 0, max = 1

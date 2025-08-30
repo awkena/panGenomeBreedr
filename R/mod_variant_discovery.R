@@ -159,7 +159,10 @@ mod_variant_discovery_ui <- function(id) {
     # Card for genotype cordinate management and database query.
     bslib::card(
        class = "shadow p",
-      bslib::card_header(tags$strong("Set Genomic Region & Query Database")),
+      bslib::card_header(tags$strong("Set Genomic Region & Query Database"),
+                         class = 'text-center',
+                         style = "font-size:18px;"
+                         ),
       tagList(
         div(
           style = "display: flex; justify-content: center;",
@@ -212,7 +215,9 @@ mod_variant_discovery_ui <- function(id) {
   # Query Action Card Component
   query_action_card <- function(ns) {
     bslib::card(id = ns('impact_card'), class = "shadow p",
-      bslib::card_header(tags$strong("Filter Putative Causal Variants")),
+      bslib::card_header(tags$b("Filter Putative Causal Variants"),
+                         class = 'text-center',
+                         style = "font-size:18px;"),
       # Input widget for Impact levels
       selectInput(
         inputId = ns("impact_level"), label = "Impact Level",

@@ -28,7 +28,10 @@ mod_ds_marker_ass_bac_ui <- function(id) {
               height = "100%",
               bslib::card_body(
                 bslib::card(
-                  bslib::card_header(tags$b('Upload Input Files')),
+                  bslib::card_header(tags$b("Upload Input Files"),
+                    class = "text-center",
+                    style = "font-size:18px;"
+                  ),
                   bslib::card_body(
                     fileInput(
                       inputId = ns("data_id"),
@@ -54,7 +57,10 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                   )
                 ),
                 bslib::card(
-                  bslib::card_header(tags$b('Mapfile Setup')),
+                  bslib::card_header(tags$b("Mapfile Setup"),
+                    class = "text-center",
+                    style = "font-size:18px;"
+                  ),
                   bslib::card_body(
                     radioButtons(
                       inputId = ns("choice"),
@@ -70,7 +76,7 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                         fileInput(
                           inputId = ns("mapfile"),
                           label = "Upload Map file",
-                          accept = ".csv",
+                          accept = c(".csv", ".xlsx", ".xls"),
                           width = "100%"
                         ),
                         selectInput(
@@ -100,9 +106,11 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                     )
                   )
                 ),
-
                 bslib::card(
-                  bslib::card_header(tags$b('Genotype & Batch Settings')),
+                  bslib::card_header(tags$b("Genotype & Batch Settings"),
+                    class = "text-center",
+                    style = "font-size:18px;"
+                  ),
                   bslib::card_body(
                     # Batch  & genotype settings.
                     selectInput(
@@ -143,7 +151,10 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                 )
               ),
               bslib::card(
-                bslib::card_header(tags$b('Quality Control Switches')),
+                bslib::card_header(tags$b("Quality Control Switches"),
+                  class = "text-center",
+                  style = "font-size:18px;"
+                ),
                 bslib::card_body(
                   tagList(
                     bslib::input_switch(
@@ -175,7 +186,7 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                   label = "Submit",
                   icon = icon("check"),
                   width = "100%",
-                  #class = "btn-info"
+                  # class = "btn-info"
                   style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
                   `onmouseover` = "this.style.backgroundColor='#145214'",
                   `onmouseout` = "this.style.backgroundColor='forestgreen'"
@@ -196,7 +207,10 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                   class = "shadow p",
                   max_height = "600px",
                   height = "100%",
-                  bslib::card_header(tags$b("RPP Calculation Settings for BC Progenies"), class = "bg-success"),
+                  bslib::card_header(tags$b("BC Progeny RPP Setup"),
+                    class = "bg-success text-center",
+                    style = "font-size:18px;"
+                  ),
                   bslib::card_body(
                     selectInput(
                       inputId = ns("snp_ids"),
@@ -263,7 +277,10 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                   class = "shadow p",
                   max_height = "600px",
                   height = "100%",
-                  bslib::card_header(tags$b("BC Progenies RPP Plot Settings"), class = "bg-info"),
+                  bslib::card_header(tags$b("BC Progenies RPP Plot Settings"),
+                    class = "bg-info text-center",
+                    style = "font-size:18px;"
+                  ),
                   bslib::card_body(
                     fluidRow(
                       # Left Column - 4 widgets
@@ -362,7 +379,6 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                 )
               )
             )
-
           ),
 
           # Results Section
@@ -375,22 +391,13 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                   icon = icon("chart-line"),
                   bslib::navset_card_tab(
                     bslib::nav_panel(
-                      title = "Computed RPP Values",
-                      icon = icon("th"),
-                      DT::DTOutput(
-                        outputId = ns("comp_rpp_val"),
-                        width = "100%",
-                        height = "600px"
-                      )
-                    ),
-                    bslib::nav_panel(
                       title = "RPP Barplot",
                       icon = icon("tags"),
-                          plotOutput(
-                            outputId = ns("rpp_bar"),
-                            width = "100%",
-                            height = "600px"
-                          ),
+                      plotOutput(
+                        outputId = ns("rpp_bar"),
+                        width = "100%",
+                        height = "600px"
+                      ),
                       bslib::card(card_footer(
                         fluidRow(
                           column(
@@ -422,7 +429,15 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                           label = "Download Plot", class = "btn-success"
                         )
                       ))
-
+                    ),
+                    bslib::nav_panel(
+                      title = "Computed RPP Values",
+                      icon = icon("th"),
+                      DT::DTOutput(
+                        outputId = ns("comp_rpp_val"),
+                        width = "100%",
+                        height = "600px"
+                      )
                     )
                   )
                 )
@@ -494,15 +509,13 @@ mod_ds_marker_ass_bac_server <- function(id) {
                 tags$li("Chromosome number immediately after the prefix (e.g. ", tags$b("1"), ")."),
                 tags$li("A separator character (e.g. ", tags$b("_"), ")."),
                 tags$li("Position number after the separator (e.g. ", tags$b("101"), ").")
-              )
-              ,
+              ),
               p(
                 "Example: ", tags$b("S1_101"),
                 ".Where ", tags$b("S"), " is the prefix, ",
                 tags$b("1"), " is the chromosome number, and ",
                 tags$b("101"), " is the position."
               )
-
             ),
             easyClose = FALSE,
             footer = modalButton("Got it!")
@@ -515,24 +528,27 @@ mod_ds_marker_ass_bac_server <- function(id) {
     # Read the csv file uploadeed.
     data <- reactive({
       req(input$data_id)
-      read.csv(file = input$data_id$datapath,stringsAsFactors = FALSE, colClasses="character") |> as.data.frame()
+      read_mapfile(filepath = input$data_id$datapath)
     })
 
 
     validated_data <- reactive({
       req(data())
 
-      tryCatch({
-        check_colnames_validate(data())
-        data() # Return the data if validation passes
-      }, error = function(e) {
-        shinyWidgets::show_alert(
-          title = "Column Validation Error",
-          text = e$message,
-          type = "error"
-        )
-        NULL # Return NULL if validation fails
-      })
+      tryCatch(
+        {
+          check_colnames_validate(data())
+          data() # Return the data if validation passes
+        },
+        error = function(e) {
+          shinyWidgets::show_alert(
+            title = "Column Validation Error",
+            text = e$message,
+            type = "error"
+          )
+          NULL # Return NULL if validation fails
+        }
+      )
     })
 
 
@@ -545,23 +561,21 @@ mod_ds_marker_ass_bac_server <- function(id) {
     # Populate batch and genotype columns with data colnames
     observe({
       updateSelectInput(session,
-                        inputId = "batch_col",
-                        choices = data_colnames(),
-                        selected = grep("batch",
-                                        x = data_colnames(),
-                                        ignore.case = TRUE,
-                                        value = TRUE
-                        )[1]
+        inputId = "batch_col",
+        choices = data_colnames(),
+        selected = safe_grep_match(
+          pattern = "batch",
+          choices = data_colnames()
+        )
       )
 
       updateSelectInput(session,
-                        inputId = "genotype_col",
-                        choices = data_colnames(),
-                        selected = grep("genotype",
-                                        x = data_colnames(),
-                                        ignore.case = TRUE,
-                                        value = TRUE
-                        )[1]
+        inputId = "genotype_col",
+        choices = data_colnames(),
+        selected = safe_grep_match(
+          pattern = "genotype",
+          choices = data_colnames()
+        )
       )
     })
 
@@ -578,51 +592,54 @@ mod_ds_marker_ass_bac_server <- function(id) {
     observe({
       req(uniq_batch())
       updateSelectInput(session,
-                        inputId = "batch",
-                        choices = uniq_batch(),
-                        selected = uniq_batch()[1]
+        inputId = "batch",
+        choices = uniq_batch(),
+        selected = uniq_batch()[1]
       )
     })
 
     # Get genotypes and populate for parents.
     Genotype_names <- reactive({
       req(input$batch, validated_data())
-      Genotypes_user(data = validated_data(), Batch = input$batch )
+      Genotypes_user(data = validated_data(), Batch = input$batch)
     })
 
     observe({
       req(Genotype_names())
-      updateSelectInput(session, inputId = "dp",
-                        choices = Genotype_names())
-
-      updateSelectInput(session, inputId = "rp",
-                        choices = Genotype_names(),
-                        selected = Genotype_names()[3])
-
       updateSelectInput(session,
-                        inputId = "parents",
-                        choices = Genotype_names(),
-                        selected = Genotype_names()[c(1, 3)]
+        inputId = "dp",
+        choices = Genotype_names()
       )
 
+      updateSelectInput(session,
+        inputId = "rp",
+        choices = Genotype_names(),
+        selected = Genotype_names()[3]
+      )
+
+      updateSelectInput(session,
+        inputId = "parents",
+        choices = Genotype_names(),
+        selected = Genotype_names()[c(1, 3)]
+      )
     })
 
     # Read map file if user has.
     map_file <- reactive({
       req(input$mapfile)
       read_mapfile(filepath = input$mapfile$datapath)
-
     })
 
     # Populate field for snp id column based on mapfile
     observe({
       req(map_file())
       updateSelectInput(session,
-                        inputId = "snp_id",
-                        choices = colnames(map_file()),
-                        selected = grep("id",
-                                        x = colnames(map_file()), ignore.case = TRUE,
-                                        value = TRUE)[1]
+        inputId = "snp_id",
+        choices = colnames(map_file()),
+        selected = safe_grep_match(
+          pattern = "snp",
+          choices = colnames(map_file())
+        )
       )
     })
 
@@ -641,6 +658,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
         color = "#0dc5c1",
         text = "Getting results... Please wait."
       )
+
 
       result <- tryCatch({
         proc_nd_map_func(
@@ -663,11 +681,11 @@ mod_ds_marker_ass_bac_server <- function(id) {
           feedback = input$choice,
           na_code = NA,
           data_col = data_colnames(),
-          mapfile_path = if (!is.null(map_file())) map_file() else NULL
+          mapfile_path = if (input$choice == "yes") map_file() else NULL
         )
       }, error = function(e) {
         shinyWidgets::show_alert(
-          title = 'Error',
+          title = "Error",
           text = paste("An error occurred while processing the data:", e$message),
           type = "error"
         )
@@ -678,7 +696,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
         })
       })
 
-      result
+      return(result)
     })
 
 
@@ -704,34 +722,33 @@ mod_ds_marker_ass_bac_server <- function(id) {
 
       # Update SNP ID selection
       updateSelectInput(session,
-                        inputId = "snp_ids",
-                        choices = map_file_col(),
-                        selected = grep(
-                          pattern = "id", x = map_file_col(),
-                          ignore.case = TRUE, value = TRUE
-                        )[1]
+        inputId = "snp_ids",
+        choices = map_file_col(),
+        selected = safe_grep_match(
+          pattern = "snp",
+          choices = map_file_col()
+        )
       )
 
       # Update Chromosome selection
       updateSelectInput(session,
-                        inputId = "chr",
-                        choices = map_file_col(),
-                        selected = grep(
-                          pattern = "chr", x = map_file_col(),
-                          ignore.case = TRUE, value = TRUE
-                        )[1]
+        inputId = "chr",
+        choices = map_file_col(),
+        selected = safe_grep_match(
+          pattern = "chr",
+          choices = map_file_col()
+        )
       )
 
       # Update Position selection
       updateSelectInput(session,
-                        inputId = "chr_pos",
-                        choices = map_file_col(),
-                        selected = grep(
-                          pattern = "pos", x = map_file_col(),
-                          ignore.case = TRUE, value = TRUE
-                        )[1]
+        inputId = "chr_pos",
+        choices = map_file_col(),
+        selected = safe_grep_match(
+          pattern = "pos",
+          choices = map_file_col()
+        )
       )
-
     })
 
     # calculate recurrent parent
@@ -768,20 +785,18 @@ mod_ds_marker_ass_bac_server <- function(id) {
       updateSelectInput(session,
         inputId = "rpp_col",
         choices = colnames(calc_rpp_bc_result()),
-        selected = grep("total_rpp",
-          x = colnames(calc_rpp_bc_result()),
-          ignore.case = TRUE,
-          value = TRUE
+        selected = safe_grep_match(
+          pattern = "total_rpp",
+          choices = colnames(calc_rpp_bc_result())
         )
       )
 
       updateSelectInput(session,
         inputId = "rpp_sample_id",
         choices = colnames(calc_rpp_bc_result()),
-        selected = grep("sample_id",
-          x = colnames(calc_rpp_bc_result()),
-          ignore.case = TRUE,
-          value = TRUE
+        selected = safe_grep_match(
+          pattern = "sample_id",
+          choices = colnames(calc_rpp_bc_result())
         )
       )
     })
@@ -809,7 +824,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
             bar_col = input$bar_col,
             thresh_line_col = input$thresh_line_col,
             show_above_thresh = input$show_above_thresh,
-            bc_gen = if(is.null(input$bc_gen)) NULL else input$bc_gen,
+            bc_gen = if (is.null(input$bc_gen)) NULL else input$bc_gen,
             pdf = FALSE
           )
         },
@@ -823,32 +838,31 @@ mod_ds_marker_ass_bac_server <- function(id) {
 
     # plot it.
     output$rpp_bar <- renderPlot({
+      tryCatch(
+        {
+          plot_obj <- rpp_barplot_result()
+          req(plot_obj)
 
-      tryCatch({
-        plot_obj <- rpp_barplot_result()
-        req(plot_obj)
-
-        if (inherits(plot_obj, "ggplot")) {
-          print(plot_obj)
-          shinyWidgets::show_toast(
-            title = 'Success',
-            text = 'Plot rendered successfully',
-            type = "success"
+          if (inherits(plot_obj, "ggplot")) {
+            print(plot_obj)
+            shinyWidgets::show_toast(
+              title = "Success",
+              text = "Plot rendered successfully",
+              type = "success"
+            )
+          } else {
+            plot_obj
+          }
+        },
+        error = function(e) {
+          return(NULL)
+          shinyWidgets::show_alert(
+            title = "Error",
+            text = paste("An error occurred while generating plot", e$message),
+            type = "error"
           )
-        } else {
-
-          plot_obj
         }
-
-      }, error = function(e) {
-        return(NULL)
-        shinyWidgets::show_alert(
-          title = 'Error',
-          text = paste("An error occurred while generating plot", e$message),
-          type = "error"
-        )
-      })
-
+      )
     })
 
 
@@ -862,25 +876,28 @@ mod_ds_marker_ass_bac_server <- function(id) {
       content = function(file) {
         req(rpp_barplot_result())
 
-        tryCatch({
-          grDevices::pdf(file,
-                         width = input$width2,
-                         height = input$height2,
-                         onefile = FALSE)
+        tryCatch(
+          {
+            grDevices::pdf(file,
+              width = input$width2,
+              height = input$height2,
+              onefile = FALSE
+            )
 
-          # Just print the single plot
-          print(rpp_barplot_result())
+            # Just print the single plot
+            print(rpp_barplot_result())
 
-          grDevices::dev.off()
-        },
-        error = function(e) {
-          shinyWidgets::show_toast(
-            title = 'Error',
-            type = "error",
-            text = paste("Download failed:", e$message),
-            timer = 5000
-          )
-        })
+            grDevices::dev.off()
+          },
+          error = function(e) {
+            shinyWidgets::show_toast(
+              title = "Error",
+              type = "error",
+              text = paste("Download failed:", e$message),
+              timer = 5000
+            )
+          }
+        )
       }
     )
 
@@ -905,9 +922,6 @@ mod_ds_marker_ass_bac_server <- function(id) {
       req(Result())
       DT::datatable(Result()$parent_het, options = list(scrollX = TRUE))
     })
-
-    # # find_unexpected homo.
-    # panGenomeBreedr::find_unexp_homs()
   })
 }
 

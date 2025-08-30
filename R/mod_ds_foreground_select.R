@@ -17,7 +17,10 @@ mod_ds_foreground_select_ui <- function(id) {
         bslib::layout_sidebar(
           sidebar = bslib::sidebar(width = '350px',
          bslib::card(
-           bslib::card_header('Set Parameters'),
+           bslib::card_header(tags$b('Input Parameters'),
+                              class = 'text-center',
+                              style = 'font-size:18px;'
+                              ),
            bslib::card_body(
              fileInput(inputId = ns("geno_data"),
                        label = "Upload Genotypic Data (geno)",
