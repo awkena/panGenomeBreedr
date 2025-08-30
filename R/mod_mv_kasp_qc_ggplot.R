@@ -25,6 +25,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
               column(
                 width = 3,
                 bslib::card(
+                  class = "shadow p",
                   height = "100%",
                   bslib::card_header(tags$b("Core Data Mapping"), class = "bg-primary"),
                   bslib::card_body(
@@ -73,6 +74,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
               column(
                 width = 3,
                 bslib::card(
+                  class = "shadow p",
                   height = "100%",
                   bslib::card_header(tags$b("Quality Thresholds"), class = "bg-danger"),
                   bslib::card_body(
@@ -114,6 +116,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
               column(
                 width = 3,
                 bslib::card(
+                  class = "shadow p",
                   height = "100%",
                   bslib::card_header(tags$b("Visualization Parameters"), class = "bg-info"),
                   bslib::card_body(
@@ -156,6 +159,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
               column(
                 width = 3,
                 bslib::card(
+                  class = "shadow p",
                   height = "100%",
                   bslib::card_header(tags$b("Aesthetic Controls"), class = "bg-success"),
                   bslib::card_body(

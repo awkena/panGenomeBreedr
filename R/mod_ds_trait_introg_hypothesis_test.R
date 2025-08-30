@@ -195,6 +195,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
               column(
                 width = 4,
                 bslib::card(
+                  class = "shadow p",
                   max_height = "850px",
                   height = "100%",
                   bslib::card_header(tags$b("Heatmap Configuration"), class = "bg-success"),
@@ -240,6 +241,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
               column(
                 width = 8,
                 bslib::card(
+                  class = "shadow p",
                   max_height = "850px",
                   height = "100%",
                   bslib::card_header(tags$b("Heatmap Visualization Controls"), class = "bg-info"),

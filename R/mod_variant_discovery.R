@@ -158,6 +158,7 @@ mod_variant_discovery_ui <- function(id) {
   query_database_card <- function(ns) {
     # Card for genotype cordinate management and database query.
     bslib::card(
+       class = "shadow p",
       bslib::card_header(tags$strong("Set Genomic Region & Query Database")),
       tagList(
         div(
@@ -210,7 +211,7 @@ mod_variant_discovery_ui <- function(id) {
 
   # Query Action Card Component
   query_action_card <- function(ns) {
-    bslib::card(id = ns('impact_card'),
+    bslib::card(id = ns('impact_card'), class = "shadow p",
       bslib::card_header(tags$strong("Filter Putative Causal Variants")),
       # Input widget for Impact levels
       selectInput(
@@ -278,7 +279,7 @@ mod_variant_discovery_ui <- function(id) {
           fluidRow(
             column(
               width = 4,
-              bslib::card(
+              bslib::card( class = "shadow p",
                 # bslib::card_header(
                 #   h4(tags$b("Input Parameters"))
                 #
@@ -714,6 +715,7 @@ mod_variant_discovery_server <- function(id) {
             )
           ),
           bslib::card(
+             class = "shadow p",
             # bslib::card_header("Gene Parameters"),
             textInput(
               inputId = ns("gene_name"), label = "Gene Name (Sobic ID)",
@@ -835,6 +837,7 @@ mod_variant_discovery_server <- function(id) {
           ),
           tagList(
             bslib::card(
+               class = "shadow p",
               textInput(
                 inputId = ns("chrom"),
                 label = "Chromosome",

@@ -136,8 +136,7 @@ mod_ds_foreground_select_ui <- function(id) {
 
 
                 bslib::card(
-                  #     height = '500px',
-                 # bslib::card_header(tags$b("Findlines")),
+                  class = "shadow p",
                   bslib::card_body(
                     fluidRow(
 

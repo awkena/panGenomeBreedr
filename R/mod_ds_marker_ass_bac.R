@@ -193,6 +193,7 @@ mod_ds_marker_ass_bac_ui <- function(id) {
               column(
                 width = 4,
                 bslib::card(
+                  class = "shadow p",
                   max_height = "600px",
                   height = "100%",
                   bslib::card_header(tags$b("RPP Calculation Settings for BC Progenies"), class = "bg-success"),
@@ -259,6 +260,7 @@ mod_ds_marker_ass_bac_ui <- function(id) {
               column(
                 width = 8,
                 bslib::card(
+                  class = "shadow p",
                   max_height = "600px",
                   height = "100%",
                   bslib::card_header(tags$b("BC Progenies RPP Plot Settings"), class = "bg-info"),
