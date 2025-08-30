@@ -480,7 +480,7 @@ read_mapfile <- function(filepath) {
 
   # Read according to file type
   if (file_ext == "csv") {
-    data <- read.csv(file = filepath,col.names = c('character'), stringsAsFactors = FALSE)
+    data <- read.csv(file = filepath, stringsAsFactors = FALSE)
   } else if (file_ext %in% c("xlsx", "xls")) {
     data <- readxl::read_excel(path = filepath,.name_repair = 'minimal')
   } else {
@@ -699,7 +699,18 @@ proc_nd_map_func <- function(data = NULL,
   } else if (feedback == "yes") {
     # User provides mapfile manually
     mapfile <- mapfile_path
+    # get colnumn for mapfile
+    snp_colname <- safe_grep_match(pattern = 'snp', colnames(mapfile))
 
+    # Filter out unneeded  snip_ids
+    # mapfile <- mapfile[mapfile[[snp_colname]] %in% colnames(processed_data),]
+    # Keep only SNPs present in BOTH data and mapfile, in the same order
+    common_snps <- intersect(mapfile[[snp_colname]], colnames(processed_data))
+
+    # subset mapfile to common_snps and preserve order of processed_data
+    mapfile <- mapfile[match(common_snps, mapfile[[snp_colname]]), ]
+
+    processed_data <- processed_data[, common_snps, drop = FALSE]
     # Process and numeric code the data
     proc_kasp_f <- proc_kasp(
       x = processed_data,
@@ -1071,9 +1082,9 @@ read_vcf_as_df <- function(vcf_file) {
 safe_grep_match <- function(pattern, choices) {
   if (length(choices) == 0) return(NULL)
 
-  matches <- grep(pattern, choices, ignore.case = TRUE)
+  matches <- grep(pattern, choices, ignore.case = TRUE,value = TRUE)
   if (length(matches) > 0) {
-    return(choices[matches[1]])
+    return(matches)
   }else{
     return(choices[[1]])
   }
