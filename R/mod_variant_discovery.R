@@ -744,7 +744,10 @@ mod_variant_discovery_server <- function(id) {
               condition = paste0("input['", ns("input_method"), "'] === 'file'"),
               fileInput(
                 inputId = ns("gff_file"), label = "Upload GFF File",
-                accept = c(".gff3", ".gff", ".gff3.gz", ".gff.gz"), width = "100%"
+                accept = c(
+                  ".gff3", ".gff", ".gff3.gz", ".gff.gz",
+                  "application/gzip", "application/x-gzip"
+                ), width = "100%"
               )
             ),
             bslib::card_footer(
