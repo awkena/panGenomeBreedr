@@ -65,7 +65,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                   radioButtons(
                     inputId = ns("choice"),
                     label = "Do you have a map file?",
-                    choices = c("Yes" = "yes", "No, generate one for me" = "no"),
+                    choices = c("Yes" = "yes", "Generate one" = "no"),
                     selected = "yes"
                   ),
 
@@ -440,31 +440,31 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                         condition = paste0("input['", ns("choices"), "'] == 'antt'"),
                         nav_panel(
                           title = "Annotation",
-                          actionButton(
-                            inputId = ns("newBtn"),
-                            label = "Create Trait Positions",
-                            icon = icon("plus-circle"),
-                            #class = "btn-primary mb-3",
-                            width = '30%',
-                            style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
-                            `onmouseover` = "this.style.backgroundColor='#145214'",
-                            `onmouseout` = "this.style.backgroundColor='forestgreen'"
-                          ),
-                          radioButtons(
-                            inputId = ns("options"),
-                            label = "View Heatmap Options",
-                            choices = c(
-                              "Options 1" = "1",
-                              "Options 2" = "2"
+                          div(
+                            style = "display: flex; align-items: center; gap: 20px; flex-wrap: wrap;",
+                            actionButton(
+                              inputId = ns("newBtn"),
+                              label = "Set Trait Positions",
+                              icon = icon("plus-circle"),
+                              style = "background-color: forestgreen; color: white; font-weight: bold; border: none; flex-shrink: 0;",
+                              `onmouseover` = "this.style.backgroundColor='#145214'",
+                              `onmouseout` = "this.style.backgroundColor='forestgreen'"
                             ),
-                            selected = "1",
-                            inline = TRUE,
-                            width = "500px"
+                            radioButtons(
+                              inputId = ns("options"),
+                              label = "",
+                              choices = c(
+                                "Box Annotation" = "1",
+                                "Line Annotation" = "2"
+                              ),
+                              selected = "1",
+                              inline = TRUE
+                            )
                           ),
                           plotOutput(
                             outputId = ns("ant_heatmap"),
                             width = "100%",
-                            height = "600px"
+                            height = "700px"
                           ),
                           bslib::card(card_footer(
                             fluidRow(
@@ -752,6 +752,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
           data_col = data_colnames(),
           mapfile_path = if (!is.null(map_file())) map_file() else NULL
         )
+
       }, error = function(e) {
         shinyWidgets::show_alert(
           title = 'Error',
@@ -883,9 +884,9 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             pdf = FALSE
           )
         }, error = function(e) {
-          message(e$message)
           return(NULL)
-          shinyWidgets::show_toast(title = 'Error',type = 'error',text = NULL)
+          shinyWidgets::show_toast(title = '',type = 'error',
+                                   text = e$message)
         })
 
 
@@ -907,8 +908,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             pdf = FALSE
           )
         }, error = function(e) {
-          message(e$message)
-          shinyWidgets::show_toast(title = 'Error',type = 'error',text = NULL)
+          shinyWidgets::show_toast(title = '',type = 'error',text = e$message)
           return(NULL)
         })
 
@@ -941,11 +941,14 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
         if (inherits(plot_obj, "ggplot")) {
           print(plot_obj)
-          shinyWidgets::show_toast(
-            title = 'Success',
-            text = 'Plot rendered successfully',
-            type = "success"
-          )
+       shinyjs::delay(ms = 1500,{
+         shinyWidgets::show_toast(
+           title = '',
+           text = 'Heatmap Generated Successfully',
+           type = "success"
+         )
+       })
+
         } else {
 
           plot_obj
@@ -991,7 +994,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
           },
           error = function(e) {
             shinyWidgets::show_toast(
-              title = 'error' ,
+              title = '' ,
               type = "error",
               text = paste("Download failed:", e$message),
               timer = 5000
@@ -1300,17 +1303,32 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
 
     # Display annotated.
-    observe({
+    output$ant_heatmap <- renderPlot({
       if(input$options == '1'){
-        output$ant_heatmap <- renderPlot({
-          req(annotated())
-          print(annotated())
-        })
+        req(annotated())
+        plot_result <- annotated()
+
+        # Show toast after successful plot generation
+        shinyWidgets::show_toast(
+          title = '',
+          text = 'Box Annotated Heatmap Generated Successfully',
+          type = 'success'
+        )
+
+        print(plot_result)
+
       } else if(input$options == '2'){
-        output$ant_heatmap <- renderPlot({
-          req(annotated_2())
-          print(annotated_2())
-        })
+        req(annotated_2())
+        plot_result <- annotated_2()
+
+        # Show toast after successful plot generation
+        shinyWidgets::show_toast(
+          title = '',
+          text = 'Line Annotated Heatmap Generated Successfully',
+          type = 'success'
+        )
+
+        print(plot_result)
       }
     })
 
@@ -1344,7 +1362,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
           },
           error = function(e) {
             shinyWidgets::show_toast(
-              title = 'error' ,
+              title = '' ,
               type = "error",
               text = paste("Download failed:", e$message),
               timer = 5000
@@ -1375,25 +1393,6 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
         input$legend_title, input$text_size, input$snp_ids, Result()
       )
 
-      # Validate that selected parents still exist in current genotype names
-      # current_genotypes <- Genotype_names()
-      # valid_parents <- values$locked_parents[values$locked_parents %in% current_genotypes]
-
-      # # Ensure we have at least 2 valid parents
-      # if (length(valid_parents) < 2) {
-      #   # Show alert
-      #   shinyWidgets::show_alert(
-      #     title = "Error",
-      #     text = "Select a Recurrent & Donor Parent",
-      #     type = "error"
-      #   )
-      #
-      #   return(NULL)
-      # }
-
-      # Use only the first 2 valid parents
-      # parents_to_use <- valid_parents[1:2]
-
       col_mapping <- input$col_mapping
       col_labels  <- input$col_labels
 
@@ -1420,7 +1419,9 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
           )
         wind_result(result)
         }, error = function(e) {
-         # message("Heatmap generation error: ", e$message)
+          shinyWidgets::show_alert(title = 'Error',
+                                   text = paste("Heatmap generation error: ", e$message),
+                                   type = 'error')
           return(NULL)
         })
 

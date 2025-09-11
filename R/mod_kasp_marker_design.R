@@ -279,7 +279,7 @@ mod_kasp_marker_design_server <- function(id){
           server = TRUE, session, "variant_id_col",
           choices = vcf_colnames(),
           selected = safe_grep_match(pattern = 'id',
-                                     choices = vcf_colnames())
+                                     choices = vcf_colnames())[1]
         )
 
         updateSelectizeInput(
