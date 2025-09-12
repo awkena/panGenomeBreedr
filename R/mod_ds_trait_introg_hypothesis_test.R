@@ -294,7 +294,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                         numericInput(
                           inputId = ns("text_scale_fct"),
                           label = "Text Scaling Size",
-                          value = 0.18,
+                          value = 0.22,
                           min = 0.1,
                           max = 1
                         )
@@ -347,7 +347,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
           fluidRow(
             column(
               width = 12,
-              bslib::accordion(
+              bslib::accordion(height = "600px",
                 bslib::accordion_panel(
                   title = "Heatmap Results & Analysis",
                   icon = icon("chart-line"),
@@ -464,7 +464,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                           plotOutput(
                             outputId = ns("ant_heatmap"),
                             width = "100%",
-                            height = "700px"
+                            height = "600px"
                           ),
                           bslib::card(card_footer(
                             fluidRow(
@@ -1183,7 +1183,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             chr_pos = input$chr_pos,
             parents = values$locked_parents[1:2],
             trait_pos = values$trait_data,
-            text_scale_fct = input$text_scale_fct,
+            text_scale_fct = if(input$text_scale_fct <= 0) 0.1 else input$text_scale_fct,
             legend_title = input$legend_title,
             text_size = input$text_size,
             alpha = input$alpha,
@@ -1209,7 +1209,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             chr_pos = input$chr_pos,
             parents = values$locked_parents[1:2],
             trait_pos = values$trait_data,
-            text_scale_fct = input$text_scale_fct,
+            text_scale_fct = if(input$text_scale_fct <= 0) 0.1 else input$text_scale_fct,
             legend_title = input$legend_title,
             text_size = input$text_size,
             alpha = input$alpha,
@@ -1254,7 +1254,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             chr_pos = input$chr_pos,
             parents = values$locked_parents[1:2],
             trait_pos = values$trait_data,
-            text_scale_fct = input$text_scale_fct,
+            text_scale_fct = if(input$text_scale_fct <= 0) 0.1 else input$text_scale_fct,
             legend_title = input$legend_title,
             text_size = input$text_size,
             alpha = input$alpha,
@@ -1281,7 +1281,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
             chr_pos = input$chr_pos,
             parents = values$locked_parents[1:2],
             trait_pos = values$trait_data,
-            text_scale_fct = input$text_scale_fct,
+            text_scale_fct = if(input$text_scale_fct <= 0) 0.1 else input$text_scale_fct,
             legend_title = input$legend_title,
             text_size = input$text_size,
             alpha = input$alpha,
