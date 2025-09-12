@@ -179,7 +179,7 @@ mod_mv_kasp_color_server <- function(id, kasp_data) {
 
       # Show toast.
       shinyWidgets::show_toast(
-        title = "Success!",
+        title = "",
         type = "success",
         text = 'Genotype calls color-coded successfully',
         timer = 2000,

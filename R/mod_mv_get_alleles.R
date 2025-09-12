@@ -124,8 +124,8 @@ mod_mv_get_alleles_server <- function(id, kasp_data) {
 
       # show toast
       shinyWidgets::show_toast(
-        title = "Showing Alleles for",
-        text = input$plates_pres,
+        title = '',
+        text = paste("Showing Alleles for: ",input$plates_pres),
         type = "success",
         timer = 2000,
         position = "bottom-end", width = "30%"

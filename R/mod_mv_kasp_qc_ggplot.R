@@ -495,7 +495,7 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
 
         if (is.null(plot_obj)) {
           shinyWidgets::show_toast(
-            title = "Error",
+            title = "",
             text = "No plot found for selected plate",
             type = "error"
           )
@@ -512,7 +512,7 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
         print(result_plot()[input$plate_choice])
 
         shinyWidgets::show_toast(
-          title = "Success",
+          title = "",
           text = "Plot generated successfully",
           type = "success",
           timer = 2000,
@@ -520,7 +520,7 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
         )
       },error = function(e){
         shinyWidgets::show_toast(
-          title = "Error",
+          title = "",
           text = e$message,
           type = "error",
           timer = 2000,
@@ -595,7 +595,7 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
             },
             error = function(e) {
               shinyWidgets::show_toast(
-                title = "error",
+                title = "",
                 type = "error",
                 text = paste("Download failed:", e$message),
                 timer = 5000

@@ -232,7 +232,7 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
         },
         error = function(e) {
           shinyWidgets::show_toast(
-            title = "Error",
+            title = "",
             text = paste("Error displaying prediction summary:", e$message),
             type = "error",
             timer = 2000,
@@ -319,14 +319,14 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
         print(pred_sum_plot()[[input$SNP_id]])
           # Show success message
       shinyWidgets::show_toast(
-        title = "Success",
+        title = "",
         text = "Plot rendered successfully",
         type = "success",
         timer = 2000
       )
         },error = function(e){
           shinyWidgets::show_toast(
-            title = "Error",
+            title = "",
             text =  'Select 3 Colors for Predictive Plot',
             type = "error",
             timer = 2000

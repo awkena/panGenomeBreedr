@@ -105,7 +105,7 @@ mod_mv_read_kasp_csv_server <- function(id) {
           # Update import data
           import_data(read_kasp_result)
           shinyWidgets::show_toast(
-            title = "Success",
+            title = "",
             text = "Data Imported Successfully",
             type = "success",
             timer = 2000,

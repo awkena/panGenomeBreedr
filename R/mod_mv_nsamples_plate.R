@@ -157,7 +157,7 @@ mod_mv_nsamples_plate_server <- function(id, kasp_data) {
           })
 
           shinyWidgets::show_toast(
-            title = "Success",
+            title = "",
             type = "success",
             text = "Summary statistics rendered successfully",
             timer = 2000,

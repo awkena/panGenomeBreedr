@@ -192,7 +192,7 @@ mod_mv_plate_plot_server <- function(id, kasp_data, color_coded) {
 
       # Show success message only after successful render
       shinyWidgets::show_toast(
-        title = "Success",
+        title = "",
         text = "Plot rendered successfully",
         type = "success",
         timer = 2000
@@ -231,7 +231,7 @@ mod_mv_plate_plot_server <- function(id, kasp_data, color_coded) {
           },
           error = function(e) {
          shinyWidgets::show_toast(
-              title = 'error' ,
+              title = '' ,
               type = "error",
               text = paste("Download failed:", e$message),
               timer = 5000

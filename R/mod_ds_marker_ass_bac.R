@@ -357,21 +357,24 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                           label = "Set Bar Width",
                           value = 0.5,
                           min = 0.1,
-                          width = "100%"
+                          width = "100%",
+                          step = 0.1
                         ),
                         numericInput(
                           inputId = ns("aspect_ratio"),
                           label = "Set Aspect Ratio of Barplot",
                           value = 0.5,
                           min = 0.1,
-                          width = "100%"
+                          width = "100%",
+                          step = 0.1
                         ),
                         numericInput(
                           inputId = ns("text_scale_fct"),
                           label = "Set Text Size Scaling Factor",
                           value = 0.1,
                           min = 0.1,
-                          width = "100%"
+                          width = "100%",
+                          step = 0.1
                         )
                       )
                     )
@@ -845,11 +848,14 @@ mod_ds_marker_ass_bac_server <- function(id) {
 
           if (inherits(plot_obj, "ggplot")) {
             print(plot_obj)
+
+          shinyjs::delay(ms = 1500, {
             shinyWidgets::show_toast(
-              title = "Success",
+              title = "",
               text = "Plot rendered successfully",
               type = "success"
             )
+          })
           } else {
             plot_obj
           }
