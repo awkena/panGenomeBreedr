@@ -155,7 +155,7 @@ mod_mv_read_kasp_csv_server <- function(id) {
       req(add_plates())
       tryCatch(
         DT::datatable(add_plates(),
-          options = list(pageLength = 10, scrollX = TRUE)
+          options = list(pageLength = 5, scrollX = TRUE)
         ),
         error = function(e) {
           return(DT::datatable(data.frame(Message = "Data not available"),
@@ -171,7 +171,7 @@ mod_mv_read_kasp_csv_server <- function(id) {
       req(import_data())
       tryCatch(
         DT::datatable(import_data()$Statistics,
-          options = list(pageLength = 10, scrollX = TRUE)
+          options = list(pageLength = 5, scrollX = TRUE)
         ),
         error = function(e) {
           return(DT::datatable(data.frame(Message = "Statistics not available"),
@@ -186,7 +186,7 @@ mod_mv_read_kasp_csv_server <- function(id) {
       req(import_data())
       tryCatch(
         DT::datatable(import_data()$SNPs,
-          options = list(pageLength = 10, scrollX = TRUE)
+          options = list(pageLength = 5, scrollX = TRUE)
         ),
         error = function(e) {
           return(DT::datatable(data.frame(Message = "SNPs data not available"),
@@ -201,7 +201,7 @@ mod_mv_read_kasp_csv_server <- function(id) {
       req(import_data())
       tryCatch(
         DT::datatable(import_data()$DNA,
-          options = list(pageLength = 10, scrollX = TRUE)
+          options = list(pageLength = 5, scrollX = TRUE)
         ),
         error = function(e) {
           return(DT::datatable(data.frame(Message = "DNA data not available"),
@@ -216,7 +216,7 @@ mod_mv_read_kasp_csv_server <- function(id) {
       req(import_data())
       tryCatch(
         DT::datatable(import_data()$Scaling,
-          options = list(pageLength = 10, scrollX = TRUE)
+          options = list(pageLength = 5, scrollX = TRUE)
         ),
         error = function(e) {
           return(DT::datatable(data.frame(Message = "Scaling data not available"),

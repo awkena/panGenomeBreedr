@@ -55,7 +55,7 @@ app_ui <- function(request) {
         icon = icon("dna"),
         mod_kasp_marker_design_ui("kasp_marker_design_1")
       ),
-      bslib::nav_item(),
+      bslib::nav_item(),# space KASP marker design tab from the rest of the tab
 
       ## Marker validation tab with sub functionalities.
       bslib::nav_panel(
@@ -119,18 +119,8 @@ app_ui <- function(request) {
               )
             )
           )
-          #---Combined with QC plots
-          # # Tab for Plate layout
-          # bslib::nav_panel(
-          #   title = tags$strong("Plate Layout"),
-          #   icon = icon("chart-bar"),
-          #   bslib::card(
-          #     bslib::card_header(h5(tags$b("Plot Plate Design"))),
-          #     mod_mv_plate_plot_ui("mv_plate_plot_1")
-          #   )
-          # )
         )
-      ), bslib::nav_item(),
+      ), bslib::nav_item(),# space marker validation tab from the rest of the tab
 
       ## Trait Introgression Decision Suite
       navbarMenu(
@@ -154,21 +144,20 @@ app_ui <- function(request) {
           title = "Foreground Selection Support",
           mod_ds_foreground_select_ui("ds_foreground_select_1")
         )
-      ),
-      bslib::nav_item(),
-
-      # More tab for other information
-      navbarMenu(
-        title = "More",
-        icon = icon("ellipsis-v"),
-
-        # Tab for issues report
-        bslib::nav_panel(
-          title = "Report Issues",
-        ),
-        # Help tab
-        bslib::nav_panel(title = "Help")
       )
+
+      # # More tab for other information
+      # navbarMenu(
+      #   title = "More",
+      #   icon = icon("ellipsis-v"),
+      #
+      #   # Tab for issues report
+      #   bslib::nav_panel(
+      #     title = "Report Issues",
+      #   ),
+      #   # Help tab
+      #   bslib::nav_panel(title = "Help")
+      # )
     )
   )
 }

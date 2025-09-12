@@ -67,7 +67,7 @@ mod_ds_foreground_select_ui <- function(id) {
           ),
 
           # Main panel.
-          bslib::card(max_height = '700px',
+          bslib::card(max_height = '800px',
             bslib::card_header("Configure UpSet Plot", class = "bg-primary text-white"),
             bslib::card_body(
               fluidRow(
@@ -200,7 +200,7 @@ mod_ds_foreground_select_ui <- function(id) {
           ),
           # Results display section
           bslib::card(
-            max_height = '800px',
+            #max_height = '800px',
             height = "auto",
 
             bslib::card_header(tags$b("Results")),
@@ -208,19 +208,52 @@ mod_ds_foreground_select_ui <- function(id) {
               navset_card_tab(
                 id = ns("results_tabs"),
 
-                # Data Table Tab
-                bslib::nav_panel(
-                  title = "Data Table",
-                  icon = icon("table"),
-                  DT::DTOutput(ns("result_table"), height = '800px')
-                ),
-
                 # Upset Plot Tab
                 bslib::nav_panel(
                   title = "Upset Plot",
                   icon = icon("chart-line"),
                   # Upset Plot Output
-                  plotOutput(ns("result_plot"), height = '800px')
+                  plotOutput(ns("result_plot"), height = '800px'),
+                  # Download plot card widget
+                  bslib::card(card_footer(
+                    fluidRow(
+                      column(
+                        3,
+                        textInput(
+                          inputId = ns("file_name"),
+                          label = "Enter Filename",
+                          value = "Plate layout 1"
+                        )
+                      ),
+                      column(
+                        3,
+                        numericInput(
+                          inputId = ns("width"),
+                          label = "Set Plot Width",
+                          value = 8, min = 1
+                        )
+                      ), column(
+                        3,
+                        numericInput(
+                          inputId = ns("height"),
+                          label = "Set Plot Height",
+                          value = 5, min = 1
+                        )
+                      )
+                    ),
+                    downloadButton(
+                      outputId = ns("download_plot"),
+                      label = "Download Plot", class = "btn-success"
+                    )
+                  ))
+
+                ),
+
+                # Data Table Tab
+                bslib::nav_panel(
+                  title = "Data Table",
+                  icon = icon("table"),
+                  DT::DTOutput(ns("result_table"), height = '800px')
                 )
               )
             )
@@ -310,7 +343,7 @@ mod_ds_foreground_select_server <- function(id){
         )
         return(NULL)
       }, finally = {
-        shinyjs::delay(ms = 2000, {
+        shinyjs::delay(ms = 500, {
           shinybusy::remove_modal_spinner()
         })
       })
@@ -362,19 +395,28 @@ mod_ds_foreground_select_server <- function(id){
     output$result_plot <- renderPlot({
       req(upset_result())
       print(upset_result())
-    })
-
-    # Show toast once plot is ready
-    observeEvent(upset_result(), {
+      # show success toast
       shinyWidgets::show_toast(
-        title = "Plot Ready",
+        title = "",
         text = "Upset plot has been successfully rendered!",
         type = "success",
-        position = "top-end",
+        position = "bottom-end",
         timer = 3000
       )
     })
 
+    # Download handler for the plot as pdf
+    output$download_plot <- downloadHandler(
+      filename = function() {
+        paste("upset_plot", input$file_name, ".pdf", sep = "")
+      },
+      content = function(file) {
+        req(upset_result())
+        pdf(file, width = input$width, height = input$height)  # Adjust dimensions as needed
+        print(upset_result())
+        dev.off()
+      }
+    )
 
     # Update select input
     observe({
