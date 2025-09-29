@@ -41,20 +41,18 @@ mod_variant_discovery_ui <- function(id) {
           id = ns("connect_btn"),
           label = "Connect to Database",
           icon = icon("plug"), title = "",
+          class = "btn-success btn-lg",
           multiple = FALSE,
-          style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
-          `onmouseover` = "this.style.backgroundColor='#145214'",
-          `onmouseout` = "this.style.backgroundColor='forestgreen'",
-          buttonType = 'btn-primary'
-
+          style = "font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
         )
       ),
       conditionalPanel(
         condition = paste0("output['", ns("is_connected"), "'] == true"),
         actionButton(ns("disconnect_btn"), "Disconnect",
-          icon = icon("unlink"),
+          icon = icon("power-off"),
           width = "100%",
-          class = "btn-danger"
+          class = "btn-danger btn-lg",
+          style = "font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
         ),
         bslib::card(
           bslib::card_header("Database Overview"),
@@ -68,9 +66,29 @@ mod_variant_discovery_ui <- function(id) {
 
   # Info Tab Components
   info_tab <- function(ns) {
+  tagList(
+    conditionalPanel(
+      condition = paste0("output['", ns("is_connected"), "'] == false"),
+      bslib::card(
+        class = "text-center mt-5",
+        bslib::card_body(
+          icon("info-circle", class = "fa-3x text-muted mb-3"),
+          h4("Connect to View Database Info"),
+          p("Database information will appear here once connected.", class = "text-muted")
+        )
+      )
+    ),
+
     conditionalPanel(
       condition = paste0("output['", ns("is_connected"), "'] == true"),
       tagList(
+        shinyWidgets::actionBttn(
+          inputId = ns("get_info"),
+          label = "Get Database Info",
+          style = "float",
+          size = "md",
+          color = "primary"
+        ),
         bslib::accordion(
           style = "margin-bottom: 10px;",
           open = TRUE,
@@ -117,6 +135,7 @@ mod_variant_discovery_ui <- function(id) {
         )
       )
     )
+  )
   }
 
 
@@ -126,11 +145,15 @@ mod_variant_discovery_ui <- function(id) {
       conditionalPanel(
         condition = paste0("output['", ns("is_connected"), "'] == false"),
         bslib::card(
-          bslib::card_header("Variant Discovery"),
+          class = "text-center mt-5",
           bslib::card_body(
-            "Please connect to a database to use this functionality."
+            icon("database", class = "fa-3x text-muted mb-3"),
+            h4("No Database Connected"),
+            p("Please connect to a database to begin variant discovery.", class = "text-muted")
           )
         )
+
+
       ),
       conditionalPanel(
         condition = paste0("output['", ns("is_connected"), "'] == true"),
@@ -169,26 +192,29 @@ mod_variant_discovery_ui <- function(id) {
           actionButton(
             inputId = ns("get_cord"),
             label = "Load Genomic Region from GFF",
-            icon = icon("cloud-arrow-down"),
-            width = "70%"
+            icon = icon("file-import"),
+            width = "70%",
+            class = "btn-outline-primary"
           )
         ),
         div(
           style = "display: flex; justify-content: center;",
           actionButton(
             inputId = ns("set_cord"),
-            icon = icon("pencil"),
+            icon = icon("keyboard"),
             label = "Enter Genomic Region Manually",
-            width = "70%"
+            width = "70%",
+            class = "btn-outline-primary"
           )
         )
       ),
+      hr(),
       radioButtons(
         width = "100%",
-        inputId = ns("query_database"), label = "",
+        inputId = ns("query_database"), label = "Query Type:",
         choices = c(
-          "Query Database by Coordinates" = "q_entire",
-          "View Annotation Summary for Region" = "q_annt"
+          "Query by Coordinates" = "q_entire",
+          "Annotation Summary" = "q_annt"
         ),
         selected = character(0)
       ),
@@ -198,9 +224,9 @@ mod_variant_discovery_ui <- function(id) {
           style = "display: flex; justify-content: center;",
           actionButton(
             inputId = ns("query_dbase_btn"),
-            label = tags$b("Query"),
+            label = tags$b("Execute Query"),
             width = "70%",
-            icon = icon("database"),
+            icon = icon("play"),
             # class = "btn-info"
             style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
             `onmouseover` = "this.style.backgroundColor='#145214'",
@@ -270,13 +296,6 @@ mod_variant_discovery_ui <- function(id) {
       # Database info ui
       bslib::nav_panel(
         title = tags$b("Info"), icon = icon("info-circle"),
-        shinyWidgets::actionBttn(
-          inputId = ns("get_info"),
-          label = "Get Database Info",
-          style = "float",
-          size = "md",
-          color = "primary"
-        ),
         info_tab(ns)
       ),
       bslib::nav_panel_hidden(
@@ -325,15 +344,15 @@ mod_variant_discovery_ui <- function(id) {
                   )
                 ),
                 bslib::card_footer(
-                  actionButton(
-                    width = "100%",
-                    ns("modal_run_but"),
-                    label = "Design Marker",
-                    icon = icon("drafting-compass"),
-                    # class = "btn-info"
-                    style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
-                    `onmouseover` = "this.style.backgroundColor='#145214'",
-                    `onmouseout` = "this.style.backgroundColor='forestgreen'"
+                  div(
+                    class = "mt-4 d-grid gap-2",
+                    actionButton(ns("modal_run_but"),
+                                 label = "Design KASP Marker",
+                                 icon = icon("play", class = "me-2"),
+                                 #class = "btn-info",
+                                 class = "btn-success btn-lg",
+                                 style = "font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
+                    )
                   )
                 )
               )
@@ -381,7 +400,7 @@ mod_variant_discovery_ui <- function(id) {
               width = '10%',
               label   = "Back",
               icon    = icon("arrow-left"),
-              class   = "btn-secondary"
+              class   = "btn-outline-secondary"
             )
       )
     )
@@ -444,7 +463,7 @@ mod_variant_discovery_server <- function(id) {
 
         shinybusy::show_modal_spinner(
           spin = "fading-circle",
-          color = "#0dc5c1",
+          color = "#27AE60",
           text = "Connecting to Database... Please wait."
         )
 
@@ -554,7 +573,7 @@ mod_variant_discovery_server <- function(id) {
       req(rv$db_path)
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
-        color = "#0dc5c1",
+        color = "#27AE60",
         text = "Retrieving database information"
       )
 
@@ -779,7 +798,7 @@ mod_variant_discovery_server <- function(id) {
 
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
-        color = "#0dc5c1",
+        color = "#27AE60",
         text = "Getting gene coordinates... Please wait."
       )
 
@@ -987,7 +1006,7 @@ mod_variant_discovery_server <- function(id) {
       # Show loading spinner for both operations
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
-        color = "#0dc5c1",
+        color = "#27AE60",
         text = "Querying Database... Please wait."
       )
 
@@ -1162,7 +1181,7 @@ mod_variant_discovery_server <- function(id) {
 
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
-        color = "#0dc5c1",
+        color = "#27AE60",
         text = "Getting Putative Causal Variants... Please wait."
       )
 
@@ -1253,7 +1272,7 @@ mod_variant_discovery_server <- function(id) {
 
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
-        color = "#0dc5c1",
+        color = "#27AE60",
         text = "Designing KASP Marker... Please wait."
       )
 

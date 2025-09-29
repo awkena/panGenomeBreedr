@@ -53,15 +53,13 @@ mod_ds_foreground_select_ui <- function(id) {
                          selected = "homo")
            ),
            bslib::card_footer(
-            actionButton(inputId = ns("run_analysis"),
-                         label = "Run Foreground Selection",
-                         width = "100%",
-                         icon = icon("rocket"),
-                        # class = 'btn-info'
-                        style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
-                        `onmouseover` = "this.style.backgroundColor='#145214'",
-                        `onmouseout` = "this.style.backgroundColor='forestgreen'"
-                         )
+             actionButton(ns("run_analysis"),
+                          label = "Get Results",
+                          icon = icon("play", class = "me-2"),
+                          #class = "btn-info",
+                          class = "btn-success btn-lg",
+                          style = "font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
+             )
             )
          )
           ),
@@ -412,9 +410,9 @@ mod_ds_foreground_select_server <- function(id){
       },
       content = function(file) {
         req(upset_result())
-        pdf(file, width = input$width, height = input$height)  # Adjust dimensions as needed
+        grDevices::pdf(file, width = input$width, height = input$height)  # Adjust dimensions as needed
         print(upset_result())
-        dev.off()
+        grDevices::dev.off()
       }
     )
 

@@ -10,15 +10,20 @@ app_ui <- function(request) {
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # Your application UI logic
-   shinybusy::add_busy_bar(color = 'white' ,height = '10px'),
+   shinybusy::add_busy_bar(color = '#7f8c8d' ,height = '10px'),
 
     navbarPage(
       collapsible = TRUE,
       theme = bslib::bs_theme(
         version = 5,
         bootswatch = "flatly",
-        primary = "#145214"  ,#"#228B22", # "#2E8B57",
-        success = "#FF8A65"
+        primary = "#2C3E50",
+        success = "#27AE60",
+        info = "#3498DB",
+        warning = "#F39C12",
+        danger = "#E74C3C"
+        # primary = "#145214"  ,#"#228B22", # "#2E8B57",
+        # success = "#FF8A65"
       ),
       fluid = TRUE,
       title = "panGenomeBreedr",
@@ -33,6 +38,7 @@ app_ui <- function(request) {
         )
 
       ),
+
 
       ## Home / Welcome  Tab
       bslib::nav_panel(

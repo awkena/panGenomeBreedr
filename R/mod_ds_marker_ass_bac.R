@@ -181,15 +181,12 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                 )
               ),
               bslib::card_footer(
-                actionButton(
-                  inputId = ns("config"),
-                  label = "Submit",
-                  icon = icon("check"),
-                  width = "100%",
-                  # class = "btn-info"
-                  style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
-                  `onmouseover` = "this.style.backgroundColor='#145214'",
-                  `onmouseout` = "this.style.backgroundColor='forestgreen'"
+                actionButton(ns("config"),
+                             label = "Get Results",
+                             icon = icon("play", class = "me-2"),
+                             #class = "btn-info",
+                             class = "btn-success btn-lg",
+                             style = "font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
                 )
               )
             )

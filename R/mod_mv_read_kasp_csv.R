@@ -43,13 +43,11 @@ mod_mv_read_kasp_csv_ui <- function(id) {
         div(
           style = "display: flex; justify-content: center;",
           actionButton(ns("submit_btn"),
-            label = "Submit",
-            icon = icon("rocket"),
-         #   class = "btn-info",
-            width = "80%",
-            style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
-         `onmouseover` = "this.style.backgroundColor='#145214'",
-         `onmouseout` = "this.style.backgroundColor='forestgreen'"
+            label = "Run Validation",
+            icon = icon("play"),
+            width = "100%",
+            class = "btn-success btn-lg",
+            style = "font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
           )
         )
       ),
