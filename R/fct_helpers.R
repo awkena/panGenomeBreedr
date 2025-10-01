@@ -1091,7 +1091,6 @@ safe_grep_match <- function(pattern, choices) {
 }
 
 
-
 #' Generate an UpSet Plot for Foreground Marker Selection
 #'
 #' @description
@@ -1136,7 +1135,8 @@ run_upset_plot <- function(foreground_matrix,
   # Prepare colors (recycle as needed)
   color_vec <- rep(colors, length.out = nl)
 
-  plot <-   # Generate UpSet plot
+  # Generate UpSet plot with metadata
+  plot <-  suppressWarnings(
     UpSetR::upset(
       foreground_matrix,
       nsets = nl,
@@ -1155,6 +1155,7 @@ run_upset_plot <- function(foreground_matrix,
         )
       )
     )
+  )
   return(plot)
 }
 

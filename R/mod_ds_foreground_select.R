@@ -15,203 +15,215 @@ mod_ds_foreground_select_ui <- function(id) {
         title = "Foreground select",
         icon = icon("flask"),
         bslib::layout_sidebar(
-          sidebar = bslib::sidebar(width = '350px',
-         bslib::card(
-           bslib::card_header(tags$b('Input Parameters'),
-                              class = 'text-center',
-                              style = 'font-size:18px;'
-                              ),
-           bslib::card_body(
-             fileInput(inputId = ns("geno_data"),
-                       label = "Upload Genotypic Data (geno)",
-                       accept = c('.xlsx' ,'.xls',".csv")),
+          sidebar = bslib::sidebar(
+            width = 380,
+            position = "left",
+            class = "bg-light",
+            title = div(
+              class = "mb-3 p-2 rounded",
+              style = "background-color: white; border-left: 4px solid #3498DB;",
+              div(
+                class = "d-flex align-items-center",
+                icon("bullseye", class = "text-info me-2"),
+                strong("Foreground Selection Workflow")
+              )
+            ),
 
-             fileInput(inputId = ns("marker_info"),
-                       label =  "Upload Marker Info File",
-                       accept = c('.xlsx' ,'.xls',".csv")
-             ),
+            # Accordion with organized sections
+            bslib::accordion(
+              id = "foreground_accordion",
+              open = c("files", "config", "selection"), # Panels open by default
 
-             textInput(inputId = ns("sep"),
-                       label = "Allele Separator",
-                       value = ":"),
+              # Step 1: Upload Files
+              bslib::accordion_panel(
+                title = div(
+                  icon("upload", class = "me-2"),
+                  "Step 1: Upload Files"
+                ),
+                value = "files",
+                fileInput(
+                  inputId = ns("geno_data"),
+                  label = div(
+                    icon("file-csv", class = "me-2 text-success"),
+                    "Upload Genotypic Data (geno)"
+                  ),
+                  accept = c(".xlsx", ".xls", ".csv")
+                ),
+                fileInput(
+                  inputId = ns("marker_info"),
+                  label = div(
+                    icon("file-csv", class = "me-2 text-info"),
+                    "Upload Marker Info File"
+                  ),
+                  accept = c(".xlsx", ".xls", ".csv")
+                ),
+                textInput(
+                  inputId = ns("sep"),
+                  label = "Allele Separator",
+                  value = ":"
+                )
+              ),
 
-             selectInput(inputId = ns("fore_marker_col"),
-                         label = "Foreground Marker Column",
-                         choices = NULL),
+              # Step 2: Configure Columns
+              bslib::accordion_panel(
+                title = div(
+                  icon("table-columns", class = "me-2"),
+                  "Step 2: Configure Columns"
+                ),
+                value = "config",
+                div(
+                  class = "small text-muted mb-3",
+                  icon("info-circle", class = "me-1"),
+                  "Map your data columns to the required fields"
+                ),
+                selectInput(
+                  inputId = ns("fore_marker_col"),
+                  label = "Foreground Marker Column",
+                  choices = NULL
+                ),
+                bslib::layout_columns(
+                  col_widths = c(6, 6),
+                  selectInput(
+                    inputId = ns("fav_allele_col"),
+                    label = "Favorable Allele:",
+                    choices = NULL
+                  ),
+                  selectInput(
+                    inputId = ns("alt_allele_col"),
+                    label = "Alternative Allele:",
+                    choices = NULL
+                  )
+                )
+              ),
 
-             selectInput(inputId = ns("fav_allele_col"),
-                         label = "Favorable Allele Column",
-                         choices = NULL),
+              # Step 3: Selection Parameters
+              bslib::accordion_panel(
+                title = div(
+                  icon("sliders", class = "me-2"),
+                  "Step 3: Selection Parameters"
+                ),
+                value = "selection",
+                selectInput(
+                  inputId = ns("select_type"),
+                  label = "Selection Type",
+                  choices = c("Homozygous" = "homo", "Heterozygous" = "hetero", "Both" = "both"),
+                  selected = "homo"
+                ),
+                div(
+                  class = "alert alert-info small mt-2",
+                  icon("lightbulb", class = "me-1"),
+                  "Choose the genotype selection criteria for your analysis"
+                )
+              )
+            ),
 
-             selectInput(inputId = ns("alt_allele_col"),
-                         label = "Alternative Allele Column",
-                         choices = NULL),
-
-             selectInput(inputId = ns("select_type"),
-                         label = "Selection Type",
-                         choices = c("homo", "hetero", "both"),
-                         selected = "homo")
-           ),
-           bslib::card_footer(
-             actionButton(ns("run_analysis"),
-                          label = "Get Results",
-                          icon = icon("play", class = "me-2"),
-                          #class = "btn-info",
-                          class = "btn-success btn-lg",
-                          style = "font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
-             )
+            # Action button
+            div(
+              class = "mt-4 d-grid gap-2",
+              actionButton(
+                inputId = ns("run_analysis"),
+                label = "Get Results",
+                icon = icon("play", class = "me-2"),
+                class = "btn-success btn-lg",
+                style = "font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
+              )
             )
-         )
           ),
 
           # Main panel.
-          bslib::card(max_height = '800px',
-            bslib::card_header("Configure UpSet Plot", class = "bg-primary text-white"),
-            bslib::card_body(
-              fluidRow(
-                column(3,
-                       textInput(
-                         inputId = ns("mainbar_y_label"),
-                         label = "Main Bar Y-axis Label",
-                         value = "Locus Intersection Size"
-                       )
+          bslib::input_switch(id = ns("config"), label = "Configure Plot", value = FALSE),
+          conditionalPanel(
+            condition = paste0('input["', ns("config"), '"] == true'),
+            tagList(
+              bslib::card(
+                bslib::card_header(
+                  div(
+                    class = "d-flex align-items-center justify-content-between",
+                    div(
+                      icon("chart-bar", class = "me-2"),
+                      strong("UpSet Plot Settings")
+                    )
+                  ),
+                  class = "bg-primary text-white"
                 ),
-                column(3,
-                       textInput(
-                         inputId = ns("sets_x_label"),
-                         label = "Sets X-axis Label",
-                         value = "Locus Size"
-                       )
-                ),
-                column(3,
-                       numericInput(
-                         inputId = ns("text_scale"),
-                         label = "Text Scale",
-                         value = 1.2,
-                         min = 0.5,
-                         max = 3,
-                         step = 0.1
-                       )
-                ),
-                column(3,
-                       selectInput(
-                         inputId = ns("plot_type"),
-                         label = "Metadata Plot Type",
-                         choices = c("text"),
-                         selected = "text"
-                       )
-                )
-              ),
-              fluidRow(
-                column(3,
-                       numericInput(
-                         inputId = ns("plot_assign"),
-                         label = "Assign (Position)",
-                         value = 8,
-                         min = 1,
-                         step = 1
-                       )
-                ),
-                column(3,
-                       textInput(
-                         inputId = ns("plot_column"),
-                         label = "Metadata Column",
-                         value = "locus"
-                       )
-                ),
-                column(3,
-                       selectInput(
-                         inputId = ns("plot_colors"),
-                         label = "Colors (comma-separated)",
-                         selected = "darkblue",
-                         choices = grDevices::colors()
-
-                       )
-                )
-              ),
-
-              bslib::input_switch(id = ns("configure"), label = "Findlines", value = FALSE),
-              conditionalPanel(
-                condition = paste0('input["', ns("configure"), '"] == true'),
-
-
-
-                bslib::card(
-                  class = "shadow p",
-                  bslib::card_body(
-                    fluidRow(
-
-                      # Filter Controls Column
-                      column(
-                        width = 6,
-                        tagList(
-                          selectInput(
-                            inputId = ns("present"),
-                            label = "Filter SNPs to be present",
-                            choices = NULL,
-                            multiple = TRUE,
-                            width = '100%'
-                          ),
-                          selectInput(
-                            inputId = ns("absent"),
-                            label = "Filter SNPs to be absent",
-                            choices = NULL,
-                            multiple = TRUE,
-                            width = '100%'
-
-                          ),
-                          div(
-                            style = "display: flex; justify-content: center;",
-                            actionButton(
-                              inputId = ns("Search"),
-                              label = "Get lines",
-                              icon = icon("search"),
-                             # class = "btn",
-                              width = "60%",
-                             style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
-                             `onmouseover` = "this.style.backgroundColor='#145214'",
-                             `onmouseout` = "this.style.backgroundColor='forestgreen'"
-                            )
-
-
-                          )
-                        )
+                bslib::card_body(
+                  # Basic Settings Section
+                  div(
+                    class = "mb-4",
+                    h5(class = "mb-3", icon("palette", class = "me-2"), "Basic Settings"),
+                    bslib::layout_columns(
+                      col_widths = c(4, 4, 4),
+                      textInput(
+                        inputId = ns("mainbar_y_label"),
+                        label = "Main Bar Y-axis Label",
+                        value = "Locus Intersection Size"
                       ),
-
-                      # Display Results Column
-                      column(
-                        width = 6,
-                        bslib::card(
-                          #bslib::card_header("Matching Genotypes"),
-                          style = "height: 200px; overflow-y: auto;",
-                          verbatimTextOutput(outputId = ns("display_result"))
-                        )
-
+                      textInput(
+                        inputId = ns("sets_x_label"),
+                        label = "Sets X-axis Label",
+                        value = "Locus Size"
+                      ),
+                      numericInput(
+                        inputId = ns("text_scale"),
+                        label = "Text Scale",
+                        value = 1.2,
+                        min = 0.5,
+                        max = 3,
+                        step = 0.1
                       )
+                    )
+                  ),
+                  hr(),
 
+                  # Metadata Settings Section
+                  div(
+                    class = "mb-4",
+                    h5(class = "mb-3", icon("tags", class = "me-2"), "Metadata Settings"),
+                    bslib::layout_columns(
+                      col_widths = c(4, 4, 4),
+                      selectInput(
+                        inputId = ns("plot_type"),
+                        label = "Metadata Plot Type",
+                        choices = c("text"),
+                        selected = "text"
+                      ),
+                      numericInput(
+                        inputId = ns("plot_assign"),
+                        label = "Assign (Position)",
+                        value = 8,
+                        min = 1,
+                        step = 1
+                      ),
+                      textInput(
+                        inputId = ns("plot_column"),
+                        label = "Metadata Column",
+                        value = "locus"
+                      )
+                    ),
+                    selectInput(
+                      inputId = ns("plot_colors"),
+                      label = "Colors",
+                      selected = "darkblue",
+                      choices = grDevices::colors()
                     )
                   )
                 )
-
-               )
+              )
             )
           ),
           # Results display section
           bslib::card(
-            #max_height = '800px',
             height = "auto",
-
-            bslib::card_header(tags$b("Results")),
             bslib::card_body(
               navset_card_tab(
                 id = ns("results_tabs"),
 
                 # Upset Plot Tab
                 bslib::nav_panel(
-                  title = "Upset Plot",
+                  title = "Upset Plot Visualization",
                   icon = icon("chart-line"),
                   # Upset Plot Output
-                  plotOutput(ns("result_plot"), height = '800px'),
+                  plotOutput(ns("result_plot"), height = "800px"),
                   # Download plot card widget
                   bslib::card(card_footer(
                     fluidRow(
@@ -220,7 +232,7 @@ mod_ds_foreground_select_ui <- function(id) {
                         textInput(
                           inputId = ns("file_name"),
                           label = "Enter Filename",
-                          value = "Plate layout 1"
+                          value = "Upset_Plot"
                         )
                       ),
                       column(
@@ -228,14 +240,14 @@ mod_ds_foreground_select_ui <- function(id) {
                         numericInput(
                           inputId = ns("width"),
                           label = "Set Plot Width",
-                          value = 8, min = 1
+                          value = 11, min = 1
                         )
                       ), column(
                         3,
                         numericInput(
                           inputId = ns("height"),
                           label = "Set Plot Height",
-                          value = 5, min = 1
+                          value = 10, min = 1
                         )
                       )
                     ),
@@ -243,20 +255,80 @@ mod_ds_foreground_select_ui <- function(id) {
                       outputId = ns("download_plot"),
                       label = "Download Plot", class = "btn-success"
                     )
-                  ))
+                  )),
+                  hr(),
 
+                  # Advanced Filtering Section
+                  div(
+                    h5(class = "mb-3", icon("filter", class = "me-2"), "Advanced Filtering"),
+                    bslib::input_switch(
+                      id = ns("configure"),
+                      label = "Enable Line Filtering",
+                      value = FALSE
+                    ),
+
+                    conditionalPanel(
+                      condition = paste0('input["', ns("configure"), '"] == true'),
+                      bslib::card(
+                        class = "mt-3 bg-light",
+                        bslib::card_body(
+                          bslib::layout_columns(
+                            col_widths = c(6, 6),
+
+                            # Filter Controls
+                            div(
+                              h6(class = "mb-3", icon("gears", class = "me-2"), "Filter Criteria"),
+                              selectInput(
+                                inputId = ns("present"),
+                                label = "SNPs to be Present",
+                                choices = NULL,
+                                multiple = TRUE,
+                                width = '100%'
+                              ),
+                              selectInput(
+                                inputId = ns("absent"),
+                                label = "SNPs to be Absent",
+                                choices = NULL,
+                                multiple = TRUE,
+                                width = '100%'
+                              ),
+                              div(
+                                class = "d-grid gap-2 mt-3",
+                                actionButton(
+                                  inputId = ns("Search"),
+                                  label = "Find Matching Lines",
+                                  icon = icon("search"),
+                                  class = "btn-primary btn-lg"
+                                )
+                              )
+                            ),
+
+                            # Display Results
+                            div(
+                              h6(class = "mb-3", icon("list", class = "me-2"), "Matching Genotypes"),
+                              bslib::card(
+                                style = "height: 280px; overflow-y: auto;",
+                                bslib::card_body(
+                                  verbatimTextOutput(outputId = ns("display_result"))
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
                 ),
 
                 # Data Table Tab
                 bslib::nav_panel(
-                  title = "Data Table",
+                  title = "Binary Matrix of Presence or Absence of favorable Alleles",
                   icon = icon("table"),
-                  DT::DTOutput(ns("result_table"), height = '800px')
+                  DT::DTOutput(ns("result_table"), height = "800px")
                 )
               )
             )
           )
-
         )
       )
     )
@@ -268,8 +340,8 @@ mod_ds_foreground_select_ui <- function(id) {
 #' ds_foreground_select Server Function
 #'
 #' @noRd
-mod_ds_foreground_select_server <- function(id){
-  moduleServer(id, function(input, output, session){
+mod_ds_foreground_select_server <- function(id) {
+  moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
     # Reactive values to hold uploaded data
@@ -289,17 +361,20 @@ mod_ds_foreground_select_server <- function(id){
     observeEvent(marker_info(), {
       cols <- colnames(marker_info())
       updateSelectInput(session, "fore_marker_col",
-                        choices = cols,
-                        selected = safe_grep_match(pattern = 'marker' ,choices = cols ))
+        choices = cols,
+        selected = safe_grep_match(pattern = "marker", choices = cols)
+      )
 
       updateSelectInput(session, "fav_allele_col",
-                        choices = cols,
-                        selected = safe_grep_match(pattern = 'fav' ,choices = cols ))
+        choices = cols,
+        selected = safe_grep_match(pattern = "fav", choices = cols)
+      )
 
       updateSelectInput(session,
-                        "alt_allele_col",
-                        choices = cols,
-                        selected =  safe_grep_match(pattern = 'alt' ,choices = cols ) )
+        "alt_allele_col",
+        choices = cols,
+        selected = safe_grep_match(pattern = "alt", choices = cols)
+      )
     })
 
     # Run analysis when button is clicked
@@ -332,7 +407,6 @@ mod_ds_foreground_select_server <- function(id){
         #   text = '',
         #   type = "success"
         # )
-
       }, error = function(e) {
         shinyWidgets::show_alert(
           title = "Error",
@@ -367,26 +441,29 @@ mod_ds_foreground_select_server <- function(id){
         input$plot_colors
       )
 
-      tryCatch({
-        run_upset_plot(
-          foreground_matrix = result_data(),
-          marker_info = marker_info(),
-          mainbar_y_label = input$mainbar_y_label,
-          sets_x_label = input$sets_x_label,
-          text_scale = input$text_scale,
-          plot_type = input$plot_type,
-          assign = input$plot_assign,
-          column = input$plot_column,
-          colors = input$plot_colors
-        )
-      }, error = function(e) {
-        shinyWidgets::show_alert(
-          title = "Error",
-          text = paste("Upset plot failed:", e$message),
-          type = "error"
-        )
-        return(NULL)
-      })
+      tryCatch(
+        {
+          run_upset_plot(
+            foreground_matrix = result_data(),
+            marker_info = marker_info(),
+            mainbar_y_label = input$mainbar_y_label,
+            sets_x_label = input$sets_x_label,
+            text_scale = input$text_scale,
+            plot_type = input$plot_type,
+            assign = input$plot_assign,
+            column = input$plot_column,
+            colors = input$plot_colors
+          )
+        },
+        error = function(e) {
+          shinyWidgets::show_alert(
+            title = "Error",
+            text = paste("Upset plot failed:", e$message),
+            type = "error"
+          )
+          return(NULL)
+        }
+      )
     })
 
     # Render upset plot
@@ -410,7 +487,7 @@ mod_ds_foreground_select_server <- function(id){
       },
       content = function(file) {
         req(upset_result())
-        grDevices::pdf(file, width = input$width, height = input$height)  # Adjust dimensions as needed
+        grDevices::pdf(file, width = input$width, height = input$height) # Adjust dimensions as needed
         print(upset_result())
         grDevices::dev.off()
       }
@@ -420,23 +497,26 @@ mod_ds_foreground_select_server <- function(id){
     observe({
       req(result_data())
 
-      updateSelectInput(session ,inputId = 'present',
-                        choices = colnames(result_data()),
-                        selected = character(0))
+      updateSelectInput(session,
+        inputId = "present",
+        choices = colnames(result_data()),
+        selected = character(0)
+      )
 
-      updateSelectInput(session ,inputId = 'absent',
-                        choices = colnames(result_data()),
-                        selected = character(0))
+      updateSelectInput(session,
+        inputId = "absent",
+        choices = colnames(result_data()),
+        selected = character(0)
+      )
     })
 
 
 
-    found_lines <- eventReactive(input$Search,{
-      #input$present , input$absent,
+    found_lines <- eventReactive(input$Search, {
+      # input$present , input$absent,
       req(result_data())
 
-      find_lines(mat = result_data(),present = input$present ,absent = input$absent)
-
+      find_lines(mat = result_data(), present = input$present, absent = input$absent)
     })
 
 
@@ -444,9 +524,8 @@ mod_ds_foreground_select_server <- function(id){
     # render result.
     output$display_result <- renderPrint({
       req(found_lines())
-      paste0('line',found_lines())
+      paste0("line", found_lines())
     })
-
   })
 }
 
@@ -457,4 +536,3 @@ mod_ds_foreground_select_server <- function(id){
 
 ## To be copied in the server
 # mod_ds_foreground_select_server("ds_foreground_select_1")
-

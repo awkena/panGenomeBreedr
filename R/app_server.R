@@ -69,6 +69,7 @@ app_server <- function(input, output, session) {
   # import_data_entities; returns kasp data after being read
   import_data_entities <- mod_mv_read_kasp_csv_server("mv_read_kasp_csv_1")
 
+
   # nsamples & alleles
   observe({
     req(import_data_entities())

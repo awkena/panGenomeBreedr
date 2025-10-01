@@ -68,6 +68,7 @@ app_ui <- function(request) {
         title = "Marker Validation",
         icon = icon("check-circle"),
         bslib::navset_card_pill(
+          id = "marker_validation_tabs",
 
           # Read Kasp file Tab
           bslib::nav_panel(

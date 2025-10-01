@@ -24,170 +24,214 @@ mod_ds_marker_ass_bac_ui <- function(id) {
           sidebar = bslib::sidebar(
             width = 400,
             position = "left",
-            bslib::card(
-              height = "100%",
-              bslib::card_body(
-                bslib::card(
-                  bslib::card_header(tags$b("Upload Input Files"),
-                    class = "text-center",
-                    style = "font-size:18px;"
-                  ),
-                  bslib::card_body(
-                    fileInput(
-                      inputId = ns("data_id"),
-                      label = "Upload Kasp/Agriplex File",
-                      multiple = FALSE,
-                      accept = ".csv",
-                      width = "100%"
-                    ),
-                    selectInput(
-                      inputId = ns("data_type"),
-                      label = "Indicate Data Format",
-                      choices = c("agriplex", "Kasp"),
-                      selected = "agriplex",
-                      width = "100%"
-                    ), # user defines data format
+            class = "bg-light",
+            title = div(
+              class = "mb-3 p-2 rounded",
+              style = "background-color: white; border-left: 4px solid #3498DB;",
+              div(
+                class = "d-flex align-items-center",
+                icon("flask", class = "text-info me-2"),
+                strong("MABC Decision Workflow")
+              )
+            ),
 
-                    textInput(
-                      inputId = ns("allele_sep"),
-                      label = "Enter Allele Separator for Data Format",
-                      value = " / ",
-                      width = "100%"
-                    )
-                  )
+            # Accordion with organized sections
+            bslib::accordion(
+              id = "mabc_accordion",
+              open = c("files", "mapfile", "settings", "qc"), # Panels open by default
+
+              # Step 1: Upload Input Files
+              bslib::accordion_panel(
+                title = div(
+                  icon("upload", class = "me-2"),
+                  "Step 1: Upload Input Files"
                 ),
-                bslib::card(
-                  bslib::card_header(tags$b("Mapfile Setup"),
-                    class = "text-center",
-                    style = "font-size:18px;"
-                  ),
-                  bslib::card_body(
-                    radioButtons(
-                      inputId = ns("choice"),
-                      label = "Do you have a map file?",
-                      choices = c("Yes" = "yes", "No, generate one for me" = "no"),
-                      selected = "yes"
-                    ),
+                value = "files",
 
-                    # Dynamic rendering based on choice
-                    conditionalPanel(
-                      condition = paste0('input["', ns("choice"), '"] == "yes"'),
-                      tagList(
-                        fileInput(
-                          inputId = ns("mapfile"),
-                          label = "Upload Map file",
-                          accept = c(".csv", ".xlsx", ".xls"),
-                          width = "100%"
-                        ),
-                        selectInput(
-                          inputId = ns("snp_id"), #
-                          label = "Select Column for SNP ID",
-                          choices = NULL,
-                          width = "100%"
-                        )
-                      )
-                    ),
-                    conditionalPanel(
-                      condition = paste0('input["', ns("choice"), '"] == "no"'),
-                      tagList(
-                        textInput(
-                          inputId = ns("prefix_marker"),
-                          label = "Enter Prefix for Marker ID",
-                          value = "S",
-                          width = "100%"
-                        ),
-                        textInput(
-                          inputId = ns("sep_marker"),
-                          label = "Enter Separator for Marker ID",
-                          value = "_",
-                          width = "100%"
-                        )
-                      )
-                    )
-                  )
+                fileInput(
+                  inputId = ns("data_id"),
+                  label = div(
+                    icon("file-csv", class = "me-2 text-success"),
+                    "Upload Kasp/Agriplex File"
+                  ),
+                  multiple = FALSE,
+                  accept = ".csv"
                 ),
-                bslib::card(
-                  bslib::card_header(tags$b("Genotype & Batch Settings"),
-                    class = "text-center",
-                    style = "font-size:18px;"
-                  ),
-                  bslib::card_body(
-                    # Batch  & genotype settings.
-                    selectInput(
-                      inputId = ns("genotype_col"),
-                      label = "Select Genotype Column",
-                      choices = NULL,
-                      width = "100%"
-                    ),
-                    selectInput(
-                      inputId = ns("batch_col"),
-                      label = "Select Batch Column",
-                      choices = NULL,
-                      width = "100%"
-                    ), # select batch column will populates
 
-                    selectInput(
-                      inputId = ns("batch"),
-                      label = "Select Focused Batch",
-                      choices = NULL,
-                      width = "100%"
-                    ), # unique batches will come here.
+                selectInput(
+                  inputId = ns("data_type"),
+                  label = "Indicate Data Format",
+                  choices = c("agriplex", "Kasp"),
+                  selected = "agriplex",
+                  width = "100%"
+                ),
 
-                    uiOutput(ns("marker_sep")), # this must be dynamic based on users choice
-
-                    selectInput(
-                      inputId = ns("dp"),
-                      label = "Select Donor Parent",
-                      choices = NULL,
-                      width = "100%"
-                    ),
-                    selectInput(
-                      inputId = ns("rp"),
-                      label = "Select Recurrent Parent",
-                      choices = NULL,
-                      width = "100%"
-                    )
-                  )
+                textInput(
+                  inputId = ns("allele_sep"),
+                  label = "Enter Allele Separator for Data Format",
+                  value = " / ",
+                  width = "100%"
                 )
               ),
-              bslib::card(
-                bslib::card_header(tags$b("Quality Control Switches"),
-                  class = "text-center",
-                  style = "font-size:18px;"
+
+              # Step 2: Mapfile Setup
+              bslib::accordion_panel(
+                title = div(
+                  icon("map", class = "me-2"),
+                  "Step 2: Mapfile Setup"
                 ),
-                bslib::card_body(
+                value = "mapfile",
+
+                radioButtons(
+                  inputId = ns("choice"),
+                  label = "Do you have a map file?",
+                  choices = c("Yes" = "yes", "No, generate one for me" = "no"),
+                  selected = "yes"
+                ),
+
+                # Dynamic rendering based on choice
+                conditionalPanel(
+                  condition = paste0('input["', ns("choice"), '"] == "yes"'),
                   tagList(
-                    bslib::input_switch(
-                      id = ns("apply_par_poly"),
-                      label = "Remove Monomorphic Parents",
-                      value = TRUE
+                    fileInput(
+                      inputId = ns("mapfile"),
+                      label = "Upload Map file",
+                      accept = c(".csv", ".xlsx", ".xls"),
+                      width = "100%"
                     ),
-                    bslib::input_switch(
-                      id = ns("apply_par_miss"),
-                      label = "Remove Missing Parent Data",
-                      value = TRUE
-                    ),
-                    bslib::input_switch(
-                      id = ns("apply_geno_good"),
-                      label = "Apply Genotype Error Check",
-                      value = TRUE
-                    ),
-                    bslib::input_switch(
-                      id = ns("apply_par_homo"),
-                      label = "Filter Heterozygous Parents",
-                      value = TRUE
+                    selectInput(
+                      inputId = ns("snp_id"),
+                      label = "Select Column for SNP ID",
+                      choices = NULL,
+                      width = "100%"
                     )
+                  )
+                ),
+
+                conditionalPanel(
+                  condition = paste0('input["', ns("choice"), '"] == "no"'),
+                  tagList(
+                    textInput(
+                      inputId = ns("prefix_marker"),
+                      label = "Enter Prefix for Marker ID",
+                      value = "S",
+                      width = "100%"
+                    ),
+                    textInput(
+                      inputId = ns("sep_marker"),
+                      label = "Enter Separator for Marker ID",
+                      value = "_",
+                      width = "100%"
+                    )
+                  )
+                ),
+
+                div(
+                  class = "alert alert-info small mt-2",
+                  icon("lightbulb", class = "me-1"),
+                  "Map file links markers to their genomic positions"
+                )
+              ),
+
+              # Step 3: Genotype & Batch Settings
+              bslib::accordion_panel(
+                title = div(
+                  icon("dna", class = "me-2"),
+                  "Step 3: Genotype & Batch Settings"
+                ),
+                value = "settings",
+
+                selectInput(
+                  inputId = ns("genotype_col"),
+                  label = "Select Genotype Column",
+                  choices = NULL,
+                  width = "100%"
+                ),
+
+                bslib::layout_columns(
+                  col_widths = c(6, 6),
+                  selectInput(
+                    inputId = ns("batch_col"),
+                    label = "Batch Column:",
+                    choices = NULL,
+                    width = "100%"
+                  ),
+                  selectInput(
+                    inputId = ns("batch"),
+                    label = "Focused Batch:",
+                    choices = NULL,
+                    width = "100%"
+                  )
+                ),
+
+                uiOutput(ns("marker_sep")),
+
+                bslib::layout_columns(
+                  col_widths = c(6, 6),
+                  selectInput(
+                    inputId = ns("dp"),
+                    label = "Donor Parent:",
+                    choices = NULL,
+                    width = "100%"
+                  ),
+                  selectInput(
+                    inputId = ns("rp"),
+                    label = "Recurrent Parent:",
+                    choices = NULL,
+                    width = "100%"
                   )
                 )
               ),
-              bslib::card_footer(
-                actionButton(ns("config"),
-                             label = "Get Results",
-                             icon = icon("play", class = "me-2"),
-                             #class = "btn-info",
-                             class = "btn-success btn-lg",
-                             style = "font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
+
+              # Step 4: Quality Control Switches
+              bslib::accordion_panel(
+                title = div(
+                  icon("filter", class = "me-2"),
+                  "Step 4: Quality Control"
+                ),
+                value = "qc",
+
+                div(
+                  class = "small text-muted mb-3",
+                  icon("info-circle", class = "me-1"),
+                  "Enable filters to improve data quality"
+                ),
+
+                bslib::input_switch(
+                  id = ns("apply_par_poly"),
+                  label = "Remove Monomorphic Parents",
+                  value = TRUE
+                ),
+
+                bslib::input_switch(
+                  id = ns("apply_par_miss"),
+                  label = "Remove Missing Parent Data",
+                  value = TRUE
+                ),
+
+                bslib::input_switch(
+                  id = ns("apply_geno_good"),
+                  label = "Apply Genotype Error Check",
+                  value = TRUE
+                ),
+
+                bslib::input_switch(
+                  id = ns("apply_par_homo"),
+                  label = "Filter Heterozygous Parents",
+                  value = TRUE
                 )
+              )
+            ),
+
+            # Action button to run analysis
+            div(
+              class = "mt-4 d-grid gap-2",
+              actionButton(
+                inputId = ns("config"),
+                label = "Get Results",
+                icon = icon("play", class = "me-2"),
+                class = "btn-success btn-lg",
+                style = "font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
               )
             )
           ),
