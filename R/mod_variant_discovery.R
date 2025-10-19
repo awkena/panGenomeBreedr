@@ -253,10 +253,10 @@ mod_variant_discovery_ui <- function(id) {
       # Input widget for allele frequency
       sliderInput(
         inputId = ns("af_range"),
-        label = "Allele Frequency Range",
+        label = "Filter by Allele Frequency of:",
         min = 0,
         max = 1,
-        value = c(0.05, 0.9),
+        value = 0.05,
         step = 0.01,
         width = "100%"
       ),
@@ -743,7 +743,7 @@ mod_variant_discovery_server <- function(id) {
             # bslib::card_header("Gene Parameters"),
             textInput(
               inputId = ns("gene_name"), label = "Gene Name (Sobic ID)",
-              value = "Sobic.005G213600",
+              value = "",
               placeholder = "Enter Sobic ID (e.g., Sobic.005G213600)", width = "100%"
             ),
             radioButtons(
@@ -1165,8 +1165,8 @@ mod_variant_discovery_server <- function(id) {
 
       filter_by_af(
         gt = hold_genotypes_impact(),
-        min_af = input$af_range[1],
-        max_af = input$af_range[2]
+        min_af = input$af_range[1]
+       # max_af = input$af_range[2] #- not used in current function
       )
     })
 
