@@ -11,13 +11,12 @@ app_ui <- function(request) {
     golem_add_external_resources(),
     # Your application UI logic
    shinybusy::add_busy_bar(color = '#7f8c8d' ,height = '10px'),
-
     navbarPage(
       collapsible = TRUE,
       theme = bslib::bs_theme(
         version = 5,
         bootswatch = "flatly",
-        primary = "#2C3E50",
+        primary = "#1e3a5f",
         success = "#27AE60",
         info = "#3498DB",
         warning = "#F39C12",
