@@ -167,12 +167,12 @@ mod_kasp_marker_design_ui <- function(id) {
               label = "Minor Allele Frequency (MAF):",
               value = 0.05, min = 0, max = 1
             ),
-            # Switch input for plot generation
-            bslib::input_switch(
-              id = ns("draw_plot"),
-              label = "Generate Alignment Plot",
-              value = TRUE
-            )
+            # # Switch input for plot generation
+            # bslib::input_switch(
+            #   id = ns("draw_plot"),
+            #   label = "Generate Alignment Plot",
+            #   value = TRUE
+            # )
           )
         ),
         # Action button to run KASP marker design
@@ -745,18 +745,22 @@ mod_kasp_marker_design_server <- function(id) {
 
 
 
-    # Plot container UI - show if user selects true
-    observeEvent(input$draw_plot, {
-      if (input$draw_plot == FALSE) {
-        output$plot_container <- renderUI({
-          div(
-            class = "text-center p-5 text-muted",
-            icon("eye-slash", class = "fa-6x mb-3"),
-            p("Plot generation disabled in parameters")
-          )
-        })
-      }
-    })
+    # # Plot container UI - show if user selects true
+    # observeEvent(input$draw_plot, {
+    #   if (input$draw_plot == FALSE) {
+    #     output$plot_container <- renderUI({
+    #       div(
+    #         class = "text-center p-5 text-muted",
+    #         icon("eye-slash", class = "fa-6x mb-3"),
+    #         p("Plot generation disabled in parameters")
+    #       )
+    #     })
+    #   } else {
+    #     output$plot_container <- renderUI({
+    #       NULL
+    #     })
+    #   }
+    # })
 
     # Render Plot
     output$plot <- renderPlot({

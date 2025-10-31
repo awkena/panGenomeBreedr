@@ -335,13 +335,13 @@ mod_variant_discovery_ui <- function(id) {
                     width = "100%",
                     label = "Minor Allele Frequency (MAF)",
                     value = 0.05, min = 0, max = 1, step = 0.01
-                  ),
-                  bslib::input_switch(
-                    ns("modal_draw_plot"),
-                    width = "100%",
-                    label = "Generate Alignment Plot",
-                    value = TRUE
                   )
+                  # bslib::input_switch(
+                  #   ns("modal_draw_plot"),
+                  #   width = "100%",
+                  #   label = "Generate Alignment Plot",
+                  #   value = TRUE
+                  # )
                 ),
                 bslib::card_footer(
                   div(
@@ -359,39 +359,112 @@ mod_variant_discovery_ui <- function(id) {
             ),
             column(
               width = 8,
-              bslib::accordion(
-                style = "margin-bottom: 70px;",
-                id = ns("results_accordion"),
-                width = "100%",
-                open = TRUE,
-                bslib::accordion_panel(
-                  "KASP Marker Data & Sequence Alignment Table",
-                  DT::DTOutput(ns("kasp_table")),
-                    fluidRow(
-                      column(width = 3, selectInput(
-                        inputId = ns("exten"),
-                        label = "Download file as?",
-                        choices = c(".csv", ".xlsx"),
-                        selected = ".xlsx",
-                        multiple = FALSE,
-                      )),
-                      column(
-                        width = 4,
+              navset_card_pill(
+                id = ns("results_tabs"),
+                full_screen = TRUE,
+                # Data Table tab
+                bslib::nav_panel(
+                  title = "Marker Data",
+                  icon = icon("table"),
+                  value = "table_tab",
+
+                  # Card for displaying results table
+                  bslib::card(
+                    #   class = "h-100",
+                    bslib::card_header(
+                      class = "bg-light",
+                      div(
+                        class = "d-flex justify-content-between align-items-center",
+                        div(
+                          icon("table", class = "me-2"),
+                          strong("KASP Marker Design Results & Sequence Alignment")
+                        )
+                      )
+                    ),
+                    # Data table output
+                    bslib::card_body(
+                      class = "p-0",
+                      DT::DTOutput(ns("kasp_table"), height = "500px"),
+                    ),
+                    # Footer with download options
+                    bslib::card_footer(
+                      class = "bg-light",
+                      bslib::layout_columns(
+                        col_widths = c(3, 4, 2),
+                        selectInput(
+                          inputId = ns("exten"),
+                          label = "Download file as?",
+                          choices = c(".csv", ".xlsx"),
+                          selected = ".xlsx",
+                          multiple = FALSE
+                        ),
                         textInput(
                           inputId = ns("file_name"),
                           label = "Enter File Prefix",
                           value = "Kasp M_D for Intertek"
+                        ),
+                        div(
+                          style = "display: flex; align-items: center; height: 100%; margin-top: 12px;",
+                          downloadButton(
+                            ns("download_table"),
+                            label = "Export",
+                            class = "btn-success w-100",
+                            icon = icon("download")
+                          )
+                        )
+                      )
+                    )
+                  )
+                ),
+
+                # Plot alignment tab
+                bslib::nav_panel(
+                  title = "Alignment Plot",
+                  icon = icon("chart-bar"),
+                  value = "plot_tab",
+                  # Card for displaying alignment plot
+                  bslib::card(
+                    class = "h-100",
+                    card_header(
+                      class = "bg-light",
+                      div(
+                        icon("chart-line", class = "me-2"),
+                        strong("Sequence Alignment Visualization")
+                      )
+                    ),
+                    # Plot output container
+                    bslib::card_body(
+                      tagList(
+                        selectizeInput(
+                          inputId = ns("plot_choice"),
+                          label = "Select Marker ID",
+                          width = "30%",
+                          choices = NULL
+                        ), # drop down for plots
+                        uiOutput(ns("plot_container")), # Null plot container if user disables plot generation
+                        plotOutput(ns("plot"), height = "400px"),
+                        downloadButton(
+                          outputId = ns("download_plot"),
+                          label = "Export All Plots (PDF)",
+                          class = "btn-success w-30 mt-4",
+                          width = "30%",
+                          icon = icon("download")
                         )
                       )
                     ),
-                    downloadButton(ns("download_table"),
-                      label = "Download File",
-                      class = "btn-success",
-                      icon = icon("download")
+
+                    # Footer with plot info
+                    bslib::card_footer(
+                      class = "bg-light",
+                      div(
+                        class = "text-muted small",
+                        icon("info-circle", class = "me-1"),
+                        "Interactive alignment plot showing variant positions relative to reference genome"
+                      )
                     )
+                  )
                 )
-                ),
-                uiOutput(ns("plot_container"))
+              )
 
             )
           ),
@@ -1251,6 +1324,7 @@ mod_variant_discovery_server <- function(id) {
         server = TRUE
       )
 
+
     })
 
     # When back button is clicked, go back to query panel
@@ -1298,33 +1372,33 @@ mod_variant_discovery_server <- function(id) {
           # Get unique chromosomes
           unique_chr <- unique(values$query_geno_react[[chrom_col]])
 
-          for (marker in input$modal_marker_ID) {
-            # Run KASP design
-            result_data <- kasp_marker_design(
-              vcf_file = NULL,
-              gt_df = values$query_geno_react,
-              variant_id_col = id_col,
-              chrom_col = chrom_col,
-              pos_col = pos_col,
-              ref_al_col = ref_col,
-              alt_al_col = alt_col,
-              geno_start = geno_start,
-              marker_ID = marker,
-              chr = unique_chr,
-              genome_file = input$modal_genome_file$datapath,
-              plot_file = tempdir(),
-              region_name = input$modal_reg_name,
-              maf = input$modal_maf,
-              save_alignment = FALSE
-            )
+            for (marker in input$modal_marker_ID) {
+              # Run KASP design
+              result_data <- kasp_marker_design(
+                vcf_file = NULL,
+                gt_df = values$query_geno_react,
+                variant_id_col = id_col,
+                chrom_col = chrom_col,
+                pos_col = pos_col,
+                ref_al_col = ref_col,
+                alt_al_col = alt_col,
+                geno_start = geno_start,
+                marker_ID = marker,
+                chr = unique_chr,
+                genome_file = input$modal_genome_file$datapath,
+                plot_file = tempdir(),
+                region_name = input$modal_reg_name,
+                maf = input$modal_maf,
+                save_alignment = FALSE
+              )
 
-            list_markers[[marker]] <- result_data$marker_data
-            list_plots[[marker]] <- result_data$plot
-          }
+              list_markers[[marker]] <- result_data$marker_data
+              list_plots[[marker]] <- result_data$plot
+            }
 
+            kasp_des.result(data.table::rbindlist(list_markers)) # marker dataframes
+            kasp_des.plot(list_plots) # plots
 
-          kasp_des.result(data.table::rbindlist(list_markers)) # marker dataframes
-          kasp_des.plot(list_plots) # plots
 
           # Success alert for VCF processing
           shinyWidgets::show_alert(
@@ -1394,33 +1468,33 @@ mod_variant_discovery_server <- function(id) {
       }
     )
 
-    # Plot container UI - show if user selects true
-    observeEvent(input$modal_draw_plot, {
-      if (input$modal_draw_plot == TRUE) {
-        output$plot_container <- renderUI({
-          bslib::accordion(
-            bslib::accordion_panel(
-              "KASP Sequence Alignment Plot",
-              selectizeInput(
-                inputId = ns("plot_choice"),
-                label = "Select Marker ID",
-                width = "45%",
-                choices = NULL
-              ), # drop down for plots
-              plotOutput(ns("plot")),
-              downloadButton(ns("download_plot"),
-                label = "Download Plot (pdf)",
-                class = "btn-success", icon = icon("download")
-              )
-            )
-          )
-        })
-      } else {
-        output$plot_container <- renderUI({
-          NULL
-        })
-      }
-    })
+    # # Plot container UI - show if user selects true
+    # observeEvent(input$modal_draw_plot, {
+    #   if (input$modal_draw_plot == TRUE) {
+    #     output$plot_container <- renderUI({
+    #       bslib::accordion(
+    #         bslib::accordion_panel(
+    #           "KASP Sequence Alignment Plot",
+    #           selectizeInput(
+    #             inputId = ns("plot_choice"),
+    #             label = "Select Marker ID",
+    #             width = "45%",
+    #             choices = NULL
+    #           ), # drop down for plots
+    #           plotOutput(ns("plot")),
+    #           downloadButton(ns("download_plot"),
+    #             label = "Download Plot (pdf)",
+    #             class = "btn-success", icon = icon("download")
+    #           )
+    #         )
+    #       )
+    #     })
+    #   } else {
+    #     output$plot_container <- renderUI({
+    #       NULL
+    #     })
+    #   }
+    # })
 
 
     # Render Plot
