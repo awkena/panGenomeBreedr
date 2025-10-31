@@ -336,17 +336,17 @@ app_ui <- function(request) {
               class = "benefit-card",
               div(class = "benefit-title", HTML("&#10003; Free and Open Source")),
               div(class = "benefit-text", "Licensed under GNU GPL v3")
-            ),
-            div(
-              class = "benefit-card",
-              div(class = "benefit-title", HTML("&#10003; Crop-agnostic platform")),
-              div(class = "benefit-text", "for diverse breeding programs")
-            ),
-            div(
-              class = "benefit-card",
-              div(class = "benefit-title", HTML("&#10003; Reproducible Research Workflows")),
-              div(class = "benefit-text", "making all analysis repeatable")
             )
+            # div(
+            #   class = "benefit-card",
+            #   div(class = "benefit-title", HTML("&#10003; Crop-agnostic platform")),
+            #   div(class = "benefit-text", "for diverse breeding programs")
+            # ),
+            # div(
+            #   class = "benefit-card",
+            #   div(class = "benefit-title", HTML("&#10003; Reproducible Research Workflows")),
+            #   div(class = "benefit-text", "making all analysis repeatable")
+            # )
           )
         ),
 
