@@ -1083,6 +1083,9 @@ mod_variant_discovery_server <- function(id) {
         text = "Querying Database... Please wait."
       )
 
+      # Update view tab
+      updateTabsetPanel(session, "nav_id", selected = "Main Database Results")
+
 
       # First: Database query
       tryCatch({
@@ -1101,8 +1104,6 @@ mod_variant_discovery_server <- function(id) {
 
         # Second: Annotation summary
         if (!is.null(input$table_name_v) && !is.null(input$table_name_a)) {
-          updateTabsetPanel(session, "nav_id", selected = "Main Database Result")
-
           values$query_ann_react <- query_ann_summary(
             db_path = rv$db_path,
             variants_table = input$table_name_v,
@@ -1152,7 +1153,7 @@ mod_variant_discovery_server <- function(id) {
     })
 
 
-    # Query results display # superrendered UI
+    # Query results display
     observe({
       req(input$query_database) # choice radio button
       if (!is.null(input$query_database) && input$query_database == "q_entire") {
@@ -1302,7 +1303,7 @@ mod_variant_discovery_server <- function(id) {
     # Download handler
     output$download_excel <- downloadHandler(
       filename = function() {
-        paste("dbquery", input$File_name, "genotypes", ".xlsx", sep = "_")
+        paste0("dbquery_",gsub(pattern = ' ',replacement = '',x = input$File_name), "_variant_matrix", ".xlsx")
       },
       content = function(file) {
         writexl::write_xlsx(values$query_geno_react, path = file)
