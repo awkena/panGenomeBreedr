@@ -320,83 +320,131 @@ kasp_marker_design <- function(vcf_file = NULL,
 
   ### Getting the actual upstream and downstream sequences
 
+  # get_actual_seq <- function(variants_100bp,
+  #                            genome = genome,
+  #                            bound_start,
+  #                            bound_end) {
+  #
+  #   ####### start stop list
+  #   start_stop_list <- c(bound_start, variants_100bp$pos - 1, bound_end)
+  #
+  #   # creating empty sequence
+  #   stream_sequence <- Biostrings::DNAStringSet()
+  #
+  #   j <- 1
+  #   for ( i in 1:(length(start_stop_list)-1)) {
+  #
+  #     #adjust start
+  #     if (i == 1) {
+  #
+  #       tmp_start <- start_stop_list[i] # first iteration
+  #
+  #     } else {
+  #
+  #       tmp_start <- start_stop_list[i] + 1 # adding a base
+  #
+  #     }
+  #
+  #     #adjust stop
+  #     if (i == length(start_stop_list)-1) {
+  #
+  #       tmp_stop <- start_stop_list[i+1] # if is the last iteration
+  #
+  #     } else {
+  #
+  #       tmp_stop <- start_stop_list[i+1]-1 # removing a base
+  #
+  #     }
+  #
+  #     # Extracting genomic region from reference genome
+  #     region <- GenomicRanges::GRanges(chromosome, IRanges::IRanges(tmp_start, tmp_stop))
+  #
+  #     # Creating empty base to add
+  #     base_to_add <- Biostrings::DNAStringSet()
+  #
+  #     if (j <= nrow(variants_100bp)) {
+  #
+  #       #getting one letter code for the polymorphism upstream
+  #       base_to_add <- Biostrings::DNAStringSet(variants_100bp$one_letter[j])
+  #
+  #       j <- j+1 #counter
+  #
+  #     }
+  #
+  #     # getting sequence for the region
+  #     sequence <- Biostrings::DNAStringSet(BSgenome::getSeq(genome, region))
+  #
+  #     # merging sequence and base to add
+  #     tmp_seq <- c(sequence, base_to_add)
+  #
+  #     # unlisting and making new sequence
+  #     new_seq <- Biostrings::DNAStringSet(unlist(tmp_seq))
+  #
+  #     #saving to upstream sequence, merging with upstream sequence
+  #     stream_sequence <- Biostrings::DNAStringSet(unlist(c(stream_sequence, new_seq)))
+  #   }
+  #
+  #   return(stream_sequence)
+  # }
+
+
+  # Safer, clearer stream builder (replaces get_actual_seq)
   get_actual_seq <- function(variants_100bp,
-                             genome = genome,
-                             bound_start,
-                             bound_end) {
+                               genome,
+                               chromosome,
+                               bound_start,
+                               bound_end) {
+    # variants_100bp: data.frame with at least columns pos (int) and one_letter (chr)
+    # genome: DNAStringSet or BSgenome; names(genome) must contain `chromosome`
+    # chromosome: character, seqname present in `genome`
+    # [bound_start, bound_end] inclusive genomic window
 
-    ####### start stop list
-    start_stop_list <- c(bound_start, variants_100bp$pos - 1, bound_end)
-
-    # creating empty sequence
-    stream_sequence <- Biostrings::DNAStringSet()
-
-    j <- 1
-    for ( i in 1:(length(start_stop_list)-1)) {
-
-      #adjust start
-      if (i == 1) {
-
-        tmp_start <- start_stop_list[i] # first iteration
-
-      } else {
-
-        tmp_start <- start_stop_list[i] + 1 # adding a base
-
-      }
-
-      #adjust stop
-      if (i == length(start_stop_list)-1) {
-
-        tmp_stop <- start_stop_list[i+1] # if is the last iteration
-
-      } else {
-
-        tmp_stop <- start_stop_list[i+1]-1 # removing a base
-
-      }
-
-      # Extracting genomic region from reference genome
-      region <- GenomicRanges::GRanges(chromosome, IRanges::IRanges(tmp_start, tmp_stop))
-
-      # Creating empty base to add
-      base_to_add <- Biostrings::DNAStringSet()
-
-      if (j <= nrow(variants_100bp)) {
-
-        #getting one letter code for the polymorphism upstream
-        base_to_add <- Biostrings::DNAStringSet(variants_100bp$one_letter[j])
-
-        j <- j+1 #counter
-
-      }
-
-      # getting sequence for the region
-      sequence <- Biostrings::DNAStringSet(BSgenome::getSeq(genome, region))
-
-      # merging sequence and base to add
-      tmp_seq <- c(sequence, base_to_add)
-
-      # unlisting and making new sequence
-      new_seq <- Biostrings::DNAStringSet(unlist(tmp_seq))
-
-      #saving to upstream sequence, merging with upstream sequence
-      stream_sequence <- Biostrings::DNAStringSet(unlist(c(stream_sequence, new_seq)))
+    if (!chromosome %in% names(genome)) {
+      stop(sprintf("Chromosome '%s' not found in genome sequences.", chromosome), call. = FALSE)
     }
 
-    return(stream_sequence)
+    # Fenceposts: [bound_start, pos-1, ..., bound_end]
+    positions <- if (nrow(variants_100bp)) (as.integer(variants_100bp$pos) - 1L) else integer(0)
+    fence <- c(as.integer(bound_start), positions, as.integer(bound_end))
+
+    stream_sequence <- Biostrings::DNAStringSet()
+    j <- 1L
+
+    for (i in seq_len(length(fence) - 1L)) {
+      # left/right limits for the plain reference segment
+      tmp_start <- if (i == 1L) fence[i] else fence[i] + 1L
+      tmp_stop  <- if (i == length(fence) - 1L) fence[i + 1L] else fence[i + 1L] - 1L
+
+      # Extract only if there is a non-empty span
+      if (!is.na(tmp_start) && !is.na(tmp_stop) && tmp_stop >= tmp_start) {
+        region <- GenomicRanges::GRanges(chromosome, IRanges::IRanges(tmp_start, tmp_stop))
+        seg <- BSgenome::getSeq(genome, region)
+        stream_sequence <- Biostrings::DNAStringSet(unlist(c(stream_sequence, Biostrings::DNAStringSet(seg))))
+      }
+
+      # Insert the polymorphic IUPAC base after the segment, if available
+      if (j <= nrow(variants_100bp)) {
+        base_to_add <- Biostrings::DNAStringSet(variants_100bp$one_letter[j])
+        stream_sequence <- Biostrings::DNAStringSet(unlist(c(stream_sequence, base_to_add)))
+        j <- j + 1L
+      }
+    }
+
+    stream_sequence
   }
 
 
   # Upstream
   upstream_sequence <- get_actual_seq(variants_100bp = variants_100bp_up,
                                       genome = genome,
+                                      chromosome = chromosome,
                                       bound_start = up_bound_start,
                                       bound_end = up_bound_end)
 
   # Downdtream
   downstream_sequence <- get_actual_seq(variants_100bp = variants_100bp_down,
                                         genome = genome,
+                                        chromosome = chromosome,
                                         bound_start = down_bound_start,
                                         bound_end = down_bound_end)
 
