@@ -56,7 +56,7 @@ mod_kasp_marker_design_ui <- function(id) {
             radioButtons(
               inputId = ns("upload_choice"),
               label = "Variant Data Type",
-              choices = c("snpEff Annotated VCF (.vcf)", "Genotype Matrix (Processed)"),
+              choices = c("snpEff Annotated VCF", "Genotype Matrix (Processed)"),
               selected = character(0)
             ),
             uiOutput(ns("choice_output")) # dynamic file input based on radio button selection
@@ -321,11 +321,11 @@ mod_kasp_marker_design_server <- function(id) {
 
     # Dynamic rendering of file upload based on user choice
     observeEvent(input$upload_choice, {
-      if (input$upload_choice == "snpEff Annotated VCF (.vcf)") {
+      if (input$upload_choice == "snpEff Annotated VCF") {
         output$choice_output <- renderUI({
           fileInput(ns("vcf_file"),
-            label = "Upload snpEff Annotated VCF (.vcf)",
-            accept = ".vcf"
+            label = "Upload snpEff Annotated VCF",
+            accept = c(".vcf",'.gz')
           )
         })
         # Reset existing genotype data input
