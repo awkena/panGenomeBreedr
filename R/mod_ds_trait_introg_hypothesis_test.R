@@ -551,38 +551,38 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
             )
           )
         )
-      ),
-      nav_panel(
-        title = "Data QC", icon = icon("bell"),
-        splitLayout(
-          bslib::card(
-            card_header(tags$b("SNP Loci with Potential Genotype Call Errors")),
-            bslib::card_body(
-              DT::DTOutput(outputId = ns("geno_error_tbl"))
-            )
-          ),
-          bslib::card(
-            card_header(tags$b("SNP Loci with Parent Missing")),
-            bslib::card_body(
-              DT::DTOutput(outputId = ns("par_missing_tbl"))
-            )
-          )
-        ),
-        splitLayout(
-          bslib::card(
-            card_header(tags$b("SNP Loci with Heterozygote Parent")),
-            bslib::card_body(
-              DT::DTOutput(outputId = ns("par_het_tbl"))
-            )
-          ),
-          bslib::card(
-            card_header(tags$b("SNP Loci with Unexpected Locus")),
-            bslib::card_body(
-              DT::DTOutput(outputId = ns("unexp_locu_tbl"))
-            )
-          )
-        )
       )
+      # nav_panel(
+      #   title = "Data QC", icon = icon("bell"),
+      #   splitLayout(
+      #     bslib::card(
+      #       card_header(tags$b("SNP Loci with Potential Genotype Call Errors")),
+      #       bslib::card_body(
+      #         DT::DTOutput(outputId = ns("geno_error_tbl"))
+      #       )
+      #     ),
+      #     bslib::card(
+      #       card_header(tags$b("SNP Loci with Parent Missing")),
+      #       bslib::card_body(
+      #         DT::DTOutput(outputId = ns("par_missing_tbl"))
+      #       )
+      #     )
+      #   ),
+      #   splitLayout(
+      #     bslib::card(
+      #       card_header(tags$b("SNP Loci with Heterozygote Parent")),
+      #       bslib::card_body(
+      #         DT::DTOutput(outputId = ns("par_het_tbl"))
+      #       )
+      #     ),
+      #     bslib::card(
+      #       card_header(tags$b("SNP Loci with Unexpected Locus")),
+      #       bslib::card_body(
+      #         DT::DTOutput(outputId = ns("unexp_locu_tbl"))
+      #       )
+      #     )
+      #   )
+      # )
     )
   )
 }
@@ -1508,24 +1508,24 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     #------------------------------------------------------
     # Information to the user
     #------------------------------------------------------
-    # parent missing
-    output$par_missing_tbl <- DT::renderDT({
-      req(Result())
-      DT::datatable(par_missing_dat(Result()$par_missing_dat), options = list(scrollX = TRUE))
-    })
-
-
-    # Genotype error
-    output$geno_error_tbl <- DT::renderDT({
-      req(Result())
-      DT::datatable(Result()$genotype_error, options = list(scrollX = TRUE))
-    })
-
-    # # parent hetero
-    output$par_het_tbl <- DT::renderDT({
-      req(Result())
-      DT::datatable(Result()$parent_het, options = list(scrollX = TRUE))
-    })
+    # # parent missing
+    # output$par_missing_tbl <- DT::renderDT({
+    #   req(Result())
+    #   DT::datatable(par_missing_dat(Result()$par_missing_dat), options = list(scrollX = TRUE))
+    # })
+    #
+    #
+    # # Genotype error
+    # output$geno_error_tbl <- DT::renderDT({
+    #   req(Result())
+    #   DT::datatable(Result()$genotype_error, options = list(scrollX = TRUE))
+    # })
+    #
+    # # # parent hetero
+    # output$par_het_tbl <- DT::renderDT({
+    #   req(Result())
+    #   DT::datatable(Result()$parent_het, options = list(scrollX = TRUE))
+    # })
 
   })
 }

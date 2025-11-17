@@ -79,7 +79,7 @@ mod_mv_pred_sum_stat_ui <- function(id) {
               ),
               column(
                 width = 4,
-                numericInput(inputId = ns("alpha_id"), label = "Adjust Alpha Value", value = 1, min = 0, max = 1, step = 0.05)
+                numericInput(inputId = ns("alpha_id"), label = "Ajust Bar Transparency", value = 1, min = 0, max = 1, step = 0.05)
               )
             ),
             fluidRow(

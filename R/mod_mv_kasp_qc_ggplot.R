@@ -184,7 +184,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                     ),
                     numericInput(
                       inputId = ns("alpha_id"),
-                      label = "Point Transparency",
+                      label = "Adjust Point Transparency",
                       value = 0.8, min = 0, max = 1, step = 0.05,
                       width = "100%"
                     ),
