@@ -588,7 +588,7 @@ mod_kasp_marker_design_server <- function(id) {
       )
 
       # First tryCatch for VCF file processing
-      if (input$upload_choice == "snpEff Annotated VCF (.vcf)") {
+      if (input$upload_choice == "snpEff Annotated VCF") {
         req(input$vcf_file)
         tryCatch({
           for (marker in input$marker_ID) {
