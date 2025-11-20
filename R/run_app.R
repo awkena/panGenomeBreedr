@@ -43,7 +43,7 @@ run_app <- function(
 
   # A humour message
    cat('================================================\n')
-   cat('From the Green Evolution Project to the World!\n')
+   cat("panGenomeBreedr is live!\U1F680,Let's breed smarter!\n")
    cat('================================================\n')
    # force open in web browser
    options(shiny.launch.browser = TRUE)
