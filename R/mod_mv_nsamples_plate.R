@@ -104,7 +104,7 @@ mod_mv_nsamples_plate_server <- function(id, kasp_data) {
             server = TRUE,
             inputId = "plates_id",
             choices = subset_names(),
-            selected = safe_grep_match(pattern = 'master',
+            selected = safe_grep_match(pattern = 'masterplate',
                                        choices = subset_names())
           )
 

@@ -136,11 +136,11 @@ mod_mv_kasp_color_server <- function(id, kasp_data) {
       tryCatch({
         kasp_color(
           x = kasp_data,
-          uncallable = input$uncallable,
-          unused = input$unused,
-          blank = input$blank,
-          others = trimws(strsplit(input$others, ",")[[1]]),
-          sep = input$sep,
+          uncallable = trimws(input$uncallable), # remove whitespaces
+          unused = trimws(input$unused),# remove whitespaces
+          blank = trimws(input$blank), # remove whitespaces
+          others = trimws(unlist(strsplit(input$others,split =  ","))),
+          sep = check_sep(input$sep), # custom function to check separator
           subset = input$Subset_names,
           geno_call = input$geno_call_col,
           assign_cols = c(

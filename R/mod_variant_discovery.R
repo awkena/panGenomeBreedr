@@ -163,9 +163,9 @@ mod_variant_discovery_ui <- function(id) {
           query_action_card(ns)
         ),
         bslib::navset_card_tab(
-          id = ns("nav_id"), selected = "Main Database Results ",
+          id = ns("nav_id"), selected = "Main Database Results",
           bslib::nav_panel(
-            title = "Main Database Results ",
+            title = "Main Database Results",
             uiOutput(ns("query_db_display"))
           ),
           bslib::nav_panel(
@@ -886,7 +886,7 @@ mod_variant_discovery_server <- function(id) {
           gff_path <- input$gff_file$datapath
         }
 
-        values$result <- gene_coord_gff(input$gene_name, gff_path)
+        values$result <- gene_coord_gff(trimws(input$gene_name), gff_path)
 
         shinyWidgets::show_alert(
           title = "Found Gene Co-ordinates",
@@ -938,23 +938,28 @@ mod_variant_discovery_server <- function(id) {
           tagList(
             bslib::card(
                class = "shadow p",
-              textInput(
+              numericInput(
                 inputId = ns("chrom"),
-                label = "Chromosome",
+                label = "Chromosome Number",
                 value = NULL,
-                placeholder = 'Chr05',
-                width = "100%"
+                width = "100%",
+                min = 1,
+                step = 1
               ), # chromosome name input
               numericInput(
                 inputId = ns("start"),
                 label = "Start Position",
                 value = NULL,
+                min = 1,
+                step = 1,
                 width = "100%"
               ), # chrom start input
               numericInput(
                 inputId = ns("end"),
                 label = "End Position",
                 value = NULL,
+                min = 1,
+                step = 1,
                 width = "100%"
               ), # chrom end input
               # footer
@@ -987,7 +992,7 @@ mod_variant_discovery_server <- function(id) {
       removeModal()
       tryCatch({
         values$result <- list(
-          chrom = input$chrom,
+          chrom = sprintf("Chr%02d", input$chrom),
           start = input$start,
           end = input$end
         )
@@ -996,7 +1001,7 @@ mod_variant_discovery_server <- function(id) {
           title = "Gene Coordinates Set",
           text = sprintf(
             "Chromosome: %s | Start: %d | End: %d",
-            input$chrom, input$start, input$end
+            sprintf("Chr%02d", input$chrom), input$start, input$end
           ),
           type = "success",
           showCloseButton = TRUE,
@@ -1072,9 +1077,13 @@ mod_variant_discovery_server <- function(id) {
 
     # Combined database query and annotation summary
     observeEvent(input$query_dbase_btn, {
+      # Update view tab
+      updateTabsetPanel(session, inputId = "nav_id", selected = "Main Database Results")
+
       values$last_action <- NULL # Null last action
 
-      req(rv$db_path, values$result)
+       # require path and results
+      req(rv$db_path, values$result,input$query_database )# Ensure that at least one of the radio buttons is selected
 
       # Show loading spinner for both operations
       shinybusy::show_modal_spinner(
@@ -1082,10 +1091,6 @@ mod_variant_discovery_server <- function(id) {
         color = "#27AE60",
         text = "Querying Database... Please wait."
       )
-
-      # Update view tab
-      updateTabsetPanel(session, "nav_id", selected = "Main Database Results")
-
 
       # First: Database query
       tryCatch({
@@ -1270,7 +1275,8 @@ mod_variant_discovery_server <- function(id) {
         error = function(e) {
           shinyWidgets::show_alert(
             title = "Error",
-            text = "No Putative Causal Variants Found!",
+            text = paste("No putative causal variants found at MAF threshold of",input$af_range,
+                         ". Try lowering the MAF threshold."),
             type = "error",
             showCloseButton = TRUE,
             timer = 8000

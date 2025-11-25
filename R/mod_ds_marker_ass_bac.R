@@ -379,7 +379,7 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                         ),
                         numericInput(
                           inputId = ns("alpha"),
-                          label = "Point Transparency",
+                          label = "Adjust Bar Transparency",
                           value = 0.9,
                           min = 0,
                           max = 1,
@@ -868,7 +868,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
             bar_col = input$bar_col,
             thresh_line_col = input$thresh_line_col,
             show_above_thresh = input$show_above_thresh,
-            bc_gen = if (is.null(input$bc_gen)) NULL else input$bc_gen,
+            bc_gen = if(is.null(input$bc_gen)) NULL else input$bc_gen,
             pdf = FALSE
           )
         },

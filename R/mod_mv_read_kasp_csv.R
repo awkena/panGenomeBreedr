@@ -28,16 +28,23 @@ mod_mv_read_kasp_csv_ui <- function(id) {
           choices = c("raw", "polished"),
           selected = "raw"
         ),
-        # Widget for spacing
-        numericInput(ns("data_space"),
-          label = "Number of Rows Between Data Segments",
-          value = 2, min = 0, max = 100, step = 1
-        ),
         # Widget for row tags
-        textInput(
-          inputId = ns("row_tags"),
-          label = "Row Tags (in order, separated by commas)",
-          value = "Statistics , DNA , SNPs , Scaling , Data"
+        # Condition based on the datatype selected
+        conditionalPanel(
+          condition = sprintf("input['%s'] == 'raw'", ns("datatype")),
+          tagList(
+            textInput(
+              inputId = ns("row_tags"),
+              label = "Row Tags (in order, separated by commas)",
+              value = "Statistics , DNA , SNPs , Scaling , Data"
+            ),
+
+            # Widget for spacing
+            numericInput(ns("data_space"),
+              label = "Number of Rows Between Data Segments",
+              value = 2, min = 0, max = 100, step = 1
+            )
+          )
         ),
         # action button widget
         div(
@@ -53,11 +60,14 @@ mod_mv_read_kasp_csv_ui <- function(id) {
       ),
       mainPanel(
         # Display results from after reading csv.
-        bslib::accordion(height = '500px',
+        bslib::accordion(
+          height = "500px",
           open = TRUE, # Default open section
-          bslib::accordion_panel(title =   "Uploaded File Preview",
-            navset_card_tab(height = '500px',
-              nav_panel(title = "Data", DT::DTOutput(ns("kasp_data"),height = '500px')),
+          bslib::accordion_panel(
+            title = "Uploaded File Preview",
+            navset_card_tab(
+              height = "500px",
+              nav_panel(title = "Data", DT::DTOutput(ns("kasp_data"), height = "500px")),
               nav_panel(title = "Statistics", DT::DTOutput(ns("kasp_statistics"))),
               nav_panel(title = "SNPS", DT::DTOutput(ns("kasp_snps"))),
               nav_panel(title = "DNA", DT::DTOutput(ns("kasp_DNA"))),
@@ -69,7 +79,6 @@ mod_mv_read_kasp_csv_ui <- function(id) {
     )
   )
 }
-
 
 
 #' mv_read_kasp_csv Server Functions
@@ -89,16 +98,21 @@ mod_mv_read_kasp_csv_server <- function(id) {
       req(input$row_tags, input$Kasp_csv.file, input$data_space, input$datatype)
       tryCatch(
         {
-          # Split row tags and trim whitespace
-          row_tags_list <- trimws(unlist(strsplit(x = input$row_tags, split = ",")))
-
-          # Process the CSV
-          read_kasp_result <- read_kasp_csv(
-            file = input$Kasp_csv.file$datapath,
-            spacing = input$data_space,
-            data_type = input$datatype,
-            row_tags = row_tags_list
-          )
+          # Response based on datatype selected.
+          if (input$datatype == "raw") {
+            row_tags_vec <- trimws(unlist(strsplit(input$row_tags, split = ",")))
+            read_kasp_result <- read_kasp_csv(
+              file = input$Kasp_csv.file$datapath,
+              row_tags = row_tags_vec,
+              spacing = input$data_space,
+              data_type = "raw"
+            )
+          } else {
+            read_kasp_result <- read_kasp_csv(
+              file = input$Kasp_csv.file$datapath,
+              data_type = "polished"
+            )
+          }
 
           # Update import data
           import_data(read_kasp_result)
