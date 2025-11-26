@@ -390,11 +390,13 @@ mod_ds_foreground_select_server <- function(id) {
         color = "#0dc5c1",
         text = "Running foreground analysis... Please wait."
       )
+      # Update marker_info()
+      marker_info_updated <- marker_info()[marker_info()[[input$fore_marker_col]] %in% colnames(geno_data()), ]
 
       result <- tryCatch({
         foreground_select(
           geno_data = geno_data(),
-          fore_marker_info = marker_info(),
+          fore_marker_info = marker_info_updated,
           fore_marker_col = input$fore_marker_col,
           fav_allele_col = input$fav_allele_col,
           alt_allele_col = input$alt_allele_col,
