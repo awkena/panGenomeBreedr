@@ -30,7 +30,7 @@ LazyData: true
 URL: https://awkena.github.io/panGenomeBreedr,
      https://github.com/awkena/panGenomeBreedr
 BugReports: https://github.com/awkena/panGenomeBreedr/issues
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Language: en-US
 Imports: 
     DBI,
