@@ -1,8 +1,0 @@
-default:
-  golem_name: panGenomeBreedr
-  golem_version: '0.01'
-  app_prod: no
-production:
-  app_prod: yes
-dev:
-  golem_wd: !expr golem::pkg_path()
