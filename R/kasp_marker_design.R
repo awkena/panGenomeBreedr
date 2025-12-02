@@ -613,3 +613,4 @@ kasp_marker_design <- function(vcf_file = NULL,
   return(list(marker_data = marker_data, plot = pp))
 
 }
+
