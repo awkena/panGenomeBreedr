@@ -678,13 +678,7 @@ calc_af <- function(gt,
                               stringsAsFactors = FALSE)
 
   # Compute alt allele frequency (sum of alt alleles / 2n samples)
-  # Handle single variant case (update to avoid rowMeans error)
-  if(nrow(dosage_mat) > 1){
-    alt_af <- rowMeans(sapply(dosage_mat, as.numeric), na.rm = TRUE) / 2
-  } else{
-    alt_af <- mean(sapply(dosage_mat, as.numeric), na.rm = TRUE) / 2
-  }
-
+  alt_af <- rowMeans(sapply(dosage_mat, as.numeric), na.rm = TRUE) / 2
 
   if(is.null(chrom_col) && is.null(pos_col) ) {
 

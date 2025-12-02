@@ -17,9 +17,6 @@ authors:
   - name: "Clara Cruet Burgos"
     email: "clara.cruet_burgos@colostate.edu"
     role: [aut]
-  - name: "Israel Tawiah Tetteh"
-    email: "israeltetteh715@gmail.com"
-    role: [aut]
   - name: "Joseph Pascal Sene"
     email: "joseph15.sene@gmail.com"
     role: [ctb]
@@ -114,10 +111,6 @@ reference:
     contents:
       - beta_carotene
       - kasp_dat
-
-  - title: "Applications"
-    contents:
-      - run_app
 
 articles:
   - title: "panGenomeBreedr Workflows and Use Cases"

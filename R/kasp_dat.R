@@ -16,5 +16,5 @@
 #'   \item{\code{DaughterWell}}{\code{character} KASP Daughter Well ID.}
 #'   \item{\code{Group}}{\code{character} Predicted genotype for positive controls.}
 #'
-#' }
+#'}
 "kasp_dat"
