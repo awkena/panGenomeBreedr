@@ -271,35 +271,6 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                       choices = NULL,
                       width = "100%"
                     ),
-                    # numericInput(
-                    #   inputId = ns("rp_index"),
-                    #   label = "Set Row Index for Reccurent Parent",
-                    #   value = 1,
-                    #   min = 1,
-                    #   step = 1,
-                    #   width = "100%"
-                    # ),
-                    # numericInput(
-                    #   inputId = ns("rp_num_code"),
-                    #   label = "Numeric Code for RP Background",
-                    #   value = 1,
-                    #   min = 1,
-                    #   step = 1,
-                    #   width = "100%"
-                    # ),
-                    # numericInput(
-                    #   inputId = ns("het_code"),
-                    #   label = "Numeric Code for Heterozygous Background",
-                    #   value = 0.5,
-                    #   min = 0.5,
-                    #   max = 0.5,
-                    #   width = "100%"
-                    # ),
-                    # numericInput(
-                    #   inputId = ns("na_code"),
-                    #   label = "Value Indicating Missing Data",
-                    #   value = -5
-                    # ),
                     radioButtons(
                       inputId = ns("weight_rpp"),
                       label = "Weight RPP Values?",
