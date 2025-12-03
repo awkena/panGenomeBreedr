@@ -399,19 +399,12 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
 
         tryCatch(
           {
-            # Process 'others' input safely
-            others_values <- if (nzchar(input$others)) {
-              trimws(unlist(strsplit(input$others, ",")))
-            } else {
-              character(0)
-            }
-
             # Generate the plot
             result <- panGenomeBreedr::kasp_qc_ggplot2(
               pdf = FALSE,
               blank = input$blank,
               uncallable = input$uncallable,
-              others = others_values,
+              others = trimws(unlist(strsplit(input$others, ","))),
               Group_unknown = input$group_unknown,
               unused = input$unused,
               x = color_coded(),

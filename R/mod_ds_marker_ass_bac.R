@@ -271,40 +271,40 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                       choices = NULL,
                       width = "100%"
                     ),
-                    numericInput(
-                      inputId = ns("rp_index"),
-                      label = "Set Row Index for Reccurent Parent",
-                      value = 1,
-                      min = 1,
-                      step = 1,
-                      width = "100%"
-                    ),
-                    numericInput(
-                      inputId = ns("rp_num_code"),
-                      label = "Numeric Code for RP Background",
-                      value = 1,
-                      min = 1,
-                      step = 1,
-                      width = "100%"
-                    ),
-                    numericInput(
-                      inputId = ns("het_code"),
-                      label = "Numeric Code for Heterozygous Background",
-                      value = 0.5,
-                      min = 0.5,
-                      max = 0.5,
-                      width = "100%"
-                    ),
-                    numericInput(
-                      inputId = ns("na_code"),
-                      label = "Value Indicating Missing Data",
-                      value = -5
-                    ),
+                    # numericInput(
+                    #   inputId = ns("rp_index"),
+                    #   label = "Set Row Index for Reccurent Parent",
+                    #   value = 1,
+                    #   min = 1,
+                    #   step = 1,
+                    #   width = "100%"
+                    # ),
+                    # numericInput(
+                    #   inputId = ns("rp_num_code"),
+                    #   label = "Numeric Code for RP Background",
+                    #   value = 1,
+                    #   min = 1,
+                    #   step = 1,
+                    #   width = "100%"
+                    # ),
+                    # numericInput(
+                    #   inputId = ns("het_code"),
+                    #   label = "Numeric Code for Heterozygous Background",
+                    #   value = 0.5,
+                    #   min = 0.5,
+                    #   max = 0.5,
+                    #   width = "100%"
+                    # ),
+                    # numericInput(
+                    #   inputId = ns("na_code"),
+                    #   label = "Value Indicating Missing Data",
+                    #   value = -5
+                    # ),
                     radioButtons(
                       inputId = ns("weight_rpp"),
                       label = "Weight RPP Values?",
                       choices = c("Yes" = TRUE, "No" = FALSE),
-                      selected = FALSE,
+                      selected = TRUE,
                       inline = TRUE
                     )
                   )
@@ -795,11 +795,16 @@ mod_ds_marker_ass_bac_server <- function(id) {
       )
     })
 
+
+
     # calculate recurrent parent
     calc_rpp_bc_result <- reactive({
       req(
-        Result(), input$chr_pos, input$chr, input$het_code, input$weight_rpp,
-        input$snp_ids, input$rp_num_code, input$rp_index, input$na_code
+        Result(),
+        input$chr_pos,
+        input$chr,
+        input$weight_rpp,
+        input$snp_ids
       )
 
       calc_rpp_bc(
@@ -808,10 +813,10 @@ mod_ds_marker_ass_bac_server <- function(id) {
         map_chr = input$chr,
         map_pos = input$chr_pos,
         map_snp_ids = input$snp_ids,
-        rp_num_code = input$rp_num_code,
-        rp = input$rp_index,
-        het_code = input$het_code,
-        na_code = input$na_code,
+        #rp_num_code = input$rp_num_code,
+        rp = Result()$rp_index,
+        #het_code = input$het_code,
+        na_code = -5,
         weighted = input$weight_rpp
       )
     })
@@ -852,6 +857,9 @@ mod_ds_marker_ass_bac_server <- function(id) {
         input$alpha, input$bar_width, input$aspect_ratio, input$bar_col,
         input$thresh_line_col, input$rpp_col
       )
+      # safely handle rpp threshold
+      rpp_threshold <- if(!is.null(input$rpp_threshold)) input$rpp_threshold else NULL
+
       tryCatch(
         {
           #
@@ -859,7 +867,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
             rpp_df = calc_rpp_bc_result(),
             rpp_sample_id = input$rpp_sample_id,
             rpp_col = input$rpp_col,
-            rpp_threshold = input$rpp_threshold,
+            rpp_threshold = rpp_threshold ,
             text_size = input$text_size,
             text_scale_fct = input$text_scale_fct,
             alpha = input$alpha,
@@ -868,7 +876,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
             bar_col = input$bar_col,
             thresh_line_col = input$thresh_line_col,
             show_above_thresh = input$show_above_thresh,
-            bc_gen = if(is.null(input$bc_gen)) NULL else input$bc_gen,
+            bc_gen = if(is.null(rpp_threshold)) input$bc_gen else NULL,
             pdf = FALSE
           )
         },

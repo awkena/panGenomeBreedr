@@ -353,28 +353,28 @@ app_ui <- function(request) {
         # Footer Section
         div(
           class = "footer-section",
-          div(class = "footer-heading", "Project Funder"),
-          div(class = "footer-org", "Gates Foundation"),
-
-          div(class = "footer-heading", "Lead Institution"),
-          div(class = "footer-org", "COLORADO STATE UNIVERSITY"),
-
-          div(class = "logo-row",
-              # Partner logos - uncomment and add paths when images are available
-              # img(src = "logo_icar.png", class = "partner-logo"),
-              # img(src = "logo_knust.png", class = "partner-logo"),
-              # img(src = "logo_csir.png", class = "partner-logo"),
-              # img(src = "logo_chibas.png", class = "partner-logo"),
-              div(style = "color: #cbd5e0;", "[Partner Logos: www/logo_*.png]")
-          ),
-
-          div(class = "logo-row",
-              # img(src = "logo_cimmyt.png", class = "partner-logo"),
-              # img(src = "logo_nebraska.png", class = "partner-logo"),
-              # img(src = "logo_kansas.png", class = "partner-logo"),
-              # img(src = "logo_hudsonalpha.png", class = "partner-logo"),
-              div(style = "color: #cbd5e0;", "[Partner Logos Row 2]")
-          ),
+          # div(class = "footer-heading", "Project Funder"),
+          # div(class = "footer-org", "Gates Foundation"),
+          #
+          # div(class = "footer-heading", "Lead Institution"),
+          # div(class = "footer-org", "COLORADO STATE UNIVERSITY"),
+          #
+          # div(class = "logo-row",
+          #     # Partner logos - uncomment and add paths when images are available
+          #     # img(src = "logo_icar.png", class = "partner-logo"),
+          #     # img(src = "logo_knust.png", class = "partner-logo"),
+          #     # img(src = "logo_csir.png", class = "partner-logo"),
+          #     # img(src = "logo_chibas.png", class = "partner-logo"),
+          #     div(style = "color: #cbd5e0;", "[Partner Logos: www/logo_*.png]")
+          # ),
+          #
+          # div(class = "logo-row",
+          #     # img(src = "logo_cimmyt.png", class = "partner-logo"),
+          #     # img(src = "logo_nebraska.png", class = "partner-logo"),
+          #     # img(src = "logo_kansas.png", class = "partner-logo"),
+          #     # img(src = "logo_hudsonalpha.png", class = "partner-logo"),
+          #     div(style = "color: #cbd5e0;", "[Partner Logos Row 2]")
+          # ),
 
           div(class = "copyright", HTML("&copy; 2025 panGenomeBreedr")),
           div(

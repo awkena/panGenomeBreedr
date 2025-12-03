@@ -736,7 +736,8 @@ proc_nd_map_func <- function(data = NULL,
     proc_kasp_f = proc_kasp_f,
     par_missing_dat = par_missing_dat,
     genotype_error = genotype_error,
-    parent_het = parent_het
+    parent_het = parent_het,
+    rp_index = dp_val[1]
   ))
 }
 
