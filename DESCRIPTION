@@ -33,12 +33,15 @@ BugReports: https://github.com/awkena/panGenomeBreedr/issues
 RoxygenNote: 7.3.3
 Language: en-US
 Imports: 
+    bslib,
     DBI,
     ggplot2,
+    golem,
     gridExtra,
     R.utils,
     reshape2,
     RSQLite,
+    shiny,
     stats,
     utils
 Depends: 
@@ -46,15 +49,29 @@ Depends:
 Suggests: 
     Biostrings,
     BSgenome,
+    config,
+    data.table,
+    DT,
     GenomicRanges,
     googledrive,
+    grDevices,
     IRanges,
     knitr,
     msa,
+    openxlsx,
+    reactable,
+    readxl,
     rmarkdown,
     Rsamtools,
     rtracklayer,
+    shinyalert,
+    shinybusy,
+    shinyFiles,
+    shinyjs,
+    shinyWidgets,
     testthat (>= 3.0.0),
-    UpSetR
+    UpSetR,
+    vcfR,
+    writexl
 Config/testthat/edition: 3
 VignetteBuilder: knitr
