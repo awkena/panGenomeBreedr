@@ -10,7 +10,7 @@ app_ui <- function(request) {
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # Your application UI logic
-   shinybusy::add_busy_bar(color = '#7f8c8d' ,height = '10px'),
+    shinybusy::add_busy_bar(color = "#7f8c8d", height = "10px"),
     navbarPage(
       collapsible = TRUE,
       theme = bslib::bs_theme(
@@ -27,7 +27,6 @@ app_ui <- function(request) {
       fluid = TRUE,
       title = "panGenomeBreedr",
       id = "nav_bar",
-
       header =
         tagList(
           tags$div(
@@ -38,10 +37,16 @@ app_ui <- function(request) {
               icon = icon("sync-alt"),
               style = "background-color: transparent; border: none;"
             )
-
           ),
-
           tags$head(
+            # Helper script for redirecting users to vignette to learn more
+            tags$script('
+  Shiny.addCustomMessageHandler("open_link", function(message) {
+    window.open(message.url, "_blank");
+  });
+'),
+
+            # Home page interface
             tags$style(HTML("
       .welcome-section {
         text-align: center;
@@ -205,7 +210,6 @@ app_ui <- function(request) {
       }
     "))
           )
-
         ),
 
       # Home Tab
@@ -252,9 +256,10 @@ app_ui <- function(request) {
               icon("dna", style = "font-size: 30px; color: #718096;")
             ),
             div(class = "feature-title", "Variant Discovery"),
-            actionButton(inputId = "btn_variant_discovery",
-                         label = "Learn more",
-                         class = "learn-more-btn"
+            actionButton(
+              inputId = "btn_variant_discovery",
+              label = "Learn more",
+              class = "learn-more-btn"
             )
           ),
 
@@ -386,12 +391,6 @@ app_ui <- function(request) {
         )
       ),
 
-
-      # ## Home / Welcome  Tab
-      # bslib::nav_panel(
-      #   title = "Home",
-      #   icon = icon("home")
-      # ),
       bslib::nav_item(), bslib::nav_item(), # space home tab from the rest of the tab
 
       ## Variant Annotation Tab
@@ -408,7 +407,7 @@ app_ui <- function(request) {
         icon = icon("dna"),
         mod_kasp_marker_design_ui("kasp_marker_design_1")
       ),
-      bslib::nav_item(),# space KASP marker design tab from the rest of the tab
+      bslib::nav_item(), # space KASP marker design tab from the rest of the tab
 
       ## Marker validation tab with sub functionalities.
       bslib::nav_panel(
@@ -419,62 +418,63 @@ app_ui <- function(request) {
 
           # Read Kasp file Tab
           bslib::nav_panel(
-            title = tags$strong("Upload Genotyping Data"),
+            title = tags$strong("Upload KASP Data"),
             icon = icon("file-import"),
             bslib::card(
               height = "700px",
-              bslib::card_header(h5(tags$b(" Upload KASP Genotyping File"))),
+              bslib::card_header(h5(tags$b("Upload KASP Genotyping File"))),
               mod_mv_read_kasp_csv_ui("mv_read_kasp_csv_1")
             )
           ),
+
+          # Tab for Kasp file Summary / Statistics
+          bslib::nav_panel(
+            title = tags$strong("Data Summary"),
+            icon = icon("table"),
+            bslib::layout_column_wrap(
+              width = 1,
+              bslib::card(
+                bslib::card_header(h5(tags$b("Plate Statistics"))),
+                mod_mv_nsamples_plate_ui("mv_nsamples_plate_1") # plate count
+              ),
+              bslib::card(
+                bslib::card_header(h5(tags$b("Allele Call Summary"))),
+                mod_mv_get_alleles_ui("mv_get_alleles_1") # allele info
+              )
+            )
+          ),
+
           # Tab for color coding
           bslib::nav_panel(
-            title = tags$strong("Color-Code Genotype Calls"),
+            title = tags$strong("Color Code Calls"),
             icon = icon("palette"),
             bslib::card(
-              bslib::card_header(h5(tags$b("Apply Genotype Color Coding"))),
+              bslib::card_header(h5(tags$b("Color Code Genotypes"))),
               mod_mv_kasp_color_ui("mv_kasp_color_1")
             )
           ),
 
           # Tab for QC plots
           bslib::nav_panel(
-            title = tags$strong("QC Plots & Plate Layout"),
+            title = tags$strong("QC Plots & Layout"),
             icon = icon("chart-bar"),
             bslib::card(
-              bslib::card_header(h5(tags$b("QC Plots with Prediction Overlays"))),
+              bslib::card_header(h5(tags$b("QC Plots, Predictions & Plate Layout"))),
               mod_mv_kasp_qc_ggplot_ui("mv_kasp_qc_ggplot_1")
             )
           ),
 
           # Tab for Predictions & Plots
           bslib::nav_panel(
-            title = tags$strong("Run QC Predictions"),
+            title = tags$strong("Plate Prediction QC"),
             icon = icon("chart-line"),
             bslib::card(
-              bslib::card_header(h5(tags$b("Run QC Predictions and Plots"))),
+              bslib::card_header(h5(tags$b("QC Prediction Summary & Plots"))),
               mod_mv_pred_sum_stat_ui("mv_pred_sum_stat_1")
-            )
-          ),
-
-          # Tab for Kasp file Summary / Statistics
-          bslib::nav_panel(
-            title = tags$strong("View Data Summary"),
-            icon = icon("table"),
-            bslib::layout_column_wrap(
-              width = 1,
-              bslib::card(
-                bslib::card_header(h5(tags$b("Summary & Statistics"))),
-                mod_mv_nsamples_plate_ui("mv_nsamples_plate_1") # plate count
-              ),
-              bslib::card(
-                bslib::card_header(h5(tags$b("Allele Call Information"))),
-                mod_mv_get_alleles_ui("mv_get_alleles_1") # allele info
-              )
             )
           )
         )
-      ), bslib::nav_item(),# space marker validation tab from the rest of the tab
+      ), bslib::nav_item(), # space marker validation tab from the rest of the tab
 
       ## Trait Introgression Decision Suite
       navbarMenu(
@@ -540,5 +540,3 @@ golem_add_external_resources <- function() {
     # for example, you can add shinyalert::useShinyalert()
   )
 }
-
-

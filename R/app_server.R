@@ -7,7 +7,37 @@
 #'
 app_server <- function(input, output, session) {
 
-  # Let user referesh application.
+  # Auto-stop R when the browser closes
+  session$onSessionEnded(function(){
+    stopApp()
+  })
+
+  #------ server side for site redirecting-------#
+  #- variant discovery
+  observeEvent(input$btn_variant_discovery,{
+  session$sendCustomMessage('open_link',
+                            list(url = 'https://awkena.github.io/panGenomeBreedr/articles/panGenomeBreedr_Workflows.html#variant-discovery'))
+  })
+
+  #- kasp marker design.
+  observeEvent(input$btn_kasp_marker,{
+    session$sendCustomMessage('open_link',
+                              list(url = 'https://awkena.github.io/panGenomeBreedr/articles/panGenomeBreedr_Workflows.html#kasp-marker-design'))
+  })
+
+  #- marker validation
+  observeEvent(input$btn_marker_validation,{
+    session$sendCustomMessage('open_link',
+                              list(url = 'https://awkena.github.io/panGenomeBreedr/articles/panGenomeBreedr_Workflows.html#kasp-marker-validation'))
+  })
+
+  #- decision support tool
+  observeEvent(input$btn_introgression,{
+    session$sendCustomMessage('open_link',
+                              list(url = 'https://awkena.github.io/panGenomeBreedr/articles/panGenomeBreedr_Workflows.html#decision-support-for-trait-introgression-and-mabc'))
+  })
+
+  #-------- Let user referesh application.
   observeEvent(input$refresh_btn, {
     # Show confirmation modal
     showModal(
@@ -57,11 +87,13 @@ app_server <- function(input, output, session) {
     removeModal()
   })
 
-  ## Variant discovery.
+  #-------
+
+  #--------- Variant discovery server side --------------#
   mod_variant_discovery_server("variant_discovery_1")
 
 
-  ## kasp marker design server
+  #-------------- kasp marker design server side-----------#
   mod_kasp_marker_design_server(id = "kasp_marker_design_1")
 
 
