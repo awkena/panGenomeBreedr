@@ -18,7 +18,7 @@ mod_mv_read_kasp_csv_ui <- function(id) {
       sidebarPanel(
         # Widget to upload kasp csv file
         fileInput(ns("Kasp_csv.file"),
-          label = "Select KASP Genotyping File",
+          label = "Choose File",
           accept = ".csv"
         ),
         # Widget to choose data type

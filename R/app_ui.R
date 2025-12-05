@@ -418,11 +418,11 @@ app_ui <- function(request) {
 
           # Read Kasp file Tab
           bslib::nav_panel(
-            title = tags$strong("Upload KASP Data"),
+            title = tags$strong("Upload Data"),
             icon = icon("file-import"),
             bslib::card(
               height = "700px",
-              bslib::card_header(h5(tags$b("Upload KASP Genotyping File"))),
+              bslib::card_header(h5(tags$b("KASP Genotyping File"))),
               mod_mv_read_kasp_csv_ui("mv_read_kasp_csv_1")
             )
           ),
