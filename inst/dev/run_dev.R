@@ -19,6 +19,6 @@ run_app()
 # golem::set_golem_name('panGenomeBreedr')
 
 
-# panGenomeBreedr::run_app()
+# pkgdown::build_site()
 
 
