@@ -7,7 +7,7 @@
 run_app(
   onStart = NULL,
   auto_install = TRUE,
-  options = list(),
+  options = list(launch.browser = TRUE),
   enableBookmarking = NULL,
   uiPattern = "/",
   ...

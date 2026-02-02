@@ -436,24 +436,9 @@ height_width <- function(string) {
 #'
 #' @noRd
 #'
-Genotypes_user <- function(data, Batch) {
-  read_data <- data
-  # Get first 100 columns for possible extraction.
-  first_hun_col <- read_data[1, 1:100]
-
-  store_position <- which(first_hun_col %in% c("A", "G", "C", "T", NA))[1]
-
-  ### Use grep function to get batch and genotypes.
-  #- Batch
-  batch <- grep("batch", x = colnames(first_hun_col), ignore.case = TRUE, value = TRUE)
-  #- Genotype
-  genotype <- grep("genotype", x = colnames(first_hun_col), ignore.case = TRUE, value = TRUE)
-
-  # Return just the data column.
-  meta_data <- read_data[read_data[batch] == Batch, 1:store_position]
-
+Genotypes_user <- function(data, sample_id = 'Genotype') {
   # Select column for genotypes
-  just_geno <- meta_data[[genotype]]
+  just_geno <- data[[sample_id]]
 
   return(just_geno) # return genotypes of selected batch.
 }
@@ -500,177 +485,141 @@ read_mapfile <- function(filepath) {
 #' quality control filters.
 #'
 #' @param data Data frame or tibble. The input dataset containing genotype data.
-#' @param Batch Numeric. The batch number to filter and process from the dataset.
-#' @param batch_col Character. Name of the column containing batch information.
+#' @param marker_start Numeric. The index/column number where marker data begins.
+#' @param sample_id Character. Column name containing genotype identifiers.
 #' @param marker_sep Character. Separator used in marker IDs for parsing (e.g., "_").
-#' @param apply_par_poly Logical. Whether to remove polymorphic parent markers. Default is TRUE.
+#' @param apply_par_poly Logical. Whether to remove monomorphic parent markers. Default is TRUE.
 #' @param apply_par_miss Logical. Whether to remove markers with missing parent data. Default is TRUE.
 #' @param apply_geno_good Logical. Whether to apply genotype error checking. Default is TRUE.
 #' @param apply_par_homo Logical. Whether to filter out heterozygous parent markers. Default is TRUE.
-#' @param genotype Character. Column name for genotype identifiers.
 #' @param snp_id Character. Column name for SNP-ID markers (used when feedback = "yes").
-#' @param calls_sep Character. Separator used in genotype calls (e.g., " / " for Agriplex).
+#' @param calls_sep Character. Separator used in genotype calls (e.g., " / " or "/").
 #' @param data_type Character. Type of genotyping data (e.g., "agriplex", "kasp").
 #' @param rp Character. Name/ID of the recurrent parent.
 #' @param dp Character. Name/ID of the donor parent.
 #' @param Prefix Character. Prefix for generating marker names. Default is "S".
-#' @param geno_vec Character vector. Vector of genotype names/IDs corresponding to rows in the dataset.
-#' @param feedback Character. One of "yes" or "no". If "yes", uses existing map file;
-#'   if "no", generates new map file from marker names.
-#' @param na_code Numeric. Code used for missing values. Default is NA.
-#' @param data_col Character vector. Names of data columns to exclude from processing.
+#' @param feedback Character. One of "yes" or "no". If "no", generates new map file from marker names;
+#'   if "yes", uses existing map file. Default is "yes".
+#' @param na_code Numeric or Character. Code used for missing values. Default is NA.
 #' @param mapfile_path Character. Path to existing map file (required when feedback = "yes").
 #'
 #' @return A list containing five elements:
-#'   \item{mapfile}{Data frame containing the marker map information with SNP positions}
-#'   \item{proc_kasp_f}{Processed and numeric-converted KASP data ready for analysis}
-#'   \item{par_missing_dat}{Data frame of loci with any parent missing genotype}
-#'   \item{genotype_error}{Data frame of SNP loci with potential genotype call errors}
-#'   \item{parent_het}{Data frame of heterozygous parent genotypes that were identified}
+#' \item{mapfile}{Data frame containing the marker map information with SNP positions}
+#' \item{proc_kasp_f}{Processed and numeric-converted KASP data ready for analysis}
+#' \item{par_missing_dat}{Data frame of loci with any parent missing genotype}
+#' \item{genotype_error}{Data frame of SNP loci with potential genotype call errors}
+#' \item{parent_het}{Data frame of heterozygous parent genotypes that were identified}
 #'
 #' @details The function performs the following steps:
-#'   1. Reads the input CSV file and identifies genotype data columns
-#'   2. Filters data by the specified batch
-#'   3. Removes monomorphic markers and markers with missing parent data
-#'   4. Either generates a new map file or uses an existing one
-#'   5. Processes KASP data and converts to numeric format
+#' 1. Identifies genotype data columns starting from \code{geno_start}
+#' 2. Filters and renames rows using \code{geno_vec}
+#' 3. Sequentially applies QC filters (Polymorphism, Missingness, Error Checking, and Zygosity)
+#' 4. Either generates a new map file based on marker name parsing or loads an existing one
+#' 5. Converts genotype calls to numeric format for downstream analysis
 #'
 #' @noRd
-#'
-#'
-
 proc_nd_map_func <- function(data = NULL,
-                        Batch = NULL, # batch number
-                        batch_col = NULL, # user selected batch column
-                        marker_sep = NULL, # sep for marker
-                        apply_par_poly = TRUE, # response for parent poly removal
-                        apply_par_miss = TRUE, # response for parent missing
-                        apply_geno_good = TRUE, # response for genotype good.
-                        apply_par_homo = TRUE, # filter out heterozygote parent.
-                        genotype = NULL, # column names for genotypes
-                        snp_id = NULL, # snp-id column for markers
-                        calls_sep = NULL, # genotype calls sep-- agriplex or kasp
-                        data_type = NULL, # agriplex or kasp
-                        rp = NULL, # recurrent parent
-                        dp = NULL, # donor parent
-                        Prefix = "S", # prefix if to generate marker file
-                        geno_vec = NULL, # rownames for genotype calls
-                        feedback = "yes", # whether to generate mapfile or not
-                        na_code = NA, # Na codes present.
-                        data_col = NULL, # data colnames
-                        mapfile_path = NULL) {
+                             marker_start = NULL,
+                             sample_id = NULL,
+                             marker_sep = NULL,
+                             apply_par_poly = TRUE,
+                             apply_par_miss = TRUE,
+                             apply_geno_good = TRUE,
+                             apply_par_homo = TRUE,
+                             snp_id = NULL,
+                             calls_sep = NULL,
+                             data_type = NULL,
+                             rp = NULL,
+                             dp = NULL,
+                             Prefix = "S",
+                             feedback = "yes",
+                             na_code = NA,
+                             mapfile_path = NULL){
   if (rp == dp) {
     stop("Error: The recurrent parent must not be the same as the donor parent")
   }
 
-  # Validate data class. Must be a datafram or tibble
-  if (!(class(data)[1] %in% c("data.frame", "tbl_df", "tbl"))) {
-    stop("Please check file. Must be a dataframe or tibble.")
-  }
+  # Coerce data and set identifiers
+  return_data <- as.data.frame(data)
+ # rownames(return_data) <- return_data[[sample_id]]
 
-  read_data <- data |> as.data.frame()
-
-  return_data <- read_data[read_data[batch_col] == Batch, !(colnames(read_data) %in% data_col)]
+  meta_data <- return_data[,colnames(return_data)[1: (marker_start-1)]] # Extract metadata
+  processed_data <- return_data[,colnames(return_data)[marker_start: (ncol(return_data))]]
 
 
-  dp_val <- which(geno_vec %in% c(rp, dp)) # get row index of rp and dp
-
-  rownames(return_data) <- geno_vec
-
-  processed_data <- return_data # rename object
-
-  # 1. Remove monomorphic markers if requested
+  # Remove monomorphic markers
   if (apply_par_poly) {
     processed_data <- parent_poly(
       x = processed_data,
-      rp_row = dp_val[1],
-      dp_row = dp_val[2],
+      rp_row = rp,
+      dp_row = dp,
       sep = calls_sep
     )
   }
 
-  # 2. Remove missing parents if requested
+  # Handle Missing Parents
   if (apply_par_miss) {
-    input_data <- if (!is.null(processed_data)) processed_data else return_data
 
-    processed_data <- parent_missing(
-      x = input_data,
-      rp_row = dp_val[1],
-      dp_row = dp_val[2]
-    )$par_present
-
-    # Parent Missing
-    par_missing_dat <- parent_missing(
-      x = return_data,
-      rp_row = dp_val[1],
-      dp_row = dp_val[2]
-    )$par_missing
-
-  } else{
-    par_missing_dat <- NULL # don't compute missing parents
+    miss_results <- parent_missing(
+      x = processed_data,
+      rp_row = rp,
+      dp_row = dp
+    )
+    processed_data <- miss_results$par_present
+    par_missing_dat <- miss_results$par_missing
+  } else {
+    par_missing_dat <- NULL
   }
 
-  # 3. Apply genotype error check if requested
+  # Apply Genotype Error Check
   if (apply_geno_good) {
-    input_data <- if (!is.null(processed_data)) processed_data else return_data
 
-    processed_data <- geno_error(
-      x = input_data,
-      rp_row = dp_val[1],
-      dp_row = dp_val[2],
+    err_results <- geno_error(
+      x = processed_data,
+      rp_row = rp,
+      dp_row = dp,
       sep = calls_sep,
       data_type = data_type
-    )$geno_good
-
-    # Genotype error.
-    genotype_error <- geno_error(
-      x = return_data,
-      rp_row = dp_val[1],
-      dp_row = dp_val[2],
-      sep = calls_sep,
-      data_type = data_type
-    )$geno_err
-
-  }else{
-    genotype_error <- NULL # don't compute
+    )
+    processed_data <- err_results$geno_good
+    genotype_error <- err_results$geno_err
+  } else {
+    genotype_error <- NULL
   }
 
-  # 4. Remove heterozygote parents.
+  # Remove Heterozygote Parents
   if (apply_par_homo) {
-    input_data <- if (!is.null(processed_data)) processed_data else return_data
 
-    # Parent Hetero.
-    processed_data <- parent_het(
-      x = input_data,
-      rp_row = dp_val[1],
-      dp_row = dp_val[2],
+    het_results <- parent_het(
+      x = processed_data,
+      rp_row = rp,
+      dp_row = dp,
       sep = calls_sep,
       na_code = na_code
-    )$par_hom
-
-    # Parent Hetero.
-    parent_het <- parent_het(
-      x = return_data,
-      rp_row = dp_val[1],
-      dp_row = dp_val[2],
-      sep = calls_sep,
-      na_code = NA
-    )$par_het
+    )
+    processed_data <- het_results$par_hom
+    parent_het <- het_results$par_het
   } else {
     parent_het <- NULL
   }
 
-  # Final output handling
-  if (any(apply_par_poly ,apply_par_miss ,apply_geno_good ,apply_par_homo)) {
-    final_result <- processed_data
+
+  # Final Output Selection
+  # If any filter was active, return the refined data else return original
+  if (any(apply_par_poly, apply_par_miss, apply_geno_good, apply_par_homo)) {
+    # append meta data to processed_data
+    final_result <- cbind(meta_data, processed_data)
+
   } else {
     final_result <- return_data
   }
 
 
+
   # If user prompts for mapfile to be generated automatically
   if (feedback == "no") {
-    snps <- colnames(processed_data)
+    # Get snp id
+    snps <- colnames(final_result[,marker_start :ncol(final_result)])
 
     mapfile <- tryCatch({
       parse_marker_ns(x = snps, sep = marker_sep, prefix = Prefix) |>
@@ -679,19 +628,27 @@ proc_nd_map_func <- function(data = NULL,
       stop(paste("Failed to generate mapfile automatically:", e$message))
     })
 
+    # Column indexing
+    snpid <- safe_grep_match("snpid",choices = colnames(mapfile))
+    chr <- safe_grep_match('chr',choices = colnames(mapfile))
+    pos <- safe_grep_match('pos',choices = colnames(mapfile))
+
+    # Filter the mapfile to contain only snp_ids in the processed data.
+    mapfile <- mapfile[mapfile[[snpid]] %in% colnames(processed_data), ]
+
     # Process and numeric code the data
     proc_kasp_f <- proc_kasp(
-      x = processed_data,
-      sample_id = genotype,
-      map_snp_id = "snpid",
-      marker_start = 1,
-      chr = safe_grep_match('chr',choices = colnames(mapfile)),
-      chr_pos = safe_grep_match('pos',choices = colnames(mapfile) ),
+      x = final_result,
+      sample_id = sample_id,
+      map_snp_id = snpid ,
+      marker_start = marker_start,
+      chr = chr,
+      chr_pos = pos ,
       kasp_map = mapfile
     ) |>
       kasp_numeric(
-        rp_row = dp_val[1],
-        dp_row = dp_val[2],
+        rp_row = rp,
+        dp_row = dp,
         sep = calls_sep,
         data_type = data_type
       )
@@ -705,25 +662,29 @@ proc_nd_map_func <- function(data = NULL,
     # Filter out unneeded  snip_ids
     # mapfile <- mapfile[mapfile[[snp_colname]] %in% colnames(processed_data),]
     # Keep only SNPs present in BOTH data and mapfile, in the same order
-    common_snps <- intersect(mapfile[[snp_colname]], colnames(processed_data))
+    common_snps <- intersect(mapfile[[snp_colname]], colnames(final_result))
 
     # subset mapfile to common_snps and preserve order of processed_data
     mapfile <- mapfile[match(common_snps, mapfile[[snp_colname]]), ]
 
-    processed_data <- processed_data[, common_snps, drop = FALSE]
+    # Column indexing
+    snpid <- safe_grep_match("snpid",choices = colnames(mapfile))
+    chr <- safe_grep_match('chr',choices = colnames(mapfile))
+    pos <- safe_grep_match('pos',choices = colnames(mapfile))
+
     # Process and numeric code the data
     proc_kasp_f <- proc_kasp(
-      x = processed_data,
-      sample_id = genotype,
-      map_snp_id = snp_id,
-      marker_start = 1,
-      chr = safe_grep_match('chr',choices = colnames(mapfile)),
-      chr_pos = safe_grep_match('pos',choices = colnames(mapfile) ),
+      x = final_result,
+      sample_id = sample_id,
+      map_snp_id = snpid,
+      marker_start = marker_start,
+      chr = chr,
+      chr_pos = pos,
       kasp_map = mapfile
     ) |>
       kasp_numeric(
-        rp_row = dp_val[1],
-        dp_row = dp_val[2],
+        rp_row = rp,
+        dp_row = dp,
         sep = calls_sep,
         data_type = data_type
       )
@@ -734,14 +695,35 @@ proc_nd_map_func <- function(data = NULL,
   return(list(
     mapfile = mapfile,
     proc_kasp_f = proc_kasp_f,
-    par_missing_dat = par_missing_dat,
-    genotype_error = genotype_error,
-    parent_het = parent_het,
-    rp_index = dp_val[1]
+    rp_name = rownames(proc_kasp_f)[rp], # recurrent parent name based on index
+    dp_name =  rownames(proc_kasp_f)[dp] # donor parent name based on index
   ))
 }
 
 
+#' Convert SNP Positions to Genomic Windows
+#'
+#' @param pos_list A named list where each element is a numeric vector with 'chr' and 'pos'.
+#' @return A list with 'chr', 'start', and 'end' for each trait.
+#' @noRd
+#'
+get_trait_windows <- function(pos_list) {
+
+  # Use lapply to iterate through each trait in your list
+  lapply(pos_list, function(x) {
+
+    # Extract original values
+    chr <- unname(x["chr"])
+    pos <- unname(x["pos"])
+
+    # Add 50kb upstream and 500kb downstream of the defined position
+    start <- pos - 1e6
+    end   <- pos + 1.5e6
+
+    # Return the new structure
+    c(chr = chr, start = start, end = end)
+  })
+}
 
 
 
@@ -987,11 +969,10 @@ window_size_func <- function(data, mapfile, chr) {
 
 color_code_checker <- function(data , par_1 , par_2){
   # Define color codes
-  color_code_names<- c( 1, 0 , 0.5 , -1 , -2, -5 ) |> sort()
+  color_code_names <- c( 1, 0 , 0.5 , -1 , -2, -5 ) |> sort()
   # Respective names for color codes
   col_labels <- c('Missing', 'Error','Monomorphic',par_2,
-                  'Heterozygous' , par_1
-  )
+                  'Heterozygous' , par_1 )
 
   # Assign names to it.
   names(col_labels) <- as.character(color_code_names)
@@ -1011,30 +992,7 @@ color_code_checker <- function(data , par_1 , par_2){
 
 
 
-#' Validate Required Column Names
-#'
-#' Checks if the required column names ('Batch' and 'Genotype') are present
-#' in the input data frame. The function performs case-insensitive matching.
-#'
-#' @param data A data frame to validate column names for
-#'
-#' @return NULL (invisible). The function is called for its side effect of
-#'   validation. If validation passes, the function completes silently.
-#'
-#' @details This function requires that both 'Batch' and 'Genotype' columns
-#'   are present in the input data frame. Column name matching is case-insensitive,
-#'   so 'batch', 'BATCH', 'Batch' are all acceptable.
-#' @noRd
-#'
-#
-check_colnames_validate <- function(data){
-  must_hv_names <- c('Batch', 'Genotype') |> tolower() # required columns
 
-  if(!(all(must_hv_names %in% tolower(colnames(data))))){
-
-    stop(paste("Missing required columns: 'Batch', 'Genotype'"))
-  }
-}
 
 
 
@@ -1186,4 +1144,115 @@ par_missing_dat <- function(df){
   )
 
   return(missing_samples_df)
+}
+
+
+
+
+#' A padded dataframe for organizing found lines.
+#'
+#' This utility function takes vectors of varying lengths (SNPs present, SNPs absent, and sample names)
+#' and combines them into a single data frame. It automatically pads shorter vectors
+#' with NA values to ensure all columns have equal length based on the longest input.
+#'
+#' @param snps_present A character vector of SNP IDs that must be present.
+#' @param snps_absent A character vector of SNP IDs that must be absent.
+#' @param sample_name A character vector of genotype or sample names identified.
+#'
+#' @return A data frame with three columns: snps_present, snps_absent,
+#' and sample_name, padded with NA where necessary.
+#'
+#' @noRd
+#'
+create_padded_df <- function(snps_present, snps_absent, sample_name) {
+
+  # Determine the maximum length among all inputs
+  actual_max_len <- max(
+    length(snps_present),
+    length(snps_absent),
+    length(sample_name),
+    na.rm = TRUE
+  )
+
+  # Helper to pad vectors
+  pad_vector <- function(x, len) {
+    if (length(x) < len) {
+      return(c(x, rep(NA, len - length(x))))
+    }
+    return(x)
+  }
+
+  # Create and return data frame
+  data.frame(
+    snps_present = pad_vector(snps_present, actual_max_len),
+    snps_absent  = pad_vector(snps_absent, actual_max_len),
+    sample_name  = pad_vector(sample_name, actual_max_len),
+    stringsAsFactors = FALSE
+  )
+}
+
+
+
+
+#' Generate a Trait Input Row for Genomic Coordinates
+#'
+#' This helper function creates a stylized UI row containing inputs for
+#' a trait name, chromosome number, and physical position. It is used
+#' within the coordinate definition wizard to allow dynamic addition of multiple loci.
+#'
+#' @param id A unique integer or character string to suffix the input IDs,
+#' ensuring namespace consistency.
+#'
+#' @return A \code{shiny::tag.list} (div) containing a \code{fluidRow} with
+#' \code{textInput} and \code{numericInput} elements.
+#'
+#' @note The 'Remove' button is programmatically excluded for the first input
+#' row (\code{id = 1}) to ensure at least one locus remains defined.
+#'
+#' @importFrom shiny div fluidRow column textInput numericInput actionButton
+#' @noRd
+makeTraitInput <- function(id, ns) {
+  div(
+    id = ns(paste0("trait_", id)),
+    style = "border: 1px solid #dee2e6; padding: 15px; margin-bottom: 15px; border-radius: 8px; background-color: #f8f9fa; position: relative;",
+
+    fluidRow(
+      # Basic Info
+      column(3, textInput(ns(paste0("name_", id)), "Trait/QTL Name:", value = paste0("QTL_", id))),
+      column(2, numericInput(ns(paste0("chr_", id)), "Chr:", value = 1, min = 1)),
+
+      # Configuration Checkboxes
+      column(7,
+             checkboxGroupInput(
+               inputId = ns(paste0("type_", id)),
+               label = "Annotation Components (Select at least one):",
+               choices = c("Point Position" = "pos", "Genomic Range" = "range"),
+               selected = "range",
+               inline = TRUE
+             )
+      )
+    ),
+
+    fluidRow(
+      # Conditional Point Input
+      conditionalPanel(
+        condition = paste0("input['", ns(paste0("type_", id)), "'].includes('pos')"),
+        column(4, numericInput(ns(paste0("pos_", id)), "Exact Position (bp):", value = 1200000))
+      ),
+
+      # Conditional Range Inputs
+      conditionalPanel(
+        condition = paste0("input['", ns(paste0("type_", id)), "'].includes('range')"),
+        column(4, numericInput(ns(paste0("start_", id)), "Start (bp):", value = 1000000)),
+        column(4, numericInput(ns(paste0("end_", id)), "End (bp):", value = 1400000))
+      )
+    ),
+
+    # Remove button: only for traits after the first one
+    if (id > 1) {
+      div(style = "position: absolute; top: 10px; right: 10px;",
+          actionButton(ns(paste0("remove_", id)), "", icon = icon("trash"),
+                       class = "btn-outline-danger btn-sm", title = "Remove Trait"))
+    }
+  )
 }

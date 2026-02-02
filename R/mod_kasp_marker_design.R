@@ -19,19 +19,11 @@ mod_kasp_marker_design_ui <- function(id) {
       # Sidebar Section for Inputs
       #-----------------------------------
       sidebar = bslib::sidebar(
-        width = 380,
+        width = 400,
         class = "bg-light",
-        title = div(
-          class = "mb-3 p-2 rounded",
-          style = "background-color: white; border-left: 4px solid #3498DB;",
-          div(
-            class = "d-flex align-items-center",
-            icon("list-check", class = "text-info me-2"),
-            strong("Design Workflow")
-          )
-        ),
+        title = "",
 
-        # Step 1: File Uploads
+        ## Data Acquisition
         bslib::accordion(
           id = "config_accordion",
           open = c("files", "mapping", "params", "markers"), # Panels to be open by default
@@ -39,7 +31,10 @@ mod_kasp_marker_design_ui <- function(id) {
           bslib::accordion_panel(
             title = div(
               icon("upload", class = "me-2"),
-              "Step 1: Upload Files"
+              tags$span(
+                "Data Acquisition",
+                style = "font-weight: bold; font-size: 1.1rem;"
+              )
             ),
             value = "files",
 
@@ -48,7 +43,10 @@ mod_kasp_marker_design_ui <- function(id) {
               inputId = ns("genome_file"),
               label = div(
                 icon("file-code", class = "me-2 text-success"),
-                "Genome Reference File"
+                tags$span(
+                  "Upload Genome Reference File",
+                  style = "font-weight: bold; font-size: 1.1rem;"
+                )
               ),
               accept = c(".fa", ".fasta", ".gz")
             ),
@@ -62,11 +60,14 @@ mod_kasp_marker_design_ui <- function(id) {
             uiOutput(ns("choice_output")) # dynamic file input based on radio button selection
           ),
 
-          # Step 2: Column Mapping
+          ## Feature Mapping
           bslib::accordion_panel(
             title = div(
-              icon("table-columns", class = "me-2"),
-              "Step 2: Column Mapping"
+              icon("project-diagram", class = "me-2"),
+              tags$span(
+                "Feature Mapping",
+                style = "font-weight: bold; font-size: 1.1rem;"
+              )
             ),
             value = "mapping",
 
@@ -118,11 +119,14 @@ mod_kasp_marker_design_ui <- function(id) {
             )
           ),
 
-          # Step 3: Marker Selection
+          ## Target Definition
           bslib::accordion_panel(
             title = div(
-              icon("bullseye", class = "me-2"),
-              "Step 3: Select Markers"
+              icon("crosshairs", class = "me-2"),
+              tags$span(
+                "Target Definition",
+                style = "font-weight: bold; font-size: 1.1rem;"
+              )
             ),
             value = "markers",
             # Select inputs for chromosome selection
@@ -145,20 +149,23 @@ mod_kasp_marker_design_ui <- function(id) {
               inputId = ns("reg_name"),
               label = "Region Name:",
               placeholder = "LGS1"
-            ),
-            # Informational text suggesting how to name the region
-            div(
-              class = "alert alert-info small mt-2",
-              icon("lightbulb", class = "me-1"),
-              "Give your region a descriptive name for easy identification"
             )
+            # Informational text suggesting how to name the region
+            # div(
+            #   class = "alert alert-info small mt-2",
+            #   icon("lightbulb", class = "me-1"),
+            #   "Give your region a descriptive name for easy identification"
+            # )
           ),
 
-          # Step 4: Parameters
+          ## Filter Specifications
           bslib::accordion_panel(
             title = div(
-              icon("sliders", class = "me-2"),
-              "Step 4: Analysis Parameters"
+              icon("filter", class = "me-2"),
+              tags$span(
+                "Filter Specifications",
+                style = "font-weight: bold; font-size: 1.1rem;"
+              )
             ),
             value = "params",
             # Numeric input for minor allele frequency

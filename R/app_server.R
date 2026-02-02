@@ -7,12 +7,7 @@
 #'
 app_server <- function(input, output, session) {
 
-  # Auto-stop R when the browser closes
-  session$onSessionEnded(function(){
-    stopApp()
-  })
-
-  #------ server side for site redirecting-------#
+  #------ server side for site redirecting to vignette-------#
   #- variant discovery
   observeEvent(input$btn_variant_discovery,{
   session$sendCustomMessage('open_link',
@@ -38,56 +33,68 @@ app_server <- function(input, output, session) {
   })
 
   #-------- Let user referesh application.
-  observeEvent(input$refresh_btn, {
-    # Show confirmation modal
+  observeEvent(input$power_btn, {
     showModal(
       modalDialog(
-        title = "Refresh Application",
-        footer = NULL, # Remove default buttons
+        title = div(
+          style = "display: flex; align-items: center;",
+          icon("power-off", class = "text-danger me-2"),
+          tags$h4("System Controls", class = "mb-0")
+        ),
+        footer = NULL,
         tagList(
-          p("This will refresh the entire application and reset all data."),
-          p("Do you wish to continue?"),
+          p("What would you like to do with the application?"),
 
-          #  Choice
-          radioButtons(
-            inputId = "refresh_choice",
-            label = NULL,
-            choices = c("Yes, refresh the application" = TRUE),
-            selected = character(0)
-          ),
           div(
-            style = "text-align: right;",
-            actionButton("confirm_refresh", "Confirm",
-                         class = "btn-secondary"
+            class = "d-grid gap-3", # Bootstrap vertical stack
+
+            # OPTION 1: REFRESH
+            actionButton(
+              "btn_modal_refresh",
+              tagList(icon("sync"), "Refresh Application"),
+              class = "btn-outline-primary p-3 text-start",
+              style = "border-radius: 10px;"
             ),
-            actionButton("cancel_refresh", "Cancel",
-                         class = "btn-danger"
-            )
+            p(class = "text-muted small ms-2", "Resets all data and reloads the current page."),
+
+            # OPTION 2: SHUT DOWN
+            actionButton(
+              "btn_modal_shutdown",
+              tagList(icon("stop-circle"), "Shut Down Server"),
+              class = "btn-outline-danger p-3 text-start",
+              style = "border-radius: 10px;"
+            ),
+            p(class = "text-muted small ms-2", "Closes the app and stops the R process.")
+          ),
+
+          hr(),
+          div(class = "text-end",
+              actionButton("btn_modal_cancel", "Cancel", class = "btn-secondary btn-sm")
           )
         )
       )
     )
   })
 
-  # Handle confirm button
-  observeEvent(input$confirm_refresh, {
-    if (!is.null(input$refresh_choice) && input$refresh_choice == TRUE) {
-      removeModal()
-      shinyWidgets::show_toast(
-        title = "Refreshing application...",
-        type = "info",
-        timer = 300
-      )
-      session$reload() # refresh entire web app
-    }
+  # --- Execution Logic for refresh & shutdown ---
+  # Handle Refresh
+  observeEvent(input$btn_modal_refresh, {
+    removeModal()
+    session$reload()
   })
 
-  # Remove modal when cancel is clicked
-  observeEvent(input$cancel_refresh, {
+  # Handle Shutdown
+  observeEvent(input$btn_modal_shutdown, {
+    removeModal()
+    stopApp()
+  })
+
+  # Handle Cancel
+  observeEvent(input$btn_modal_cancel, {
     removeModal()
   })
 
-  #-------
+
 
   #--------- Variant discovery server side --------------#
   mod_variant_discovery_server("variant_discovery_1")
@@ -144,12 +151,6 @@ app_server <- function(input, output, session) {
       kasp_data = import_data_entities(),
       color_coded = color_code_res()
     )
-    #--Knitted with qc plot
-    # # server side for  plate layout
-    # mod_mv_plate_plot_server("mv_plate_plot_1",
-    #                          kasp_data = import_data_entities(),
-    #                          color_coded = color_code_res()
-    # )
   })
 
   ## -------------------- Decision support, server-side ------------------------##
