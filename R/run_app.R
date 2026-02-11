@@ -11,7 +11,7 @@
 run_app <- function(
     onStart = NULL,
     auto_install = TRUE,
-    options = list(),
+    options = list(launch.browser = TRUE),
     enableBookmarking = NULL,
     uiPattern = "/",
     ...) {

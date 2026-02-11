@@ -521,8 +521,11 @@ kasp_marker_design <- function(vcf_file = NULL,
   # adding sequence names
   names(sequences) <- c('reference', 'upstream', 'downstream')
 
-  # alignment
-  alg <- msa::msaClustalOmega(sequences, order = 'input')
+  # alignment -- updated to silence using Gonnet
+  utils::capture.output(
+    alg <- msa::msaClustalOmega(sequences, order = 'input')
+  )
+
 
   #converting to dnastringset
   alignment <- Biostrings::DNAStringSet(alg)

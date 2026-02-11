@@ -195,7 +195,7 @@ get_google_id <- function(drive_link, is.folder = TRUE) {
 #' # example code
 #' \donttest{
 #' library(panGenomeBreedr)
-#' f_link <- "https://drive.google.com/drive/folders/1BotxaUb5emlrtgo473db3gDTUCLzKi70?usp=sharing"
+#' f_link <- "https://drive.google.com/drive/folders/1ZJ2cZcybCvUuwOdB_0kK5kg7StgayuPf?usp=drive_link"
 #' folder_path <- folder_download_gd(drive_link = f_link)
 #' }
 #'
@@ -204,65 +204,127 @@ get_google_id <- function(drive_link, is.folder = TRUE) {
 #'
 #' @export
 #'
+
 folder_download_gd <- function(drive_link,
                                output_path = tempdir(),
                                is.folder = TRUE) {
 
-  # Conditional logic for Bioconductor dependencies
+  # Check for dependency
   pkg <- "googledrive"
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    stop(sprintf("The '%s' package is required. Please install it.", pkg), call. = FALSE)
+  }
 
-    if (!requireNamespace(pkg, quietly = TRUE)) {
-
-      stop(sprintf("The '%s' package is required for this function.
-                   Please install it via utils::install.packages('%s').", pkg, pkg),
-           call. = FALSE)
-
-    }
-
-  # No authentication required from Google Drive
+  # De-authenticate for public links
   googledrive::drive_deauth()
-  googledrive::drive_user()
 
   if (is.folder) {
-
-    # Get folder ID from shareable link
+    # 1. Get folder metadata
     folder_id <- get_google_id(drive_link = drive_link, is.folder = TRUE)
     p_file <- googledrive::drive_get(googledrive::as_id(folder_id))
 
-    # Create a directory using the same folder ID in Google Drive
-    dir <- file.path(output_path, unlist(p_file[,'name']))
+    # 2. Create local directory (using name from Google Drive)
+    # Using [[ 'name' ]] is safer than unlist(p_file[,'name'])
+    folder_name <- p_file$name[1]
+    dir <- file.path(output_path, folder_name)
+    if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
 
-    if(!dir.exists(dir)) dir.create(dir)
+    # 3. List contents and FILTER out sub-folders
+    # This prevents the 'application/vnd.google-apps.folder' error
+    all_items <- googledrive::drive_ls(p_file)
+    files_only <- all_items[!googledrive::is_folder(all_items), ]
 
-    # List all files in the google drive folder
-    files <- googledrive::drive_ls(p_file)
+    if (nrow(files_only) == 0) {
+      message("No files found in the specified folder.")
+      return(character(0))
+    }
 
-    # File names to be downloaded
-    file_ids <- as.list(files$id)
+    # 4. Prepare IDs and Paths
+    file_ids <- as.list(files_only$id)
+    paths <- as.list(file.path(dir, files_only$name))
 
-    # Paths to save files to be downloaded
-    paths <- as.list(file.path(dir, files$name))
-
-    # Download all files to dir
-    mapply(googledrive::drive_download, file_ids, paths,
+    # 5. Download in bulk
+    mapply(googledrive::drive_download,
+           file_ids,
+           paths,
            MoreArgs = list(overwrite = TRUE))
 
-    return(paths)
+    return(unlist(paths))
 
   } else {
-
-    # Get file ID from shareable link
+    # Single file logic
     file_id <- get_google_id(drive_link = drive_link, is.folder = FALSE)
+    p_file <- googledrive::drive_get(googledrive::as_id(file_id))
 
-    p_file <-  googledrive::drive_get(googledrive::as_id(file_id))
+    # Define save path (using tempdir/filename)
+    save_path <- file.path(output_path, p_file$name[1])
 
-    # Create a directory using the same folder ID in Google Drive
-    dir <- file.path(output_path, unlist(p_file[,'name']))
+    googledrive::drive_download(p_file, overwrite = TRUE, path = save_path)
 
-    googledrive::drive_download(p_file, overwrite = TRUE, path = dir)
-
-    return(dir)
-
+    return(save_path)
   }
-
 }
+
+
+# folder_download_gd <- function(drive_link,
+#                                output_path = tempdir(),
+#                                is.folder = TRUE) {
+#
+#   # Conditional logic for Bioconductor dependencies
+#   pkg <- "googledrive"
+#
+#   if (!requireNamespace(pkg, quietly = TRUE)) {
+#
+#     stop(sprintf("The '%s' package is required for this function.
+#                    Please install it via utils::install.packages('%s').", pkg, pkg),
+#          call. = FALSE)
+#
+#   }
+#
+#   # No authentication required from Google Drive
+#   googledrive::drive_deauth()
+#   googledrive::drive_user()
+#
+#   if (is.folder) {
+#
+#     # Get folder ID from shareable link
+#     folder_id <- get_google_id(drive_link = drive_link, is.folder = TRUE)
+#     p_file <- googledrive::drive_get(googledrive::as_id(folder_id))
+#
+#     # Create a directory using the same folder ID in Google Drive
+#     dir <- file.path(output_path, unlist(p_file[,'name']))
+#
+#     if(!dir.exists(dir)) dir.create(dir)
+#
+#     # List all files in the google drive folder
+#     files <- googledrive::drive_ls(p_file)
+#
+#     # File names to be downloaded
+#     file_ids <- as.list(files$id)
+#
+#     # Paths to save files to be downloaded
+#     paths <- as.list(file.path(dir, files$name))
+#
+#     # Download all files to dir
+#     mapply(googledrive::drive_download, file_ids, paths,
+#            MoreArgs = list(overwrite = TRUE))
+#
+#     return(paths)
+#
+#   } else {
+#
+#     # Get file ID from shareable link
+#     file_id <- get_google_id(drive_link = drive_link, is.folder = FALSE)
+#
+#     p_file <-  googledrive::drive_get(googledrive::as_id(file_id))
+#
+#     # Create a directory using the same folder ID in Google Drive
+#     dir <- file.path(output_path, unlist(p_file[,'name']))
+#
+#     googledrive::drive_download(p_file, overwrite = TRUE, path = dir)
+#
+#     return(dir)
+#
+#   }
+#
+# }

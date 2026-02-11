@@ -16,59 +16,51 @@ mod_ds_foreground_select_ui <- function(id) {
         icon = icon("flask"),
         bslib::layout_sidebar(
           sidebar = bslib::sidebar(
-            width = 380,
+            width = 400,
             position = "left",
             class = "bg-light",
-            title = div(
-              class = "mb-3 p-2 rounded",
-              style = "background-color: white; border-left: 4px solid #3498DB;",
-              div(
-                class = "d-flex align-items-center",
-                icon("bullseye", class = "text-info me-2"),
-                strong("Foreground Selection Workflow")
-              )
-            ),
+            title = "",
 
             # Accordion with organized sections
             bslib::accordion(
               id = "foreground_accordion",
               open = c("files", "config", "selection"), # Panels open by default
 
-              # Step 1: Upload Files
+              ## Data Acquisition
               bslib::accordion_panel(
                 title = div(
                   icon("upload", class = "me-2"),
-                  "Step 1: Upload Files"
+                  tags$span(
+                    "Data Acquisition",
+                    style = "font-weight: bold; font-size: 1.1rem;"
+                  )
                 ),
                 value = "files",
                 fileInput(
                   inputId = ns("geno_data"),
-                  label = div(
-                    icon("file-csv", class = "me-2 text-success"),
-                    "Upload Genotypic Data (geno)"
-                  ),
+                  label = "Upload Marker Data",
                   accept = c(".xlsx", ".xls", ".csv")
                 ),
                 fileInput(
                   inputId = ns("marker_info"),
-                  label = div(
-                    icon("file-csv", class = "me-2 text-info"),
-                    "Upload Marker Info File"
-                  ),
+                  label = "Upload Marker Meta Data",
                   accept = c(".xlsx", ".xls", ".csv")
                 ),
                 textInput(
                   inputId = ns("sep"),
-                  label = "Allele Separator",
+                  label = "Enter Allele Separator",
                   value = ":"
                 )
               ),
 
-              # Step 2: Configure Columns
+              # Feature Mapping
               bslib::accordion_panel(
                 title = div(
-                  icon("table-columns", class = "me-2"),
-                  "Step 2: Configure Columns"
+                  icon("project-diagram", class = "me-2"),
+                  tags$span(
+                    "Feature Mapping",
+                    style = "font-weight: bold; font-size: 1.1rem;"
+                  )
                 ),
                 value = "config",
                 div(
@@ -79,6 +71,11 @@ mod_ds_foreground_select_ui <- function(id) {
                 selectInput(
                   inputId = ns("fore_marker_col"),
                   label = "Foreground Marker Column",
+                  choices = NULL
+                ),
+                selectInput(
+                  inputId = ns("sample_name"),
+                  label = "Sample Name Column",
                   choices = NULL
                 ),
                 bslib::layout_columns(
@@ -100,7 +97,10 @@ mod_ds_foreground_select_ui <- function(id) {
               bslib::accordion_panel(
                 title = div(
                   icon("sliders", class = "me-2"),
-                  "Step 3: Selection Parameters"
+                  tags$span(
+                    "Selection Paramters",
+                    style = "font-weight: bold; font-size: 1.1rem;"
+                  )
                 ),
                 value = "selection",
                 selectInput(
@@ -271,13 +271,17 @@ mod_ds_foreground_select_ui <- function(id) {
                       condition = paste0('input["', ns("configure"), '"] == true'),
                       bslib::card(
                         class = "mt-3 bg-light",
-                        bslib::card_body(
-                          bslib::layout_columns(
-                            col_widths = c(6, 6),
+                        bslib::layout_column_wrap(
+                          width = 1/2, # Split into two columns
+                          gap = "20px",
 
-                            # Filter Controls
-                            div(
-                              h6(class = "mb-3", icon("gears", class = "me-2"), "Filter Criteria"),
+                          # --- Left Column: Filter Controls ---
+                          bslib::card(
+                            bslib::card_header(
+                              class = "bg-transparent border-0",
+                              tags$h6(icon("filter", class = "me-2"), "Filter Criteria", class = "fw-bold mb-0")
+                            ),
+                            bslib::card_body(
                               selectInput(
                                 inputId = ns("present"),
                                 label = "SNPs to be Present",
@@ -298,20 +302,23 @@ mod_ds_foreground_select_ui <- function(id) {
                                   inputId = ns("Search"),
                                   label = "Find Matching Lines",
                                   icon = icon("search"),
-                                  class = "btn-primary btn-lg"
+                                  class = "btn-primary btn-lg shadow-sm"
                                 )
                               )
-                            ),
+                            )
+                          ),
 
-                            # Display Results
-                            div(
-                              h6(class = "mb-3", icon("list", class = "me-2"), "Matching Genotypes"),
-                              bslib::card(
-                                style = "height: 280px; overflow-y: auto;",
-                                bslib::card_body(
-                                  verbatimTextOutput(outputId = ns("display_result"))
-                                )
-                              )
+                          # --- Right Column: Display Results ---
+                          bslib::card(
+                            bslib::card_header(
+                              class = "d-flex justify-content-between align-items-center bg-transparent border-0",
+                              tags$h6(icon("list-check", class = "me-2"), "Matching Genotypes", class = "fw-bold mb-0"),
+                              # Download button kept at header
+                              downloadButton(ns("download_results"), "Download", class = "btn-sm btn-outline-success border-0")
+                            ),
+                            bslib::card_body(
+                              style = "height: 280px; overflow-y: auto; background-color: #f8f9fa;",
+                              verbatimTextOutput(outputId = ns("display_result"))
                             )
                           )
                         )
@@ -345,24 +352,30 @@ mod_ds_foreground_select_server <- function(id) {
     ns <- session$ns
 
     # Reactive values to hold uploaded data
-    geno_data <- reactive({
+    geno_data <- eventReactive(input$geno_data,{
       req(input$geno_data)
-
       read_mapfile(input$geno_data$datapath)
     })
 
-    marker_info <- reactive({
+    marker_info <- eventReactive(input$marker_info,{
       req(input$marker_info)
-
       read_mapfile(input$marker_info$datapath)
     })
 
     # Dynamically update select input choices when marker info is uploaded
-    observeEvent(marker_info(), {
-      cols <- colnames(marker_info())
+    observe({
+      cols <- colnames(marker_info()) # meta data colnames
+      cols_2 <- colnames(geno_data()) # genotype data colnames
+
       updateSelectInput(session, "fore_marker_col",
         choices = cols,
         selected = safe_grep_match(pattern = "marker", choices = cols)
+      )
+
+      updateSelectizeInput(session, "sample_name",
+                           server = T,
+                           selected = cols_2[1],
+                           choices = cols_2
       )
 
       updateSelectInput(session, "fav_allele_col",
@@ -380,7 +393,7 @@ mod_ds_foreground_select_server <- function(id) {
     # Run analysis when button is clicked
     result_data <- eventReactive(input$run_analysis, {
       req(
-        geno_data(), marker_info(),
+        geno_data(), marker_info(),input$sample_name,
         input$fore_marker_col, input$fav_allele_col,
         input$alt_allele_col, input$sep, input$select_type
       )
@@ -393,9 +406,25 @@ mod_ds_foreground_select_server <- function(id) {
       # Update marker_info()
       marker_info_updated <- marker_info()[marker_info()[[input$fore_marker_col]] %in% colnames(geno_data()), ]
 
+      ## Add rownames to geno data.
+      df_geno <- geno_data()
+      sample_col_data <- as.character(df_geno[[input$sample_name]])
+
+      # Check for non-unique or missing names
+      if (any(duplicated(sample_col_data)) || any(is.na(sample_col_data))) {
+
+        # Make names unique
+        repaired_names <- make.unique(ifelse(is.na(sample_col_data), "Unknown", sample_col_data))
+        rownames(df_geno) <- repaired_names
+
+      } else {
+
+        rownames(df_geno) <- sample_col_data
+      }
+
       result <- tryCatch({
         foreground_select(
-          geno_data = geno_data(),
+          geno_data = df_geno,
           fore_marker_info = marker_info_updated,
           fore_marker_col = input$fore_marker_col,
           fav_allele_col = input$fav_allele_col,
@@ -404,11 +433,7 @@ mod_ds_foreground_select_server <- function(id) {
           sep = check_sep(input$sep)
         )
 
-        # shinyWidgets::show_toast(
-        #   title = "Successful",
-        #   text = '',
-        #   type = "success"
-        # )
+
       }, error = function(e) {
         shinyWidgets::show_alert(
           title = "Error",
@@ -426,11 +451,14 @@ mod_ds_foreground_select_server <- function(id) {
     })
 
 
+
     # Render DT Table
     output$result_table <- DT::renderDT({
       req(result_data())
       DT::datatable(result_data(), options = list(pageLength = 15))
     })
+
+
 
 
     # Generating the upset plot.
@@ -472,14 +500,12 @@ mod_ds_foreground_select_server <- function(id) {
     output$result_plot <- renderPlot({
       req(upset_result())
       print(upset_result())
-      # show success toast
-      shinyWidgets::show_toast(
-        title = "",
-        text = "Upset plot has been successfully rendered!",
-        type = "success",
-        position = "bottom-end",
-        timer = 3000
-      )
+      # Show alert when done
+        shinyWidgets::show_alert(
+          title = "Foreground Selection Analysis Complete",
+          text = "The UpSet plot has been successfully",
+          type = "success"
+        )
     })
 
     # Download handler for the plot as pdf
@@ -514,20 +540,57 @@ mod_ds_foreground_select_server <- function(id) {
 
 
 
-    found_lines <- eventReactive(input$Search, {
-      # input$present , input$absent,
+    # Empty reactive value container to hold results
+    values <- reactiveValues(
+      found_lines = NULL,
+      df = NULL
+    )
+
+    observeEvent(input$Search, {
       req(result_data())
 
-      find_lines(mat = result_data(), present = input$present, absent = input$absent)
+      # Find lines
+      result <- find_lines(mat = result_data(), present = input$present, absent = input$absent)
+
+      # Check if the result is NULL
+      if (is.null(result) || length(result) == 0) {
+        display_val <-  paste('\u2716 None Found')
+        download_val <- character(0)
+      } else {
+        display_val <- result
+        download_val <- result
+      }
+
+      # Store the result for display
+      values$found_lines <- display_val
+
+      values$df <- create_padded_df(
+        snps_present = input$present,
+        snps_absent = input$absent,
+        sample_name = download_val
+      ) # create a dataframe
     })
 
 
-
-    # render result.
+    # Print result.
     output$display_result <- renderPrint({
-      req(found_lines())
-      paste0("line", found_lines())
+      req(values$found_lines)
+       values$found_lines
     })
+
+
+
+    # Download result.
+    output$download_results <- downloadHandler(
+      filename = function() {
+        paste0("Find_lines_result", ".csv")
+      },
+      content = function(file) {
+        req(values$df)
+        # Write df as a csv file
+        write.csv(values$df, file,row.names = F)
+      })
+
   })
 }
 
