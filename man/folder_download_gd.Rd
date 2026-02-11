@@ -26,7 +26,7 @@ Download files in a shared Google Drive folder without restrictions.
 # example code
 \donttest{
 library(panGenomeBreedr)
-f_link <- "https://drive.google.com/drive/folders/1BotxaUb5emlrtgo473db3gDTUCLzKi70?usp=sharing"
+f_link <- "https://drive.google.com/drive/folders/1ZJ2cZcybCvUuwOdB_0kK5kg7StgayuPf?usp=drive_link"
 folder_path <- folder_download_gd(drive_link = f_link)
 }
 
