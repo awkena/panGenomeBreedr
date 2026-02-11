@@ -211,10 +211,11 @@ mod_variant_discovery_ui <- function(id) {
       hr(),
       radioButtons(
         width = "100%",
-        inputId = ns("query_database"), label = "Query Type:",
+        inputId = ns("query_database"), label = "Choose Search Output:",
         choices = c(
           "Query by Coordinates" = "q_entire",
-          "Annotation Summary" = "q_annt"
+          "Annotation Summary" = "q_annt",
+          'Get Allele Frequencies' = 'q_allele'
         ),
         selected = character(0)
       ),
