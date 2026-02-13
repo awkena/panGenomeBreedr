@@ -123,8 +123,7 @@ read_kasp_csv <- function(file,
 #'
 get_alleles <- function(x,
                         sep = ':',
-                        data_type = c('kasp', 'agriplex')
-) {
+                        data_type = c('kasp', 'agriplex')){
 
   data_type <- match.arg(data_type) # Match arguments
 
@@ -133,8 +132,18 @@ get_alleles <- function(x,
   names(res) <- c('alleles', 'genotypes')
 
   # Subset and sort genotype calls
-  geno_uniq <- sort(unique(x[grepl("^[AGCT-]", x)]))
+  is_dna <- function(a) {
+    a <- toupper(trimws(a))                 #
+    ok <- (a %in% c("INS", "DEL", "-")) | grepl("^[ACGT]+$", a)
+    ok[is.na(a)] <- FALSE
+    ok
+  }
 
+  keep_1 <- !is.na(x) & vapply(strsplit(x, sep, fixed = TRUE), function(z) {
+    length(z) == 2 && all(is_dna(z))
+  }, logical(1))
+
+  geno_uniq <- sort(unique(x[keep_1]))
   alleles <- res[[1]] <- unique(unlist(strsplit(x = geno_uniq, split = sep)))
 
   if (length(alleles) == 2) {
