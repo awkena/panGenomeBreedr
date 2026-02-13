@@ -397,6 +397,53 @@ lgs1 <- kasp_marker_design(gt_df = geno_high_filtered,
                            save_alignment = TRUE,
                            plot_file = path,
                            region_name = "lgs1")
+#> Registered S3 methods overwritten by 'Seqinfo':
+#>   method                from        
+#>   as.data.frame.Seqinfo GenomeInfoDb
+#>   merge.Seqinfo         GenomeInfoDb
+#>   summary.Seqinfo       GenomeInfoDb
+#> Warning: replacing previous import 'GenomeInfoDb::seqinfo<-' by
+#> 'GenomicRanges::seqinfo<-' when loading 'BSgenome'
+#> Warning: replacing previous import 'GenomeInfoDb::seqinfo' by
+#> 'GenomicRanges::seqinfo' when loading 'BSgenome'
+#> Warning: replacing previous import 'GenomeInfoDb::seqnames' by
+#> 'GenomicRanges::seqnames' when loading 'BSgenome'
+#> Warning: replacing previous import 'GenomeInfoDb::seqnames<-' by
+#> 'GenomicRanges::seqnames<-' when loading 'BSgenome'
+#> Warning: replacing previous import 'GenomicRanges::seqinfo' by
+#> 'Biostrings::seqinfo' when loading 'BSgenome'
+#> Warning: replacing previous import 'GenomicRanges::seqinfo<-' by
+#> 'Biostrings::seqinfo<-' when loading 'BSgenome'
+#> Warning: replacing previous import 'GenomeInfoDb::seqinfo<-' by
+#> 'GenomicRanges::seqinfo<-' when loading 'rtracklayer'
+#> Warning: replacing previous import 'GenomeInfoDb::seqinfo' by
+#> 'GenomicRanges::seqinfo' when loading 'rtracklayer'
+#> Warning: replacing previous import 'GenomeInfoDb::seqnames' by
+#> 'GenomicRanges::seqnames' when loading 'rtracklayer'
+#> Warning: replacing previous import 'GenomeInfoDb::seqnames<-' by
+#> 'GenomicRanges::seqnames<-' when loading 'rtracklayer'
+#> Warning: replacing previous import 'GenomeInfoDb::seqinfo<-' by
+#> 'GenomicRanges::seqinfo<-' when loading 'GenomicAlignments'
+#> Warning: replacing previous import 'GenomeInfoDb::seqinfo' by
+#> 'GenomicRanges::seqinfo' when loading 'GenomicAlignments'
+#> Warning: replacing previous import 'GenomeInfoDb::seqnames' by
+#> 'GenomicRanges::seqnames' when loading 'GenomicAlignments'
+#> Warning: replacing previous import 'GenomeInfoDb::seqnames<-' by
+#> 'GenomicRanges::seqnames<-' when loading 'GenomicAlignments'
+#> Warning: replacing previous import 'SummarizedExperiment::seqinfo' by
+#> 'Biostrings::seqinfo' when loading 'GenomicAlignments'
+#> Warning: replacing previous import 'SummarizedExperiment::seqinfo<-' by
+#> 'Biostrings::seqinfo<-' when loading 'GenomicAlignments'
+#> Warning: multiple methods tables found for 'seqinfo'
+#> Warning: multiple methods tables found for 'seqinfo<-'
+#> Warning: multiple methods tables found for 'seqnames'
+#> Warning: multiple methods tables found for 'seqnames<-'
+#> Warning: multiple methods tables found for 'seqinfo'
+#> Warning: multiple methods tables found for 'seqinfo<-'
+#> Warning: multiple methods tables found for 'seqinfo'
+#> Warning: multiple methods tables found for 'seqinfo<-'
+#> Warning: multiple methods tables found for 'seqnames'
+#> Warning: multiple methods tables found for 'seqnames<-'
 
 
 # View marker alignment output from temp folder
@@ -1228,21 +1275,21 @@ UpSetR::upset(foreground_matrix,
 #> ℹ See also `vignette("ggplot2-in-packages")` for more information.
 #> ℹ The deprecated feature was likely used in the UpSetR package.
 #>   Please report the issue to the authors.
-#> This warning is displayed once per session.
+#> This warning is displayed once every 8 hours.
 #> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
 #> generated.
 #> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
 #> ℹ Please use `linewidth` instead.
 #> ℹ The deprecated feature was likely used in the UpSetR package.
 #>   Please report the issue to the authors.
-#> This warning is displayed once per session.
+#> This warning is displayed once every 8 hours.
 #> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
 #> generated.
 #> Warning: The `size` argument of `element_line()` is deprecated as of ggplot2 3.4.0.
 #> ℹ Please use the `linewidth` argument instead.
 #> ℹ The deprecated feature was likely used in the UpSetR package.
 #>   Please report the issue to the authors.
-#> This warning is displayed once per session.
+#> This warning is displayed once every 8 hours.
 #> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
 #> generated.
 ```

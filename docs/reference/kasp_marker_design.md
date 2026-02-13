@@ -123,6 +123,16 @@ ma1 <- kasp_marker_design(vcf_file = path2,
                           plot_file = path,
                           region_name = "ma1",
                           maf = 0.05)
+#> Warning: replacing previous import ‘GenomeInfoDb::seqinfo<-’ by ‘GenomicRanges::seqinfo<-’ when loading ‘BSgenome’
+#> Warning: replacing previous import ‘GenomeInfoDb::seqinfo’ by ‘GenomicRanges::seqinfo’ when loading ‘BSgenome’
+#> Warning: replacing previous import ‘GenomeInfoDb::seqnames’ by ‘GenomicRanges::seqnames’ when loading ‘BSgenome’
+#> Warning: replacing previous import ‘GenomeInfoDb::seqnames<-’ by ‘GenomicRanges::seqnames<-’ when loading ‘BSgenome’
+#> Warning: replacing previous import ‘GenomicRanges::seqinfo’ by ‘Biostrings::seqinfo’ when loading ‘BSgenome’
+#> Warning: replacing previous import ‘GenomicRanges::seqinfo<-’ by ‘Biostrings::seqinfo<-’ when loading ‘BSgenome’
+#> Warning: multiple methods tables found for ‘seqinfo’
+#> Warning: multiple methods tables found for ‘seqinfo<-’
+#> Warning: multiple methods tables found for ‘seqnames’
+#> Warning: multiple methods tables found for ‘seqnames<-’
 
 # View marker alignment output from temp folder
 # path3 <- file.path(path, list.files(path = path, "alignment_"))

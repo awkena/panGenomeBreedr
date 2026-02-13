@@ -1776,6 +1776,53 @@ INDEL
 <span>                           save_alignment <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                           plot_file <span class="op">=</span> <span class="va">path</span>,</span>
 <span>                           region_name <span class="op">=</span> <span class="st">"lgs1"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Registered S3 methods overwritten by 'Seqinfo':</span></span>
+<span><span class="co">#&gt;   method                from        </span></span>
+<span><span class="co">#&gt;   as.data.frame.Seqinfo GenomeInfoDb</span></span>
+<span><span class="co">#&gt;   merge.Seqinfo         GenomeInfoDb</span></span>
+<span><span class="co">#&gt;   summary.Seqinfo       GenomeInfoDb</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqinfo&lt;-' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqinfo&lt;-' when loading 'BSgenome'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqinfo' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqinfo' when loading 'BSgenome'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqnames' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqnames' when loading 'BSgenome'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqnames&lt;-' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqnames&lt;-' when loading 'BSgenome'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomicRanges::seqinfo' by</span></span>
+<span><span class="co">#&gt; 'Biostrings::seqinfo' when loading 'BSgenome'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomicRanges::seqinfo&lt;-' by</span></span>
+<span><span class="co">#&gt; 'Biostrings::seqinfo&lt;-' when loading 'BSgenome'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqinfo&lt;-' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqinfo&lt;-' when loading 'rtracklayer'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqinfo' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqinfo' when loading 'rtracklayer'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqnames' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqnames' when loading 'rtracklayer'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqnames&lt;-' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqnames&lt;-' when loading 'rtracklayer'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqinfo&lt;-' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqinfo&lt;-' when loading 'GenomicAlignments'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqinfo' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqinfo' when loading 'GenomicAlignments'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqnames' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqnames' when loading 'GenomicAlignments'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqnames&lt;-' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqnames&lt;-' when loading 'GenomicAlignments'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'SummarizedExperiment::seqinfo' by</span></span>
+<span><span class="co">#&gt; 'Biostrings::seqinfo' when loading 'GenomicAlignments'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'SummarizedExperiment::seqinfo&lt;-' by</span></span>
+<span><span class="co">#&gt; 'Biostrings::seqinfo&lt;-' when loading 'GenomicAlignments'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqinfo'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqinfo&lt;-'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqnames'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqnames&lt;-'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqinfo'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqinfo&lt;-'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqinfo'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqinfo&lt;-'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqnames'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqnames&lt;-'</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># View marker alignment output from temp folder</span></span>
@@ -1805,7 +1852,8 @@ including a <code>data.frame</code> with marker design metadata:</p>
 </ul>
 <p>If <code>save_alignment = TRUE</code>, a <strong>PDF plot</strong> of
 sequence alignment will be saved to <code>plot_file</code>.</p>
-<figure style="text-align: center;"><img src="figures/alignment.png" width="700" alt="Sequence alignment"><figcaption><em>Fig. 2.</em> Alignment of the 100 bp upstream and downstream
+<figure style="text-align: center;"><p><img src="figures/alignment.png" alt="Sequence alignment" width="700"></p>
+<figcaption><em>Fig. 2.</em> Alignment of the 100 bp upstream and downstream
 sequences to the reference genome used for KASP marker design.
 </figcaption></figure><p>The required sequence for submission to Intertek for the designed
 KASP marker is shown in Table 5.</p>
@@ -1983,7 +2031,7 @@ below:</p>
 <span>                    legend.pos.y <span class="op">=</span> <span class="fl">0.75</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $`SE-24-1088_P01_d1_snpSB00804`</span></span></code></pre></div>
 <div class="figure">
-<img src="figures/plate_05_qc_1-1.png" alt="Fig. 3. Cluster plot for Plate 5 using FAM and HEX colors for grouping observed genotypes." width="100%"><p class="caption">
+<img src="figures/plate_05_qc_1-1.png" class="r-plt" alt="Fig. 3. Cluster plot for Plate 5 using FAM and HEX colors for grouping observed genotypes." width="100%"><p class="caption">
 Fig. 3. Cluster plot for Plate 5 using FAM and HEX colors for grouping
 observed genotypes.
 </p>
@@ -2004,7 +2052,7 @@ observed genotypes.
 <span>                  legend.pos.y <span class="op">=</span> <span class="fl">0.75</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $`SE-24-1088_P01_d1_snpSB00804`</span></span></code></pre></div>
 <div class="figure">
-<img src="figures/plate_05_qc_2-1.png" alt="Fig. 4. Cluster plot for Plate 5 with an overlay of predictions for positive controls." width="100%"><p class="caption">
+<img src="figures/plate_05_qc_2-1.png" class="r-plt" alt="Fig. 4. Cluster plot for Plate 5 with an overlay of predictions for positive controls." width="100%"><p class="caption">
 Fig. 4. Cluster plot for Plate 5 with an overlay of predictions for
 positive controls.
 </p>
@@ -2230,7 +2278,7 @@ function as shown in the code snippet below:</p>
 <span>                    angle <span class="op">=</span> <span class="fl">45</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $snpSB00804</span></span></code></pre></div>
 <div class="figure">
-<img src="figures/barplot-1.png" alt="Fig. 5. Match/Mismatch rate of predictions for snp: snpSB00804." width="100%"><p class="caption">
+<img src="figures/barplot-1.png" class="r-plt" alt="Fig. 5. Match/Mismatch rate of predictions for snp: snpSB00804." width="100%"><p class="caption">
 Fig. 5. Match/Mismatch rate of predictions for snp: snpSB00804.
 </p>
 </div>
@@ -2245,7 +2293,7 @@ Figure 5, using the code snippet below:</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_plate.html">plot_plate</a></span><span class="op">(</span><span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>, pdf <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $`SE-24-1088_P01_d1_snpSB00804`</span></span></code></pre></div>
 <div class="figure">
-<img src="figures/plate_05_design-1.png" alt="Fig. 6. Observed genotype calls for samples in Plate 5 in a plate design format." width="100%"><p class="caption">
+<img src="figures/plate_05_design-1.png" class="r-plt" alt="Fig. 6. Observed genotype calls for samples in Plate 5 in a plate design format." width="100%"><p class="caption">
 Fig. 6. Observed genotype calls for samples in Plate 5 in a plate design
 format.
 </p>
@@ -3040,7 +3088,7 @@ below:</p>
 <span>                text_size <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $Batch1</span></span></code></pre></div>
 <div class="figure">
-<img src="figures/heatmap1-1.png" alt="Fig. 6. A heatmap that compares the genetic background of parents and stg5 NIL progenies across all markers." width="100%"><p class="caption">
+<img src="figures/heatmap1-1.png" class="r-plt" alt="Fig. 6. A heatmap that compares the genetic background of parents and stg5 NIL progenies across all markers." width="100%"><p class="caption">
 Fig. 6. A heatmap that compares the genetic background of parents and
 stg5 NIL progenies across all markers.
 </p>
@@ -3089,7 +3137,7 @@ generate a heatmap (Figure 7) with an annotation of the position of the
 <span>                  text_size <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $Batch1</span></span></code></pre></div>
 <div class="figure">
-<img src="figures/heatmap2-1.png" alt="Fig. 7. Heatmap annotation of the stg5 locus on Chr 1." width="100%"><p class="caption">
+<img src="figures/heatmap2-1.png" class="r-plt" alt="Fig. 7. Heatmap annotation of the stg5 locus on Chr 1." width="100%"><p class="caption">
 Fig. 7. Heatmap annotation of the stg5 locus on Chr 1.
 </p>
 </div>
@@ -3148,7 +3196,7 @@ snippet below:</p>
 <span>            aspect_ratio <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>            pdf <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="figures/barplot_rpp1-1.png" alt="Fig. 8. Computed RPP values for the stg5 NILs." width="100%"><p class="caption">
+<img src="figures/barplot_rpp1-1.png" class="r-plt" alt="Fig. 8. Computed RPP values for the stg5 NILs." width="100%"><p class="caption">
 Fig. 8. Computed RPP values for the stg5 NILs.
 </p>
 </div>
@@ -3875,25 +3923,25 @@ favorable allele for each individual target locus.</p></li>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> See also `vignette("ggplot2-in-packages")` for more information.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">UpSetR</span> package.</span></span>
 <span><span class="co">#&gt;   Please report the issue to the authors.</span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once per session.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span>
 <span><span class="co">#&gt; Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use `linewidth` instead.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">UpSetR</span> package.</span></span>
 <span><span class="co">#&gt;   Please report the issue to the authors.</span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once per session.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span>
 <span><span class="co">#&gt; Warning: The `size` argument of `element_line()` is deprecated as of ggplot2 3.4.0.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use the `linewidth` argument instead.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">UpSetR</span> package.</span></span>
 <span><span class="co">#&gt;   Please report the issue to the authors.</span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once per session.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span></code></pre></div>
 <div class="figure">
-<img src="figures/upset_plot1-1.png" alt="Fig. 9. Visualizing the co-occurrence of favorable alleles across lines." width="100%"><p class="caption">
+<img src="figures/upset_plot1-1.png" class="r-plt" alt="Fig. 9. Visualizing the co-occurrence of favorable alleles across lines." width="100%"><p class="caption">
 Fig. 9. Visualizing the co-occurrence of favorable alleles across lines.
 </p>
 </div>
@@ -4004,7 +4052,7 @@ GPLv3</a></p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

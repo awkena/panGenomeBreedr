@@ -35,9 +35,15 @@ end coordinates of candidate gene.
 gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
 gene_coord_gff(gene_name = "Sobic.005G213600",
                gff_path = gff_path)
-#> Warning: downloaded length 0 != reported length 454
-#> Warning: cannot open URL 'https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz': HTTP status was '503 Service Unavailable'
-#> Error in utils::download.file(gff_path, destfile = file.path(tempdir(),     basename(gff_path))): cannot open URL 'https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz'
+#> $chrom
+#> [1] "Chr05"
+#> 
+#> $start
+#> [1] 75104537
+#> 
+#> $end
+#> [1] 75106403
+#> 
 
 # }
 ```

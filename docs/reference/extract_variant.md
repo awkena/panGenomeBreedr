@@ -80,7 +80,7 @@ gff3 <- folder_download_gd(drive_link = flink1,
 #> File downloaded:
 #> • Sbicolor_730_v5.1.gene.gff3 <id: 1XjYyJ2JLywbbniIU6oUIIxAmEBKfmHpz>
 #> Saved locally as:
-#> • /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//Rtmpt0Gk3u/Sbicolor_730_v5.1.gene.gff3
+#> • /var/folders/tf/jr_ht05123v5x1196mv9z5zr0000gn/T//Rtmp3hNUw4/Sbicolor_730_v5.1.gene.gff3
 
 # Google drive link to indel snpEff annotated vcf file on Chr05
 flink2 <- "https://drive.google.com/file/d/1LiOeDsfIwbsCuHbw9rCJ1FLOZqICTrfs/view?usp=sharing"
@@ -93,7 +93,7 @@ vcf_file_indel <- folder_download_gd(drive_link = flink2,
 #> • Sorghum_d8.noduplicates.Chr05.indel._markernamesadded_imputed_snpeff.vcf.gz
 #>   <id: 1LiOeDsfIwbsCuHbw9rCJ1FLOZqICTrfs>
 #> Saved locally as:
-#> • /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//Rtmpt0Gk3u/Sorghum_d8.noduplicates.Chr05.indel._markernamesadded_imputed_snpeff.vcf.gz
+#> • /var/folders/tf/jr_ht05123v5x1196mv9z5zr0000gn/T//Rtmp3hNUw4/Sorghum_d8.noduplicates.Chr05.indel._markernamesadded_imputed_snpeff.vcf.gz
 # View downloaded files in tempdir
 # list.files(vcf_dir)
 
@@ -104,6 +104,27 @@ extract_variant(cand_gene_id = 'Sobic.005G213600',
                 vcf_file = basename(vcf_file_indel),
                 output_path = vcf_dir,
                 outfile_suffix = 'lgs_variants_indel')
+#> Registered S3 methods overwritten by 'Seqinfo':
+#>   method                from        
+#>   as.data.frame.Seqinfo GenomeInfoDb
+#>   merge.Seqinfo         GenomeInfoDb
+#>   summary.Seqinfo       GenomeInfoDb
+#> Warning: replacing previous import ‘GenomeInfoDb::seqinfo<-’ by ‘GenomicRanges::seqinfo<-’ when loading ‘rtracklayer’
+#> Warning: replacing previous import ‘GenomeInfoDb::seqinfo’ by ‘GenomicRanges::seqinfo’ when loading ‘rtracklayer’
+#> Warning: replacing previous import ‘GenomeInfoDb::seqnames’ by ‘GenomicRanges::seqnames’ when loading ‘rtracklayer’
+#> Warning: replacing previous import ‘GenomeInfoDb::seqnames<-’ by ‘GenomicRanges::seqnames<-’ when loading ‘rtracklayer’
+#> Warning: replacing previous import ‘GenomeInfoDb::seqinfo<-’ by ‘GenomicRanges::seqinfo<-’ when loading ‘GenomicAlignments’
+#> Warning: replacing previous import ‘GenomeInfoDb::seqinfo’ by ‘GenomicRanges::seqinfo’ when loading ‘GenomicAlignments’
+#> Warning: replacing previous import ‘GenomeInfoDb::seqnames’ by ‘GenomicRanges::seqnames’ when loading ‘GenomicAlignments’
+#> Warning: replacing previous import ‘GenomeInfoDb::seqnames<-’ by ‘GenomicRanges::seqnames<-’ when loading ‘GenomicAlignments’
+#> Warning: replacing previous import ‘SummarizedExperiment::seqinfo’ by ‘Biostrings::seqinfo’ when loading ‘GenomicAlignments’
+#> Warning: replacing previous import ‘SummarizedExperiment::seqinfo<-’ by ‘Biostrings::seqinfo<-’ when loading ‘GenomicAlignments’
+#> Warning: multiple methods tables found for ‘seqinfo’
+#> Warning: multiple methods tables found for ‘seqinfo<-’
+#> Warning: multiple methods tables found for ‘seqnames’
+#> Warning: multiple methods tables found for ‘seqnames<-’
+#> Warning: multiple methods tables found for ‘seqinfo’
+#> Warning: multiple methods tables found for ‘seqinfo<-’
 
 # Clean tempdir after variant extraction
 # unlink(vcf_dir, recursive = TRUE)
