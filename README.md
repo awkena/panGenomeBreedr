@@ -1,12 +1,7 @@
----
-editor_options: 
-  markdown: 
-    wrap: 72
----
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# panGenomeBreedr <img src="man/figures/logo.png" align="right" height="139"/>
+# panGenomeBreedr <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
 <!-- badges: start -->
 
@@ -21,18 +16,20 @@ cultivar development.
 
 <figure style="text-align: center;">
 
-<img src="man/figures/workflow.png" alt="panGenomeBreedr marker design workflow" width="800"/>
+<img src="man/figures/workflow.png" width="800" alt="panGenomeBreedr marker design workflow">
+<figcaption>
 
-<figcaption><em>Fig. 1.</em> Conceptual workflow of the panGenomeBreedr
-(panGB) package for pangenome-enabled marker development. Using
-snpEff-annotated VCF files organized within a SQLite database, panGB
-enables querying for variants within candidate genes or user-defined
-genomic regions. It retrieves mutation annotations and predicted impacts
-from snpEff to identify putative causal variants (PCVs), which serve as
-the basis for designing functional trait-predictive markers. The package
-supports hypothesis-driven validation of these markers and also
-facilitates the design of additional marker types, including
-precision-introgression and background markers.</figcaption>
+<em>Fig. 1.</em> Conceptual workflow of the panGenomeBreedr (panGB)
+package for pangenome-enabled marker development. Using snpEff-annotated
+VCF files organized within a SQLite database, panGB enables querying for
+variants within candidate genes or user-defined genomic regions. It
+retrieves mutation annotations and predicted impacts from snpEff to
+identify putative causal variants (PCVs), which serve as the basis for
+designing functional trait-predictive markers. The package supports
+hypothesis-driven validation of these markers and also facilitates the
+design of additional marker types, including precision-introgression and
+background markers.
+</figcaption>
 
 </figure>
 
@@ -60,34 +57,34 @@ Submit bug reports and feature suggestions, or track changes on the
 To use this package locally on a machine, the following R packages are
 required:
 
--   [ggplot2](https://ggplot2.tidyverse.org)
+- [ggplot2](https://ggplot2.tidyverse.org)
 
--   [gridExtra](https://cran.r-project.org/web/packages/gridExtra/index.html)
+- [gridExtra](https://cran.r-project.org/web/packages/gridExtra/index.html)
 
--   [utils](https://www.rdocumentation.org/packages/utils/versions/3.6.2)
+- [utils](https://www.rdocumentation.org/packages/utils/versions/3.6.2)
 
--   [stats](https://www.rdocumentation.org/packages/stats/versions/3.6.2)
+- [stats](https://www.rdocumentation.org/packages/stats/versions/3.6.2)
 
--   [reshape2](https://cran.r-project.org/web/packages/reshape2/index.html)
+- [reshape2](https://cran.r-project.org/web/packages/reshape2/index.html)
 
--   [BSgenome](https://bioconductor.org/packages/release/bioc/html/BSgenome.html)
+- [BSgenome](https://bioconductor.org/packages/release/bioc/html/BSgenome.html)
 
--   [Biostrings](https://bioconductor.org/packages/release/bioc/html/Biostrings.html)
+- [Biostrings](https://bioconductor.org/packages/release/bioc/html/Biostrings.html)
 
--   [GenomicRanges](https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html)
+- [GenomicRanges](https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html)
 
--   [IRanges](https://bioconductor.org/packages/release/bioc/html/IRanges.html)
+- [IRanges](https://bioconductor.org/packages/release/bioc/html/IRanges.html)
 
--   [msa](https://bioconductor.org/packages/release/bioc/html/msa.html)
+- [msa](https://bioconductor.org/packages/release/bioc/html/msa.html)
 
 # Recommended packages
 
--   [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html):
-    Needed for package development and installation from GitHub on
-    Windows PCs.
+- [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html):
+  Needed for package development and installation from GitHub on Windows
+  PCs.
 
--   [UpSetR](https://cran.r-project.org/web/packages/UpSetR/index.html):
-    Required for generating UpSet plots.
+- [UpSetR](https://cran.r-project.org/web/packages/UpSetR/index.html):
+  Required for generating UpSet plots.
 
 ## Installation
 
@@ -132,19 +129,19 @@ for (pkg in bioc_packages) {
 
 `panGB` currently provides functionality for the following key tasks:
 
-1.  **Variant discovery**\
+1.  **Variant discovery**  
     Identify variants within candidate genes or any user-defined genomic
     interval using *snpEff*-annotated VCF files.
 
-2.  **KASP marker design**\
+2.  **KASP marker design**  
     Generate allele-specific markers targeting either causal variants or
     any variant of interest.
 
-3.  **Marker validation and QC visualization**\
+3.  **Marker validation and QC visualization**  
     Produce quality control plots and perform hypothesis-driven
     evaluations to assess marker reliability.
 
-4.  **Decision-support for trait introgression**\
+4.  **Decision-support for trait introgression**  
     Guide marker-assisted backcrossing by profiling foreground,
     background, and precision-introgression markers to support selection
     decisions.
@@ -157,39 +154,38 @@ vignette](https://awkena.github.io/panGenomeBreedr/articles/panGenomeBreedr_Work
 
 If the package does not run as expected, check the following:
 
--   Was the package properly installed?
+- Was the package properly installed?
 
--   Do you have the required dependencies installed?
+- Do you have the required dependencies installed?
 
--   Were any warnings or error messages returned during package
-    installation?
+- Were any warnings or error messages returned during package
+  installation?
 
--   Are all packages up to date before installing panGB?
+- Are all packages up to date before installing panGB?
 
 # Authors and contributors
 
--   [Alexander Wireko Kena](https://www.github.com/awkena)
+- [Alexander Wireko Kena](https://www.github.com/awkena)
 
--   [Israel Tawiah Tetteh](https://github.com/Israel-Tetteh)
+- [Israel Tawiah Tetteh](https://github.com/Israel-Tetteh)
 
--   [Cruet Burgos](https://www.morrislab.org/people/clara-cruet-burgos)
+- [Cruet Burgos](https://www.morrislab.org/people/clara-cruet-burgos)
 
--   [Fanna Maina](https://www.morrislab.org/people/fanna-maina)
+- [Fanna Maina](https://www.morrislab.org/people/fanna-maina)
 
--   [Linly
-    Banda](https://www.biofortificationlab.org/people/linly-banda)
+- [Linly Banda](https://www.biofortificationlab.org/people/linly-banda)
 
--   [Jacques
-    Faye](https://sites.google.com/site/morrislaboratory/people/jacques-faye)
+- [Jacques
+  Faye](https://sites.google.com/site/morrislaboratory/people/jacques-faye)
 
--   [Benjamin
-    Annor](https://webapps.knust.edu.gh/staff/dirsearch/profile/summary/093520aa7216.html)
+- [Benjamin
+  Annor](https://webapps.knust.edu.gh/staff/dirsearch/profile/summary/093520aa7216.html)
 
--   [Terry
-    Felderhoff](https://www.agronomy.k-state.edu/about/people/faculty/felderhoff-terry/)
+- [Terry
+  Felderhoff](https://www.agronomy.k-state.edu/about/people/faculty/felderhoff-terry/)
 
--   [Geoffrey Preston
-    Morris](https://www.morrislab.org/people/geoff-morris)
+- [Geoffrey Preston
+  Morris](https://www.morrislab.org/people/geoff-morris)
 
 # License
 
@@ -198,5 +194,4 @@ If the package does not run as expected, check the following:
 # Support and Feedback
 
 For support and submission of feedback, email the maintainer **Alexander
-Kena, PhD** at
-[alex.kena24\@gmail.com](mailto:alex.kena24@gmail.com){.email}
+Kena, PhD** at <alex.kena24@gmail.com>
