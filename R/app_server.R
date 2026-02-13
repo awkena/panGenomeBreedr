@@ -60,7 +60,7 @@ app_server <- function(input, output, session) {
             # OPTION 2: SHUT DOWN
             actionButton(
               "btn_modal_shutdown",
-              tagList(icon("stop-circle"), "Shut Down Application"),
+              tagList(icon("stop-circle"), "Shut Down Server"),
               class = "btn-outline-danger p-3 text-start",
               style = "border-radius: 10px;"
             ),
