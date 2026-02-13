@@ -1,0 +1,63 @@
+# Extracts lines that have a combination of favorable alleles across target loci.
+
+Extracts lines that have a combination of favorable alleles across
+target loci.
+
+## Usage
+
+``` r
+find_lines(mat, present = character(), absent = character())
+```
+
+## Arguments
+
+- mat:
+
+  A binary matrix/data frame with 1s and 0s. Rows = lines, Columns =
+  target loci.
+
+- present:
+
+  Character vector of column names that must be 1 (present).
+
+- absent:
+
+  Character vector of column names that must be 0 (absent).
+
+## Value
+
+Character vector of lines matching the intersection criteria.
+
+## Examples
+
+``` r
+# \donttest{
+# example code
+library(panGenomeBreedr)
+
+# Marker genotype data
+geno <- data.frame(SNP1 = c("A:A", "A:G", "G:G", "A:A"),
+                   SNP2 = c("C:C", "C:T", "T:T", "C:T"),
+                   SNP3 = c("G:G", "G:G", "A:G", "A:A"),
+                   row.names = c("Line1", "Line2", "Line3", "Line4"))
+
+# Trait predictive markers meta data
+marker_info <- data.frame(qtl_markers = paste0('SNP', 1:3),
+                          fav_alleles = c('A', 'C', 'G'),
+                          alt_alleles = c('G', 'T', 'A'))
+
+# Select lines where genotype is either homozygous for favorable alleles at all loci
+foreground_select(geno_data = geno,
+                  fore_marker_info = marker_info,
+                  fore_marker_col = 'qtl_markers',
+                  fav_allele_col = 'fav_alleles',
+                  alt_allele_col = 'alt_alleles',
+                  select_type = "homo") |>
+
+                  find_lines(present = colnames(geno))
+#> [1] "Line1"
+
+
+
+# }
+```
