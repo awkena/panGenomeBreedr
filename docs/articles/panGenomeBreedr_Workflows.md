@@ -2,41 +2,65 @@
 
 ## Table of contents
 
--   [Variant Discovery](#variant-discovery)
-    -   [Pangenome Data and Database Rationale](#pangenome-data-and-database-rationale)
-    -   [Recommended Schema for the SQLite Database](#recommended-schema-for-the-sqlite-database)
-    -   [Database Creation](#database-creation)
-    -   [Query Variant Tables](#query-variant-tables)
-    -   [Filter Variants by Allele Frequency](#filter-variants-by-allele-frequency)
-    -   [Summarize SnpEff Annotation and Impact](#summarize-snpeff-annotation-and-impact)
--   [KASP Marker Design](#kasp-marker-design)
--   [KASP Marker Validation](#kasp-marker-validation)
--   [Decision Support for Trait Introgression and MABC](#decision-support-for-trait-introgression-and-mabc)
-    -   [Creating Heatmaps with `panGB`](#creating-heatmaps-with-pangb)
-    -   [Trait Introgression Hypothesis Testing](#trait-introgression-hypothesis-testing)
-    -   [Decision Support for MABC](#decision-support-for-mabc)
-    -   [Weighted RPP computation in panGB](#weighted-rpp-computation-in-pangb)
-    -   [Decision Support for Foreground Selection](#decision-support-for-foreground-selection)
+- [Variant Discovery](#variant-discovery)
+  - [Pangenome Data and Database
+    Rationale](#pangenome-data-and-database-rationale)
+  - [Recommended Schema for the SQLite
+    Database](#recommended-schema-for-the-sqlite-database)
+  - [Database Creation](#database-creation)
+  - [Query Variant Tables](#query-variant-tables)
+  - [Filter Variants by Allele
+    Frequency](#filter-variants-by-allele-frequency)
+  - [Summarize SnpEff Annotation and
+    Impact](#summarize-snpeff-annotation-and-impact)
+- [KASP Marker Design](#kasp-marker-design)
+- [KASP Marker Validation](#kasp-marker-validation)
+- [Decision Support for Trait Introgression and
+  MABC](#decision-support-for-trait-introgression-and-mabc)
+  - [Creating Heatmaps with `panGB`](#creating-heatmaps-with-pangb)
+  - [Trait Introgression Hypothesis
+    Testing](#trait-introgression-hypothesis-testing)
+  - [Decision Support for MABC](#decision-support-for-mabc)
+  - [Weighted RPP computation in
+    panGB](#weighted-rpp-computation-in-pangb)
+  - [Decision Support for Foreground
+    Selection](#decision-support-for-foreground-selection)
 
-## Variant Discovery {#variant-discovery}
+## Variant Discovery
 
-### Pangenome Data and Database Rationale {#pangenome-data-and-database-rationale}
+### Pangenome Data and Database Rationale
 
-The examples used in this documentation are based on **sorghum pangenome resources** derived from whole-genome resequencing data of **1,676 sorghum lines**. Variant calling was performed using version **v5.1** of the **BTx623** reference genome. The resulting **SNP** and **INDEL** variants were functionally annotated using **snpEff**.
+The examples used in this documentation are based on **sorghum pangenome
+resources** derived from whole-genome resequencing data of **1,676
+sorghum lines**. Variant calling was performed using version **v5.1** of
+the **BTx623** reference genome. The resulting **SNP** and **INDEL**
+variants were functionally annotated using **snpEff**.
 
-Direct querying of **snpEff-annotated VCF files** from R is often computationally slow and inefficient, especially with large datasets. To overcome this limitation, we built a **SQLite database** that stores the variants, annotations, and genotypes in normalized tables. This structure allows for **fast and flexible access** to relevant data, supporting workflows for trait-predictive marker discovery.
+Direct querying of **snpEff-annotated VCF files** from R is often
+computationally slow and inefficient, especially with large datasets. To
+overcome this limitation, we built a **SQLite database** that stores the
+variants, annotations, and genotypes in normalized tables. This
+structure allows for **fast and flexible access** to relevant data,
+supporting workflows for trait-predictive marker discovery.
 
-**We strongly recommend the creation of similar databases for other crops**. The SQLite format offers a compact, portable, and queryable representation of pangenome-derived variant data, significantly improving performance and reproducibility in variant discovery pipelines.
+**We strongly recommend the creation of similar databases for other
+crops**. The SQLite format offers a compact, portable, and queryable
+representation of pangenome-derived variant data, significantly
+improving performance and reproducibility in variant discovery
+pipelines.
 
-**A compressed format of the SQLite database for sorghum can be downloaded** [here](https://drive.google.com/file/d/1L4S7_ZGeFyu_bA7rRsmTpf9V8__VLB-R/view?usp=sharing).
+**A compressed format of the SQLite database for sorghum can be
+downloaded**
+[here](https://drive.google.com/file/d/1L4S7_ZGeFyu_bA7rRsmTpf9V8__VLB-R/view?usp=sharing).
 
-### Recommended Schema for the SQLite Database {#recommended-schema-for-the-sqlite-database}
+### Recommended Schema for the SQLite Database
 
 The SQLite database contains the following three key tables:
 
 #### `variants`
 
-This table stores core metadata variant information extracted from the VCF.
+This table stores core metadata variant information extracted from the
+VCF.
 
 | Column         | Description                        |
 |----------------|------------------------------------|
@@ -49,7 +73,8 @@ This table stores core metadata variant information extracted from the VCF.
 
 #### `annotations`
 
-This table contains functional annotations from **snpEff**, typically including predicted effects, gene names, and functional categories.
+This table contains functional annotations from **snpEff**, typically
+including predicted effects, gene names, and functional categories.
 
 | Column         | Description                                |
 |----------------|--------------------------------------------|
@@ -62,7 +87,8 @@ This table contains functional annotations from **snpEff**, typically including 
 
 #### `genotypes`
 
-This table stores genotype calls per sample for each variant in a wide format.
+This table stores genotype calls per sample for each variant in a wide
+format.
 
 | Column       | Description                         |
 |--------------|-------------------------------------|
@@ -73,29 +99,42 @@ This table stores genotype calls per sample for each variant in a wide format.
 | `sample2`    | Genotype for Sample 2 (e.g., `0|0`) |
 | …            | Genotypes for other samples         |
 
-### Database Creation {#database-creation}
+### Database Creation
 
 We generated the SQLite database using a custom workflow that
 
 1.  Parses a multi-sample VCF file annotated by snpEff,
 2.  Extracts variant, annotation, and genotype data,
-3.  Writes the data into normalized relational tables (`variants`, `annotations`, `genotypes`).
+3.  Writes the data into normalized relational tables (`variants`,
+    `annotations`, `genotypes`).
 
-A prebuilt mini example database (`mini_sorghum_variant_vcf.db.gz`) is included in the `extdata/` folder of the package.
+A prebuilt mini example database (`mini_sorghum_variant_vcf.db.gz`) is
+included in the `extdata/` folder of the package.
 
-### Query Variant Tables {#query-variant-tables}
+### Query Variant Tables
 
-The [`query_db()`](https://awkena.github.io/panGenomeBreedr/reference/query_db.md) function allows users to query specific tables within a panGenomeBreedr-formatted SQLite database for variants, annotations, or genotypes based on chromosome coordinates or candidate gene IDs.
+The
+[`query_db()`](https://awkena.github.io/panGenomeBreedr/reference/query_db.md)
+function allows users to query specific tables within a
+panGenomeBreedr-formatted SQLite database for variants, annotations, or
+genotypes based on chromosome coordinates or candidate gene IDs.
 
-This function retrieves records from one of the following tables in the database:
+This function retrieves records from one of the following tables in the
+database:
 
--   `variants`: Basic variant information (chromosome, position, REF/ALT alleles, etc.)
--   `annotations`: Variant effect predictions (e.g., from snpEff)
--   `genotypes`: Genotypic data across lines/samples plus the metadata of the variants.
+- `variants`: Basic variant information (chromosome, position, REF/ALT
+  alleles, etc.)
+- `annotations`: Variant effect predictions (e.g., from snpEff)
+- `genotypes`: Genotypic data across lines/samples plus the metadata of
+  the variants.
 
-Users can specify genomic coordinates (`chrom`, `start`, `end`) or a candidate gene name (`gene_name`) to extract relevant entries.
+Users can specify genomic coordinates (`chrom`, `start`, `end`) or a
+candidate gene name (`gene_name`) to extract relevant entries.
 
-If used correctly, the [`query_db()`](https://awkena.github.io/panGenomeBreedr/reference/query_db.md) function returns a data frame containing the filtered records from the selected table.
+If used correctly, the
+[`query_db()`](https://awkena.github.io/panGenomeBreedr/reference/query_db.md)
+function returns a data frame containing the filtered records from the
+selected table.
 
 ``` r
 library(panGenomeBreedr)
@@ -129,7 +168,7 @@ unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE),
 ```
 
 | variant_id           | chrom | pos      | variant_type | ref | alt  | IDMM | ISGC | ISGK | ISHC |
-|:-------|:-------|:-------|:-------|:-------|:-------|:-------|:-------|:-------|:-------|
+|:---------------------|:------|:---------|:-------------|:----|:-----|:-----|:-----|:-----|:-----|
 | INDEL_Chr05_75104541 | Chr05 | 75104541 | INDEL        | T   | TGAC | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
 | SNP_Chr05_75104557   | Chr05 | 75104557 | SNP          | C   | T    | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
 | SNP_Chr05_75104560   | Chr05 | 75104560 | SNP          | C   | T    | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
@@ -138,8 +177,8 @@ unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE),
 
 Table 1: Queried genotypes for varaints from the SQLite database.
 
-|   | variant_id | allele | annotation | impact | gene_name | gene_id | feature_type | feature_id | transcript_biotype | rank | HGVS_c | HGVS_p | chrom | pos |
-|:----|:----|:----|:----|:----|:----|:----|:----|:----|:----|:----|:----|:----|:----|----:|
+|  | variant_id | allele | annotation | impact | gene_name | gene_id | feature_type | feature_id | transcript_biotype | rank | HGVS_c | HGVS_p | chrom | pos |
+|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|---:|
 | 1 | INDEL_Chr05_75104541 | TGAC | 3_prime_UTR_variant | MODIFIER | Sobic.005G213600 | Sobic.005G213600.v5.1 | transcript | Sobic.005G213600.1.v5.1 | protein_coding | 2/2 | c.*322\_*324dupGTC |  | Chr05 | 75104541 |
 | 4 | SNP_Chr05_75104557 | T | 3_prime_UTR_variant | MODIFIER | Sobic.005G213600 | Sobic.005G213600.v5.1 | transcript | Sobic.005G213600.1.v5.1 | protein_coding | 2/2 | c.\*309G\>A |  | Chr05 | 75104557 |
 | 7 | SNP_Chr05_75104560 | T | 3_prime_UTR_variant | MODIFIER | Sobic.005G213600 | Sobic.005G213600.v5.1 | transcript | Sobic.005G213600.1.v5.1 | protein_coding | 2/2 | c.\*306G\>A |  | Chr05 | 75104560 |
@@ -148,11 +187,17 @@ Table 1: Queried genotypes for varaints from the SQLite database.
 
 Table 2: Queried annotations for variants from the SQLite database.
 
-### Summarize SnpEff Annotation and Impact {#summarize-snpeff-annotation-and-impact}
+### Summarize SnpEff Annotation and Impact
 
-The [`query_ann_summary()`](https://awkena.github.io/panGenomeBreedr/reference/query_ann_summary.md) function provides a convenient way to summarize the distribution of **SnpEff annotations** and **impact categories** across variant types (e.g., SNPs, indels) within a defined genomic region.
+The
+[`query_ann_summary()`](https://awkena.github.io/panGenomeBreedr/reference/query_ann_summary.md)
+function provides a convenient way to summarize the distribution of
+**SnpEff annotations** and **impact categories** across variant types
+(e.g., SNPs, indels) within a defined genomic region.
 
-This function enables users to quickly assess the types and functional implications of variants located within candidate genes or genomic intervals of interest.
+This function enables users to quickly assess the types and functional
+implications of variants located within candidate genes or genomic
+intervals of interest.
 
 ``` r
 library(panGenomeBreedr)
@@ -196,15 +241,24 @@ Annotation summary for variants within the genomic range.
 
 Functional impact summary for variants within the genomic range.
 
-The [`query_ann_summary()`](https://awkena.github.io/panGenomeBreedr/reference/query_ann_summary.md) function returns a `list` with the following elements:
+The
+[`query_ann_summary()`](https://awkena.github.io/panGenomeBreedr/reference/query_ann_summary.md)
+function returns a `list` with the following elements:
 
--   `annotation_summary`: Data frame summarizing the count of each SnpEff annotation grouped by variant type.
+- `annotation_summary`: Data frame summarizing the count of each SnpEff
+  annotation grouped by variant type.
 
--   `impact_summary`: Data frame summarizing the count of each SnpEff impact level (e.g., HIGH, MODERATE) grouped by variant type.
+- `impact_summary`: Data frame summarizing the count of each SnpEff
+  impact level (e.g., HIGH, MODERATE) grouped by variant type.
 
--   `variant_type_totals`: Total count of variants in the region grouped by variant type.
+- `variant_type_totals`: Total count of variants in the region grouped
+  by variant type.
 
-**The annotation summary shows that there are six (6) INDEL variants with a HIGH impact on protein function.** To see these variants, we need to use the [`query_by_impact()`](https://awkena.github.io/panGenomeBreedr/reference/query_by_impact.md) function, as shown below:
+**The annotation summary shows that there are six (6) INDEL variants
+with a HIGH impact on protein function.** To see these variants, we need
+to use the
+[`query_by_impact()`](https://awkena.github.io/panGenomeBreedr/reference/query_by_impact.md)
+function, as shown below:
 
 ``` r
 
@@ -238,13 +292,22 @@ unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE),
 
 HIGH impact variants within a defined genomic range.
 
-### Filter Variants by Allele Frequency {#filter-variants-by-allele-frequency}
+### Filter Variants by Allele Frequency
 
-The [`query_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/query_by_af.md) and [`filter_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/filter_by_af.md) functions allow users to filter queried variants based on **alternate allele frequency thresholds** within a specified genomic region.
+The
+[`query_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/query_by_af.md)
+and
+[`filter_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/filter_by_af.md)
+functions allow users to filter queried variants based on **alternate
+allele frequency thresholds** within a specified genomic region.
 
-This is particularly useful for identifying **polymorphic sites** within candidate gene regions or windows of interest that meet desired minor allele frequency (MAF) thresholds for marker development.
+This is particularly useful for identifying **polymorphic sites** within
+candidate gene regions or windows of interest that meet desired minor
+allele frequency (MAF) thresholds for marker development.
 
-An example usage for the [`filter_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/filter_by_af.md) function is shown in the code snippet below:
+An example usage for the
+[`filter_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/filter_by_af.md)
+function is shown in the code snippet below:
 
 ``` r
 library(panGenomeBreedr)
@@ -283,17 +346,26 @@ unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE),
        recursive = TRUE)
 ```
 
-## KASP Marker Design {#kasp-marker-design}
+## KASP Marker Design
 
-The [`kasp_marker_design()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_marker_design.md) function enables the design of **KASP (Kompetitive Allele Specific PCR)** markers from identified putative causal variants. It supports SNP, insertion, and deletion variants using VCF genotype data and a reference genome to generate Intertek-compatible marker information, including upstream and downstream polymorphic context.
+The
+[`kasp_marker_design()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_marker_design.md)
+function enables the design of **KASP (Kompetitive Allele Specific
+PCR)** markers from identified putative causal variants. It supports
+SNP, insertion, and deletion variants using VCF genotype data and a
+reference genome to generate Intertek-compatible marker information,
+including upstream and downstream polymorphic context.
 
-This function automates the extraction of flanking sequences and polymorphic variants surrounding a focal variant and generates:
+This function automates the extraction of flanking sequences and
+polymorphic variants surrounding a focal variant and generates:
 
--   Intertek-ready marker submission metadata
--   DNA sequence alignment for visual inspection of marker context
--   An optional publication-ready alignment plot in PDF format
+- Intertek-ready marker submission metadata
+- DNA sequence alignment for visual inspection of marker context
+- An optional publication-ready alignment plot in PDF format
 
-The vcf file must contain the variant ID, Chromosome ID, Position, REF and ALT alleles, as well as the genotype data for samples, as shown in Table 1:
+The vcf file must contain the variant ID, Chromosome ID, Position, REF
+and ALT alleles, as well as the genotype data for samples, as shown in
+Table 1:
 
 | variant_id           | chrom |      pos | ref   | alt   | variant_type | IDMM | ISGC |
 |:---------------------|:------|---------:|:------|:------|:-------------|:-----|:-----|
@@ -381,53 +453,76 @@ system(paste0('open "', path3, '"')) # Open PDF file from R
 on.exit(unlink(path)) # Clear the temp directory on exit
 ```
 
-The [`kasp_marker_design()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_marker_design.md) function returns a list object including a `data.frame` with marker design metadata:
+The
+[`kasp_marker_design()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_marker_design.md)
+function returns a list object including a `data.frame` with marker
+design metadata:
 
--   `SNP_Name`: Variant ID
--   `SNP`: Type of variant (SNP/INDEL)
--   `Marker_Name`: Assigned name for the marker
--   `Chromosome`: Chromosome name
--   `Chromosome_Position`: Variant position
--   `Sequence`: Intertek-style polymorphism sequence
--   `ReferenceAllele`: Reference allele
--   `AlternativeAllele`: Alternate allele
+- `SNP_Name`: Variant ID
+- `SNP`: Type of variant (SNP/INDEL)
+- `Marker_Name`: Assigned name for the marker
+- `Chromosome`: Chromosome name
+- `Chromosome_Position`: Variant position
+- `Sequence`: Intertek-style polymorphism sequence
+- `ReferenceAllele`: Reference allele
+- `AlternativeAllele`: Alternate allele
 
-If `save_alignment = TRUE`, a **PDF plot** of sequence alignment will be saved to `plot_file`.
+If `save_alignment = TRUE`, a **PDF plot** of sequence alignment will be
+saved to `plot_file`.
 
 ![Sequence alignment](figures/alignment.png)
 
-*Fig. 2.* Alignment of the 100 bp upstream and downstream sequences to the reference genome used for KASP marker design.
+*Fig. 2.* Alignment of the 100 bp upstream and downstream sequences to
+the reference genome used for KASP marker design.
 
-The required sequence for submission to Intertek for the designed KASP marker is shown in Table 5.
+The required sequence for submission to Intertek for the designed KASP
+marker is shown in Table 5.
 
 [TABLE]
 
 Table 5: Intertek required sequence for a KASP marker.
 
-## KASP Marker Validation {#kasp-marker-validation}
+## KASP Marker Validation
 
-The following example demonstrates how to use the customizable functions in `panGB` to perform hypothesis testing of allelic discrimination for KASP marker QC and validation.
+The following example demonstrates how to use the customizable functions
+in `panGB` to perform hypothesis testing of allelic discrimination for
+KASP marker QC and validation.
 
-`panGB` offers customizable functions for KASP marker validation through hypothesis testing. These functions allow users to easily perform the following tasks:\
+`panGB` offers customizable functions for KASP marker validation through
+hypothesis testing. These functions allow users to easily perform the
+following tasks:  
 - Import raw or polished KASP genotyping results files (.csv) into R.
 
--   Process imported data and assign FAM and HEX fluorescence colors for multiple plates.
+- Process imported data and assign FAM and HEX fluorescence colors for
+  multiple plates.
 
--   Visualize marker QC using FAM and HEX fluorescence scores for each sample.
+- Visualize marker QC using FAM and HEX fluorescence scores for each
+  sample.
 
--   Validate the effectiveness of trait-predictive or background markers using positive controls.
+- Validate the effectiveness of trait-predictive or background markers
+  using positive controls.
 
--   Visualize plate design and randomization.
+- Visualize plate design and randomization.
 
 ### Reading Raw KASP Full Results Files (.csv)
 
-The [`read_kasp_csv()`](https://awkena.github.io/panGenomeBreedr/reference/read_kasp_csv.md) function allows users to import raw or polished KASP genotyping full results file (.csv) into R. The function requires the path of the raw file and the row tags for the different components of data in the raw file as arguments.
+The
+[`read_kasp_csv()`](https://awkena.github.io/panGenomeBreedr/reference/read_kasp_csv.md)
+function allows users to import raw or polished KASP genotyping full
+results file (.csv) into R. The function requires the path of the raw
+file and the row tags for the different components of data in the raw
+file as arguments.
 
-For polished files, the user must extract the `Data` component of the full results file and save it as a csv file before import.
+For polished files, the user must extract the `Data` component of the
+full results file and save it as a csv file before import.
 
-By default, a typical unedited raw KASP data file uses the following row tags for genotyping data: `Statistics`, `DNA`, `SNPs`, `Scaling`, `Data`.
+By default, a typical unedited raw KASP data file uses the following row
+tags for genotyping data: `Statistics`, `DNA`, `SNPs`, `Scaling`,
+`Data`.
 
-The raw file is imported as a list object in R. Thus, all components in the imported data can be extracted using the row tag ID as shown in the code snippet below:
+The raw file is imported as a list object in R. Thus, all components in
+the imported data can be extracted using the row tag ID as shown in the
+code snippet below:
 
 ``` r
 # Import raw KASP genotyping file (.csv) using the read_kasp_csv() function
@@ -450,7 +545,11 @@ kasp_dat <- file1$Data
 
 ### Assigning colors and PCH symbols for KASP cluster plotting
 
-The next step after importing data is to assign FAM and HEX fluorescence colors to samples based on their observed genotype calls. This step is accomplished using the [`kasp_color()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_color.md) function in `panGB` as shown in the code snippet below:
+The next step after importing data is to assign FAM and HEX fluorescence
+colors to samples based on their observed genotype calls. This step is
+accomplished using the
+[`kasp_color()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_color.md)
+function in `panGB` as shown in the code snippet below:
 
 ``` r
 # Assign KASP fluorescence colors using the kasp_color() function
@@ -469,21 +568,48 @@ dat1 <- kasp_color(x = kasp_dat,
                                    het = "forestgreen"))
 ```
 
-The [`kasp_color()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_color.md) function requires the KASP genotype call file as a data frame and can do bulk processing if there are multiple master plates. The default values for the arguments in the [`kasp_color()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_color.md) function are based on KASP annotations.
+The
+[`kasp_color()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_color.md)
+function requires the KASP genotype call file as a data frame and can do
+bulk processing if there are multiple master plates. The default values
+for the arguments in the
+[`kasp_color()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_color.md)
+function are based on KASP annotations.
 
-The [`kasp_color()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_color.md) function calls the [`kasp_pch()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_pch.md) function to automatically add PCH plotting symbols that can equally be used to group genotypic clusters on the plot.
+The
+[`kasp_color()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_color.md)
+function calls the
+[`kasp_pch()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_pch.md)
+function to automatically add PCH plotting symbols that can equally be
+used to group genotypic clusters on the plot.
 
-When expected genotype calls are available for positive controls in KASP genotyping samples, we recommend the use of the PCH symbols for grouping observed genotypes instead of FAM and HEX colors.
+When expected genotype calls are available for positive controls in KASP
+genotyping samples, we recommend the use of the PCH symbols for grouping
+observed genotypes instead of FAM and HEX colors.
 
-The [`kasp_color()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_color.md) function expects that genotype calls are for diploid state with alleles separated by a symbol. By default KASP data are separated by `:` symbols.
+The
+[`kasp_color()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_color.md)
+function expects that genotype calls are for diploid state with alleles
+separated by a symbol. By default KASP data are separated by `:`
+symbols.
 
-The [`kasp_color()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_color.md) function returns a list object with the processed data for each master plate as the components.
+The
+[`kasp_color()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_color.md)
+function returns a list object with the processed data for each master
+plate as the components.
 
 ### Cluster plot
 
-To test the hypothesis that the designed KASP marker can accurately discriminate between homozygotes and heterozygotes (allelic discrimination), a cluster plot needs to be generated.
+To test the hypothesis that the designed KASP marker can accurately
+discriminate between homozygotes and heterozygotes (allelic
+discrimination), a cluster plot needs to be generated.
 
-The [`kasp_qc_ggplot()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_qc_ggplot.md) and [`kasp_qc_ggplot2()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_qc_ggplot2.md)functions in `panGB` can be used to make the cluster plots for each plate and KASP marker as shown below:
+The
+[`kasp_qc_ggplot()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_qc_ggplot.md)
+and
+[`kasp_qc_ggplot2()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_qc_ggplot2.md)functions
+in `panGB` can be used to make the cluster plots for each plate and KASP
+marker as shown below:
 
 ``` r
 # KASP QC plot for Plate 05
@@ -499,9 +625,11 @@ kasp_qc_ggplot2(x = dat1[5],
 #> $`SE-24-1088_P01_d1_snpSB00804`
 ```
 
-![Fig. 3. Cluster plot for Plate 5 using FAM and HEX colors for grouping observed genotypes.](figures/plate_05_qc_1-1.png)
+![Fig. 3. Cluster plot for Plate 5 using FAM and HEX colors for grouping
+observed genotypes.](figures/plate_05_qc_1-1.png)
 
-Fig. 3. Cluster plot for Plate 5 using FAM and HEX colors for grouping observed genotypes.
+Fig. 3. Cluster plot for Plate 5 using FAM and HEX colors for grouping
+observed genotypes.
 
 ``` r
 # KASP QC plot for Plate 05
@@ -520,29 +648,53 @@ library(panGenomeBreedr)
 #> $`SE-24-1088_P01_d1_snpSB00804`
 ```
 
-![Fig. 4. Cluster plot for Plate 5 with an overlay of predictions for positive controls.](figures/plate_05_qc_2-1.png)
+![Fig. 4. Cluster plot for Plate 5 with an overlay of predictions for
+positive controls.](figures/plate_05_qc_2-1.png)
 
-Fig. 4. Cluster plot for Plate 5 with an overlay of predictions for positive controls.
+Fig. 4. Cluster plot for Plate 5 with an overlay of predictions for
+positive controls.
 
-Color-blind-friendly color combinations are used to visualize verified genotype predictions (Figure 3).
+Color-blind-friendly color combinations are used to visualize verified
+genotype predictions (Figure 3).
 
-In Figure 4, the three genotype classes are grouped based on plot PCH symbols using the FAM and HEX scores for observed genotype calls.
+In Figure 4, the three genotype classes are grouped based on plot PCH
+symbols using the FAM and HEX scores for observed genotype calls.
 
-To simplify the verified prediction overlay for the expected genotypes for positive controls, all possible outcomes are divided into three categories (TRUE, FALSE, and UNVERIFIED) and color-coded to make it easier to visualize verified predictions.
+To simplify the verified prediction overlay for the expected genotypes
+for positive controls, all possible outcomes are divided into three
+categories (TRUE, FALSE, and UNVERIFIED) and color-coded to make it
+easier to visualize verified predictions.
 
-BLUE (color code for the TRUE category) means genotype prediction matches the observed genotype call for the sample.
+BLUE (color code for the TRUE category) means genotype prediction
+matches the observed genotype call for the sample.
 
-RED (color code for the FALSE category) means genotype prediction does not match the observed genotype call for the sample.
+RED (color code for the FALSE category) means genotype prediction does
+not match the observed genotype call for the sample.
 
-BEIGE (color code for the UNVERIFIED category) means three things: an expected genotype call could not be made before KASP genotyping, or an observed genotype call could not be made to verify the prediction.
+BEIGE (color code for the UNVERIFIED category) means three things: an
+expected genotype call could not be made before KASP genotyping, or an
+observed genotype call could not be made to verify the prediction.
 
-Users can set the `pdf = TRUE` argument to save plots as a PDF file in a directory outside R. The [`kasp_qc_ggplot()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_qc_ggplot.md) and [`kasp_qc_ggplot2()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_qc_ggplot2.md)functions can generate cluster plots for multiple plates simultaneously.
+Users can set the `pdf = TRUE` argument to save plots as a PDF file in a
+directory outside R. The
+[`kasp_qc_ggplot()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_qc_ggplot.md)
+and
+[`kasp_qc_ggplot2()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_qc_ggplot2.md)functions
+can generate cluster plots for multiple plates simultaneously.
 
-To visualize predictions for positive controls to validate KASP markers, the column name containing expected genotype calls must be provided and passed to the function using the `Group_id = 'Group'` argument as shown in the code snippets above. If this information is not available, set the argument `Group_id = NULL`.
+To visualize predictions for positive controls to validate KASP markers,
+the column name containing expected genotype calls must be provided and
+passed to the function using the `Group_id = 'Group'` argument as shown
+in the code snippets above. If this information is not available, set
+the argument `Group_id = NULL`.
 
 ### Summary of Prediction Verification in Plates
 
-The [`pred_summary()`](https://awkena.github.io/panGenomeBreedr/reference/pred_summary.md) function produces a summary of predicted genotypes for positive controls in each reaction plate after verification (Table 3), as shown in the code snippet below:
+The
+[`pred_summary()`](https://awkena.github.io/panGenomeBreedr/reference/pred_summary.md)
+function produces a summary of predicted genotypes for positive controls
+in each reaction plate after verification (Table 3), as shown in the
+code snippet below:
 
 ``` r
 # Get prediction summary for all plates
@@ -568,7 +720,11 @@ my_sum <- pred_summary(x = dat1,
 
 Table 3: Summary of verified prediction status for samples in plates
 
-The output of the [`pred_summary()`](https://awkena.github.io/panGenomeBreedr/reference/pred_summary.md) function can be visualized as bar plots using the [`pred_summary_plot()`](https://awkena.github.io/panGenomeBreedr/reference/pred_summary_plot.md) function as shown in the code snippet below:
+The output of the
+[`pred_summary()`](https://awkena.github.io/panGenomeBreedr/reference/pred_summary.md)
+function can be visualized as bar plots using the
+[`pred_summary_plot()`](https://awkena.github.io/panGenomeBreedr/reference/pred_summary_plot.md)
+function as shown in the code snippet below:
 
 ``` r
 # Get prediction summary for snp:snpSB00804
@@ -588,42 +744,64 @@ my_sum <- my_sum[my_sum$snp_id == 'snpSB00804',]
 #> $snpSB00804
 ```
 
-![Fig. 5. Match/Mismatch rate of predictions for snp: snpSB00804.](figures/barplot-1.png)
+![Fig. 5. Match/Mismatch rate of predictions for snp:
+snpSB00804.](figures/barplot-1.png)
 
 Fig. 5. Match/Mismatch rate of predictions for snp: snpSB00804.
 
 ### Plot Plate Design
 
-Users can visualize the observed genotype calls in a plate design format using the [`plot_plate()`](https://awkena.github.io/panGenomeBreedr/reference/plot_plate.md) function as depicted in Figure 5, using the code snippet below:
+Users can visualize the observed genotype calls in a plate design format
+using the
+[`plot_plate()`](https://awkena.github.io/panGenomeBreedr/reference/plot_plate.md)
+function as depicted in Figure 5, using the code snippet below:
 
 ``` r
 plot_plate(dat1[5], pdf = FALSE)
 #> $`SE-24-1088_P01_d1_snpSB00804`
 ```
 
-![Fig. 6. Observed genotype calls for samples in Plate 5 in a plate design format.](figures/plate_05_design-1.png)
+![Fig. 6. Observed genotype calls for samples in Plate 5 in a plate
+design format.](figures/plate_05_design-1.png)
 
-Fig. 6. Observed genotype calls for samples in Plate 5 in a plate design format.
+Fig. 6. Observed genotype calls for samples in Plate 5 in a plate design
+format.
 
-## Decision Support for Trait Introgression and MABC {#decision-support-for-trait-introgression-and-mabc}
+## Decision Support for Trait Introgression and MABC
 
-`panGB` provides additional functionalities to test hypotheses on the success of trait introgression pipelines and crosses.
+`panGB` provides additional functionalities to test hypotheses on the
+success of trait introgression pipelines and crosses.
 
-Users can easily generate heatmaps that compare the genetic background of parents to progenies to ascertain if a target locus was successfully introgressed or check for the hybridity of F1s. These plots also allow users to get a visual insight into the amount of parent germplasm recovered in progenies.
+Users can easily generate heatmaps that compare the genetic background
+of parents to progenies to ascertain if a target locus was successfully
+introgressed or check for the hybridity of F1s. These plots also allow
+users to get a visual insight into the amount of parent germplasm
+recovered in progenies.
 
-To produce these plots, users must have either polymorphic low or mid-density marker data and a map file for the markers. **The map file must contain the marker IDs, their chromosome numbers and positions**.
+To produce these plots, users must have either polymorphic low or
+mid-density marker data and a map file for the markers. **The map file
+must contain the marker IDs, their chromosome numbers and positions**.
 
 `panGB`can handle data from KASP, Agriplex and DArTag service providers.
 
 ### Working with Agriplex Mid-Density Marker Data
 
-Agriplex data is structurally different from KASP or DArTag data in terms of genotype call coding and formatting. Agriplex uses `' / '` as a separator for genotype calls for heterozygotes, and uses single nucleotides to represent homozygous SNP calls.
+Agriplex data is structurally different from KASP or DArTag data in
+terms of genotype call coding and formatting. Agriplex uses `' / '` as a
+separator for genotype calls for heterozygotes, and uses single
+nucleotides to represent homozygous SNP calls.
 
-### Creating Heatmaps with panGB {#creating-heatmaps-with-pangb}
+### Creating Heatmaps with panGB
 
-To exemplify the steps for creating heatmap, we will use a mid-density marker data for three groups of near-isogenic lines (NILs) and their parents (Table 4). The NILs and their parents were genotyped using the Agriplex platform. Each NIL group was genotyped using 2421 markers.
+To exemplify the steps for creating heatmap, we will use a mid-density
+marker data for three groups of near-isogenic lines (NILs) and their
+parents (Table 4). The NILs and their parents were genotyped using the
+Agriplex platform. Each NIL group was genotyped using 2421 markers.
 
-The imported data frame has the markers as columns and genotyped samples as rows. It comes with some meta data about the samples. Marker names are informative: chromosome number and position coordinates are embedded in the marker names (`Eg. S1_778962: chr = 1, pos = 779862`).
+The imported data frame has the markers as columns and genotyped samples
+as rows. It comes with some meta data about the samples. Marker names
+are informative: chromosome number and position coordinates are embedded
+in the marker names (`Eg. S1_778962: chr = 1, pos = 779862`).
 
 ``` r
 
@@ -640,7 +818,7 @@ knitr::kable(geno[1:6, 1:10], caption = 'Table 4: Agriplex data format', format 
 ```
 
 | Plate.name | Well | Sample_ID | Batch | Genotype | Status | S1_778962 | S1_1019896 | S1_1613105 | S1_1954298 |
-|:-------|:-------|:-------|:-------|:-------|:-------|:-------|:-------|:-------|:-------|
+|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|
 | RHODES_PLATE1 | D04 | NIL_1 | 1 | RTx430a | Recurrent parent | A | G | G | A |
 | RHODES_PLATE1 | F04 | NIL_2 | 1 | RTx430b | Recurrent parent | A | G | G | A |
 | RHODES_PLATE1 | G04 | NIL_3 | 1 | IRAT204a | Donor parent | G | C | G | A |
@@ -650,21 +828,36 @@ knitr::kable(geno[1:6, 1:10], caption = 'Table 4: Agriplex data format', format 
 
 Table 4: Agriplex data format
 
-To create a heatmap that compares the genetic background of parents and NILs across all markers, we need to first process the raw Agriplex data into a numeric format. The panGB package has customizable data wrangling functions for KASP, Agriplex, and DArTag data.
+To create a heatmap that compares the genetic background of parents and
+NILs across all markers, we need to first process the raw Agriplex data
+into a numeric format. The panGB package has customizable data wrangling
+functions for KASP, Agriplex, and DArTag data.
 
-The [`rm_mono()`](https://awkena.github.io/panGenomeBreedr/reference/rm_mono.md) function can be used to filter out all monomorphic loci from the data.
+The
+[`rm_mono()`](https://awkena.github.io/panGenomeBreedr/reference/rm_mono.md)
+function can be used to filter out all monomorphic loci from the data.
 
-Since our imported Agriplex data has informative SNP IDs, we can use the [`parse_marker_ns()`](https://awkena.github.io/panGenomeBreedr/reference/parse_marker_ns.md) function to generate a map file (Table 5) for the markers.\
-The generated map file is then passed to the [`proc_kasp()`](https://awkena.github.io/panGenomeBreedr/reference/proc_kasp.md) function to order the SNP markers according to their chromosome numbers and positions.
+Since our imported Agriplex data has informative SNP IDs, we can use the
+[`parse_marker_ns()`](https://awkena.github.io/panGenomeBreedr/reference/parse_marker_ns.md)
+function to generate a map file (Table 5) for the markers.  
+The generated map file is then passed to the
+[`proc_kasp()`](https://awkena.github.io/panGenomeBreedr/reference/proc_kasp.md)
+function to order the SNP markers according to their chromosome numbers
+and positions.
 
-The [`kasp_numeric()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_numeric.md) function converts the output of the [`proc_kasp()`](https://awkena.github.io/panGenomeBreedr/reference/proc_kasp.md) function into a numeric format (Table 6). The re-coding to numeric format is done as follows:
+The
+[`kasp_numeric()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_numeric.md)
+function converts the output of the
+[`proc_kasp()`](https://awkena.github.io/panGenomeBreedr/reference/proc_kasp.md)
+function into a numeric format (Table 6). The re-coding to numeric
+format is done as follows:
 
--   Homozygous for Parent 1 allele = 1.
--   Homozygous for Parent 2 allele = 0.
--   Heterozygous = 0.5.
--   Monomorphic loci = -1.
--   Loci with a suspected genotype error = -2.
--   Loci with at least one missing parental or any other genotype = -5.
+- Homozygous for Parent 1 allele = 1.
+- Homozygous for Parent 2 allele = 0.
+- Heterozygous = 0.5.
+- Monomorphic loci = -1.
+- Loci with a suspected genotype error = -2.
+- Loci with at least one missing parental or any other genotype = -5.
 
 ``` r
 
@@ -717,8 +910,8 @@ num_geno <- kasp_numeric(x = stg5,
                          data_type = 'agriplex')
 ```
 
-|   | S1_402592 | S1_778962 | S1_825853 | S1_1218846 | S1_1613105 | S1_1727150 | S1_1954298 | S1_1985365 |
-|:-------|-------:|-------:|-------:|-------:|-------:|-------:|-------:|-------:|
+|  | S1_402592 | S1_778962 | S1_825853 | S1_1218846 | S1_1613105 | S1_1727150 | S1_1954298 | S1_1985365 |
+|:---|---:|---:|---:|---:|---:|---:|---:|---:|
 | BTx623a | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
 | BTx623b | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
 | BTx642a | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
@@ -731,7 +924,9 @@ num_geno <- kasp_numeric(x = stg5,
 
 Table 6: Agriplex data converted to a numeric format.
 
-All is now set to generate the heatmap (Figure 6) using the [`cross_qc_ggplot()`](https://awkena.github.io/panGenomeBreedr/reference/cross_qc_ggplot.md) function, as shown in the code snippet below:
+All is now set to generate the heatmap (Figure 6) using the
+[`cross_qc_ggplot()`](https://awkena.github.io/panGenomeBreedr/reference/cross_qc_ggplot.md)
+function, as shown in the code snippet below:
 
 ``` r
 
@@ -752,21 +947,33 @@ cross_qc_heatmap(x = num_geno,
 #> $Batch1
 ```
 
-![Fig. 6. A heatmap that compares the genetic background of parents and stg5 NIL progenies across all markers.](figures/heatmap1-1.png)
+![Fig. 6. A heatmap that compares the genetic background of parents and
+stg5 NIL progenies across all markers.](figures/heatmap1-1.png)
 
-Fig. 6. A heatmap that compares the genetic background of parents and stg5 NIL progenies across all markers.
+Fig. 6. A heatmap that compares the genetic background of parents and
+stg5 NIL progenies across all markers.
 
-The [`cross_qc_ggplot()`](https://awkena.github.io/panGenomeBreedr/reference/cross_qc_ggplot.md) function is a wrapper for functions in the `ggplot2` package.
+The
+[`cross_qc_ggplot()`](https://awkena.github.io/panGenomeBreedr/reference/cross_qc_ggplot.md)
+function is a wrapper for functions in the `ggplot2` package.
 
-Users must specify the IDs for the two parents using the `parents` argument. In the code snippet above, the recurrent parent is `BTx623` and the donor parent for the *stg5* locus is `BTx642`.
+Users must specify the IDs for the two parents using the `parents`
+argument. In the code snippet above, the recurrent parent is `BTx623`
+and the donor parent for the *stg5* locus is `BTx642`.
 
-The `group_sz` argument must be specified to plot the heatmap in batches of progenies to avoid cluttering the plot with many observations.
+The `group_sz` argument must be specified to plot the heatmap in batches
+of progenies to avoid cluttering the plot with many observations.
 
-Users can set the `pdf = TRUE` argument to save plots as a PDF file in a directory outside R.
+Users can set the `pdf = TRUE` argument to save plots as a PDF file in a
+directory outside R.
 
-### Trait Introgression Hypothesis Testing {#trait-introgression-hypothesis-testing}
+### Trait Introgression Hypothesis Testing
 
-To test the hypothesis that the *stg5* NIL development was effective, we can use the [`cross_qc_annotate()`](https://awkena.github.io/panGenomeBreedr/reference/cross_qc_annotate.md) function to generate a heatmap (Figure 7) with an annotation of the position of the *stg5* locus on Chr 1, as shown below:
+To test the hypothesis that the *stg5* NIL development was effective, we
+can use the
+[`cross_qc_annotate()`](https://awkena.github.io/panGenomeBreedr/reference/cross_qc_annotate.md)
+function to generate a heatmap (Figure 7) with an annotation of the
+position of the *stg5* locus on Chr 1, as shown below:
 
 ``` r
 
@@ -794,30 +1001,51 @@ cross_qc_heatmap(x = stg5_ch1,
 #> $Batch1
 ```
 
-![Fig. 7. Heatmap annotation of the stg5 locus on Chr 1.](figures/heatmap2-1.png)
+![Fig. 7. Heatmap annotation of the stg5 locus on Chr
+1.](figures/heatmap2-1.png)
 
 Fig. 7. Heatmap annotation of the stg5 locus on Chr 1.
 
-In the code snippet above, the numeric matrix of genotype calls and its associated map file are required.
+In the code snippet above, the numeric matrix of genotype calls and its
+associated map file are required.
 
-The recurrent and donor parents must be specified using the `parents` argument.
+The recurrent and donor parents must be specified using the `parents`
+argument.
 
-The `snp_ids, chr, and chr_pos` arguments can be used to specify the column names for marker IDs, chromosome number and positions in the attached map file.\
-The `trait_pos` argument was used to specify the position of the target locus (*stg5*) on chromosome one. Users can specify the positions of multiple target loci as components of a list object for annotation.
+The `snp_ids, chr, and chr_pos` arguments can be used to specify the
+column names for marker IDs, chromosome number and positions in the
+attached map file.  
+The `trait_pos` argument was used to specify the position of the target
+locus (*stg5*) on chromosome one. Users can specify the positions of
+multiple target loci as components of a list object for annotation.
 
-In Figure 7, the color intensity correlates positively with the marker density or coverage. Thus, areas with no color (white vertical gaps) depicts gaps in the marker coverage in the data.
+In Figure 7, the color intensity correlates positively with the marker
+density or coverage. Thus, areas with no color (white vertical gaps)
+depicts gaps in the marker coverage in the data.
 
-### Decision Support for MABC {#decision-support-for-mabc}
+### Decision Support for MABC
 
-Users can use the [`calc_rpp_bc()`](https://awkena.github.io/panGenomeBreedr/reference/calc_rpp_bc.md) function in `panGB` to calculate the proportion of recurrent parent background (RPP) fully recovered in backcross progenies.
+Users can use the
+[`calc_rpp_bc()`](https://awkena.github.io/panGenomeBreedr/reference/calc_rpp_bc.md)
+function in `panGB` to calculate the proportion of recurrent parent
+background (RPP) fully recovered in backcross progenies.
 
 It also returns the rpp value for each chromosome.
 
-In the computation, partially regions are ignored, hence, heterozygous scores are not used.
+In the computation, partially regions are ignored, hence, heterozygous
+scores are not used.
 
-The output for he [`calc_rpp_bc()`](https://awkena.github.io/panGenomeBreedr/reference/calc_rpp_bc.md) function can be passed to the [`rpp_barplot()`](https://awkena.github.io/panGenomeBreedr/reference/rpp_barplot.md) function to visualize the computed RPP values for progenies as a bar plot. Users can specify an RPP threshold to easily identify lines that have RPP values above or equal to the defined RPP threshold on the bar plot.
+The output for he
+[`calc_rpp_bc()`](https://awkena.github.io/panGenomeBreedr/reference/calc_rpp_bc.md)
+function can be passed to the
+[`rpp_barplot()`](https://awkena.github.io/panGenomeBreedr/reference/rpp_barplot.md)
+function to visualize the computed RPP values for progenies as a bar
+plot. Users can specify an RPP threshold to easily identify lines that
+have RPP values above or equal to the defined RPP threshold on the bar
+plot.
 
-We can compute and visualize the observed RPP values for the *stg5* NILs across all polymorphic loci as shown in the code snippet below:
+We can compute and visualize the observed RPP values for the *stg5* NILs
+across all polymorphic loci as shown in the code snippet below:
 
 ``` r
 
@@ -843,12 +1071,13 @@ rpp_barplot(rpp_df = rpp,
             pdf = FALSE)
 ```
 
-![Fig. 8. Computed RPP values for the stg5 NILs.](figures/barplot_rpp1-1.png)
+![Fig. 8. Computed RPP values for the stg5
+NILs.](figures/barplot_rpp1-1.png)
 
 Fig. 8. Computed RPP values for the stg5 NILs.
 
-|   | sample_id | chr_1 | chr_2 | chr_3 | chr_4 | chr_5 | chr_6 | chr_7 | chr_8 | chr_9 | chr_10 | total_rpp |
-|:-----|:-----|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|
+|  | sample_id | chr_1 | chr_2 | chr_3 | chr_4 | chr_5 | chr_6 | chr_7 | chr_8 | chr_9 | chr_10 | total_rpp |
+|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | BTx623a | BTx623a | 1.000 | 1.000 | 1.000 | 1.000 | 1 | 1.000 | 1 | 1.000 | 1 | 1.000 | 1.000 |
 | BTx623b | BTx623b | 1.000 | 1.000 | 1.000 | 1.000 | 1 | 1.000 | 1 | 1.000 | 1 | 1.000 | 1.000 |
 | BTx642a | BTx642a | 0.000 | 0.000 | 0.000 | 0.000 | 0 | 0.000 | 0 | 0.000 | 0 | 0.000 | 0.000 |
@@ -861,15 +1090,23 @@ Fig. 8. Computed RPP values for the stg5 NILs.
 
 RPP computation across and for each chromosome.
 
-The [`calc_rpp_bc()`](https://awkena.github.io/panGenomeBreedr/reference/calc_rpp_bc.md) function in `panGB` provides two algorithms for computing the observed RPP values: weighted and unweighted RPP values. We recommend the use of the weighted algorithm to account for differences in the marker coverage across the genome.
+The
+[`calc_rpp_bc()`](https://awkena.github.io/panGenomeBreedr/reference/calc_rpp_bc.md)
+function in `panGB` provides two algorithms for computing the observed
+RPP values: weighted and unweighted RPP values. We recommend the use of
+the weighted algorithm to account for differences in the marker coverage
+across the genome.
 
 The algorithm for the weighted RPP values is explained below.
 
-#### Weighted RPP Computation in panGB {#weighted-rpp-computation-in-pangb}
+#### Weighted RPP Computation in panGB
 
-Let $`w_i`$ represent the weight for marker $`i`$, based on the relative distances to its adjacent markers.
+Let $`w_i`$ represent the weight for marker $`i`$, based on the relative
+distances to its adjacent markers.
 
-For a set of markers with positions $`p_1, p_2, \ldots, p_n`$, where $`d_i = p_{i+1} - p_i`$ represents the distance between adjacent markers, the weights can be calculated as follows:
+For a set of markers with positions $`p_1, p_2, \ldots, p_n`$, where
+$`d_i = p_{i+1} - p_i`$ represents the distance between adjacent
+markers, the weights can be calculated as follows:
 
 1.  **For the first marker** $`i = 1`$:
 
@@ -891,16 +1128,22 @@ For a set of markers with positions $`p_1, p_2, \ldots, p_n`$, where $`d_i = p_{
 
 where:
 
--   $`d_i`$ is the distance between marker $`i`$ and marker $`i+1`$,
--   $`sum_{i=1}^{n-1} d_i`$ is the total distance across all segments, used for normalization.
+- $`d_i`$ is the distance between marker $`i`$ and marker $`i+1`$,
+- $`sum_{i=1}^{n-1} d_i`$ is the total distance across all segments,
+  used for normalization.
 
-Let $`RPP`$ represent the Recurrent Parent Proportion based on relative distance weighting. If $`w_i`$ is the weight for each marker $`i`$, and $`m_i`$ represents whether marker $`i`$ matches the recurrent parent $`m_i = 1`$ if it matches, $`m_i = 0`$ otherwise), then the weighted RPP is calculated as:
+Let $`RPP`$ represent the Recurrent Parent Proportion based on relative
+distance weighting. If $`w_i`$ is the weight for each marker $`i`$, and
+$`m_i`$ represents whether marker $`i`$ matches the recurrent parent
+$`m_i = 1`$ if it matches, $`m_i = 0`$ otherwise), then the weighted RPP
+is calculated as:
 
 ``` math
 RPP_{weighted} = \sum_{i=1}^n w_i\cdot m_i
 ```
 
-The unweighted RPP is calculated without the use of the weights as follows:
+The unweighted RPP is calculated without the use of the weights as
+follows:
 
 ``` math
 RPP_{unweighted} = \frac{\sum_{i=1}^n m_i} n
@@ -908,19 +1151,36 @@ RPP_{unweighted} = \frac{\sum_{i=1}^n m_i} n
 
 where:
 
--   $`w_i`$ is the weight of marker $`i`$, calculated based on the relative distance it covers,
--   $`m_i`$ is the match indicator for marker $`i`$ (1 if matching the recurrent parent, 0 otherwise),
--   $`n`$ is the total number of markers.
+- $`w_i`$ is the weight of marker $`i`$, calculated based on the
+  relative distance it covers,
+- $`m_i`$ is the match indicator for marker $`i`$ (1 if matching the
+  recurrent parent, 0 otherwise),
+- $`n`$ is the total number of markers.
 
-This formula provides the sum of the weighted contributions from each marker, representing the proportion of the recurrent parent genome in the individual.
+This formula provides the sum of the weighted contributions from each
+marker, representing the proportion of the recurrent parent genome in
+the individual.
 
-### Decision Support for Foreground Selection {#decision-support-for-foreground-selection}
+### Decision Support for Foreground Selection
 
-The [`foreground_select()`](https://awkena.github.io/panGenomeBreedr/reference/foreground_select.md) and [`find_lines()`](https://awkena.github.io/panGenomeBreedr/reference/find_lines.md) functions are designed to help breeders identify lines that carry **favorable alleles at target loci** using trait-predictive markers. This process supports **foreground selection** in marker-assisted selection pipelines.
+The
+[`foreground_select()`](https://awkena.github.io/panGenomeBreedr/reference/foreground_select.md)
+and
+[`find_lines()`](https://awkena.github.io/panGenomeBreedr/reference/find_lines.md)
+functions are designed to help breeders identify lines that carry
+**favorable alleles at target loci** using trait-predictive markers.
+This process supports **foreground selection** in marker-assisted
+selection pipelines.
 
 #### Generate a Binary Matrix: `foreground_select()` function
 
-The [`foreground_select()`](https://awkena.github.io/panGenomeBreedr/reference/foreground_select.md) function score Lines for presence of favorable alleles by converting raw marker genotype data into a binary matrix (1 = favorable allele present, 0 = absent) based on a set of trait-predictive markers. The [`foreground_select()`](https://awkena.github.io/panGenomeBreedr/reference/foreground_select.md) function is shown in the code snippet below:
+The
+[`foreground_select()`](https://awkena.github.io/panGenomeBreedr/reference/foreground_select.md)
+function score Lines for presence of favorable alleles by converting raw
+marker genotype data into a binary matrix (1 = favorable allele present,
+0 = absent) based on a set of trait-predictive markers. The
+[`foreground_select()`](https://awkena.github.io/panGenomeBreedr/reference/foreground_select.md)
+function is shown in the code snippet below:
 
 ``` r
 library(panGenomeBreedr)
@@ -956,10 +1216,12 @@ foreground_matrix <- foreground_select(geno_data = geno,
 
 Binary matrix of presence or absence of favorable alleles.
 
-The [`foreground_select()`](https://awkena.github.io/panGenomeBreedr/reference/foreground_select.md) function has the following input parameters:
+The
+[`foreground_select()`](https://awkena.github.io/panGenomeBreedr/reference/foreground_select.md)
+function has the following input parameters:
 
 | Argument | Type | Description |
-|------------------------|------------------------|------------------------|
+|----|----|----|
 | `geno_data` | `data.frame` | Marker genotype data (lines x markers), e.g., `"A:A"`, `"A:G"` |
 | `fore_marker_info` | `data.frame` | Metadata describing trait-predictive markers, including marker names, favorable alleles, and alternate alleles |
 | `fore_marker_col` | `character` | Column name in `fore_marker_info` for marker names |
@@ -970,21 +1232,26 @@ The [`foreground_select()`](https://awkena.github.io/panGenomeBreedr/reference/f
 
 #### Visualize the Binary Data with UpSet Plot
 
-Generate an UpSet plot using the `UpSetR` package to explore the co-occurrence of favorable alleles across lines. The UpSet plot allows users to quickly determine:
+Generate an UpSet plot using the `UpSetR` package to explore the
+co-occurrence of favorable alleles across lines. The UpSet plot allows
+users to quickly determine:
 
--   Whether any line carries favorable alleles at all target loci.
+- Whether any line carries favorable alleles at all target loci.
 
--   How favorable alleles are distributed across lines.
+- How favorable alleles are distributed across lines.
 
--   Which loci are rarely combined.
+- Which loci are rarely combined.
 
 **How to Interpret the UpSet Plot:**
 
--   **Top bar plot:** shows the number of lines for each unique combination (intersection) of target loci with favorable alleles.
+- **Top bar plot:** shows the number of lines for each unique
+  combination (intersection) of target loci with favorable alleles.
 
--   **Bottom matrix of dots and lines:** indicates which loci are involved in each combination.
+- **Bottom matrix of dots and lines:** indicates which loci are involved
+  in each combination.
 
--   **Left bar plot:** shows how many lines have the favorable allele for each individual target locus.
+- **Left bar plot:** shows how many lines have the favorable allele for
+  each individual target locus.
 
 ``` r
 # Make an Upset plot and overlay with trait loci names
@@ -1027,13 +1294,22 @@ UpSetR::upset(foreground_matrix,
 #> generated.
 ```
 
-![Fig. 9. Visualizing the co-occurrence of favorable alleles across lines.](figures/upset_plot1-1.png)
+![Fig. 9. Visualizing the co-occurrence of favorable alleles across
+lines.](figures/upset_plot1-1.png)
 
 Fig. 9. Visualizing the co-occurrence of favorable alleles across lines.
 
 #### Query Lines by Intersection Category: `find_lines()` function
 
-The [`find_lines()`](https://awkena.github.io/panGenomeBreedr/reference/find_lines.md) function identifies lines based on target loci profile by filtering the binary output of [`foreground_select()`](https://awkena.github.io/panGenomeBreedr/reference/foreground_select.md) to return line names that match a desired allele presence/absence profile across loci. Using the binary matrix, users can extract line IDs corresponding to any intersection (i.e., specific combinations of favorable alleles revealed by the UpSet plot).
+The
+[`find_lines()`](https://awkena.github.io/panGenomeBreedr/reference/find_lines.md)
+function identifies lines based on target loci profile by filtering the
+binary output of
+[`foreground_select()`](https://awkena.github.io/panGenomeBreedr/reference/foreground_select.md)
+to return line names that match a desired allele presence/absence
+profile across loci. Using the binary matrix, users can extract line IDs
+corresponding to any intersection (i.e., specific combinations of
+favorable alleles revealed by the UpSet plot).
 
 ``` r
 library(panGenomeBreedr)
@@ -1046,7 +1322,9 @@ print(selected_lines)
 #> [1] "Line1"
 ```
 
-The [`find_lines()`](https://awkena.github.io/panGenomeBreedr/reference/find_lines.md) function has the following input parameters:
+The
+[`find_lines()`](https://awkena.github.io/panGenomeBreedr/reference/find_lines.md)
+function has the following input parameters:
 
 | Argument  | Type         | Description             |
 |-----------|--------------|-------------------------|
@@ -1058,31 +1336,35 @@ The [`find_lines()`](https://awkena.github.io/panGenomeBreedr/reference/find_lin
 
 If the package does not run as expected, check the following:
 
--   Was the package properly installed?
+- Was the package properly installed?
 
--   Do you have the required dependencies installed?
+- Do you have the required dependencies installed?
 
--   Were any warnings or error messages returned during package installation?
+- Were any warnings or error messages returned during package
+  installation?
 
--   Are all packages up to date before installing panGB?
+- Are all packages up to date before installing panGB?
 
 ## Authors and contributors
 
--   [Alexander Wireko Kena](https://www.github.com/awkena)
+- [Alexander Wireko Kena](https://www.github.com/awkena)
 
--   [Israel Tawiah Tetteh](https://github.com/Israel-Tetteh)
+- [Israel Tawiah Tetteh](https://github.com/Israel-Tetteh)
 
--   [Cruet Burgos](https://www.morrislab.org/people/clara-cruet-burgos)
+- [Cruet Burgos](https://www.morrislab.org/people/clara-cruet-burgos)
 
--   [Linly Banda](https://www.biofortificationlab.org/people/linly-banda)
+- [Linly Banda](https://www.biofortificationlab.org/people/linly-banda)
 
--   [Jacques Faye](https://sites.google.com/site/morrislaboratory/people/jacques-faye)
+- [Jacques
+  Faye](https://sites.google.com/site/morrislaboratory/people/jacques-faye)
 
--   [Fanna Maina](https://www.morrislab.org/people/fanna-maina)
+- [Fanna Maina](https://www.morrislab.org/people/fanna-maina)
 
--   [Terry Felderhoff](https://www.agronomy.k-state.edu/about/people/faculty/felderhoff-terry/)
+- [Terry
+  Felderhoff](https://www.agronomy.k-state.edu/about/people/faculty/felderhoff-terry/)
 
--   [Geoffrey Preston Morris](https://www.morrislab.org/people/geoff-morris)
+- [Geoffrey Preston
+  Morris](https://www.morrislab.org/people/geoff-morris)
 
 ## License
 
@@ -1090,4 +1372,5 @@ If the package does not run as expected, check the following:
 
 ## Support and Feedback
 
-For support and submission of feedback, email the maintainer **Alexander Kena, PhD** at [alex.kena24\@gmail.com](mailto:alex.kena24@gmail.com){.email}
+For support and submission of feedback, email the maintainer **Alexander
+Kena, PhD** at <alex.kena24@gmail.com>
