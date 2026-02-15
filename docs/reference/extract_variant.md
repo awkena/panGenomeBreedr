@@ -80,7 +80,8 @@ gff3 <- folder_download_gd(drive_link = flink1,
 #> File downloaded:
 #> • Sbicolor_730_v5.1.gene.gff3 <id: 1XjYyJ2JLywbbniIU6oUIIxAmEBKfmHpz>
 #> Saved locally as:
-#> • /var/folders/tf/jr_ht05123v5x1196mv9z5zr0000gn/T//Rtmpc3Cm8N/Sbicolor_730_v5.1.gene.gff3
+#> • /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//RtmphzeVRl/Sbicolor_730_v5.1.gene.gff3
+
 
 # Google drive link to indel snpEff annotated vcf file on Chr05
 flink2 <- "https://drive.google.com/file/d/1LiOeDsfIwbsCuHbw9rCJ1FLOZqICTrfs/view?usp=sharing"
@@ -93,7 +94,11 @@ vcf_file_indel <- folder_download_gd(drive_link = flink2,
 #> • Sorghum_d8.noduplicates.Chr05.indel._markernamesadded_imputed_snpeff.vcf.gz
 #>   <id: 1LiOeDsfIwbsCuHbw9rCJ1FLOZqICTrfs>
 #> Saved locally as:
+<<<<<<< HEAD
 #> • /var/folders/tf/jr_ht05123v5x1196mv9z5zr0000gn/T//Rtmpc3Cm8N/Sorghum_d8.noduplicates.Chr05.indel._markernamesadded_imputed_snpeff.vcf.gz
+=======
+#> • /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//RtmphzeVRl/Sorghum_d8.noduplicates.Chr05.indel._markernamesadded_imputed_snpeff.vcf.gz
+>>>>>>> upstream/main
 # View downloaded files in tempdir
 # list.files(vcf_dir)
 
