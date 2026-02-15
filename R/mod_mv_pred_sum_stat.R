@@ -176,6 +176,14 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
         input$snp_id, input$blank,
         input$group_unknown, color_code_res()
       )
+      # ensure updated data is in sync with drop down options
+      curr_cols <- colnames(color_code_res())
+      req(
+        input$snp_id %in% curr_cols,
+        input$group_id %in% curr_cols,
+        input$geno_call_id %in% curr_cols
+      )
+
       # Execute prediction function
       pred_result <- pred_summary(
         x = color_code_res(),
