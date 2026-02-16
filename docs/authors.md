@@ -27,13 +27,13 @@ Source:
 [`DESCRIPTION`](https://github.com/awkena/panGenomeBreedr/blob/HEAD/DESCRIPTION)
 
 Kena A, Tetteh I, Cruet Burgos C (2026). *panGenomeBreedr: Helpers for
-pangenome-enabled crop breeding*. R package version 0.1.0,
-<https://awkena.github.io/panGenomeBreedr>.
+Pangenome-Enabled Crop Breeding*. R package version 0.1.0,
+<https://awkena.github.io/panGenomeBreedr/>.
 
     @Manual{,
-      title = {panGenomeBreedr: Helpers for pangenome-enabled crop breeding},
+      title = {panGenomeBreedr: Helpers for Pangenome-Enabled Crop Breeding},
       author = {Alexander Wireko Kena and Israel Tawiah Tetteh and Clara {Cruet Burgos}},
       year = {2026},
       note = {R package version 0.1.0},
-      url = {https://awkena.github.io/panGenomeBreedr},
+      url = {https://awkena.github.io/panGenomeBreedr/},
     }

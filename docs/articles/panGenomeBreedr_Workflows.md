@@ -1300,7 +1300,7 @@ If the package does not run as expected, check the following:
 
 ## Authors and contributors
 
-- [Alexander Wireko Kena](https://www.github.com/awkena)
+- [Alexander Wireko Kena](https://github.com/awkena)
 
 - [Israel Tawiah Tetteh](https://github.com/Israel-Tetteh)
 

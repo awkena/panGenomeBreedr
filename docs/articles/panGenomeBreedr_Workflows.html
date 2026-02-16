@@ -296,7 +296,7 @@ metadata of the variants.</li>
 <p>If used correctly, the <code><a href="../reference/query_db.html">query_db()</a></code> function returns a
 data frame containing the filtered records from the selected table.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># This example uses the mini SQLite database included in the package.</span></span>
 <span><span class="co"># Define a temporary path and decompress the example database</span></span>
@@ -818,7 +818,7 @@ indels) within a defined genomic region.</p>
 functional implications of variants located within candidate genes or
 genomic intervals of interest.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Prepare test database</span></span>
 <span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -1512,7 +1512,7 @@ development.</p>
 <p>An example usage for the <code><a href="../reference/filter_by_af.html">filter_by_af()</a></code> function is
 shown in the code snippet below:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Define temporary directory and decompress demo database</span></span>
 <span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -1756,7 +1756,7 @@ INDEL
 </table>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Example to design a KASP marker on a HIGH impact Deletion variant</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># (default directory for saving alignment outputs)</span></span>
 <span></span>
 <span><span class="co"># Path to import sorghum genome sequence for Chromosome 5</span></span>
@@ -1905,7 +1905,7 @@ in the imported data can be extracted using the row tag ID as shown in
 the code snippet below:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Import raw KASP genotyping file (.csv) using the read_kasp_csv() function</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Set path to the directory where your data is located</span></span>
 <span><span class="co"># path1 &lt;-  "inst/extdata/Genotyping_141.010_01.csv"</span></span>
@@ -1930,7 +1930,7 @@ This step is accomplished using the <code><a href="../reference/kasp_color.html"
 in <code>panGB</code> as shown in the code snippet below:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Assign KASP fluorescence colors using the kasp_color() function</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="co"># Create a subet variable called plates: masterplate x snpid</span></span>
 <span>  <span class="va">kasp_dat</span><span class="op">$</span><span class="va">plates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">kasp_dat</span><span class="op">$</span><span class="va">MasterPlate</span>, <span class="st">'_'</span>,</span>
 <span>                                 <span class="va">kasp_dat</span><span class="op">$</span><span class="va">SNPID</span><span class="op">)</span></span>
@@ -1972,7 +1972,7 @@ used to make the cluster plots for each plate and KASP marker as shown
 below:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># KASP QC plot for Plate 05</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>,</span>
 <span>                    pdf <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                    Group_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -1990,7 +1990,7 @@ observed genotypes.
 </div>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># KASP QC plot for Plate 05</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span> <span class="fu"><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>,</span>
 <span>                  pdf <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                  Group_id <span class="op">=</span> <span class="st">'Group'</span>,</span>
@@ -2043,7 +2043,7 @@ predicted genotypes for positive controls in each reaction plate after
 verification (Table 3), as shown in the code snippet below:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get prediction summary for all plates</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">my_sum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pred_summary.html">pred_summary</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span>,</span>
 <span>                       snp_id <span class="op">=</span> <span class="st">'SNPID'</span>,</span>
 <span>                       Group_id <span class="op">=</span> <span class="st">'Group'</span>,</span>
@@ -2215,7 +2215,7 @@ visualized as bar plots using the <code><a href="../reference/pred_summary_plot.
 function as shown in the code snippet below:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get prediction summary for snp:snpSB00804</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">my_sum</span> <span class="op">&lt;-</span> <span class="va">my_sum</span><span class="op">$</span><span class="va">summ</span></span>
 <span><span class="va">my_sum</span> <span class="op">&lt;-</span> <span class="va">my_sum</span><span class="op">[</span><span class="va">my_sum</span><span class="op">$</span><span class="va">snp_id</span> <span class="op">==</span> <span class="st">'snpSB00804'</span>,<span class="op">]</span></span>
 <span></span>
@@ -2560,7 +2560,7 @@ re-coding to numeric format is done as follows:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Parse snp ids to generate a map file</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Data for stg5 NILs</span></span>
 <span><span class="va">stg5</span> <span class="op">&lt;-</span> <span class="va">geno</span><span class="op">[</span><span class="va">geno</span><span class="op">$</span><span class="va">Batch</span> <span class="op">==</span> <span class="fl">3</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span><span class="op">]</span> </span>
@@ -3025,7 +3025,7 @@ below:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Get prediction summary for snp:snpSB00804</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="co"># Create a heatmap that compares the parents to progenies</span></span>
 <span><span class="fu"><a href="../reference/cross_qc_heatmap.html">cross_qc_heatmap</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">num_geno</span>,</span>
 <span>                map_file <span class="op">=</span> <span class="va">map_file</span>,</span>
@@ -3676,7 +3676,7 @@ into a binary matrix (1 = favorable allele present, 0 = absent) based on
 a set of trait-predictive markers. The <code><a href="../reference/foreground_select.html">foreground_select()</a></code>
 function is shown in the code snippet below:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Marker genotype data</span></span>
 <span><span class="va">geno</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>SNP1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A:A"</span>, <span class="st">"A:G"</span>, <span class="st">"G:G"</span>, <span class="st">"A:A"</span><span class="op">)</span>,</span>
@@ -3910,7 +3910,7 @@ matrix, users can extract line IDs corresponding to any intersection
 (i.e., specific combinations of favorable alleles revealed by the UpSet
 plot).</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr">panGenomeBreedr</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Find lines with favorable alleles at all target loci</span></span>
 <span><span class="va">selected_lines</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_lines.html">find_lines</a></span><span class="op">(</span>mat <span class="op">=</span> <span class="va">foreground_matrix</span>,</span>
@@ -3963,7 +3963,7 @@ installation?</p></li>
 <h2 id="authors-and-contributors">Authors and contributors<a class="anchor" aria-label="anchor" href="#authors-and-contributors"></a>
 </h2>
 <ul>
-<li><p><a href="https://www.github.com/awkena" class="external-link">Alexander Wireko
+<li><p><a href="https://github.com/awkena" class="external-link">Alexander Wireko
 Kena</a></p></li>
 <li><p><a href="https://github.com/Israel-Tetteh" class="external-link">Israel Tawiah
 Tetteh</a></p></li>

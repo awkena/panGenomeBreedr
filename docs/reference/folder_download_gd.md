@@ -40,10 +40,10 @@ folder_path <- folder_download_gd(drive_link = f_link)
 #> File downloaded:
 #> • VCFannotationformat_v1.0.pdf <id: 1m36OwCrwxYYGC016z807Dz_AdNbyCr0I>
 #> Saved locally as:
-#> • /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//RtmphzeVRl/VCF Resources/VCFannotationformat_v1.0.pdf
+#> • /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//RtmpVNTmYP/VCF Resources/VCFannotationformat_v1.0.pdf
 #> File downloaded:
 #> • VCFv4.2.pdf <id: 1fEuDbVPB5xvI0WYHM27YCvNwvah8BUQC>
 #> Saved locally as:
-#> • /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//RtmphzeVRl/VCF Resources/VCFv4.2.pdf
+#> • /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//RtmpVNTmYP/VCF Resources/VCFv4.2.pdf
 # }
 ```

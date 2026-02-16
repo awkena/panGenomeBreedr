@@ -1,6 +1,6 @@
 Package: panGenomeBreedr
 Type: Package
-Title: Helpers for pangenome-enabled crop breeding
+Title: Helpers for Pangenome-Enabled Crop Breeding
 Version: 0.1.0
 Authors@R: c(person("Alexander Wireko", "Kena", email = "alex.kena24@gmail.com", 
          role = c("aut", "cre"), comment = c(ORCID = "0000-0003-3385-4945")),
@@ -27,7 +27,7 @@ Description: A unified platform for pangenome-enabled breeding that follows
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-URL: https://awkena.github.io/panGenomeBreedr,
+URL: https://awkena.github.io/panGenomeBreedr/,
      https://github.com/awkena/panGenomeBreedr
 BugReports: https://github.com/awkena/panGenomeBreedr/issues
 RoxygenNote: 7.3.3

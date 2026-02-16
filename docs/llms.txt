@@ -45,15 +45,11 @@ Submit bug reports and feature suggestions, or track changes on the
 To use this package locally on a machine, the following R packages are
 required:
 
-- [ggplot2](https://ggplot2.tidyverse.org)
+- [ggplot2](https://CRAN.R-project.org/package=ggplot2)
 
-- [gridExtra](https://cran.r-project.org/web/packages/gridExtra/index.html)
+- [gridExtra](https://CRAN.R-project.org/package=gridExtra)
 
-- [utils](https://www.rdocumentation.org/packages/utils/versions/3.6.2)
-
-- [stats](https://www.rdocumentation.org/packages/stats/versions/3.6.2)
-
-- [reshape2](https://cran.r-project.org/web/packages/reshape2/index.html)
+- [reshape2](https://CRAN.R-project.org/package=reshape2)
 
 - [BSgenome](https://bioconductor.org/packages/release/bioc/html/BSgenome.html)
 
@@ -71,8 +67,8 @@ required:
   Needed for package development and installation from GitHub on Windows
   PCs.
 
-- [UpSetR](https://cran.r-project.org/web/packages/UpSetR/index.html):
-  Required for generating UpSet plots.
+- [UpSetR](https://CRAN.R-project.org/package=UpSetR): Required for
+  generating UpSet plots.
 
 ## Installation
 
@@ -153,7 +149,7 @@ If the package does not run as expected, check the following:
 
 # Authors and contributors
 
-- [Alexander Wireko Kena](https://www.github.com/awkena)
+- [Alexander Wireko Kena](https://github.com/awkena)
 
 - [Israel Tawiah Tetteh](https://github.com/Israel-Tetteh)
 
