@@ -46,7 +46,7 @@ jobs:
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2
-      if: runner.os == 'Windows'
+        if: runner.os == 'Windows'
         with:
           upload-snapshots: true
           args: 'c("--no-manual", "--timings")'
