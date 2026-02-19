@@ -219,7 +219,7 @@ genotypes <- function(x) {
   x <- unlist(x)
 
   if (length(x) == 0) {
-    return(data.frame( Genotypes = 'Non Found / Uncallable'))
+    return(data.frame( Genotypes = 'None Found / Uncallable'))
   }
 
   # Create a data frame with named columns
@@ -249,7 +249,7 @@ alleles_df <- function(x) {
 
   if (length(x) == 0) {
     # Return an empty dataframe with Non found
-    return(data.frame(Alleles = 'Non Found / Uncallable'))
+    return(data.frame(Alleles = 'None Found / Uncallable'))
   }
 
   # Create allele column names

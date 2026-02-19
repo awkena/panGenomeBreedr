@@ -52,13 +52,13 @@ mod_mv_kasp_color_ui <- function(id) {
         div(
           selectInput(
             inputId = ns("color_choose"),
-            label = "Genotype Color Pallete",
+            label = "Genotype Color Palette",
             choices = grDevices::colors(),
             multiple = TRUE,
             selected = c("blue", "gold", "forestgreen")
           ),
           helpText("Select 3 colors in this order: FAM, HEX, and Heterozygous.")
-        ),
+        )
       ),
       mainPanel(
         bslib::accordion(

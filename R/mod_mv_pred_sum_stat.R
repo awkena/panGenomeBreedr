@@ -182,8 +182,11 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
         input$group_unknown, color_code_res()
       )
 
+      cc_res <- color_code_res()
+      req(length(cc_res) >= 1)
+
       # Get the actual column names from the current data
-      current_cols <- colnames(color_code_res()[[1]])
+      current_cols <- colnames(cc_res[[1]])
 
       # Only proceed if selected inputs exist in the current data
       req(

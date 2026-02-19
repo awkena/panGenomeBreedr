@@ -405,7 +405,12 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
         )
 
         # Get the actual column names from the current data
-        current_cols <- colnames(color_coded()[[1]])
+
+        cc_res <- color_coded()
+        req(length(cc_res) >= 1)
+
+        # Get the actual column names from the current data
+        current_cols <- colnames(cc_res[[1]])
 
         # Only proceed if selected inputs exist in the current data
         req(
