@@ -20,37 +20,38 @@ mod_mv_pred_sum_stat_ui <- function(id) {
       sidebarPanel(
         selectInput(
           inputId = ns("snp_id"),
-          label = "Select SNP Identifier Column",
+          label = "SNP ID Column",
           choices = NULL,
           multiple = FALSE
         ),
         selectInput(
           inputId = ns("geno_call_id"),
-          label = "Select Genotype Call Column",
+          label = "Genotype Call Column",
           choices = NULL,
           multiple = FALSE
         ),
         selectInput(
           inputId = ns("group_id"),
-          label = "Select Group Identifier Column",
+          label = "Positive Control Column",
           choices = NULL,
           multiple = FALSE
         ),
         textInput(
           inputId = ns("group_unknown"),
-          label = "Unverified Genotype Call Value",
+          label = "Unverified Status Label",
           value = "?"
         ),
         textInput(
           inputId = ns("blank"),
-          label = "No Template Control (NTC) Call Value",
+          label = "NTC / Blank Label",
           value = "NTC"
         ),
         bslib::input_switch(
           id = ns("rate_out_id"),
-          label = "	Return Genotype Proportions",
+          label = "Return Predictions As Proportion",
           value = TRUE
         )
+
       ),
       mainPanel(
         bslib::accordion(
@@ -66,36 +67,40 @@ mod_mv_pred_sum_stat_ui <- function(id) {
             fluidRow(
               column(
                 width = 4,
-                selectInput(inputId = ns("SNP_id"), label = "Choose SNP ID", choices = NULL, multiple = FALSE)
+                selectInput(inputId = ns("SNP_id"), label = "Target SNP ID", choices = NULL, multiple = FALSE)
               ),
               column(
                 width = 4,
-                selectInput(
-                  inputId = ns("pred_col_id"), label = "Pos. Ctrl Colors (F | T | U)",
-                  choices =  grDevices::colors(),
-                  selected = c("firebrick3", "cornflowerblue", "beige"),
-                  multiple = TRUE
-                )
+                numericInput(inputId = ns("alpha_id"), label = "Bar Opacity", value = 1, min = 0, max = 1, step = 0.05)
               ),
               column(
                 width = 4,
-                numericInput(inputId = ns("alpha_id"), label = "Ajust Bar Transparency", value = 1, min = 0, max = 1, step = 0.05)
+                numericInput(inputId = ns("height_id"), label = "Plot Height", value = 5, min = 1, max = 30, step = 1)
               )
             ),
             fluidRow(
               column(
                 width = 4,
-                numericInput(inputId = ns("height_id"), label = "Adjust Plot Height", value = 5, min = 1, max = 30, step = 1)
+                selectInput(
+                  inputId = ns("pred_col_id"),
+                  label = "Positive Control Colors",
+                  choices = grDevices::colors(),
+                  selected = c("firebrick3", "cornflowerblue", "beige"),
+                  multiple = TRUE
+                ),
+                helpText(
+                  tags$em("Required Order: False, True, Unverified")
+                )
               ),
               column(
                 width = 4,
-                numericInput(inputId = ns("width_id"), label = "Adjust Plot Width", value = 8, min = 1, max = 30, step = 1)
+                numericInput(inputId = ns("textsize_id"), label = "Plot Font Size", value = 12, min = 1, max = 30, step = 1)
               ),
               column(
                 width = 4,
-                numericInput(inputId = ns("textsize_id"), label = "Text Size", value = 12, min = 1, max = 30, step = 1)
+                numericInput(inputId = ns("width_id"), label = "Plot Width", value = 8, min = 1, max = 30, step = 1)
               )
-            ),
+            ), hr(),
             plotOutput(outputId = ns("pred_plot"), height = "500px"),
             bslib::card(card_footer(
               textInput(inputId = ns("file_name"), label = "Enter Filename", value = "Predictive_plot"),
@@ -167,7 +172,7 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
 
     })
 
-    pred_sum_result <- reactiveVal()
+    pred_sum_result <- reactiveVal() # empty reactive value to hold result
 
     # Store result in the reactive value when "Run" button is clicked
     observe({
@@ -176,7 +181,20 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
         input$snp_id, input$blank,
         input$group_unknown, color_code_res()
       )
-      # Execute prediction function
+
+      cc_res <- color_code_res()
+      req(length(cc_res) >= 1)
+
+      # Get the actual column names from the current data
+      current_cols <- colnames(cc_res[[1]])
+
+      # Only proceed if selected inputs exist in the current data
+      req(
+        input$snp_id %in% current_cols,
+        input$group_id %in% current_cols,
+        input$geno_call_id %in% current_cols
+      )
+
       pred_result <- pred_summary(
         x = color_code_res(),
         Group_unknown = input$group_unknown,
@@ -186,8 +204,8 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
         geno_call = input$geno_call_id,
         rate_out = if(input$rate_out_id) TRUE else FALSE
       )
-      pred_sum_result(pred_result)
 
+      pred_sum_result(pred_result)
     })
 
     # Extract plate names (ensure pred_sum_result() has valid data)

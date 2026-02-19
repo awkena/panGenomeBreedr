@@ -18,7 +18,7 @@ mod_mv_read_kasp_csv_ui <- function(id) {
       sidebarPanel(
         # Widget to upload kasp csv file
         fileInput(ns("Kasp_csv.file"),
-          label = "Choose File",
+          label = "KASP Results File",
           accept = ".csv"
         ),
         # Widget to choose data type
@@ -35,13 +35,13 @@ mod_mv_read_kasp_csv_ui <- function(id) {
           tagList(
             textInput(
               inputId = ns("row_tags"),
-              label = "Row Tags (in order, separated by commas)",
+              label = "Ordered Row Tags",
               value = "Statistics , DNA , SNPs , Scaling , Data"
             ),
 
             # Widget for spacing
             numericInput(ns("data_space"),
-              label = "Number of Rows Between Data Segments",
+              label = "Row Spacing",
               value = 2, min = 0, max = 100, step = 1
             )
           )
@@ -50,7 +50,7 @@ mod_mv_read_kasp_csv_ui <- function(id) {
         div(
           style = "display: flex; justify-content: center;",
           actionButton(ns("submit_btn"),
-            label = "Run Validation",
+            label = "Run Analysis",
             icon = icon("play"),
             width = "100%",
             class = "btn-success btn-lg",

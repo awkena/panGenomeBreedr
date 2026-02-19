@@ -18,13 +18,13 @@ mod_mv_get_alleles_ui <- function(id) {
       sidebarPanel(
         selectInput(
           inputId = ns("data_type_id"),
-          label = "Select Genotype Data Source",
+          label = "Genotyping Platform",
           choices = c("kasp", "agriplex"),
           multiple = FALSE
         ),
         textInput(
           inputId = ns("sep_id"),
-          label = "Specify Genotype Call Separator",
+          label = "Genotype Separator",
           value = ":"
         )
       ),
