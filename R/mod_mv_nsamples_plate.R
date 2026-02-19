@@ -18,21 +18,21 @@ mod_mv_nsamples_plate_ui <- function(id) {
         # widget for plates
         selectizeInput(
           inputId = ns("subset_id"),
-          label = "Select Plate Subset",
+          label = "Plate Subset Column",
           choices = NULL,
           multiple = FALSE
         ),
         # Widget  for snpID
         selectizeInput(
           inputId = ns("snps_id"),
-          label = "Choose SNP Identifier Column",
+          label = "SNP ID Column",
           choices = NULL,
           multiple = FALSE
         ),
         # Widget for plates
         selectizeInput(
           inputId = ns("plates_id"),
-          label = "Choose Master Plate Column",
+          label = "Master Plate ID Column",
           choices = NULL,
           multiple = FALSE
         )

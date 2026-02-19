@@ -16,46 +16,49 @@ mod_mv_kasp_color_ui <- function(id) {
       sidebarPanel(
         selectInput(
           inputId = ns("Subset_names"),
-          label = "Select Plate Subsetting Column",
+          label = "Plate Subset Column",
           choices = NULL, multiple = FALSE
         ),
         selectInput(
           inputId = ns("geno_call_col"),
-          label = "Select Genotype Call Column",
+          label = "Genotype Call Column",
           choices = NULL, multiple = FALSE
         ),
         textInput(
           inputId = ns("sep"),
-          label = "Specify Genotype Call Separator",
+          label = "Genotype Separator",
           value = ":"
         ),
         textInput(
           inputId = ns("uncallable"),
-          label = "List Uncallable Genotype Values",
+          label = "Uncallable Label",
           value = "Uncallable"
         ),
         textInput(
           inputId = ns("unused"),
-          label = "List Unused Genotype Values",
+          label = "Unused Well Label",
           value = "?"
         ),
         textInput(
           inputId = ns("blank"),
-          label = "Specify No Template Control Calls",
+          label = "NTC / Blank Label",
           value = "NTC"
         ),
         textInput(
           inputId = ns("others"),
-          label = "List Non-genotype Call Values",
+          label = "Non-genotype Labels",
           value = "Missing , Bad , Dupe , Over , Short"
         ),
-        selectInput(
-          inputId = ns("color_choose"),
-          label = "Colors for FAM, HEX, Het (in order)",
-          choices = grDevices::colors(),
-          multiple = TRUE,
-          selected = c("blue", "gold", "forestgreen")
-        )
+        div(
+          selectInput(
+            inputId = ns("color_choose"),
+            label = "Genotype Color Pallete",
+            choices = grDevices::colors(),
+            multiple = TRUE,
+            selected = c("blue", "gold", "forestgreen")
+          ),
+          helpText("Select 3 colors in this order: FAM, HEX, and Heterozygous.")
+        ),
       ),
       mainPanel(
         bslib::accordion(

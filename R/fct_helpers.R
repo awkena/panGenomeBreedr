@@ -214,17 +214,12 @@ col_names.data <- function(x) {
 #'
 #' @noRd
 genotypes <- function(x) {
-  # Validate input
-  if (!is.vector(x) && !is.list(x)) {
-    stop("Input must be a vector or list")
-  }
 
   # Unlist if needed
   x <- unlist(x)
 
   if (length(x) == 0) {
-    warning("Input is empty")
-    return(data.frame())
+    return(data.frame( Genotypes = 'Non Found / Uncallable'))
   }
 
   # Create a data frame with named columns
@@ -250,16 +245,11 @@ genotypes <- function(x) {
 #'
 #' @noRd
 alleles_df <- function(x) {
-  # Validate input
-  if (is.null(x)) {
-    stop("Input cannot be NULL")
-  }
-
-  x <- unlist(x)
+  x <- unlist(x) # unlist object
 
   if (length(x) == 0) {
-    warning("No alleles found")
-    return(data.frame())
+    # Return an empty dataframe with Non found
+    return(data.frame(Alleles = 'Non Found / Uncallable'))
   }
 
   # Create allele column names
