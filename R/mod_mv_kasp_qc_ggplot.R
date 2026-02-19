@@ -404,6 +404,18 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
           input$unused, length(input$pred_col_id) == 4
         )
 
+        # Get the actual column names from the current data
+        current_cols <- colnames(color_coded()[[1]])
+
+        # Only proceed if selected inputs exist in the current data
+        req(
+          input$snp_id %in% current_cols,
+          input$fam_id %in% current_cols,
+          input$group_id %in% current_cols |input$group_id == "None",
+          input$geno_call %in% current_cols,
+          input$Hex_id %in% current_cols
+        )
+
         tryCatch(
           {
             # Generate the plot
