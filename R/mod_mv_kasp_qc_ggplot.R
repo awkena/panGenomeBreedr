@@ -32,20 +32,20 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                   bslib::card_body(
                     selectInput(
                       inputId = ns("well_id"),
-                      label = "Select Plate Well Column",
+                      label = "Grouping Column",
                       choices = NULL,
                       multiple = FALSE,
                       width = "100%"
                     ),
                     selectInput(
                       inputId = ns("fam_id"),
-                      label = "FAM Signal Column",
+                      label = "FAM Coordinate Column",
                       choices = NULL,
                       width = "100%"
                     ),
                     selectInput(
                       inputId = ns("Hex_id"),
-                      label = "HEX Signal Column",
+                      label = "HEX Coordinate Column",
                       choices = NULL,
                       width = "100%"
                     ),
@@ -57,13 +57,13 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                     ),
                     selectInput(
                       inputId = ns("geno_call"),
-                      label = "Genotype Calls Column",
+                      label = "Genotype Call Column",
                       choices = NULL,
                       width = "100%"
                     ),
                     selectInput(
                       inputId = ns("group_id"),
-                      label = "Control Group Column",
+                      label = "Positive Control Column",
                       choices = NULL,
                       width = "100%"
                     )
@@ -82,31 +82,31 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                   bslib::card_body(
                     textInput(
                       inputId = ns("group_unknown"),
-                      label = "Unknown Genotype Value",
+                      label = "Unknown Genotype Label",
                       value = "?",
                       width = "100%"
                     ),
                     textInput(
                       inputId = ns("unused"),
-                      label = "Unused Calls Value",
+                      label = "Unused Well Label",
                       value = "?",
                       width = "100%"
                     ),
                     textInput(
                       inputId = ns("blank"),
-                      label = "NTC (Negative Control) Value",
+                      label = "NTC / Blank Label",
                       value = "NTC",
                       width = "100%"
                     ),
                     textInput(
                       inputId = ns("uncallable"),
-                      label = "Uncallable Genotype Value",
+                      label = "Uncallable Label",
                       value = "uncallable",
                       width = "100%"
                     ),
                     textInput(
                       inputId = ns("others"),
-                      label = "Other Problematic Values (comma-separated)",
+                      label = "Non-genotype Labels",
                       value = "Missing, Bad, Dupe, Over, Short",
                       width = "100%"
                     )
@@ -125,32 +125,32 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                   bslib::card_body(
                     selectInput(
                       inputId = ns("scale"),
-                      label = "Scale Coordinates",
+                      label = "Normalize Axes",
                       choices = c(TRUE, FALSE),
                       selected = TRUE,
                       width = "100%"
                     ),
                     numericInput(
                       inputId = ns("legendx_id"),
-                      label = "Legend X Position",
+                      label = "Legend X Offset",
                       value = 0.6, min = 0, max = 1, step = 0.05,
                       width = "100%"
                     ),
                     numericInput(
                       inputId = ns("legendy_id"),
-                      label = "Legend Y Position",
+                      label = "Legend Y Offset",
                       value = 0.8, min = 0, max = 1, step = 0.05,
                       width = "100%"
                     ),
                     selectInput(
                       inputId = ns("legend_box"),
-                      label = "Legend Orientation",
+                      label = "Legend Alignment",
                       choices = c("horizontal", "vertical"),
                       width = "100%"
                     ),
                     selectInput(
                       inputId = ns("legend_pos"),
-                      label = "Legend Placement",
+                      label = "Legend Position",
                       choices = c("inside", "left", "right", "bottom", "top", "none"),
                       width = "100%"
                     )
@@ -168,29 +168,35 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                                      class = "bg-success text-center",
                                      style = "font-size:18px;"),
                   bslib::card_body(
-                    selectInput(
-                      inputId = ns("pred_col_id"),
-                      label = "Prediction Colors (Blank|False|True|Unverified)",
-                      choices = grDevices::colors(),
-                      selected = c("black", "firebrick", "cornflowerblue", "beige"),
-                      multiple = TRUE,
-                      width = "100%"
+                    div(
+                      selectInput(
+                        inputId = ns("pred_col_id"),
+                        label = "Positive Control Colors",
+                        choices = grDevices::colors(),
+                        selected = c("black", "firebrick", "cornflowerblue", "beige"),
+                        multiple = TRUE,
+                        width = "100%"
+                      ),
+                      helpText(
+                        tags$em("Required Order:"),
+                        "Blank, False, True, Unverified"
+                      )
                     ),
                     numericInput(
                       inputId = ns("textsize_id"),
-                      label = "Text Size",
+                      label = "Plot Font Size",
                       value = 12, min = 1, max = 30, step = 1,
                       width = "100%"
                     ),
                     numericInput(
                       inputId = ns("alpha_id"),
-                      label = "Adjust Point Transparency",
+                      label = "Color Opacity",
                       value = 0.8, min = 0, max = 1, step = 0.05,
                       width = "100%"
                     ),
                     numericInput(
                       inputId = ns("expand_id"),
-                      label = "Axis Padding",
+                      label = "Axis Expansion",
                       value = 0.6, min = 0, max = 1, step = 0.05,
                       width = "100%"
                     )
@@ -213,7 +219,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
             label = "Plate Selection",
             choices = NULL,
             width = "60%"
-          ),
+          ),hr(),
           div(
             style = "display: flex; justify-content: center;",
             plotOutput(outputId = ns("qc_plot2"), width = "100%", height = "500px")
@@ -256,6 +262,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
         open = TRUE,
         bslib::accordion_panel(
           title = "KASP Genotyping Plate Layout",
+          br(),
           plotOutput(outputId = ns("plate_layout_plot"), width = "100%", height = "580px"),
           bslib::card(card_footer(
             fluidRow(
@@ -395,6 +402,23 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
           input$blank, input$uncallable,
           input$others, input$group_unknown,
           input$unused, length(input$pred_col_id) == 4
+        )
+
+        # Get the actual column names from the current data
+
+        cc_res <- color_coded()
+        req(length(cc_res) >= 1)
+
+        # Get the actual column names from the current data
+        current_cols <- colnames(cc_res[[1]])
+
+        # Only proceed if selected inputs exist in the current data
+        req(
+          input$snp_id %in% current_cols,
+          input$fam_id %in% current_cols,
+          input$group_id %in% current_cols |input$group_id == "None",
+          input$geno_call %in% current_cols,
+          input$Hex_id %in% current_cols
         )
 
         tryCatch(

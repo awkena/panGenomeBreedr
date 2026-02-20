@@ -59,6 +59,12 @@ mod_variant_discovery_ui <- function(id) {
           bslib::card_body(
             verbatimTextOutput(ns("db_info"))
           )
+        ),
+        bslib::card(
+          bslib::card_header("Genomic Range Summary"),
+          bslib::card_body(
+            verbatimTextOutput(ns('current_session'))
+          )
         )
       )
     )
@@ -253,13 +259,15 @@ mod_variant_discovery_ui <- function(id) {
       # Input widget for allele frequency
       sliderInput(
         inputId = ns("af_range"),
-        label = "Filter by Allele Frequency of:",
+        label = "Filter by Alternate Allele Frequency",
         min = 0,
         max = 1,
         value = 0.05,
         step = 0.01,
         width = "100%"
       ),
+      # Help text for alternate allele frequency range
+      verbatimTextOutput(outputId = ns('alt_freq_range')),
       bslib::card_footer(
         div(
           style = "display: flex; justify-content: center;",
@@ -639,39 +647,60 @@ mod_variant_discovery_server <- function(id) {
 
 
     # Info section once database is loaded #
-    #--------------------------------------
-
-    # Users decide to get info about table then it renders.
+    #-------------------------------------
     observeEvent(input$get_info, {
       req(rv$db_path)
-      shinybusy::show_modal_spinner(
-        spin = "fading-circle",
-        color = "#27AE60",
-        text = "Retrieving database information"
-      )
 
-      tryCatch({
-        # Precompute database information
-        rv$variant_impact <- variant_impact_summary(db_path = rv$db_path)
-        rv$sqlite_summary <- summarize_sqlite_tables(db_path = rv$db_path)
-        rv$variant_count <- count_variant_types(db_path = rv$db_path)
-        rv$variant_stats <- variant_stats(db_path = rv$db_path)
-        rv$tables <- list_sqlite_tables(rv$db_path)
-        rv$lst_tbl_column <- list_table_columns(
-          db_path = rv$db_path,
-          table_name = input$table_name_lst
+      shinyWidgets::ask_confirmation(
+        inputId = ns("confirm_get_info"),
+        title = "Retrieving Database Information",
+        text = "This process involves complex queries and may take some time depending on the database size. Do you want to continue?",
+        type = "warning",
+        btn_labels = c("No, Cancel", "Yes, Proceed"),
+        btn_colors = c("#D33", "#27AE60")
+      )
+    })
+
+    # Handle the response from the modal
+    observeEvent(input$confirm_get_info, {
+      req(rv$db_path,rv$connected)
+      # If the user clicked  yes
+      if (isTRUE(input$confirm_get_info)) {
+
+        shinybusy::show_modal_spinner(
+          spin = "fading-circle",
+          color = "#27AE60",
+          text = "Retrieving database information..."
         )
-      }, error = function(e) {
-        shinyWidgets::show_alert(
-          title = "Failed!",
-          text = e$message,
-          type = "danger",
-          showCloseButton = TRUE,
-          timer = 5000
-        )
-      }, finally = {
-        shinybusy::remove_modal_spinner()
-      })
+
+        tryCatch({
+          # Get database info
+          rv$variant_impact <- variant_impact_summary(db_path = rv$db_path)
+          rv$sqlite_summary <- summarize_sqlite_tables(db_path = rv$db_path)
+          rv$variant_count  <- count_variant_types(db_path = rv$db_path)
+          rv$variant_stats  <- variant_stats(db_path = rv$db_path)
+          rv$tables         <- list_sqlite_tables(rv$db_path)
+          rv$lst_tbl_column <- list_table_columns(
+            db_path = rv$db_path,
+            table_name = input$table_name_lst
+          )
+
+          shinyWidgets::show_toast(
+            title = "Complete",
+            text = "Database information updated.",
+            type = "success"
+          )
+
+        }, error = function(e) {
+          shinyWidgets::show_alert(
+            title = "Failed!",
+            text = e$message,
+            type = "danger"
+          )
+        }, finally = {
+          shinybusy::remove_modal_spinner()
+        })
+      }
     })
 
     # Table renderers
@@ -1022,6 +1051,15 @@ mod_variant_discovery_server <- function(id) {
       })
     })
 
+    # Display current information in the text output.
+    output$current_session <- renderPrint({
+      req(values$result)
+      cat("Chromosome:", values$result$chrom, "\n")
+      cat("Start Position:",values$result$start, "\n")
+      cat("End Position:", values$result$end, "\n")
+    })
+
+
 
 
     # Render UI dynamically based on choice of query
@@ -1239,12 +1277,52 @@ mod_variant_discovery_server <- function(id) {
       )
     })
 
+    # Hold results for the impact queries so we calculate allele frequency
+    # for calculating alternate allele frequency.
+    calc_af_result <- reactive({
+      req(hold_genotypes_impact())
+      # Compute the allele freq
+      alt_af_df <- calc_af(gt = hold_genotypes_impact(),
+              variant_id_col = 'variant_id',
+              chrom_col = 'chrom',
+              pos_col = 'pos'
+              )
+      # Get the range of values, ignoring missing values
+      alt_af_range <- range(alt_af_df$alt_af, na.rm = TRUE)
+
+      # If all values are missing (or no values), suppress the numeric range
+      if (all(!is.finite(alt_af_range))) {
+        return(NULL)
+      }
+      # Else return the  range
+      alt_af_range
+
+    })
+
+    # Render it out for the user to see
+    output$alt_freq_range <- renderPrint({
+      req(calc_af_result())
+      alt_af_range <- calc_af_result()
+      # Check if range of values is not null
+      if (is.null(alt_af_range) || length(alt_af_range) != 2) {
+        cat("Note: Alternate allele frequency for this impact level is unavailable due to missing or invalid data.")
+      } else {
+        cat(
+          "Note: Alternate allele frequency for this impact level is between",
+          alt_af_range[1], "-",
+          alt_af_range[2]
+        )
+      }
+    })
+
+
+    # Compute the alternate allele frequency
     query_by_alf_result <- reactive({
       req(input$af_range, hold_genotypes_impact())
 
       filter_by_af(
         gt = hold_genotypes_impact(),
-        min_af = input$af_range[1]
+        min_af = input$af_range
        # max_af = input$af_range[2] #- not used in current function
       )
     })
@@ -1336,7 +1414,7 @@ mod_variant_discovery_server <- function(id) {
 
     # When back button is clicked, go back to query panel
     observeEvent(input$go_back,{
-      updateTabsetPanel(inputId = 'param_header',selected = 'query_tab')
+      updateTabsetPanel(session, inputId = 'param_header',selected = 'query_tab')
 
       bslib::sidebar_toggle(id = 'db_sidebar',open = 'open') # show side bar
     })

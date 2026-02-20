@@ -60,7 +60,7 @@ app_server <- function(input, output, session) {
             # OPTION 2: SHUT DOWN
             actionButton(
               "btn_modal_shutdown",
-              tagList(icon("stop-circle"), "Shut Down Server"),
+              tagList(icon("stop-circle"), "Shut Down Application"),
               class = "btn-outline-danger p-3 text-start",
               style = "border-radius: 10px;"
             ),
@@ -132,15 +132,6 @@ app_server <- function(input, output, session) {
     )
   })
 
-  # Predictive summary and status server side
-  observe({
-    req(import_data_entities(), color_code_res())
-
-    mod_mv_pred_sum_stat_server("mv_pred_sum_stat_1",
-                                color_code_res = color_code_res(),
-                                kasp_data = import_data_entities()
-    )
-  })
 
   # Qc plot server portion
   observe({
@@ -150,6 +141,16 @@ app_server <- function(input, output, session) {
       id = "mv_kasp_qc_ggplot_1",
       kasp_data = import_data_entities(),
       color_coded = color_code_res()
+    )
+  })
+
+  # Predictive summary and status server side
+  observe({
+    req(import_data_entities(), color_code_res())
+
+    mod_mv_pred_sum_stat_server("mv_pred_sum_stat_1",
+                                color_code_res = color_code_res(),
+                                kasp_data = import_data_entities()
     )
   })
 
