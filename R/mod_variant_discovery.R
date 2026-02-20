@@ -1281,20 +1281,37 @@ mod_variant_discovery_server <- function(id) {
     calc_af_result <- reactive({
       req(hold_genotypes_impact())
       # Compute the allele freq
-      calc_af_result <- calc_af(gt = hold_genotypes_impact(),
+      alt_af_df <- calc_af(gt = hold_genotypes_impact(),
               variant_id_col = 'variant_id',
               chrom_col = 'chrom',
               pos_col = 'pos'
               )
-      # Get the range of values
-      range(calc_af_result$alt_af)
+      # Get the range of values, ignoring missing values
+      alt_af_range <- range(alt_af_df$alt_af, na.rm = TRUE)
+
+      # If all values are missing (or no values), suppress the numeric range
+      if (all(!is.finite(alt_af_range))) {
+        return(NULL)
+      }
+      # Else return the  range
+      alt_af_range
 
     })
 
     # Render it out for the user to see
     output$alt_freq_range <- renderPrint({
       req(calc_af_result())
-      cat("Note: Alternate allele frequency for this impact level is between",calc_af_result()[1],'-',calc_af_result()[2])
+      alt_af_range <- calc_af_result()
+      # Check if range of values is not null
+      if (is.null(alt_af_range) || length(alt_af_range) != 2) {
+        cat("Note: Alternate allele frequency for this impact level is unavailable due to missing or invalid data.")
+      } else {
+        cat(
+          "Note: Alternate allele frequency for this impact level is between",
+          alt_af_range[1], "-",
+          alt_af_range[2]
+        )
+      }
     })
 
 
@@ -1304,7 +1321,7 @@ mod_variant_discovery_server <- function(id) {
 
       filter_by_af(
         gt = hold_genotypes_impact(),
-        min_af = input$af_range[1]
+        min_af = input$af_range
        # max_af = input$af_range[2] #- not used in current function
       )
     })
