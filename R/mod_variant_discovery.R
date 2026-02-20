@@ -663,6 +663,7 @@ mod_variant_discovery_server <- function(id) {
 
     # Handle the response from the modal
     observeEvent(input$confirm_get_info, {
+      req(rv$db_path,rv$connected)
       # If the user clicked  yes
       if (isTRUE(input$confirm_get_info)) {
 
