@@ -22,6 +22,7 @@ A data frame of variant impact summary or counts.
 ## Examples
 
 ``` r
+
 # \donttest{
 # example code
 library(panGenomeBreedr)

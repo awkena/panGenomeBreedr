@@ -137,6 +137,7 @@ function returns a data frame containing the filtered records from the
 selected table.
 
 ``` r
+
 library(panGenomeBreedr)
 
 # This example uses the mini SQLite database included in the package.
@@ -176,6 +177,7 @@ unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE),
 | SNP_Chr05_75104568   | Chr05 | 75104568 | SNP          | G   | T    | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
 
 Table 1: Queried genotypes for varaints from the SQLite database.
+{.table}
 
 |  | variant_id | allele | annotation | impact | gene_name | gene_id | feature_type | feature_id | transcript_biotype | rank | HGVS_c | HGVS_p | chrom | pos |
 |:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|---:|
@@ -186,6 +188,7 @@ Table 1: Queried genotypes for varaints from the SQLite database.
 | 13 | SNP_Chr05_75104568 | T | 3_prime_UTR_variant | MODIFIER | Sobic.005G213600 | Sobic.005G213600.v5.1 | transcript | Sobic.005G213600.1.v5.1 | protein_coding | 2/2 | c.\*298C\>A |  | Chr05 | 75104568 |
 
 Table 2: Queried annotations for variants from the SQLite database.
+{.table}
 
 ### Summarize SnpEff Annotation and Impact
 
@@ -200,6 +203,7 @@ implications of variants located within candidate genes or genomic
 intervals of interest.
 
 ``` r
+
 library(panGenomeBreedr)
 
 # Prepare test database
@@ -228,7 +232,7 @@ unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE),
 | 23  | synonymous_variant      | SNP          |    21 |
 | 13  | 3_prime_UTR_variant     | SNP          |    18 |
 
-Annotation summary for variants within the genomic range.
+Annotation summary for variants within the genomic range. {.table}
 
 |     | impact   | variant_type | count |
 |:----|:---------|:-------------|------:|
@@ -240,6 +244,7 @@ Annotation summary for variants within the genomic range.
 | 3   | MODERATE | INDEL        |     5 |
 
 Functional impact summary for variants within the genomic range.
+{.table}
 
 The
 [`query_ann_summary()`](https://awkena.github.io/panGenomeBreedr/reference/query_ann_summary.md)
@@ -261,6 +266,7 @@ to use the
 function, as shown below:
 
 ``` r
+
 
 # Prepare test database
 path <- tempdir()
@@ -290,7 +296,7 @@ unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE),
 | INDEL_Chr05_75106295 | Chr05 | 75106295 | A | ATC | . | PASS | INDEL | ATC | frameshift_variant | HIGH | Sobic.005G213600 | Sobic.005G213600.v5.1 | transcript | Sobic.005G213600.1.v5.1 | protein_coding | 1/2 | c.38_39dupGA | p.Ser14fs |
 | INDEL_Chr05_75106325 | Chr05 | 75106325 | G | GTA | . | PASS | INDEL | GTA | frameshift_variant | HIGH | Sobic.005G213600 | Sobic.005G213600.v5.1 | transcript | Sobic.005G213600.1.v5.1 | protein_coding | 1/2 | c.8_9dupTA | p.Gln4fs |
 
-HIGH impact variants within a defined genomic range.
+HIGH impact variants within a defined genomic range. {.table}
 
 ### Filter Variants by Allele Frequency
 
@@ -310,6 +316,7 @@ An example usage for the
 function is shown in the code snippet below:
 
 ``` r
+
 library(panGenomeBreedr)
 
 # Define temporary directory and decompress demo database
@@ -333,9 +340,10 @@ geno_high_filtered <- query_genotypes(db_path = mini_db_path,
 | 4   | INDEL_Chr05_75106156 | Chr05 | 75106156 | 0.9474940 | 0.0525060 |
 | 5   | INDEL_Chr05_75106295 | Chr05 | 75106295 | 0.9439141 | 0.0560859 |
 
-Table 3: Filtered variants from the SQLite database.
+Table 3: Filtered variants from the SQLite database. {.table}
 
 ``` r
+
 # Get genotype data for HIGH impact variants that passed allele filter
 geno_high_filtered <- query_genotypes(db_path = mini_db_path,
                                       variant_ids = geno_high_filtered$variant_id,
@@ -373,9 +381,10 @@ Table 1:
 | INDEL_Chr05_75106156 | Chr05 | 75106156 | CGTAT | C     | INDEL        | 0\|0 | 0\|0 |
 | INDEL_Chr05_75106295 | Chr05 | 75106295 | A     | ATC   | INDEL        | 0\|0 | 0\|0 |
 
-Filtered HIGH impact variants for marker development.
+Filtered HIGH impact variants for marker development. {.table}
 
 ``` r
+
 # Example to design a KASP marker on a HIGH impact Deletion variant
 library(panGenomeBreedr)
 path <- tempdir() # (default directory for saving alignment outputs)
@@ -433,7 +442,7 @@ marker is shown in Table 5.
 
 [TABLE]
 
-Table 5: Intertek required sequence for a KASP marker.
+Table 5: Intertek required sequence for a KASP marker. {.table}
 
 ## KASP Marker Validation
 
@@ -478,6 +487,7 @@ the imported data can be extracted using the row tag ID as shown in the
 code snippet below:
 
 ``` r
+
 # Import raw KASP genotyping file (.csv) using the read_kasp_csv() function
 library(panGenomeBreedr)
 
@@ -505,6 +515,7 @@ accomplished using the
 function in `panGB` as shown in the code snippet below:
 
 ``` r
+
 # Assign KASP fluorescence colors using the kasp_color() function
 library(panGenomeBreedr)
 # Create a subet variable called plates: masterplate x snpid
@@ -565,6 +576,7 @@ in `panGB` can be used to make the cluster plots for each plate and KASP
 marker as shown below:
 
 ``` r
+
 # KASP QC plot for Plate 05
 library(panGenomeBreedr)
 kasp_qc_ggplot2(x = dat1[5],
@@ -585,6 +597,7 @@ Fig. 3. Cluster plot for Plate 5 using FAM and HEX colors for grouping
 observed genotypes.
 
 ``` r
+
 # KASP QC plot for Plate 05
 library(panGenomeBreedr)
  kasp_qc_ggplot2(x = dat1[5],
@@ -650,6 +663,7 @@ in each reaction plate after verification (Table 3), as shown in the
 code snippet below:
 
 ``` r
+
 # Get prediction summary for all plates
 library(panGenomeBreedr)
 my_sum <- pred_summary(x = dat1,
@@ -672,6 +686,7 @@ my_sum <- pred_summary(x = dat1,
 | SE-24-1088_P01_d2_snpSB00805 | snpSB00805 |  0.15 | 0.19 |       0.66 |
 
 Table 3: Summary of verified prediction status for samples in plates
+{.table}
 
 The output of the
 [`pred_summary()`](https://awkena.github.io/panGenomeBreedr/reference/pred_summary.md)
@@ -680,6 +695,7 @@ function can be visualized as bar plots using the
 function as shown in the code snippet below:
 
 ``` r
+
 # Get prediction summary for snp:snpSB00804
 library(panGenomeBreedr)
 my_sum <- my_sum$summ
@@ -710,6 +726,7 @@ using the
 function as depicted in Figure 5, using the code snippet below:
 
 ``` r
+
 plot_plate(dat1[5], pdf = FALSE)
 #> $`SE-24-1088_P01_d1_snpSB00804`
 ```
@@ -758,6 +775,7 @@ in the marker names (`Eg. S1_778962: chr = 1, pos = 779862`).
 
 ``` r
 
+
 # Set path to the directory where your data is located
 path1 <-  system.file("extdata", "agriplex_dat.csv",
                        package = "panGenomeBreedr",
@@ -779,7 +797,7 @@ knitr::kable(geno[1:6, 1:10], caption = 'Table 4: Agriplex data format', format 
 | RHODES_PLATE1 | D07 | NIL_5 | 1 | RMES1+\|+\_1 | NIL+ | A | G | G | A |
 | RHODES_PLATE1 | F08 | NIL_6 | 1 | RMES1+\|+\_2 | NIL+ | A | G | G | A |
 
-Table 4: Agriplex data format
+Table 4: Agriplex data format {.table}
 
 To create a heatmap that compares the genetic background of parents and
 NILs across all markers, we need to first process the raw Agriplex data
@@ -814,6 +832,7 @@ format is done as follows:
 
 ``` r
 
+
 # Parse snp ids to generate a map file
 library(panGenomeBreedr)
 
@@ -843,9 +862,10 @@ map_file <- order_markers(x = map_file)
 | 1.3   | S1_1954298 |   1 | 1954298 |
 | 1.4   | S1_1985365 |   1 | 1985365 |
 
-Table 5: Map file for the imported Agriplex data.
+Table 5: Map file for the imported Agriplex data. {.table}
 
 ``` r
+
 # Process genotype data to re-order SNPs based on chromosome and positions
 stg5 <- proc_kasp(x = stg5,
                   kasp_map = map_file,
@@ -875,13 +895,14 @@ num_geno <- kasp_numeric(x = stg5,
 | Stg5-\|-\_2 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
 | Stg5-\|-\_3 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
 
-Table 6: Agriplex data converted to a numeric format.
+Table 6: Agriplex data converted to a numeric format. {.table}
 
 All is now set to generate the heatmap (Figure 6) using the
 [`cross_qc_ggplot()`](https://awkena.github.io/panGenomeBreedr/reference/cross_qc_ggplot.md)
 function, as shown in the code snippet below:
 
 ``` r
+
 
 # Get prediction summary for snp:snpSB00804
 library(panGenomeBreedr)
@@ -929,6 +950,7 @@ function to generate a heatmap (Figure 7) with an annotation of the
 position of the *stg5* locus on Chr 1, as shown below:
 
 ``` r
+
 
 ###########################################################################
 # Subset data for the first 30 markers on Chr 1
@@ -1002,6 +1024,7 @@ across all polymorphic loci as shown in the code snippet below:
 
 ``` r
 
+
 # Calculate weighted RPP
 rpp <- calc_rpp_bc(x = num_geno,
                    map_file = map_file,
@@ -1041,7 +1064,7 @@ Fig. 8. Computed RPP values for the stg5 NILs.
 | Stg5-\|-\_2 | Stg5-\|-\_2 | 0.991 | 1.000 | 0.286 | 0.987 | 1 | 0.995 | 1 | 0.949 | 1 | 0.845 | 0.905 |
 | Stg5-\|-\_3 | Stg5-\|-\_3 | 0.991 | 1.000 | 0.278 | 0.987 | 1 | 0.931 | 1 | 0.949 | 1 | 0.845 | 0.898 |
 
-RPP computation across and for each chromosome.
+RPP computation across and for each chromosome. {.table}
 
 The
 [`calc_rpp_bc()`](https://awkena.github.io/panGenomeBreedr/reference/calc_rpp_bc.md)
@@ -1136,6 +1159,7 @@ marker genotype data into a binary matrix (1 = favorable allele present,
 function is shown in the code snippet below:
 
 ``` r
+
 library(panGenomeBreedr)
 
 # Marker genotype data
@@ -1167,7 +1191,7 @@ foreground_matrix <- foreground_select(geno_data = geno,
 | Line3 |    0 |    0 |    0 |
 | Line4 |    1 |    0 |    0 |
 
-Binary matrix of presence or absence of favorable alleles.
+Binary matrix of presence or absence of favorable alleles. {.table}
 
 The
 [`foreground_select()`](https://awkena.github.io/panGenomeBreedr/reference/foreground_select.md)
@@ -1207,6 +1231,7 @@ users to quickly determine:
   each individual target locus.
 
 ``` r
+
 # Make an Upset plot and overlay with trait loci names
 metadata <- data.frame(sets = marker_info$qtl_markers,
                       locus = marker_info$locus_name)
@@ -1265,6 +1290,7 @@ corresponding to any intersection (i.e., specific combinations of
 favorable alleles revealed by the UpSet plot).
 
 ``` r
+
 library(panGenomeBreedr)
 
 # Find lines with favorable alleles at all target loci

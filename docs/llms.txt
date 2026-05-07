@@ -78,6 +78,7 @@ You can install the development version of `panGenomeBreedr` from
 [GitHub](https://github.com/awkena/panGenomeBreedr) with:
 
 ``` r
+
 # Install panGenomeBreedr
 if (!require("devtools")) install.packages("devtools")
 
@@ -91,6 +92,7 @@ installed automatically alongside `panGB`. To manually install these
 packages, use the code snippet below:
 
 ``` r
+
 # Install and load required Bioconductor packages if not already installed
 if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 

@@ -49,6 +49,7 @@ genotype calls different from RP and DP are coded as -2.
 ## Examples
 
 ``` r
+
 # \donttest{
  # example code
 library(panGenomeBreedr)
