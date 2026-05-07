@@ -9,8 +9,7 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList sidebarLayout sidebarPanel mainPanel selectInput textInput
-#'   actionButton icon div conditionalPanel column fluidRow numericInput plotOutput downloadButton
+#' @importFrom shiny NS tagList sidebarLayout sidebarPanel mainPanel selectInput textInput actionButton icon div conditionalPanel column fluidRow numericInput plotOutput downloadButton
 #' @importFrom bslib input_switch accordion accordion_panel card card_footer
 #'
 mod_mv_pred_sum_stat_ui <- function(id) {

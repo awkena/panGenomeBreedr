@@ -983,6 +983,7 @@ kasp_qc_ggplot <- function(x,
 #' @importFrom gridExtra marrangeGrob
 
 
+
 kasp_qc_ggplot2 <- function(x,
                             FAM = 'X',
                             HEX = 'Y',
@@ -1132,30 +1133,51 @@ kasp_qc_ggplot2 <- function(x,
     # Plotting
     if (!is.null(Group_id)) {
 
+      # SOLUTION 1: DATA REORDERING
+      # Sort data so 'False' calls are at the end of the dataframe, ensuring they
+      # are plotted last and physically on top of 'True' calls. Uses base R.
+      if ("status" %in% colnames(plate)) {
+        plate <- plate[order(plate$status == 'False', na.last = FALSE), ]
+      }
+
+      # SOLUTION 3: DIFFERENTIAL SIZING SETUP
+      # Assign a base size of 3 to all, but increase 'False' to 5
+      size_vals <- stats::setNames(rep(3, length(status_uniq)), status_uniq)
+      if ('False' %in% names(size_vals)) size_vals['False'] <- 5
 
       plt <- ggplot2::ggplot(plate, ggplot2::aes(x = X,
                                                  y = Y,
                                                  fill = status,
-                                                 shape = Call)) +
-        ggplot2::geom_point(size = 4) +
+                                                 shape = Call,
+                                                 size = status)) + # Map size to prediction status
+        # SOLUTION 2 & 3: apply alpha directly to point, rely on size mapping
+        # Adding explicitly 'color="black"' ensures a crisp stroke around transparent points
+        ggplot2::geom_point(alpha = alpha, color = "black", stroke = 0.5) +
+
         ggplot2::scale_shape_manual(values = pch_uniq,
                                     breaks = pch_brks,
                                     name = 'KASP Call') +
 
+        # Implement size scale but hide the redundant legend it generates
+        ggplot2::scale_size_manual(values = size_vals, guide = "none") +
+
         ggplot2::guides(shape = ggplot2::guide_legend(order = 0)) +
 
-        ggplot2::scale_fill_manual(values = ggplot2::alpha(pred_cols, alpha),
+        # Use un-alpha'd colors in the scale, letting geom_point handle the alpha
+        ggplot2::scale_fill_manual(values = pred_cols,
                                    breaks = status_uniq,
                                    name = 'Prediction') +
-        ggplot2::guides(fill = ggplot2::guide_legend(order = 2, override.aes = list(shape = 21)))
+        # Force the legend keys for Prediction to use shape 21 (circle) and a visible size
+        ggplot2::guides(fill = ggplot2::guide_legend(order = 2, override.aes = list(shape = 21, size = 4)))
 
     } else {
 
       plt <- ggplot2::ggplot(plate, ggplot2::aes(x = X,
                                                  y = Y,
                                                  fill = Call)) +
-        ggplot2::geom_point(size = 4, pch = 21) +
-        ggplot2::scale_fill_manual(values = ggplot2::alpha(cols, alpha),
+        # SOLUTION 2 applied here as well for consistency
+        ggplot2::geom_point(size = 4, pch = 21, alpha = alpha, color = "black", stroke = 0.5) +
+        ggplot2::scale_fill_manual(values = cols,
                                    breaks = col_brks,
                                    name = 'KASP Call')
     }
@@ -1208,6 +1230,8 @@ kasp_qc_ggplot2 <- function(x,
   }
 
 }
+
+
 
 
 #' Plot kasp genotyping plate layout.
