@@ -48,6 +48,49 @@
   : Get the folder or file ID from a Google Drive shareable link.
 - [`folder_download_gd()`](https://awkena.github.io/panGenomeBreedr/reference/folder_download_gd.md)
   : Download files in a shared Google Drive folder without restrictions.
+- [`get_sample_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/get_sample_metadata.md)
+  : Retrieve sample metadata from the SQLite database
+- [`pg_variant_stats()`](https://awkena.github.io/panGenomeBreedr/reference/pg_variant_stats.md)
+  : Get variant statistics from the PostgreSQL database
+- [`pg_calc_af()`](https://awkena.github.io/panGenomeBreedr/reference/pg_calc_af.md)
+  : Compute allele frequencies for a genotype matrix
+- [`pg_count_variant_types()`](https://awkena.github.io/panGenomeBreedr/reference/pg_count_variant_types.md)
+  : Count the distribution of variant types
+- [`pg_filter_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/pg_filter_by_af.md)
+  : Filter extracted variants based on alternate allele frequency
+- [`pg_gene_coords()`](https://awkena.github.io/panGenomeBreedr/reference/pg_gene_coords.md)
+  : Get the genomic range of a candidate gene using the Sobic ID from a
+  GFF file
+- [`pg_get_sample_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/pg_get_sample_metadata.md)
+  : Retrieve sample metadata
+- [`pg_list_table_columns()`](https://awkena.github.io/panGenomeBreedr/reference/pg_list_table_columns.md)
+  : Check column names and types for any table
+- [`pg_list_tables()`](https://awkena.github.io/panGenomeBreedr/reference/pg_list_tables.md)
+  : List all tables in the PostgreSQL database
+- [`pg_map_accessions()`](https://awkena.github.io/panGenomeBreedr/reference/pg_map_accessions.md)
+  : Interactive Geographic Exploration of Sorghum Accessions
+- [`pg_plot_trait_association()`](https://awkena.github.io/panGenomeBreedr/reference/pg_plot_trait_association.md)
+  : Generic Trait Association Audit (Cloud/API Version)
+- [`pg_query_ann_summary()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_ann_summary.md)
+  : Summarize genomic annotations and impacts in a specific region
+- [`pg_query_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_af.md)
+  : Extract variants based on allele frequencies within a genomic region
+- [`pg_query_by_impact()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_impact.md)
+  : Extract variants based on mutation impact
+- [`pg_query_by_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_metadata.md)
+  : Query genotypes filtered by sample metadata attributes
+- [`pg_query_db()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_db.md)
+  : Query PostgreSQL pangenome tables using genomic coordinates
+- [`pg_query_genotypes()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_genotypes.md)
+  : Query genotypes for specific variant IDs
+- [`pg_summarize_tables()`](https://awkena.github.io/panGenomeBreedr/reference/pg_summarize_tables.md)
+  : Summarize names and row counts for each table
+- [`pg_variant_impact_summary()`](https://awkena.github.io/panGenomeBreedr/reference/pg_variant_impact_summary.md)
+  : Get variant impact summary
+- [`query_by_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/query_by_metadata.md)
+  : Query genotypes filtered by sample metadata attributes in SQLite
+- [`query_map_accessions()`](https://awkena.github.io/panGenomeBreedr/reference/query_map_accessions.md)
+  : Interactive Geographic Exploration of Sorghum Accessions
 
 ## KASP Marker Validation
 
