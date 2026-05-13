@@ -16,8 +16,8 @@ test_that("read_kasp_csv error works", {
                         package = "panGenomeBreedr",
                         mustWork = TRUE)
 
-  expect_error(read_kasp_csv(file = path1,
-                             row_tags = c('Statistics', 'DNA', 'SNPs','Scaling', 'datas'),
-                             data_type = 'raw'),
-               "datas is not contained in the input file.")
+  expect_error(
+    read_kasp_csv(file = path1, row_tags = c("Statistics", "DNA", "SNPs", "Scaling", "datas"), data_type = "raw"),
+    "Tag 'datas' not found"
+  )
 })

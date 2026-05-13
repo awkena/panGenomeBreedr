@@ -472,16 +472,17 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
       # Plate layout plot script.
       # Reactive for generating plate plot with error handling
       plot_plate_result <- reactive({
-        # Validate inputs
         req(
-          color_coded(), input$snp_id,
-          input$geno_call, input$well_id,
+          color_coded(),
+          input$snp_id,
+          input$geno_call,
+          input$well_id,
           input$plate_choice
         )
 
         tryCatch(
           {
-            # Generate plot
+           
             plot_plate(
               x = color_coded()[input$plate_choice],
               well = input$well_id,
@@ -492,35 +493,55 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
             )
           },
           error = function(e) {
-            shinyWidgets::show_alert(
-              title = "Error!",
-              text = paste("Failed to generate plot:", e$message),
-              type = "error",
-              showCloseButton = TRUE,
-              timer = 5000
-            )
-            return(NULL)
+            return(e$message)
           }
         )
       })
 
       # Render plot for plate layout.
-      output$plate_layout_plot <- renderPlot({
-        req(plot_plate_result(), input$plate_choice)
+# Render plot for plate layout.
+output$plate_layout_plot <- shiny::renderPlot({
+  res <- plot_plate_result()
 
-        plot_obj <- plot_plate_result()[[input$plate_choice]]
+  if (is.character(res)) {
+    p_err <- render_ghost_plate_error(error_msg = res, text_size = 12)
+    return(print(p_err))
+  }
 
-        if (is.null(plot_obj)) {
-          shinyWidgets::show_toast(
-            title = "",
-            text = "No plot found for selected plate",
-            type = "error"
-          )
-          return(NULL)
-        }
+  req(input$plate_choice)
 
-        print(plot_obj)
-      })
+  plot_name <- grep(
+    pattern = input$plate_choice,
+    x = names(res),
+    ignore.case = TRUE,
+    value = TRUE
+  )
+
+  if (length(plot_name) == 0) {
+    p_miss <- render_ghost_plate_error(
+      "No matching plate name found in data",
+      text_size = 12
+    )
+    return(print(p_miss))
+  }
+
+  plot_obj <- res[[plot_name]]
+
+  if (is.null(plot_obj)) {
+    p_null <- render_ghost_plate_error("Plot object was NULL", text_size = 12)
+    return(print(p_null))
+  }
+
+
+  shinyWidgets::show_toast(
+    title = "",
+    text = "Plot rendered successfully",
+    type = "success",
+    timer = 2000
+  )
+
+  print(plot_obj)
+})
 
       # Render QC plot
       output$qc_plot2 <- renderPlot({

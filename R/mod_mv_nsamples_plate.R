@@ -39,7 +39,7 @@ mod_mv_nsamples_plate_ui <- function(id) {
       ),
       mainPanel(
         bslib::accordion(
-          width = "100%",
+          #width = "100%",
           open = "Summary of Sample Distribution Across Plates",
           bslib::accordion_panel(
             "Summary of Sample Distribution Across Plates",

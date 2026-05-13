@@ -15,7 +15,7 @@ not_na <- Negate(is.na)
 #'
 #' @noRd
 #'
-#' @example
+#' @examples
 #' drop_nulls(list(1, NULL, 2))
 drop_nulls <- function(x) {
   x[!sapply(x, is.null)]

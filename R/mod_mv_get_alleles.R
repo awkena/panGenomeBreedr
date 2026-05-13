@@ -31,7 +31,7 @@ mod_mv_get_alleles_ui <- function(id) {
       mainPanel(
         # Allele output
         bslib::accordion(
-          width = "100%",
+         # width = "100%",
           open = "Identified Alleles",
           bslib::accordion_panel(
             "Identified Alleles",
@@ -46,7 +46,7 @@ mod_mv_get_alleles_ui <- function(id) {
         ),
         # Genotype output
         bslib::accordion(
-          width = "100%",
+         # width = "100%",
           open = "Genotype Classifications",
           bslib::accordion_panel(
             "Genotype Classifications",

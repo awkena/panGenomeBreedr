@@ -49,7 +49,7 @@ components: a common prefix, chromosome tag and a common suffix.
 }
 \examples{
 # example code
-\donttest{
+\dontrun{
 library(panGenomeBreedr)
 
 # Work from the tempdir

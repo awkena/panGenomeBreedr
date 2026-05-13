@@ -3,10 +3,6 @@
 #' This file contains various helper functions used throughout the application.
 #' Functions are organized by their purpose and usage context.
 #' None of these functions are exported as they're meant for internal use only.
-
-#-----------------------------------------------------------------------------
-# VCF File Processing Functions (KASP Marker design section)
-#-----------------------------------------------------------------------------
 #' Extract Marker IDs and Chromosome IDs from VCF File
 #'
 #' This function reads a VCF file and extracts all unique marker IDs and chromosome IDs.
@@ -1245,4 +1241,355 @@ makeTraitInput <- function(id, ns) {
                        class = "btn-outline-danger btn-sm", title = "Remove Trait"))
     }
   )
+}
+
+
+
+#' Render a Ghost Plate Error Plot
+#'
+#' @description This function generates a stylized ggplot2 plot that visually
+#' represents a plate layout error. It displays a "ghost" plate background 
+#' with an overlayed error message.
+#'
+#' @param error_msg A character string containing the specific error message to display.
+#' @param text_size A numeric value controlling the size of the text elements in the plot.
+#' @return A ggplot2 object representing the error plot.
+#' @noRd
+render_ghost_plate_error <- function(error_msg, text_size = 12) {
+  
+  # Data setup
+  ghost_data <- expand.grid(
+    row = factor(rev(LETTERS[1:8])), 
+    col = factor(sprintf("%02d", 1:12))
+  )
+
+  # Color Palette
+  well_grey   <- "#F1F2F6"
+  stroke_grey <- "#CED4DA"
+  grid_grey   <- "#E9ECEF"
+  text_dark   <- "#2D3436"
+  error_red   <- "#D63031"
+
+  ggplot2::ggplot(ghost_data, ggplot2::aes(x = col, y = row)) +
+    # Draw the empty grid
+    ggplot2::geom_tile(fill = "white", color = grid_grey, linewidth = 0.5) +
+    
+    # Draw the empty wells
+    ggplot2::geom_point(
+      size = text_size,
+      shape = 21,
+      fill = well_grey,
+      color = stroke_grey,
+      stroke = 1,
+      alpha = 0.8
+    ) +
+    
+    # Semi-transparent overlay to "de-emphasize" the background
+    ggplot2::annotate(
+      "rect",
+      xmin = -Inf, xmax = Inf,
+      ymin = -Inf, ymax = Inf,
+      fill = "white",
+      alpha = 0.3
+    ) +
+    
+    # Labels and Theme setup
+    ggplot2::scale_x_discrete(position = "top") +
+    ggplot2::labs(title = "PLATE LAYOUT ERROR") +
+    ggplot2::theme_classic() +
+    ggplot2::theme(
+      axis.line = ggplot2::element_blank(),
+      axis.title = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      plot.title = ggplot2::element_text(
+        hjust = 0.5,
+        face = "bold",
+        size = text_size,
+        color = error_red
+      ),
+      axis.text = ggplot2::element_text(
+        size = text_size,
+        face = "bold",
+        color = "#B2BEC3"
+      )
+    ) +
+    
+    # Central Error Message Label
+    ggplot2::annotate(
+      "label",
+      x = 6.5,
+      y = 4.5,
+      label = paste0("VALIDATION FAILED:\n", error_msg),
+      fill = "white",
+      color = text_dark,
+      size = text_size * 0.35,
+      fontface = "bold",
+      label.padding = ggplot2::unit(1, "lines")
+    )
+}
+
+
+
+
+
+#' Render a Reactable Table with Custom Theming
+#'
+#' @description This helper function generates a `reactable` table with a default
+#'   theme and common display options. It allows for easy and consistent styling
+#'   of interactive tables throughout the application.
+#'
+#' @param data A data frame or tibble to be displayed in the reactable table.
+#' @param theme An optional `reactableTheme` object to override the default theme.
+#'   If `NULL`, a predefined default theme is used.
+#'
+#' @return A `reactable` HTML widget displaying the provided data.
+#'
+#' @noRd
+ # Reactable Helper
+    render_reactable <- function(data, theme = NULL) {
+      if (is.null(theme)) {
+        theme <- reactable::reactableTheme(
+          backgroundColor = "hsl(0, 0%, 100%)",
+          borderColor = "hsl(0, 0%, 89%)",
+          stripedColor = "hsl(0, 0%, 97%)",
+          highlightColor = "hsl(0, 0%, 96%)",
+          cellPadding = "8px 12px",
+          searchInputStyle = list(width = "100%", padding = "8px 12px"),
+          headerStyle = list(borderWidth = "1px", padding = "8px 12px")
+        )
+      }
+      reactable::reactable(
+        data,
+        defaultColDef = reactable::colDef(
+          headerClass = "header",
+          align = "left",
+          minWidth = 100,
+          width = 200
+        ),
+        pagination = TRUE,
+        showPageSizeOptions = TRUE,
+        pageSizeOptions = c(10, 25, 50, 100),
+        striped = TRUE,
+        highlight = TRUE,
+        bordered = TRUE,
+        compact = TRUE,
+        wrap = TRUE,
+        theme = theme,
+        style = list(maxWidth = "100%")
+      )
+    }
+
+
+
+
+
+
+#' Plot Variant Hotspots
+#'
+#' @param variant_table Data frame containing basic variants
+#' @param annotation_table Data frame containing annotations
+#' @param region_start Numeric start position
+#' @param region_end Numeric end position
+#' @import ggplot2
+#' @noRd
+#'
+plot_variant_hotspots <- function(
+  variant_table,
+  annotation_table = NULL,
+  region_start = NULL,
+  region_end = NULL
+) {
+  pos <- y_pos <- impact <- variant_type <- NULL
+  
+  plot_df <- variant_table
+  if (!"variant_type" %in% colnames(plot_df)) {
+    plot_df$variant_type <- sub("_.*", "", plot_df$variant_id)
+  }
+
+  # Join and Deduplicate Annotations
+  impact_levels <- c("HIGH", "MODERATE", "LOW", "MODIFIER", "UNKNOWN")
+
+  if (
+    !is.null(annotation_table) &&
+      nrow(annotation_table) > 0 &&
+      "impact" %in% colnames(annotation_table)
+  ) {
+    anno_sub <- annotation_table[, c("variant_id", "impact")]
+    anno_sub$impact <- factor(
+      anno_sub$impact,
+      levels = impact_levels,
+      ordered = TRUE
+    )
+    anno_sub <- anno_sub[order(anno_sub$impact, na.last = TRUE), ]
+    anno_sub <- anno_sub[!duplicated(anno_sub$variant_id), ]
+
+    plot_df <- merge(plot_df, anno_sub, by = "variant_id", all.x = TRUE)
+    plot_df$impact <- as.character(plot_df$impact)
+    plot_df$impact[is.na(plot_df$impact)] <- "UNKNOWN"
+  } else {
+    plot_df$impact <- "UNKNOWN"
+  }
+
+  plot_df$impact <- factor(plot_df$impact, levels = rev(impact_levels))
+
+  # Extract start and stop postion from table if is null
+  if (is.null(region_start)) {
+    region_start <- min(plot_df$pos, na.rm = TRUE)
+  }
+  if (is.null(region_end)) {
+    region_end <- max(plot_df$pos, na.rm = TRUE)
+  }
+
+  total_vars <- nrow(plot_df)
+  snp_ct <- sum(plot_df$variant_type == "SNP", na.rm = TRUE)
+  indel_ct <- sum(plot_df$variant_type == "INDEL", na.rm = TRUE)
+
+  summary_text <- sprintf(
+    "Total Unique Variants: %s  |  SNPs: %s  |  INDELs: %s",
+    scales::comma(total_vars),
+    scales::comma(snp_ct),
+    scales::comma(indel_ct)
+  )
+
+  # Assigning base elevations to each impact level
+  y_mapping <- c(
+    "HIGH" = 4,
+    "MODERATE" = 3,
+    "LOW" = 2,
+    "MODIFIER" = 1,
+    "UNKNOWN" = 0.5
+  )
+  plot_df$base_y <- y_mapping[as.character(plot_df$impact)]
+
+  # Add micro-jitter within lanes so points don't perfectly overlap
+  set.seed(42)
+  plot_df$y_pos <- plot_df$base_y +
+    runif(nrow(plot_df), min = -0.25, max = 0.25)
+
+  # Color Impact levels
+  impact_colors <- c(
+    "HIGH" = "#e11d48",
+    "MODERATE" = "#f59e0b",
+    "LOW" = "#3b82f6",
+    "MODIFIER" = "#94a3b8",
+    "UNKNOWN" = "#cbd5e1"
+  )
+
+  type_shapes <- c("SNP" = 21, "INDEL" = 24)
+
+  # Plot
+  p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = pos, y = y_pos)) +
+    ggplot2::geom_hline(yintercept = c(1, 2, 3, 4), color = "#f1f5f9", linewidth = 0.5) +
+    ggplot2::geom_hline(yintercept = 0, linewidth = 2, color = "#cbd5e1") +
+    ggplot2::geom_segment(
+      ggplot2::aes(xend = pos, yend = 0),
+      color = "#dcdfe3",
+      alpha = 0.3,
+      linewidth = 0.4
+    ) +
+    ggplot2::geom_point(
+      ggplot2::aes(fill = impact, shape = variant_type),
+      size = 3.5,
+      color = "black",
+      stroke = 0.5,
+      alpha = 0.5
+    ) +
+    # Manual setting of legends and mapping values
+    ggplot2::scale_fill_manual(values = impact_colors, name = "Max Impact") +
+    ggplot2::scale_shape_manual(values = type_shapes, name = "Variant Type") +
+    ggplot2::scale_x_continuous(labels = scales::comma) +
+    ggplot2::coord_cartesian(xlim = c(region_start, region_end), ylim = c(-0.1, 4.5)) +
+    ggplot2::theme_minimal(base_size = 14) +
+    ggplot2::labs(
+      title = "Genomic Variant Hotspots",
+      subtitle = paste0(
+        plot_df$chrom[1],
+        ": ",
+        scales::comma(region_start),
+        " - ",
+        scales::comma(region_end)
+      ),
+      caption = summary_text,
+      x = "Genomic Position (bp)"
+    ) +
+    ggplot2::guides(
+      fill = ggplot2::guide_legend(override.aes = list(shape = 21, size = 4), order = 1),
+      shape = ggplot2::guide_legend(
+        override.aes = list(fill = "#fefefe14", size = 4, color = 'black'),
+        order = 2
+      ) # Modifyying legends
+    ) +
+    ggplot2::theme(
+      axis.text.y = ggplot2::element_blank(),
+      axis.title.y = ggplot2::element_blank(),
+      panel.grid.major.y = ggplot2::element_blank(),
+      panel.grid.minor.y = ggplot2::element_blank(),
+      panel.grid.minor.x = ggplot2::element_blank(),
+      panel.grid.major.x = ggplot2::element_line(color = "#e2e8f0", linetype = "dashed"),
+      
+      legend.position = "right",
+      legend.box = "vertical",
+      legend.title = ggplot2::element_text(face = "bold", size = 10, color = "#475569"),
+      legend.text = ggplot2::element_text(size = 9, color = "#334155"),
+      
+      plot.title = ggplot2::element_text(
+        face = "bold",
+        size = 16,
+        color = "#0f172a",
+        hjust = 0.5
+      ),
+      plot.subtitle = ggplot2::element_text(
+        color = "#64748b",
+        size = 12,
+        hjust = 0.5,
+        margin = ggplot2::margin(b = 10)
+      ),
+      plot.caption = ggplot2::element_text(
+        face = "bold",
+        color = "#1e293b",
+        size = 12,
+        hjust = 1,
+        margin = ggplot2::margin(t = 15)
+      ),
+      axis.title.x = ggplot2::element_text(
+        face = "bold",
+        color = "#475569",
+        margin = ggplot2::margin(t = 10)
+      )
+    )
+
+  return(p)
+}
+
+
+
+
+#' Update Sidebar Navigation Buttons
+#'
+#' This function dynamically updates the CSS classes of sidebar navigation buttons
+#' to visually indicate the active tab. It uses `shinyjs` to toggle Bootstrap 5
+#' button classes between outlined and filled states.
+#'
+#' @param active_id Character string containing the input ID of the currently active button.
+#'
+#' @return No return value. Called for its side effects on the UI.
+#'
+#' @noRd
+update_sidebar_buttons <- function(active_id) {
+  buttons <- c(
+    "get_db_info",
+    "show_gene_cord_btn",
+    "show_query_actions_btn",
+    "get_pcv_sidebar_btn",
+    "design_kasp_sidebar_btn"
+  )
+  for (btn_id in buttons) {
+    if (btn_id == active_id) {
+      shinyjs::removeClass(btn_id, "btn-outline-primary")
+      shinyjs::addClass(btn_id, "btn-primary")
+    } else {
+      shinyjs::removeClass(btn_id, "btn-primary")
+      shinyjs::addClass(btn_id, "btn-outline-primary")
+    }
+  }
 }

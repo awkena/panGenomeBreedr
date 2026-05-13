@@ -3,6 +3,7 @@ test_that("folder_download_gd() downloads files from a public Google Drive folde
   skip_on_cran()
   skip_if_offline()
   skip_if_not_installed("googledrive")
+  skip("External Google Drive test file is currently unavailable.")
 
   # Use a temporary directory for testing to keep your KNUST project environment clean
   test_out_dir <- file.path(tempdir(), "gd_test")

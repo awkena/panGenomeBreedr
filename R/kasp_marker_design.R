@@ -53,7 +53,6 @@
 #'
 #' on.exit(unlink(path))
 #' }
-
 #'
 #' @details
 #' This function provides the intertek sequence to be used for marker development

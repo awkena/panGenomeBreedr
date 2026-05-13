@@ -18,8 +18,8 @@ run_app <- function(
   # Check all suggested packages at the start
   suggested_packages <- c(
     "DT", "data.table", "fontawesome", "openxlsx", "reactable",
-    "readxl", "shinyWidgets", "shinyalert", "shinybusy", "shinyjs",
-    "vcfR", "writexl",'UpSetR', 'shinyFiles'
+    "readxl", "shinyWidgets", "shinyalert", "shinybusy", "shinyjs", "promises", "shinycssloaders",
+    "vcfR", "writexl",'UpSetR', 'shinyFiles',"tools","leaflet","future","scales"
   )
 
   missing_packages <- suggested_packages[!sapply(suggested_packages,

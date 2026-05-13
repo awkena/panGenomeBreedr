@@ -2278,3 +2278,14 @@ cross_qc_annotate <- function(x,
   }
 }
 
+
+
+
+#' Get the base URL for the panGenomeBreedr API
+#'
+#' @returns A character string of the API base URL.
+#' @keywords internal
+get_api_url <- function() {
+  # Public url to the mini database
+  "http://16.171.142.87:8000"
+}
