@@ -24,7 +24,7 @@ query_db(
 
 - table_name:
 
-  A character value specifying the name of any any table in a SQLite
+  A character value specifying the name of any table in a SQLite
   database.
 
 - chrom:

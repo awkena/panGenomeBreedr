@@ -64,7 +64,7 @@ three components: a common prefix, chromosome tag and a common suffix.
 
 ``` r
 # example code
-# \donttest{
+if (FALSE) { # \dontrun{
 library(panGenomeBreedr)
 
 # Work from the tempdir
@@ -77,10 +77,6 @@ flink1 <- "https://drive.google.com/file/d/1XjYyJ2JLywbbniIU6oUIIxAmEBKfmHpz/vie
 gff3 <- folder_download_gd(drive_link = flink1,
                            output_path = vcf_dir,
                            is.folder = FALSE)
-#> File downloaded:
-#> • Sbicolor_730_v5.1.gene.gff3 <id: 1XjYyJ2JLywbbniIU6oUIIxAmEBKfmHpz>
-#> Saved locally as:
-#> • /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//Rtmp23RZT5/Sbicolor_730_v5.1.gene.gff3
 
 # Google drive link to indel snpEff annotated vcf file on Chr05
 flink2 <- "https://drive.google.com/file/d/1LiOeDsfIwbsCuHbw9rCJ1FLOZqICTrfs/view?usp=sharing"
@@ -89,11 +85,6 @@ flink2 <- "https://drive.google.com/file/d/1LiOeDsfIwbsCuHbw9rCJ1FLOZqICTrfs/vie
 vcf_file_indel <- folder_download_gd(drive_link = flink2,
                                      output_path = vcf_dir,
                                      is.folder = FALSE)
-#> File downloaded:
-#> • Sorghum_d8.noduplicates.Chr05.indel._markernamesadded_imputed_snpeff.vcf.gz
-#>   <id: 1LiOeDsfIwbsCuHbw9rCJ1FLOZqICTrfs>
-#> Saved locally as:
-#> • /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//Rtmp23RZT5/Sorghum_d8.noduplicates.Chr05.indel._markernamesadded_imputed_snpeff.vcf.gz
 # View downloaded files in tempdir
 # list.files(vcf_dir)
 
@@ -107,5 +98,5 @@ extract_variant(cand_gene_id = 'Sobic.005G213600',
 
 # Clean tempdir after variant extraction
 # unlink(vcf_dir, recursive = TRUE)
-# }
+} # }
 ```

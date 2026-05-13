@@ -67,6 +67,27 @@ reference:
       - extract_variant
       - get_google_id
       - folder_download_gd
+      - get_sample_metadata
+      - pg_variant_stats
+      - pg_calc_af
+      - pg_count_variant_types
+      - pg_filter_by_af
+      - pg_gene_coords
+      - pg_get_sample_metadata
+      - pg_list_table_columns
+      - pg_list_tables
+      - pg_map_accessions
+      - pg_plot_trait_association
+      - pg_query_ann_summary
+      - pg_query_by_af
+      - pg_query_by_impact
+      - pg_query_by_metadata
+      - pg_query_db
+      - pg_query_genotypes
+      - pg_summarize_tables
+      - pg_variant_impact_summary
+      - query_by_metadata
+      - query_map_accessions
 
   - title: "KASP Marker Validation"
     contents:

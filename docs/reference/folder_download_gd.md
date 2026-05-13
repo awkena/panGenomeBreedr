@@ -33,17 +33,9 @@ files from Google Drive.
 
 ``` r
 # example code
-# \donttest{
+if (FALSE) { # \dontrun{
 library(panGenomeBreedr)
 f_link <- "https://drive.google.com/drive/folders/1ZJ2cZcybCvUuwOdB_0kK5kg7StgayuPf?usp=drive_link"
 folder_path <- folder_download_gd(drive_link = f_link)
-#> File downloaded:
-#> • VCFannotationformat_v1.0.pdf <id: 1m36OwCrwxYYGC016z807Dz_AdNbyCr0I>
-#> Saved locally as:
-#> • /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//Rtmp23RZT5/VCF Resources/VCFannotationformat_v1.0.pdf
-#> File downloaded:
-#> • VCFv4.2.pdf <id: 1fEuDbVPB5xvI0WYHM27YCvNwvah8BUQC>
-#> Saved locally as:
-#> • /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//Rtmp23RZT5/VCF Resources/VCFv4.2.pdf
-# }
+} # }
 ```
