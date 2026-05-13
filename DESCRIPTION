@@ -60,12 +60,15 @@ Suggests:
     IRanges,
     knitr,
     msa,
-    openxlsx,
     reactable,
+    future,
+    openxlsx,
     readxl,
     rmarkdown,
     Rsamtools,
     rtracklayer,
+    promises,
+    shinycssloaders,
     shinyalert,
     shinybusy,
     shinyFiles,
@@ -83,3 +86,4 @@ Suggests:
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.0.0
+RoxygenNote: 7.3.3

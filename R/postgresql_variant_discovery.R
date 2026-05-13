@@ -503,71 +503,76 @@ pgsql_query_db <- function(
     }
   }
 
-  # Logic for annotations , joinng with variants to resolve genomic positions
+  sql <- ""
+  params <- list()
+
+  # Logic for annotations , joining with variants to resolve genomic positions
   if (table_name == "annotations") {
-    sql <- "SELECT a.*, v.chrom, v.pos FROM annotations a
-            JOIN variants v ON a.variant_id = v.variant_id WHERE 1=1"
+    sql <- "SELECT a.*, v.chrom, v.pos FROM annotations a JOIN variants v ON a.variant_id = v.variant_id WHERE 1=1"
 
     if (!is.null(chrom)) {
       sql <- paste(sql, "AND v.chrom = ?ch")
+      params$ch <- chrom
     }
     if (!is.null(start)) {
       sql <- paste(sql, "AND v.pos >= ?st")
+      params$st <- start
     }
     if (!is.null(end)) {
       sql <- paste(sql, "AND v.pos <= ?en")
+      params$en <- end
     }
     if (!is.null(gene_name)) {
       sql <- paste(sql, "AND a.gene_name = ?gn")
+      params$gn <- gene_name
     }
 
     sql <- paste(sql, "ORDER BY v.pos")
-    query <- DBI::sqlInterpolate(
-      con,
-      sql,
-      ch = chrom,
-      st = start,
-      en = end,
-      gn = gene_name
-    )
   } else if (table_name == "genotypes") {
-    # Constrcut query
-    sql <- "SELECT g.variant_id, g.chrom, g.pos, v.variant_type, v.ref, v.alt, g.calls
-            FROM genotypes g
-            JOIN variants v ON g.variant_id = v.variant_id
-            WHERE g.chrom = ?ch"
+    # Construct query
+    sql <- "SELECT g.variant_id, g.chrom, g.pos, v.variant_type, v.ref, v.alt, g.calls FROM genotypes g JOIN variants v ON g.variant_id = v.variant_id WHERE 1=1"
 
+    if (!is.null(chrom)) {
+      sql <- paste(sql, "AND g.chrom = ?ch")
+      params$ch <- chrom
+    }
     if (!is.null(start)) {
       sql <- paste(sql, "AND g.pos >= ?st")
+      params$st <- start
     }
     if (!is.null(end)) {
       sql <- paste(sql, "AND g.pos <= ?en")
+      params$en <- end
     }
 
     sql <- paste(sql, "ORDER BY g.pos")
-    query <- DBI::sqlInterpolate(con, sql, ch = chrom, st = start, en = end)
   } else {
     # Default path for retrieving basic variant metadata
-    sql <- "SELECT * FROM variants WHERE chrom = ?ch"
+    sql <- "SELECT * FROM variants WHERE 1=1"
 
+    if (!is.null(chrom)) {
+      sql <- paste(sql, "AND chrom = ?ch")
+      params$ch <- chrom
+    }
     if (!is.null(start)) {
       sql <- paste(sql, "AND pos >= ?st")
+      params$st <- start
     }
     if (!is.null(end)) {
       sql <- paste(sql, "AND pos <= ?en")
+      params$en <- end
     }
 
     sql <- paste(sql, "ORDER BY pos")
-    query <- DBI::sqlInterpolate(con, sql, ch = chrom, st = start, en = end)
   }
 
-  # Execute the constructed query
+  # Execute the dynamically constructed query to prevent interpolation errors
+  query <- do.call(DBI::sqlInterpolate, c(list(conn = con, sql = sql), params))
   result <- DBI::dbGetQuery(con, query)
 
   if (nrow(result) == 0) {
     return(result)
   }
-
 
   #  Split calls (text arrays) string into individual sample columns.
   if (table_name == "genotypes") {
@@ -1308,9 +1313,9 @@ pgsql_count_variant_types <- function(con, variants_table = "variants") {
 #' @noRd
 pgsql_query_ann_summary <- function(
   con,
-  chrom,
-  start,
-  end,
+  chrom = NULL,
+  start = NULL,
+  end = NULL,
   annotations_table = "annotations",
   variants_table = "variants"
 ) {
@@ -1334,54 +1339,89 @@ pgsql_query_ann_summary <- function(
   a_tbl <- DBI::dbQuoteIdentifier(con, annotations_table)
 
   # Calculate the baseline variant distribution for the specified region.
-  total_sql <- DBI::sqlInterpolate(
-    con,
-    paste0(
-      "SELECT variant_type, COUNT(*) AS total_variants FROM ",
-      v_tbl,
-      " WHERE chrom = ?ch AND pos BETWEEN ?st AND ?en GROUP BY variant_type"
-    ),
-    ch = chrom,
-    st = start,
-    en = end
+  total_sql_str <- paste0(
+    "SELECT variant_type, COUNT(*) AS total_variants FROM ",
+    v_tbl,
+    " WHERE 1=1"
+  )
+  params_base <- list()
+  if (!is.null(chrom)) {
+    total_sql_str <- paste(total_sql_str, "AND chrom = ?ch")
+    params_base$ch <- chrom
+  }
+  if (!is.null(start)) {
+    total_sql_str <- paste(total_sql_str, "AND pos >= ?st")
+    params_base$st <- start
+  }
+  if (!is.null(end)) {
+    total_sql_str <- paste(total_sql_str, "AND pos <= ?en")
+    params_base$en <- end
+  }
+  total_sql_str <- paste(total_sql_str, "GROUP BY variant_type")
+
+  total_sql <- do.call(
+    DBI::sqlInterpolate,
+    c(list(conn = con, sql = total_sql_str), params_base)
   )
   variant_type_totals <- DBI::dbGetQuery(con, total_sql)
 
   # Cross-tabulate specific SnpEff annotations by variant type.
-  ann_sql <- DBI::sqlInterpolate(
-    con,
-    paste0(
-      "SELECT a.annotation, v.variant_type, COUNT(*) AS count FROM ",
-      a_tbl,
-      " a ",
-      "JOIN ",
-      v_tbl,
-      " v ON a.variant_id = v.variant_id ",
-      "WHERE v.chrom = ?ch AND v.pos BETWEEN ?st AND ?en ",
-      "GROUP BY a.annotation, v.variant_type ORDER BY count DESC"
-    ),
-    ch = chrom,
-    st = start,
-    en = end
+  ann_sql_str <- paste0(
+    "SELECT a.annotation, v.variant_type, COUNT(*) AS count FROM ",
+    a_tbl,
+    " a JOIN ",
+    v_tbl,
+    " v ON a.variant_id = v.variant_id WHERE 1=1"
+  )
+  params_v <- list()
+  if (!is.null(chrom)) {
+    ann_sql_str <- paste(ann_sql_str, "AND v.chrom = ?ch")
+    params_v$ch <- chrom
+  }
+  if (!is.null(start)) {
+    ann_sql_str <- paste(ann_sql_str, "AND v.pos >= ?st")
+    params_v$st <- start
+  }
+  if (!is.null(end)) {
+    ann_sql_str <- paste(ann_sql_str, "AND v.pos <= ?en")
+    params_v$en <- end
+  }
+  ann_sql_str <- paste(
+    ann_sql_str,
+    "GROUP BY a.annotation, v.variant_type ORDER BY count DESC"
+  )
+
+  ann_sql <- do.call(
+    DBI::sqlInterpolate,
+    c(list(conn = con, sql = ann_sql_str), params_v)
   )
   annotation_summary <- DBI::dbGetQuery(con, ann_sql)
 
   # Aggregate functional impact levels to help identify high-priority regions.
-  imp_sql <- DBI::sqlInterpolate(
-    con,
-    paste0(
-      "SELECT a.impact, v.variant_type, COUNT(*) AS count FROM ",
-      a_tbl,
-      " a ",
-      "JOIN ",
-      v_tbl,
-      " v ON a.variant_id = v.variant_id ",
-      "WHERE v.chrom = ?ch AND v.pos BETWEEN ?st AND ?en ",
-      "GROUP BY a.impact, v.variant_type ORDER BY count DESC"
-    ),
-    ch = chrom,
-    st = start,
-    en = end
+  imp_sql_str <- paste0(
+    "SELECT a.impact, v.variant_type, COUNT(*) AS count FROM ",
+    a_tbl,
+    " a JOIN ",
+    v_tbl,
+    " v ON a.variant_id = v.variant_id WHERE 1=1"
+  )
+  if (!is.null(chrom)) {
+    imp_sql_str <- paste(imp_sql_str, "AND v.chrom = ?ch")
+  }
+  if (!is.null(start)) {
+    imp_sql_str <- paste(imp_sql_str, "AND v.pos >= ?st")
+  }
+  if (!is.null(end)) {
+    imp_sql_str <- paste(imp_sql_str, "AND v.pos <= ?en")
+  }
+  imp_sql_str <- paste(
+    imp_sql_str,
+    "GROUP BY a.impact, v.variant_type ORDER BY count DESC"
+  )
+
+  imp_sql <- do.call(
+    DBI::sqlInterpolate,
+    c(list(conn = con, sql = imp_sql_str), params_v)
   )
   impact_summary <- DBI::dbGetQuery(con, imp_sql)
 
@@ -1556,10 +1596,10 @@ pgsql_query_by_metadata <- function(con, chrom, start, end, meta_col, meta_value
 #' library(panGenomeBreedr)
 #'
 #' # Fetch sample metadata from the database
-#' meta <- pgsql_get_sample_metadata(con)
+#' meta <- pg_get_sample_metadata()
 #'
 #' # Explore the geographic distribution colored by genetic cluster
-#' pgsql_map_accessions(meta, color_by = "kmeans_cluster")
+#' pg_map_accessions(meta, color_by = "kmeans_cluster")
 #' }
 #'
 #' @export
@@ -1637,16 +1677,14 @@ pg_map_accessions <- function(metadata, color_by = "countryorigin") {
 }
 
 
-
-#' Generic Trait Association Audit
+#' Generic Trait Association Audit (Cloud/API Version)
 #'
 #' This function performs an association analysis between a specific genomic
-#' variant and a phenotypic trait. It handles data cleaning, statistical
-#' testing, and generates a diagnostic plot to support breeding decisions.
+#' variant and a phenotypic trait. It pulls genotypes from the AWS API and
+#' merges them with your local phenotypic data for statistical testing and plotting.
 #'
-#' @param con A \code{DBIConnection} object (PostgreSQL).
 #' @param variant_id Character. The specific SNP or INDEL ID to analyze.
-#' @param pheno_df Data frame containing phenotypic data. The first column
+#' @param pheno_df Data frame containing local phenotypic data. The first column
 #'   must contain accession identifiers (PI numbers).
 #' @param trait_col Character. The name of the column in \code{pheno_df}
 #'   containing the trait scores.
@@ -1655,43 +1693,10 @@ pg_map_accessions <- function(metadata, color_by = "countryorigin") {
 #'
 #' @returns A ggplot object displaying the association and statistical summary.
 #'
-#' @details
-#' For quantitative traits, the function performs a Kruskal-Wallis test and
-#' calculates the Percentage of Variance Explained (PVE) using a linear model.
-#' For qualitative traits, a Chi-squared test with simulated p-values is used.
-#' The "Verdict" logic prioritizes variants with high biological impact or
-#' significant phenotypic influence.
-#'
-#' \strong{Dependency Note:} The \code{scales} package is required to format
-#' percentages on qualitative trait plots. It is a "Suggested" dependency.
-#'
-#' @examples
-#' \dontrun{
-#' library(panGenomeBreedr)
-#' library(DBI)
-#'
-#' con <- dbConnect(RPostgres::Postgres(), dbname = "sorghum_pangenome_db")
-#'
-#' # Load phenotype data
-#' my_pheno <- read.csv("sorghum_awn_data.csv")
-#'
-#' # Audit a specific INDEL for association with glume coverage
-#' pgsql_plot_trait_association(con,
-#'                           variant_id = "INDEL_Chr01_67040781",
-#'                           pheno_df = my_pheno,
-#'                           trait_col = "glume_coverage",
-#'                           trait_type = "quantitative")
-#'
-#' dbDisconnect(con)
-#' }
-#'
-#'
+#' @export
 #' @import ggplot2
-#' @import DBI
 #' @import stats
-#' @noRd
-pgsql_plot_trait_association <- function(
-  con,
+pg_plot_trait_association <- function(
   variant_id,
   pheno_df,
   trait_col,
@@ -1700,7 +1705,7 @@ pgsql_plot_trait_association <- function(
   trait_type <- match.arg(trait_type)
   genotype <- NULL # Resolve R CMD check for ggplot2 global variable
 
-  # Dependencyy check
+  # Dependency check
   if (trait_type == "qualitative" && !requireNamespace("scales", quietly = TRUE)) {
     stop(
       "The 'scales' package is required to format qualitative trait plots. ",
@@ -1709,30 +1714,24 @@ pgsql_plot_trait_association <- function(
     )
   }
 
-  # Check the database connection before initiating heavy genotype queries
-  if (!inherits(con, "DBIMockConnection")) {
-    if (!DBI::dbIsValid(con)) {
-      stop("The provided database connection is not valid or has been closed.")
-    }
-  }
-
-  # Pull genotype data using the package's core query engine
-  gt_data <- pgsql_query_genotypes(con, variant_ids = variant_id)
+  # 1. Pull genotype data using the API wrapper (Cloud fetch)
+  gt_data <- pg_query_genotypes(variant_ids = variant_id)
+  
   if (nrow(gt_data) == 0) {
     stop(paste(
       "Variant ID",
       variant_id,
-      "was not found in the pangenome database."
+      "was not found in the cloud database."
     ))
   }
 
-  # Fetch functional annotations and mapping identifiers for sample alignment
-  ann_info <- DBI::dbGetQuery(
-    con,
-    "SELECT annotation, impact FROM annotations WHERE variant_id = $1",
-    params = list(variant_id)
-  )
-  pi_map <- DBI::dbGetQuery(con, "SELECT lib, pinumber FROM metadata")
+  # 2. Fetch sample metadata mapping from the cloud
+  pi_map <- pg_get_sample_metadata()
+
+  # Note: To avoid creating a brand new API endpoint just for a single annotation impact, 
+  # we default it to "UNKNOWN" for the API wrapper. If you want the full verdict logic, 
+  # you can add a dedicated annotation endpoint later.
+  impact <- "UNKNOWN"
 
   # Align genotype samples with phenotype PI numbers
   sample_cols <- setdiff(
@@ -1786,7 +1785,7 @@ pgsql_plot_trait_association <- function(
   p_val <- NA
   pve_val <- 0
 
-  #  Statistical tests based on the trait distribution
+  # Statistical tests based on the trait distribution
   if (trait_type == "quantitative") {
     p_val <- stats::kruskal.test(
       plot_data[[trait_col]] ~ plot_data$genotype
@@ -1801,12 +1800,10 @@ pgsql_plot_trait_association <- function(
     )$p.value
   }
 
-  # Establish a breeding verdict based on statistical significance and biological impact
-  impact <- if (nrow(ann_info) > 0) ann_info$impact[1] else "UNKNOWN"
   is_sig <- !is.na(p_val) && p_val < 0.05
 
-  # The VALIDATE verdict is triggered by strong stats (PVE > 10%) or high protein-impact
-  verdict <- if (is_sig && (pve_val > 0.1 || impact == "HIGH")) {
+  # The VALIDATE verdict is triggered by strong stats (PVE > 10%)
+  verdict <- if (is_sig && pve_val > 0.1) {
     "VALIDATE"
   } else if (is_sig) {
     "CAUTION"
@@ -1814,19 +1811,17 @@ pgsql_plot_trait_association <- function(
     "DISCARD"
   }
 
-  # Generate the diagnostic visualization
+  # Generate the diagnostic visualization (Local processing)
   p <- ggplot2::ggplot(plot_data, ggplot2::aes(x = genotype)) +
     ggplot2::theme_minimal() +
     ggplot2::scale_fill_brewer(palette = "Set1")
 
   if (trait_type == "quantitative") {
-
     p <- p +
       ggplot2::aes(y = .data[[trait_col]], fill = genotype) +
       ggplot2::geom_boxplot(outlier.shape = NA, alpha = 0.5) +
       ggplot2::geom_jitter(width = 0.2, alpha = 0.4)
   } else {
-
     p <- p +
       ggplot2::aes(fill = .data[[trait_col]]) +
       ggplot2::geom_bar(position = "fill", color = "white", linewidth = 0.3) +
@@ -1844,9 +1839,7 @@ pgsql_plot_trait_association <- function(
         round(pve_val * 100, 1),
         "% | MAF: ",
         round(maf, 3),
-        "\nImpact: ",
-        impact,
-        " | Verdict: ",
+        "\nVerdict: ",
         verdict
       ),
       x = "Genotype",

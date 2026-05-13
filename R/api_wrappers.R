@@ -436,3 +436,7 @@ pg_query_by_metadata <- function(chrom, start, end, meta_col, meta_value) {
 
   return(.api_fetch("/db/query_by_metadata", query = query_params))
 }
+
+# To start the API
+# pr <- plumber::plumb("plumber.R")
+# pr$run(host = "0.0.0.0", port = 8000)

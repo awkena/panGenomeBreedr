@@ -2,8 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{query_db}
 \alias{query_db}
-\title{Query any table in your SQLite database using chromosome and a genomic position
-range.}
+\title{Query any table in your SQLite database using chromosome and a genomic position range.}
 \usage{
 query_db(
   db_path,
@@ -17,7 +16,7 @@ query_db(
 \arguments{
 \item{db_path}{A character value indicating the path to the SQLite database.}
 
-\item{table_name}{A character value specifying the name of any any table in a
+\item{table_name}{A character value specifying the name of any table in a
 SQLite database.}
 
 \item{chrom}{A character value specifying the chromosome name.}
@@ -32,8 +31,7 @@ if available. It used if querying the `annotations` table in the database.}
 A data frame of the table queried in the SQLite database.
 }
 \description{
-Query any table in your SQLite database using chromosome and a genomic position
-range.
+Query any table in your SQLite database using chromosome and a genomic position range.
 }
 \examples{
 \donttest{

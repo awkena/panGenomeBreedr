@@ -1,4 +1,8 @@
 # plumber.R
+# library(RPostgres)
+# library(DBI)
+# library(plumber)
+
 # --- GLOBAL SETUP & CONNECTION MANAGEMENT ---
 MASTER_CON <- NULL
 
