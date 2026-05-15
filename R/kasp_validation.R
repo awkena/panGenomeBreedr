@@ -981,9 +981,6 @@ kasp_qc_ggplot <- function(x,
 #' @export
 #' @import ggplot2
 #' @importFrom gridExtra marrangeGrob
-
-
-
 kasp_qc_ggplot2 <- function(x,
                             FAM = 'X',
                             HEX = 'Y',
@@ -1105,6 +1102,16 @@ kasp_qc_ggplot2 <- function(x,
     # Replace '?' and NTC with Blank and Unused for labeling
     plate[, geno_call][plate[, geno_call] == blank] <- 'Blank'
     plate[, geno_call][plate[, geno_call] == unused] <- 'Unused'
+    
+    # Create tooltip text for interactivity
+    if (!is.null(Group_id)) {
+      plate$tooltip_text <- paste0(
+        "Call: ", plate[, geno_call], "\n",
+        "Group: ", plate[, Group_id]
+      )
+    } else {
+      plate$tooltip_text <- paste0("Call: ", plate[, geno_call])
+    }
 
 
     # Scale FAM and HEX values to 0 and 1s -- recommended
@@ -1148,7 +1155,7 @@ kasp_qc_ggplot2 <- function(x,
       plt <- ggplot2::ggplot(plate, ggplot2::aes(x = X,
                                                  y = Y,
                                                  fill = status,
-                                                 shape = Call,
+                                                 shape = .data[[geno_call]],
                                                  size = status)) + # Map size to prediction status
         # SOLUTION 2 & 3: apply alpha directly to point, rely on size mapping
         # Adding explicitly 'color="black"' ensures a crisp stroke around transparent points
@@ -1174,7 +1181,7 @@ kasp_qc_ggplot2 <- function(x,
 
       plt <- ggplot2::ggplot(plate, ggplot2::aes(x = X,
                                                  y = Y,
-                                                 fill = Call)) +
+                                                 fill = .data[[geno_call]])) +
         # SOLUTION 2 applied here as well for consistency
         ggplot2::geom_point(size = 4, pch = 21, alpha = alpha, color = "black", stroke = 0.5) +
         ggplot2::scale_fill_manual(values = cols,
@@ -2180,4 +2187,3 @@ gg_dat <- function(num_mat,
   return(df)
 
 }
-
