@@ -142,7 +142,7 @@ mod_variant_discovery_ui <- function(id) {
             class = "d-flex justify-content-between align-items-center",
             tagList(
               icon("list-ul", class = "me-1 text-primary"),
-              "Inspect Table Schema"
+              "Available Data Fields"
             ),
             shinyWidgets::actionBttn(
               ns("get_schema"),
@@ -156,7 +156,7 @@ mod_variant_discovery_ui <- function(id) {
           bslib::card_body(
             selectInput(
               ns("table_name_lst"),
-              "Table to inspect",
+              "Select Data Category",
               choices = c("variants", "annotations", "genotypes"),
               selected = "genotypes",
               width = "50%"
@@ -365,7 +365,7 @@ gene_cord_tab <- function(ns) {
     bslib::card(
       class = "shadow p",
       bslib::card_header(
-        tags$strong("Query Database"),
+        tags$strong("Extract Database Records"),
         class = 'text-center',
         style = "font-size:18px;"
       ),
@@ -385,7 +385,7 @@ gene_cord_tab <- function(ns) {
           style = "display: flex; justify-content: center;",
           actionButton(
             ns("query_dbase_btn"),
-            tags$b("Execute Query"),
+            tags$b("Fetch Data"),
             width = "70%",
             icon = icon("play"),
             style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
@@ -469,14 +469,14 @@ gene_cord_tab <- function(ns) {
     ),
     bslib::layout_columns(
       col_widths = c(2, 4, 4, 2),
-      div(), 
+      div(),
       bslib::card(
         class = "text-center shadow-sm p-4",
         style = "border-top: 4px solid #3498DB;",
         tags$div(class = "h1 text-info mb-3", icon("database")),
-        tags$h5("SQLite Connection", class = "fw-bold"),
+        tags$h5("Local Database File (.db)", class = "fw-bold"),
         p(
-          "Connect to a local panGenomeBreedr file.",
+          "Perform offline variant discovery using a local database file.",
           class = "text-muted mb-4"
         ),
         shinyFiles::shinyFilesButton(
@@ -492,19 +492,19 @@ gene_cord_tab <- function(ns) {
         class = "text-center shadow-sm p-4",
         style = "border-top: 4px solid #27AE60;",
         tags$div(class = "h1 text-success mb-3", icon("server")),
-        tags$h5("PostgreSQL Connection", class = "fw-bold"),
+        tags$h5("Cloud / Remote Database", class = "fw-bold"),
         p(
-          "Connect to a remote database server via API.",
+          "Perform online variant discovery using hosted pangenome resources.",
           class = "text-muted mb-4"
         ),
         actionButton(
-          ns("btn_connect_postgres"),
+          ns("btn_show_postgres_modal"),
           "Connect to Server",
           class = "btn-success btn-lg rounded-pill px-4",
-          icon = icon("plug"),
+          icon = icon("plug")
         )
       ),
-      div() 
+      div()
     )
   )
   
@@ -513,13 +513,13 @@ gene_cord_tab <- function(ns) {
     fillable = FALSE,
     sidebar = bslib::sidebar(
       id = ns('db_sidebar'),
-      width = 350,
+      width = 320,
       bg = "#f8f9fa",
       class = "p-3",
-      title = tags$h4(
+      title = tags$h3(
         "MAIN MENU",
         class = "text-muted fw-bold mb-3",
-        style = "letter-spacing: 1.5px; font-size: 0.75rem;"
+        style = "letter-spacing: 1.5px; font-size: 0.9rem;"
       ),
 
       div(
@@ -920,8 +920,56 @@ mod_variant_discovery_server <- function(id) {
     })
 
     
+    # Show Modal for PostgreSQL Connection
+    observeEvent(input$btn_show_postgres_modal, {
+      showModal(
+        modalDialog(
+          title = div(
+            class = "d-flex align-items-center",
+            icon("cloud", class = "text-success me-2", style = "font-size: 1.5rem;"),
+            tags$b("Connect to Cloud API")
+          ),
+          size = "m",
+          easyClose = TRUE,
+          fade = TRUE,
+          div(
+            class = "mb-4 text-muted",
+            "By default, panGB connects to the public ", tags$b("Sorghum Pangenome"), " database. ",
+            "If your institution hosts a custom pangenome database for another crop, you can specify the endpoint below."
+          ),
+          radioButtons(
+            ns("api_choice"),
+            label = tags$b("Select Database Source:"),
+            choices = c(
+              "Public Sorghum Pangenome Database" = "default",
+              "Custom API Endpoint" = "custom"
+            ),
+            selected = "default"
+          ),
+          conditionalPanel(
+            condition = sprintf("input['%s'] == 'custom'", ns("api_choice")),
+            textInput(
+              ns("api_url"),
+              label = "Server Address (URL)",
+              placeholder = "e.g., http://rice-server:8000",
+              width = "100%"
+            )
+          ),
+          footer = tagList(
+            modalButton("Cancel"),
+            actionButton(
+              ns("btn_connect_postgres"),
+              "Connect",
+              class = "btn-success fw-bold px-4",
+              icon = icon("plug")
+            )
+          )
+        )
+      )
+    })
 
     observeEvent(input$btn_connect_postgres, {
+      removeModal() # Close the modal upon submission
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
         color = "#27AE60",
@@ -929,6 +977,15 @@ mod_variant_discovery_server <- function(id) {
       )
       tryCatch(
         {
+          # Determine the target API URL based on user selection
+          target_url <- if (input$api_choice == "custom") {
+            trimws(input$api_url)
+          } else {
+            "http://16.171.142.87:8000"  # Sorghum pangenome API -- will change  from mini
+          }
+          
+          # Set endpoint API
+          set_api_url(target_url)
           # Verify API is alive and get table list via wrapper
           rv$tables <- pg_list_tables()
 
@@ -1480,7 +1537,7 @@ mod_variant_discovery_server <- function(id) {
           tagList(
             selectInput(
               ns("table_name"),
-              "Table to Query",
+              "Data Type to Extract",
               choices = c("variants", "annotations", "genotypes"),
               selected = "annotations",
               width = "100%"
@@ -1495,14 +1552,14 @@ mod_variant_discovery_server <- function(id) {
           tagList(
             selectInput(
               ns("table_name_a"),
-              "Table name for Annotation",
+              "Annotations Source",
               choices = c("variants", "annotations", "genotypes"),
               selected = "annotations",
               width = "100%"
             ),
             selectInput(
               ns("table_name_v"),
-              "Table name for Variants",
+              "Variants Source",
               choices = c("variants", "annotations", "genotypes"),
               selected = "variants",
               width = "100%"
