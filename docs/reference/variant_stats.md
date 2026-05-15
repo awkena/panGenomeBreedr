@@ -48,7 +48,7 @@ R.utils::gunzip(mini_db,
 # Get variant statistics in the SQLite database
 variant_stats(mini_db_path)
 #>   chrom n_variants  min_pos  max_pos n_unique_ids n_annotated
-#> 1 Chr05        216 75103571 75107320          216         216
+#> 1 Chr05        102 75104541 75106383          102         102
 
 # Clean tempdir
 contents <- list.files(tempdir(),

@@ -43,9 +43,10 @@ R.utils::gunzip(mini_db,
 # Row counts for each table in the database
 summarize_sqlite_tables(mini_db_path)
 #>                   table n_rows
-#> annotations annotations    795
-#> genotypes     genotypes    216
-#> variants       variants    216
+#> annotations annotations    363
+#> genotypes     genotypes    102
+#> metadata       metadata   1676
+#> variants       variants    102
 
 # Clean tempdir
 contents <- list.files(tempdir(),

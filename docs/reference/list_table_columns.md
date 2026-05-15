@@ -50,15 +50,15 @@ R.utils::gunzip(mini_db,
 
 # List column names and type of variable in the variants table in the database
 list_table_columns(mini_db_path, table_name = "variants")
-#>   cid         name    type notnull dflt_value pk
-#> 1   0   variant_id    TEXT       0         NA  0
-#> 2   1        chrom    TEXT       0         NA  0
-#> 3   2          pos INTEGER       0         NA  0
-#> 4   3          ref    TEXT       0         NA  0
-#> 5   4          alt    TEXT       0         NA  0
-#> 6   5         qual    TEXT       0         NA  0
-#> 7   6       filter    TEXT       0         NA  0
-#> 8   7 variant_type    TEXT       0         NA  0
+#>   cid         name type notnull dflt_value pk
+#> 1   0   variant_id TEXT       0         NA  0
+#> 2   1        chrom TEXT       0         NA  0
+#> 3   2          pos  INT       0         NA  0
+#> 4   3          ref TEXT       0         NA  0
+#> 5   4          alt TEXT       0         NA  0
+#> 6   5         qual TEXT       0         NA  0
+#> 7   6       filter TEXT       0         NA  0
+#> 8   7 variant_type TEXT       0         NA  0
 
 # Clean tempdir
 contents <- list.files(tempdir(),

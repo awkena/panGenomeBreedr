@@ -9,6 +9,8 @@
     Database](#recommended-schema-for-the-sqlite-database)
   - [Database Creation](#database-creation)
   - [Query Variant Tables](#query-variant-tables)
+  - [Query Online Pangenome
+    Databases](#query-online-pangenome-databases)
   - [Filter Variants by Allele
     Frequency](#filter-variants-by-allele-frequency)
   - [Summarize SnpEff Annotation and
@@ -55,7 +57,7 @@ downloaded**
 
 ### Recommended Schema for the SQLite Database
 
-The SQLite database contains the following three key tables:
+The SQLite database contains the following four key tables:
 
 #### `variants`
 
@@ -87,17 +89,34 @@ including predicted effects, gene names, and functional categories.
 
 #### `genotypes`
 
-This table stores genotype calls per sample for each variant in a wide
-format.
+This table stores genotype calls per sample for each variant. To save
+space with large pangenomes, genotypes are packed into a single text
+array column (`calls`).
 
-| Column       | Description                         |
-|--------------|-------------------------------------|
-| `variant_id` | Foreign key linking to `variants`   |
-| `chrom`      | Chromosome name                     |
-| `pos`        | Genomic position                    |
-| `sample1`    | Genotype for Sample 1 (e.g., `1|1`) |
-| `sample2`    | Genotype for Sample 2 (e.g., `0|0`) |
-| …            | Genotypes for other samples         |
+| Column | Description |
+|----|----|
+| `variant_id` | Foreign key linking to `variants` |
+| `chrom` | Chromosome name |
+| `pos` | Genomic position |
+| `calls` | Comma-separated array of all genotype calls (e.g., `{0|0, 1|1}`) |
+
+#### `metadata`
+
+This table stores metadata for the samples in the pangenome. Because the
+genotypes are packed into a single text array to save space, this table
+is required to map those array positions back to their specific sample
+names. While users can include rich phenotypic or geographic data (like
+`lat`, `lon`, and `countryorigin`), only a few base columns are strictly
+required.
+
+| Column | Description |
+|----|----|
+| `array_index` | Required. The integer index corresponding to the sample’s position in the `genotypes` array |
+| `lib` | Required. The unique library or accession identifier |
+| `sample` | Required. The sample name |
+| `countryorigin` | Optional. Country of origin for geographic visualizations |
+| `lat` / `lon` | Optional. Geographic coordinates for the interactive map |
+| `...` | Optional. Any other phenotypic or population data |
 
 ### Database Creation
 
@@ -168,8 +187,8 @@ unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE),
        recursive = TRUE)
 ```
 
-| variant_id           | chrom | pos      | variant_type | ref | alt  | IDMM | ISGC | ISGK | ISHC |
-|:---------------------|:------|:---------|:-------------|:----|:-----|:-----|:-----|:-----|:-----|
+| variant_id           | chrom |      pos | variant_type | ref | alt  | IDMM | ISGC | ISGK | ISHC |
+|:---------------------|:------|---------:|:-------------|:----|:-----|:-----|:-----|:-----|:-----|
 | INDEL_Chr05_75104541 | Chr05 | 75104541 | INDEL        | T   | TGAC | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
 | SNP_Chr05_75104557   | Chr05 | 75104557 | SNP          | C   | T    | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
 | SNP_Chr05_75104560   | Chr05 | 75104560 | SNP          | C   | T    | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
@@ -189,6 +208,44 @@ Table 1: Queried genotypes for varaints from the SQLite database.
 
 Table 2: Queried annotations for variants from the SQLite database.
 {.table}
+
+#### Query Online Pangenome Databases
+
+In addition to local SQLite files, `panGB` allows you to connect to
+pangenome databases hosted online. The online database contains the
+exact same data as the local SQLite file, but it saves you from having
+to download massive files to your laptop’s hard drive and allows
+multiple researchers to query the data at the same time.
+
+By default, `panGB` connects to the public Sorghum Pangenome database.
+However, you can also configure the package to connect to your own
+institution’s hosted database. The functions for querying online
+databases are exactly the same as the local ones, but they start with
+`pg_` (e.g.,
+[`pg_query_db()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_db.md)
+instead of
+[`query_db()`](https://awkena.github.io/panGenomeBreedr/reference/query_db.md)).
+
+``` r
+
+library(panGenomeBreedr)
+
+# Connect to your institution's online database (Optional)
+# If not set, it defaults to the public Sorghum Pangenome database
+set_api_url("http://16.171.142.87:8000")
+#> panGenomeBreedr API endpoint successfully set to: http://16.171.142.87:8000
+
+# Extract genotypes within a genomic range from the online database
+pg_gt_region <- pg_query_db(table_name = "genotypes",
+                            chrom = "Chr05",
+                            start = 75104537,
+                            end = 75106403)
+
+# Extract annotations for a specific candidate gene from the online database
+pg_annota_region <- pg_query_db(table_name = "annotations",
+                                chrom = "Chr05",
+                                gene_name = "Sobic.005G213600")
+```
 
 ### Summarize SnpEff Annotation and Impact
 
@@ -406,6 +463,53 @@ lgs1 <- kasp_marker_design(gt_df = geno_high_filtered,
                            save_alignment = TRUE,
                            plot_file = path,
                            region_name = "lgs1")
+#> Registered S3 methods overwritten by 'Seqinfo':
+#>   method                from        
+#>   as.data.frame.Seqinfo GenomeInfoDb
+#>   merge.Seqinfo         GenomeInfoDb
+#>   summary.Seqinfo       GenomeInfoDb
+#> Warning: replacing previous import 'GenomeInfoDb::seqinfo<-' by
+#> 'GenomicRanges::seqinfo<-' when loading 'BSgenome'
+#> Warning: replacing previous import 'GenomeInfoDb::seqinfo' by
+#> 'GenomicRanges::seqinfo' when loading 'BSgenome'
+#> Warning: replacing previous import 'GenomeInfoDb::seqnames' by
+#> 'GenomicRanges::seqnames' when loading 'BSgenome'
+#> Warning: replacing previous import 'GenomeInfoDb::seqnames<-' by
+#> 'GenomicRanges::seqnames<-' when loading 'BSgenome'
+#> Warning: replacing previous import 'GenomicRanges::seqinfo' by
+#> 'Biostrings::seqinfo' when loading 'BSgenome'
+#> Warning: replacing previous import 'GenomicRanges::seqinfo<-' by
+#> 'Biostrings::seqinfo<-' when loading 'BSgenome'
+#> Warning: replacing previous import 'GenomeInfoDb::seqinfo<-' by
+#> 'GenomicRanges::seqinfo<-' when loading 'rtracklayer'
+#> Warning: replacing previous import 'GenomeInfoDb::seqinfo' by
+#> 'GenomicRanges::seqinfo' when loading 'rtracklayer'
+#> Warning: replacing previous import 'GenomeInfoDb::seqnames' by
+#> 'GenomicRanges::seqnames' when loading 'rtracklayer'
+#> Warning: replacing previous import 'GenomeInfoDb::seqnames<-' by
+#> 'GenomicRanges::seqnames<-' when loading 'rtracklayer'
+#> Warning: replacing previous import 'GenomeInfoDb::seqinfo<-' by
+#> 'GenomicRanges::seqinfo<-' when loading 'GenomicAlignments'
+#> Warning: replacing previous import 'GenomeInfoDb::seqinfo' by
+#> 'GenomicRanges::seqinfo' when loading 'GenomicAlignments'
+#> Warning: replacing previous import 'GenomeInfoDb::seqnames' by
+#> 'GenomicRanges::seqnames' when loading 'GenomicAlignments'
+#> Warning: replacing previous import 'GenomeInfoDb::seqnames<-' by
+#> 'GenomicRanges::seqnames<-' when loading 'GenomicAlignments'
+#> Warning: replacing previous import 'SummarizedExperiment::seqinfo' by
+#> 'Biostrings::seqinfo' when loading 'GenomicAlignments'
+#> Warning: replacing previous import 'SummarizedExperiment::seqinfo<-' by
+#> 'Biostrings::seqinfo<-' when loading 'GenomicAlignments'
+#> Warning: multiple methods tables found for 'seqinfo'
+#> Warning: multiple methods tables found for 'seqinfo<-'
+#> Warning: multiple methods tables found for 'seqnames'
+#> Warning: multiple methods tables found for 'seqnames<-'
+#> Warning: multiple methods tables found for 'seqinfo'
+#> Warning: multiple methods tables found for 'seqinfo<-'
+#> Warning: multiple methods tables found for 'seqinfo'
+#> Warning: multiple methods tables found for 'seqinfo<-'
+#> Warning: multiple methods tables found for 'seqnames'
+#> Warning: multiple methods tables found for 'seqnames<-'
 
 
 # View marker alignment output from temp folder

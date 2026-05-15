@@ -76,6 +76,8 @@ Database Rationale</a></li>
 Schema for the SQLite Database</a></li>
 <li><a href="#database-creation">Database Creation</a></li>
 <li><a href="#query-variant-tables">Query Variant Tables</a></li>
+<li><a href="#query-online-pangenome-databases">Query Online Pangenome
+Databases</a></li>
 <li><a href="#filter-variants-by-allele-frequency">Filter Variants by
 Allele Frequency</a></li>
 <li><a href="#summarize-snpeff-annotation-and-impact">Summarize SnpEff
@@ -133,7 +135,7 @@ downloaded</strong> <a href="https://drive.google.com/file/d/1L4S7_ZGeFyu_bA7rRs
 <div class="section level3">
 <h3 id="recommended-schema-for-the-sqlite-database">Recommended Schema for the SQLite Database<a class="anchor" aria-label="anchor" href="#recommended-schema-for-the-sqlite-database"></a>
 </h3>
-<p>The SQLite database contains the following three key tables:</p>
+<p>The SQLite database contains the following four key tables:</p>
 <div class="section level4">
 <h4 id="variants">
 <code>variants</code><a class="anchor" aria-label="anchor" href="#variants"></a>
@@ -218,9 +220,14 @@ names, and functional categories.</p>
 <h4 id="genotypes">
 <code>genotypes</code><a class="anchor" aria-label="anchor" href="#genotypes"></a>
 </h4>
-<p>This table stores genotype calls per sample for each variant in a
-wide format.</p>
+<p>This table stores genotype calls per sample for each variant. To save
+space with large pangenomes, genotypes are packed into a single text
+array column (<code>calls</code>).</p>
 <table class="table">
+<colgroup>
+<col width="18%">
+<col width="81%">
+</colgroup>
 <thead><tr class="header">
 <th>Column</th>
 <th>Description</th>
@@ -240,16 +247,60 @@ wide format.</p>
 <td>Genomic position</td>
 </tr>
 <tr class="even">
-<td><code>sample1</code></td>
-<td>Genotype for Sample 1 (e.g., <code>1|1</code>)</td>
+<td><code>calls</code></td>
+<td>Comma-separated array of all genotype calls (e.g.,
+<code>{0|0, 1|1}</code>)</td>
 </tr>
+</tbody>
+</table>
+</div>
+<div class="section level4">
+<h4 id="metadata">
+<code>metadata</code><a class="anchor" aria-label="anchor" href="#metadata"></a>
+</h4>
+<p>This table stores metadata for the samples in the pangenome. Because
+the genotypes are packed into a single text array to save space, this
+table is required to map those array positions back to their specific
+sample names. While users can include rich phenotypic or geographic data
+(like <code>lat</code>, <code>lon</code>, and
+<code>countryorigin</code>), only a few base columns are strictly
+required.</p>
+<table class="table">
+<colgroup>
+<col width="22%">
+<col width="77%">
+</colgroup>
+<thead><tr class="header">
+<th>Column</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
 <tr class="odd">
-<td><code>sample2</code></td>
-<td>Genotype for Sample 2 (e.g., <code>0|0</code>)</td>
+<td><code>array_index</code></td>
+<td>Required. The integer index corresponding to the sample’s position
+in the <code>genotypes</code> array</td>
 </tr>
 <tr class="even">
-<td>…</td>
-<td>Genotypes for other samples</td>
+<td><code>lib</code></td>
+<td>Required. The unique library or accession identifier</td>
+</tr>
+<tr class="odd">
+<td><code>sample</code></td>
+<td>Required. The sample name</td>
+</tr>
+<tr class="even">
+<td><code>countryorigin</code></td>
+<td>Optional. Country of origin for geographic visualizations</td>
+</tr>
+<tr class="odd">
+<td>
+<code>lat</code> / <code>lon</code>
+</td>
+<td>Optional. Geographic coordinates for the interactive map</td>
+</tr>
+<tr class="even">
+<td><code>...</code></td>
+<td>Optional. Any other phenotypic or population data</td>
 </tr>
 </tbody>
 </table>
@@ -335,7 +386,7 @@ variant_id
 <th style="text-align:left;">
 chrom
 </th>
-<th style="text-align:left;">
+<th style="text-align:right;">
 pos
 </th>
 <th style="text-align:left;">
@@ -368,7 +419,7 @@ INDEL_Chr05_75104541
 <td style="text-align:left;">
 Chr05
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
 75104541
 </td>
 <td style="text-align:left;">
@@ -400,7 +451,7 @@ SNP_Chr05_75104557
 <td style="text-align:left;">
 Chr05
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
 75104557
 </td>
 <td style="text-align:left;">
@@ -432,7 +483,7 @@ SNP_Chr05_75104560
 <td style="text-align:left;">
 Chr05
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
 75104560
 </td>
 <td style="text-align:left;">
@@ -464,7 +515,7 @@ INDEL_Chr05_75104564
 <td style="text-align:left;">
 Chr05
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
 75104564
 </td>
 <td style="text-align:left;">
@@ -496,7 +547,7 @@ SNP_Chr05_75104568
 <td style="text-align:left;">
 Chr05
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
 75104568
 </td>
 <td style="text-align:left;">
@@ -789,6 +840,39 @@ Chr05
 </tr>
 </tbody>
 </table>
+<div class="section level4">
+<h4 id="query-online-pangenome-databases">Query Online Pangenome Databases<a class="anchor" aria-label="anchor" href="#query-online-pangenome-databases"></a>
+</h4>
+<p>In addition to local SQLite files, <code>panGB</code> allows you to
+connect to pangenome databases hosted online. The online database
+contains the exact same data as the local SQLite file, but it saves you
+from having to download massive files to your laptop’s hard drive and
+allows multiple researchers to query the data at the same time.</p>
+<p>By default, <code>panGB</code> connects to the public Sorghum
+Pangenome database. However, you can also configure the package to
+connect to your own institution’s hosted database. The functions for
+querying online databases are exactly the same as the local ones, but
+they start with <code>pg_</code> (e.g., <code><a href="../reference/pg_query_db.html">pg_query_db()</a></code>
+instead of <code><a href="../reference/query_db.html">query_db()</a></code>).</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Connect to your institution's online database (Optional)</span></span>
+<span><span class="co"># If not set, it defaults to the public Sorghum Pangenome database</span></span>
+<span><span class="fu"><a href="../reference/set_api_url.html">set_api_url</a></span><span class="op">(</span><span class="st">"http://16.171.142.87:8000"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; panGenomeBreedr API endpoint successfully set to: http://16.171.142.87:8000</span></span>
+<span></span>
+<span><span class="co"># Extract genotypes within a genomic range from the online database</span></span>
+<span><span class="va">pg_gt_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pg_query_db.html">pg_query_db</a></span><span class="op">(</span>table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span>
+<span>                            chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
+<span>                            start <span class="op">=</span> <span class="fl">75104537</span>,</span>
+<span>                            end <span class="op">=</span> <span class="fl">75106403</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Extract annotations for a specific candidate gene from the online database</span></span>
+<span><span class="va">pg_annota_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pg_query_db.html">pg_query_db</a></span><span class="op">(</span>table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span>
+<span>                                chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
+<span>                                gene_name <span class="op">=</span> <span class="st">"Sobic.005G213600"</span><span class="op">)</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="summarize-snpeff-annotation-and-impact">Summarize SnpEff Annotation and Impact<a class="anchor" aria-label="anchor" href="#summarize-snpeff-annotation-and-impact"></a>
@@ -800,7 +884,7 @@ indels) within a defined genomic region.</p>
 <p>This function enables users to quickly assess the types and
 functional implications of variants located within candidate genes or
 genomic intervals of interest.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Prepare test database</span></span>
@@ -1041,7 +1125,7 @@ region grouped by variant type.</p></li>
 variants with a HIGH impact on protein function.</strong> To see these
 variants, we need to use the <code><a href="../reference/query_by_impact.html">query_by_impact()</a></code> function, as
 shown below:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Prepare test database</span></span>
 <span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -1494,7 +1578,7 @@ meet desired minor allele frequency (MAF) thresholds for marker
 development.</p>
 <p>An example usage for the <code><a href="../reference/filter_by_af.html">filter_by_af()</a></code> function is
 shown in the code snippet below:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Define temporary directory and decompress demo database</span></span>
@@ -1596,7 +1680,7 @@ Chr05
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get genotype data for HIGH impact variants that passed allele filter</span></span>
 <span><span class="va">geno_high_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_genotypes.html">query_genotypes</a></span><span class="op">(</span>db_path <span class="op">=</span> <span class="va">mini_db_path</span>,</span>
 <span>                                      variant_ids <span class="op">=</span> <span class="va">geno_high_filtered</span><span class="op">$</span><span class="va">variant_id</span>,</span>
@@ -1737,7 +1821,7 @@ INDEL
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Example to design a KASP marker on a HIGH impact Deletion variant</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># (default directory for saving alignment outputs)</span></span>
@@ -1759,6 +1843,53 @@ INDEL
 <span>                           save_alignment <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                           plot_file <span class="op">=</span> <span class="va">path</span>,</span>
 <span>                           region_name <span class="op">=</span> <span class="st">"lgs1"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Registered S3 methods overwritten by 'Seqinfo':</span></span>
+<span><span class="co">#&gt;   method                from        </span></span>
+<span><span class="co">#&gt;   as.data.frame.Seqinfo GenomeInfoDb</span></span>
+<span><span class="co">#&gt;   merge.Seqinfo         GenomeInfoDb</span></span>
+<span><span class="co">#&gt;   summary.Seqinfo       GenomeInfoDb</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqinfo&lt;-' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqinfo&lt;-' when loading 'BSgenome'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqinfo' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqinfo' when loading 'BSgenome'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqnames' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqnames' when loading 'BSgenome'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqnames&lt;-' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqnames&lt;-' when loading 'BSgenome'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomicRanges::seqinfo' by</span></span>
+<span><span class="co">#&gt; 'Biostrings::seqinfo' when loading 'BSgenome'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomicRanges::seqinfo&lt;-' by</span></span>
+<span><span class="co">#&gt; 'Biostrings::seqinfo&lt;-' when loading 'BSgenome'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqinfo&lt;-' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqinfo&lt;-' when loading 'rtracklayer'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqinfo' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqinfo' when loading 'rtracklayer'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqnames' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqnames' when loading 'rtracklayer'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqnames&lt;-' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqnames&lt;-' when loading 'rtracklayer'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqinfo&lt;-' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqinfo&lt;-' when loading 'GenomicAlignments'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqinfo' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqinfo' when loading 'GenomicAlignments'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqnames' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqnames' when loading 'GenomicAlignments'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'GenomeInfoDb::seqnames&lt;-' by</span></span>
+<span><span class="co">#&gt; 'GenomicRanges::seqnames&lt;-' when loading 'GenomicAlignments'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'SummarizedExperiment::seqinfo' by</span></span>
+<span><span class="co">#&gt; 'Biostrings::seqinfo' when loading 'GenomicAlignments'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'SummarizedExperiment::seqinfo&lt;-' by</span></span>
+<span><span class="co">#&gt; 'Biostrings::seqinfo&lt;-' when loading 'GenomicAlignments'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqinfo'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqinfo&lt;-'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqnames'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqnames&lt;-'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqinfo'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqinfo&lt;-'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqinfo'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqinfo&lt;-'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqnames'</span></span>
+<span><span class="co">#&gt; Warning: multiple methods tables found for 'seqnames&lt;-'</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># View marker alignment output from temp folder</span></span>
@@ -1886,7 +2017,7 @@ row tags for genotyping data: <code>Statistics</code>, <code>DNA</code>,
 <p>The raw file is imported as a list object in R. Thus, all components
 in the imported data can be extracted using the row tag ID as shown in
 the code snippet below:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Import raw KASP genotyping file (.csv) using the read_kasp_csv() function</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
@@ -1911,7 +2042,7 @@ the code snippet below:</p>
 fluorescence colors to samples based on their observed genotype calls.
 This step is accomplished using the <code><a href="../reference/kasp_color.html">kasp_color()</a></code> function
 in <code>panGB</code> as shown in the code snippet below:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Assign KASP fluorescence colors using the kasp_color() function</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="co"># Create a subet variable called plates: masterplate x snpid</span></span>
@@ -1953,7 +2084,7 @@ discrimination), a cluster plot needs to be generated.</p>
 <code><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2()</a></code>functions in <code>panGB</code> can be
 used to make the cluster plots for each plate and KASP marker as shown
 below:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># KASP QC plot for Plate 05</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>,</span>
@@ -1971,7 +2102,7 @@ Fig. 3. Cluster plot for Plate 5 using FAM and HEX colors for grouping
 observed genotypes.
 </p>
 </div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># KASP QC plot for Plate 05</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span> <span class="fu"><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>,</span>
@@ -2024,7 +2155,7 @@ above. If this information is not available, set the argument
 <p>The <code><a href="../reference/pred_summary.html">pred_summary()</a></code> function produces a summary of
 predicted genotypes for positive controls in each reaction plate after
 verification (Table 3), as shown in the code snippet below:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get prediction summary for all plates</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">my_sum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pred_summary.html">pred_summary</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span>,</span>
@@ -2196,7 +2327,7 @@ snpSB00805
 <p>The output of the <code><a href="../reference/pred_summary.html">pred_summary()</a></code> function can be
 visualized as bar plots using the <code><a href="../reference/pred_summary_plot.html">pred_summary_plot()</a></code>
 function as shown in the code snippet below:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get prediction summary for snp:snpSB00804</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">my_sum</span> <span class="op">&lt;-</span> <span class="va">my_sum</span><span class="op">$</span><span class="va">summ</span></span>
@@ -2224,7 +2355,7 @@ Fig. 5. Match/Mismatch rate of predictions for snp: snpSB00804.
 <p>Users can visualize the observed genotype calls in a plate design
 format using the <code><a href="../reference/plot_plate.html">plot_plate()</a></code> function as depicted in
 Figure 5, using the code snippet below:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_plate.html">plot_plate</a></span><span class="op">(</span><span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>, pdf <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $`SE-24-1088_P01_d1_snpSB00804`</span></span></code></pre></div>
 <div class="figure">
@@ -2273,7 +2404,7 @@ samples as rows. It comes with some meta data about the samples. Marker
 names are informative: chromosome number and position coordinates are
 embedded in the marker names
 (<code>Eg. S1_778962: chr = 1, pos = 779862</code>).</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Set path to the directory where your data is located</span></span>
 <span><span class="va">path1</span> <span class="op">&lt;-</span>  <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"agriplex_dat.csv"</span>,</span>
@@ -2540,7 +2671,7 @@ re-coding to numeric format is done as follows:</p>
 <li>Loci with at least one missing parental or any other genotype =
 -5.</li>
 </ul>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Parse snp ids to generate a map file</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
@@ -2690,7 +2821,7 @@ S1_1985365
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Process genotype data to re-order SNPs based on chromosome and positions</span></span>
 <span><span class="va">stg5</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/proc_kasp.html">proc_kasp</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">stg5</span>,</span>
 <span>                  kasp_map <span class="op">=</span> <span class="va">map_file</span>,</span>
@@ -3005,7 +3136,7 @@ Stg5-|-_3
 <p>All is now set to generate the heatmap (Figure 6) using the
 <code><a href="../reference/cross_qc_ggplot.html">cross_qc_ggplot()</a></code> function, as shown in the code snippet
 below:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Get prediction summary for snp:snpSB00804</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
@@ -3047,7 +3178,7 @@ PDF file in a directory outside R.</p>
 effective, we can use the <code><a href="../reference/cross_qc_annotate.html">cross_qc_annotate()</a></code> function to
 generate a heatmap (Figure 7) with an annotation of the position of the
 <em>stg5</em> locus on Chr 1, as shown below:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">###########################################################################</span></span>
 <span><span class="co"># Subset data for the first 30 markers on Chr 1</span></span>
@@ -3108,7 +3239,7 @@ defined RPP threshold on the bar plot.</p>
 <p>We can compute and visualize the observed RPP values for the
 <em>stg5</em> NILs across all polymorphic loci as shown in the code
 snippet below:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Calculate weighted RPP</span></span>
 <span><span class="va">rpp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_rpp_bc.html">calc_rpp_bc</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">num_geno</span>,</span>
@@ -3658,7 +3789,7 @@ presence of favorable alleles by converting raw marker genotype data
 into a binary matrix (1 = favorable allele present, 0 = absent) based on
 a set of trait-predictive markers. The <code><a href="../reference/foreground_select.html">foreground_select()</a></code>
 function is shown in the code snippet below:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Marker genotype data</span></span>
@@ -3836,7 +3967,7 @@ loci are involved in each combination.</p></li>
 <li><p><strong>Left bar plot:</strong> shows how many lines have the
 favorable allele for each individual target locus.</p></li>
 </ul>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Make an Upset plot and overlay with trait loci names</span></span>
 <span><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sets <span class="op">=</span> <span class="va">marker_info</span><span class="op">$</span><span class="va">qtl_markers</span>,</span>
 <span>                      locus <span class="op">=</span> <span class="va">marker_info</span><span class="op">$</span><span class="va">locus_name</span><span class="op">)</span></span>
@@ -3892,7 +4023,7 @@ desired allele presence/absence profile across loci. Using the binary
 matrix, users can extract line IDs corresponding to any intersection
 (i.e., specific combinations of favorable alleles revealed by the UpSet
 plot).</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Find lines with favorable alleles at all target loci</span></span>
