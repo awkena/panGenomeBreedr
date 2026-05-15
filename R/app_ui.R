@@ -176,7 +176,7 @@ app_ui <- function(request) {
             class = "text-muted mx-auto mb-0",
             style = "max-width: 800px; font-size: 0.85rem; line-height: 1.6;",
             tags$span(class = "fw-semibold text-secondary", "Developed by: "),
-            "Alexander Wireko Kena, Israel Tawiah Tetteh, Clara Cruet Burgos and Geoffrey Preston Morris."
+            "Israel Tawiah Tetteh, Alexander Wireko Kena, Clara Cruet Burgos and Geoffrey Preston Morris."
           )
         )
       ),
