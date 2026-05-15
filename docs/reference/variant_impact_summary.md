@@ -46,7 +46,7 @@ R.utils::gunzip(mini_db,
 # Get variant impact summary in the SQLite database
 variant_impact_summary(mini_db_path)
 #>   chrom impact_HIGH impact_LOW impact_MODERATE impact_MODIFIER
-#> 1 Chr05           6         21              34             734
+#> 1 Chr05           6         21              34             302
 
 # Clean tempdir
 contents <- list.files(tempdir(),

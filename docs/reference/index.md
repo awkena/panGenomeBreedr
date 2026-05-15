@@ -91,6 +91,10 @@
   : Query genotypes filtered by sample metadata attributes in SQLite
 - [`query_map_accessions()`](https://awkena.github.io/panGenomeBreedr/reference/query_map_accessions.md)
   : Interactive Geographic Exploration of Sorghum Accessions
+- [`set_api_url()`](https://awkena.github.io/panGenomeBreedr/reference/set_api_url.md)
+  : Set the API endpoint URL for pangenome database
+- [`get_api_url()`](https://awkena.github.io/panGenomeBreedr/reference/get_api_url.md)
+  : Get the current API endpoint URL
 
 ## KASP Marker Validation
 

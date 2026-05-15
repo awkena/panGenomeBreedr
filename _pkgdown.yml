@@ -88,6 +88,8 @@ reference:
       - pg_variant_impact_summary
       - query_by_metadata
       - query_map_accessions
+      - set_api_url
+      - get_api_url
 
   - title: "KASP Marker Validation"
     contents:

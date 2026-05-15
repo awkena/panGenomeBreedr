@@ -221,8 +221,14 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
             width = "60%"
           ),hr(),
           div(
-            style = "display: flex; justify-content: center;",
-            plotOutput(outputId = ns("qc_plot2"), width = "100%", height = "500px")
+            style = "position: relative; display: flex; justify-content: center;",
+            plotOutput(
+              outputId = ns("qc_plot2"), 
+              width = "100%", 
+              height = "500px",
+              hover = hoverOpts(id = ns("plot_hover"), delay = 100, delayType = "debounce")
+            ),
+            uiOutput(ns("hover_tooltip"))
           ),
           card(card_footer(fluidRow(
             column(
@@ -424,7 +430,7 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
         tryCatch(
           {
             # Generate the plot
-            result <- panGenomeBreedr::kasp_qc_ggplot2(
+            result <- kasp_qc_ggplot2(
               pdf = FALSE,
               blank = input$blank,
               uncallable = input$uncallable,
@@ -546,35 +552,66 @@ output$plate_layout_plot <- shiny::renderPlot({
       # Render QC plot
       output$qc_plot2 <- renderPlot({
         req(result_plot(), input$plate_choice)
-      tryCatch({
-        print(result_plot()[input$plate_choice])
-
-        shinyWidgets::show_toast(
-          title = "",
-          text = "Plot generated successfully",
-          type = "success",
-          timer = 2000,
-          position = "bottom-end"
-        )
-      },error = function(e){
-        shinyWidgets::show_toast(
-          title = "",
-          text = e$message,
-          type = "error",
-          timer = 2000,
-          position = "bottom-end"
-        )
+        tryCatch({
+          plt <- result_plot()[[input$plate_choice]]
+          shinyWidgets::show_toast(
+            title = "",
+            text = "Plot generated successfully",
+            type = "success",
+            timer = 2000,
+            position = "bottom-end"
+          )
+          
+          plt
+        }, error = function(e) {
+          shinyWidgets::show_toast(
+            title = "",
+            text = e$message,
+            type = "error",
+            timer = 2000,
+            position = "bottom-end"
+          )
+          NULL
+        })
       })
+      
+      # Render Custom HTML Hover Tooltip for calls and Group
+      output$hover_tooltip <- renderUI({
+        hover <- input$plot_hover
+        req(hover, result_plot(), input$plate_choice)
+        
+        plt <- result_plot()[[input$plate_choice]]
+        plot_data <- plt$data
+        
+        # Find closest data point to the mouse coordinates
+        point <- nearPoints(plot_data, hover, xvar = "X", yvar = "Y", threshold = 10, maxpoints = 1)
+        if (nrow(point) == 0) return(NULL)
+        
+        # Calculate tooltip position relative to the plot container
+        left_px <- hover$coords_css$x + 15
+        top_px <- hover$coords_css$y + 15
+        
+        style <- paste0(
+          "position: absolute; z-index: 1000; background-color: rgba(255, 255, 255, 0.95); ",
+          "padding: 8px 12px; border: 1px solid #ccc; border-radius: 5px; ",
+          "box-shadow: 2px 2px 10px rgba(0,0,0,0.2); pointer-events: none; ",
+          "font-size: 13px; left: ", left_px, "px; top: ", top_px, "px;"
+        )
+        
+        div(
+          style = style,
+          tags$span(style = "white-space: pre-wrap; font-weight: bold;", point$tooltip_text)
+        )
       })
 
 
       output$download_plot2 <- downloadHandler(
         filename = function() {
           clean_name <- gsub("[^[:alnum:]_-]", "_", input$file_name2)
-          paste0(clean_name, ".pdf") # Force PDF for multi-page
+          paste0(clean_name, ".pdf") 
         },
         content = function(file) {
-          req(result_plot()) # Only require plot data (no plate_choice dependency)
+          req(result_plot()) 
 
           tryCatch(
             {
@@ -583,13 +620,11 @@ output$plate_layout_plot <- shiny::renderPlot({
                 width = input$width,
                 height = input$height,
                 onefile = TRUE
-              ) # Critical for multi-page
-
-              # Print ALL plots in result_plot()
+              ) 
               for (plot in result_plot()) {
                 print(plot)
               }
-              # print(result_plot()[[input$plate_choice]])
+  
 
               grDevices::dev.off()
             },
@@ -613,7 +648,7 @@ output$plate_layout_plot <- shiny::renderPlot({
 
           tryCatch(
             {
-              # Start PDF (onefile=TRUE ensures multi-page)
+              # Start PDF 
               grDevices::pdf(file,
                 width = input$width,
                 height = input$height,
@@ -622,10 +657,7 @@ output$plate_layout_plot <- shiny::renderPlot({
 
               # Print ALL plots regardless of type
               for (plot_obj in plot_plate_result()) {
-                # if (inherits(plot_obj, "grob")) {
-                #   grid::grid.draw(plot_obj)  # Handle grid graphics
-                # } else {
-                print(plot_obj) # Handle ggplot2/base R plots
+                print(plot_obj) 
                 # }
               }
 

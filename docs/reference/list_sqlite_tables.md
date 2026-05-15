@@ -42,7 +42,7 @@ R.utils::gunzip(mini_db,
 
 # List tables in the SQLite database
 list_sqlite_tables(mini_db_path)
-#> [1] "annotations" "genotypes"   "variants"   
+#> [1] "annotations" "genotypes"   "metadata"    "variants"   
 
 # Clean tempdir
 contents <- list.files(tempdir(),
