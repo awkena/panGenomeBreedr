@@ -87,17 +87,18 @@ kasp_marker_design <- function(vcf_file = NULL,
   # Conditional logic for Bioconductor dependencies
   required_pkgs <- c("Biostrings", "BSgenome", "GenomicRanges", "IRanges", "msa")
 
-  for (pkg in required_pkgs) {
-
-    if (!requireNamespace(pkg, quietly = TRUE)) {
-
-      stop(sprintf("The '%s' package is required for this function.
-                   Please install it via BiocManager::install('%s').", pkg, pkg),
-           call. = FALSE)
-
+  suppressWarnings(suppressMessages(suppressPackageStartupMessages({
+    for (pkg in required_pkgs) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        stop(sprintf("The '%s' package is required for this function.\n                   Please install it via BiocManager::install('%s').", pkg, pkg),
+             call. = FALSE)
+      }
     }
-
-  }
+    # Force load known noisy background dependencies so their S4 warnings are caught
+    requireNamespace("GenomeInfoDb", quietly = TRUE)
+    requireNamespace("rtracklayer", quietly = TRUE)
+    requireNamespace("GenomicAlignments", quietly = TRUE)
+  })))
 
   # Function to classify variants into mutation types
   classify_variant_type <- function(ref, alt) {
@@ -521,9 +522,9 @@ kasp_marker_design <- function(vcf_file = NULL,
   names(sequences) <- c('reference', 'upstream', 'downstream')
 
   # alignment -- updated to silence using Gonnet
-  utils::capture.output(
+  utils::capture.output(suppressWarnings(suppressMessages({
     alg <- msa::msaClustalOmega(sequences, order = 'input')
-  )
+  })))
 
 
   #converting to dnastringset
@@ -615,4 +616,3 @@ kasp_marker_design <- function(vcf_file = NULL,
   return(list(marker_data = marker_data, plot = pp))
 
 }
-
