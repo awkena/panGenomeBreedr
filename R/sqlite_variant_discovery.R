@@ -743,7 +743,7 @@ calc_af <- function(gt,
 
   # Drop variant_id, chrom, pos from sample matrix
   sample_cols <- setdiff(colnames(gt), c(variant_id_col, chrom_col, pos_col))
-  gt_matrix <- gt[, sample_cols]
+  gt_matrix <- gt[, sample_cols, drop = FALSE]
 
   # Function to convert GT string to ALT dosage (0, 1, 2)
   parse_gt <- function(gt) {
@@ -919,28 +919,17 @@ query_by_af <- function(db_path,
                         start = NULL,
                         end = NULL) {
 
-  # Connect to database
-  con <- DBI::dbConnect(RSQLite::SQLite(), db_path)
-  # assign("con", con, envir = .GlobalEnv)
-
-  # Build WHERE clause
-  where_clause <- ""
-  if (!is.null(chrom)) {
-    where_clause <- sprintf("v.chrom = '%s'", chrom)
-    if (!is.null(start) && !is.null(end)) {
-      where_clause <- sprintf("%s AND v.pos BETWEEN %d AND %d", where_clause, start, end)
-    }
+  if (is.null(chrom)) {
+    stop("Chromosome must be specified.")
   }
 
-  query <- sprintf("
-      SELECT g.*
-      FROM genotypes g
-      JOIN variants v ON g.variant_id = v.variant_id
-      WHERE %s
-      ORDER BY v.pos", where_clause)
-
-  gt <- DBI::dbGetQuery(con, query)
-  DBI::dbDisconnect(con)
+  gt <- query_db(
+    db_path = db_path,
+    table_name = "genotypes",
+    chrom = chrom,
+    start = start,
+    end = end
+  )
 
   if (nrow(gt) == 0) {
     message("No genotype data found for specified region.")
