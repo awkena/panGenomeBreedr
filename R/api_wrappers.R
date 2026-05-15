@@ -1,23 +1,78 @@
+#' Set the API endpoint URL for pangenome database
+#'
+#' Allows users to connect the package to any custom-hosted database via API.
+#'
+#' @param url Character. The full URL to your hosted API endpoint
+#'   (e.g., "http://rice-genomics.myuniversity.edu:8000").
+#'
+#' @export
+set_api_url <- function(url) {
+  # Strip any accidental trailing slashes
+  url <- sub("/$", "", url)
+
+  # Set R options in current session
+  options(panGenomeBreedr.api_url = url)
+
+  Sys.setenv(PANGENOME_API_URL = url)
+
+  message("panGenomeBreedr API endpoint successfully set to: ", url)
+}
+
+
+
+
+
+#' Get the current API endpoint URL
+#'
+#' Retrieves the active API endpoint. If no custom endpoint has been set
+#' by the user, it safely defaults to the official Sorghum pangenome database API.
+#'
+#' @returns The character string of the active API URL.
+#' @export
+get_api_url <- function() {
+  # check if the user set a temporary custom URL in this session
+  url <- getOption("panGenomeBreedr.api_url")
+
+  # check if they set a permanent custom URL in their .Renviron
+  if (is.null(url) || url == "") {
+    url <- Sys.getenv("PANGENOME_API_URL")
+  }
+
+  # If nothing is set, use the sorghum AWS Server
+  if (is.null(url) || url == "") {
+    url <- "http://16.171.142.87:8000"
+  }
+
+  return(url)
+}
+
+
+
+
 #' Internal API Fetcher
 #' @noRd
 #' @importFrom jsonlite fromJSON
 .api_fetch <- function(endpoint, query = NULL, simplify = TRUE) {
+  # Get url , user defined or default
   base_url <- get_api_url()
   url <- paste0(base_url, endpoint)
 
+  # Send the request to the server
   response <- httr::GET(url, query = query)
 
+  # Check for server errors
   if (httr::http_error(response)) {
     stop(
       paste0(
         "API Error [",
         httr::status_code(response),
-        "]: Check parameters."
+        "]: Check parameters or server status."
       ),
       call. = FALSE
     )
   }
 
+  # Extract and parse the JSON payload
   raw_json <- httr::content(response, as = "text", encoding = "UTF-8")
   data <- jsonlite::fromJSON(raw_json, simplifyDataFrame = TRUE)
 
