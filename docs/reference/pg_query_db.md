@@ -1,4 +1,4 @@
-# Query PostgreSQL pangenome tables using genomic coordinates
+# Query any table in the pangenome database using chromosome and a genomic position range.
 
 This function connects to the public panGenomeBreedr API to retrieve
 data from the variants, annotations, or genotypes tables based on a

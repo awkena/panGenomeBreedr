@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_query_ann_summary}
 \alias{pg_query_ann_summary}
-\title{Summarize genomic annotations and impacts in a specific region}
+\title{Query the annotations table within a specified genomic region and summarize the distribution of SnpEff annotations and impact categories by variant type.}
 \usage{
 pg_query_ann_summary(
   chrom,

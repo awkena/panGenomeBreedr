@@ -51,42 +51,51 @@
 - [`get_sample_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/get_sample_metadata.md)
   : Retrieve sample metadata from the SQLite database
 - [`pg_variant_stats()`](https://awkena.github.io/panGenomeBreedr/reference/pg_variant_stats.md)
-  : Get variant statistics from the PostgreSQL database
+  : Get variant statistics stored in the pangenome database.
 - [`pg_calc_af()`](https://awkena.github.io/panGenomeBreedr/reference/pg_calc_af.md)
-  : Compute allele frequencies for a genotype matrix
+  : Compute allele frequencies for a VCF genotype matrix (variant x
+  samples).
 - [`pg_count_variant_types()`](https://awkena.github.io/panGenomeBreedr/reference/pg_count_variant_types.md)
-  : Count the distribution of variant types
+  : Count the number of variant types in the pangenome database.
 - [`pg_filter_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/pg_filter_by_af.md)
-  : Filter extracted variants based on alternate allele frequency
+  : Filter extracted variants based on alternate allele frequency.
 - [`pg_gene_coords()`](https://awkena.github.io/panGenomeBreedr/reference/pg_gene_coords.md)
   : Get the genomic range of a candidate gene using the Sobic ID from a
   GFF file
 - [`pg_get_sample_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/pg_get_sample_metadata.md)
-  : Retrieve sample metadata
+  : Retrieve sample metadata from the pangenome database.
 - [`pg_list_table_columns()`](https://awkena.github.io/panGenomeBreedr/reference/pg_list_table_columns.md)
-  : Check column names and types for any table
+  : Check the column names and types for any table in the pangenome
+  database.
 - [`pg_list_tables()`](https://awkena.github.io/panGenomeBreedr/reference/pg_list_tables.md)
-  : List all tables in the PostgreSQL database
+  : List all tables in the connected pangenome database.
 - [`pg_map_accessions()`](https://awkena.github.io/panGenomeBreedr/reference/pg_map_accessions.md)
   : Interactive Geographic Exploration of Sorghum Accessions
 - [`pg_plot_trait_association()`](https://awkena.github.io/panGenomeBreedr/reference/pg_plot_trait_association.md)
   : Generic Trait Association Audit (Cloud/API Version)
 - [`pg_query_ann_summary()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_ann_summary.md)
-  : Summarize genomic annotations and impacts in a specific region
+  : Query the annotations table within a specified genomic region and
+  summarize the distribution of SnpEff annotations and impact categories
+  by variant type.
 - [`pg_query_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_af.md)
-  : Extract variants based on allele frequencies within a genomic region
+  : Extract variants based on minimum and maximum allele frequencies
+  within a defined region in the pangenome database.
 - [`pg_query_by_impact()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_impact.md)
-  : Extract variants based on mutation impact
+  : Extract variants from the annotation table based on impact type.
 - [`pg_query_by_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_metadata.md)
-  : Query genotypes filtered by sample metadata attributes
+  : Query genotypes filtered by sample metadata attributes in the
+  pangenome database.
 - [`pg_query_db()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_db.md)
-  : Query PostgreSQL pangenome tables using genomic coordinates
+  : Query any table in the pangenome database using chromosome and a
+  genomic position range.
 - [`pg_query_genotypes()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_genotypes.md)
-  : Query genotypes for specific variant IDs
+  : Query genotypes for one or more variant IDs from a wide-format
+  genotype table.
 - [`pg_summarize_tables()`](https://awkena.github.io/panGenomeBreedr/reference/pg_summarize_tables.md)
-  : Summarize names and row counts for each table
+  : Name and row count for each table in the pangenome database.
 - [`pg_variant_impact_summary()`](https://awkena.github.io/panGenomeBreedr/reference/pg_variant_impact_summary.md)
-  : Get variant impact summary
+  : Get variant statistics stored in the pangenome database based on
+  mutation impact.
 - [`query_by_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/query_by_metadata.md)
   : Query genotypes filtered by sample metadata attributes in SQLite
 - [`query_map_accessions()`](https://awkena.github.io/panGenomeBreedr/reference/query_map_accessions.md)

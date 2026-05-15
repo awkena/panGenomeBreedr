@@ -1,4 +1,4 @@
-# Extract variants based on allele frequencies within a genomic region
+# Extract variants based on minimum and maximum allele frequencies within a defined region in the pangenome database.
 
 This function connects to the public panGenomeBreedr API to query
 genotypes within a specific genomic range and filters the results to

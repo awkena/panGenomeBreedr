@@ -87,7 +87,7 @@ get_api_url <- function() {
 
 
 
-#' List all tables in the PostgreSQL database
+#' List all tables in the connected pangenome database.
 #'
 #' This function connects to the public panGenomeBreedr API and retrieves the names of
 #' all tables within the database.
@@ -101,7 +101,7 @@ pg_list_tables <- function() {
 
 
 
-#' Get variant statistics from the PostgreSQL database
+#' Get variant statistics stored in the pangenome database.
 #'
 #' This function connects to the public panGenomeBreedr API and calculates
 #' summary statistics for variants per chromosome, including variant counts
@@ -123,11 +123,10 @@ pg_variant_stats <- function(include_annotations = TRUE) {
 
 
 
-#' Get variant impact summary
+#' Get variant statistics stored in the pangenome database based on mutation impact.
 #'
 #' This function connects to the public panGenomeBreedr API and summarizes the
-#' distribution of mutation impacts (e.g., HIGH, MODERATE, LOW, MODIFIER)
-#' across chromosomes.
+#' distribution of mutation impacts across chromosomes.
 #'
 #' @returns A data frame in wide format where each row is a chromosome and
 #' columns represent the counts for each impact category.
@@ -140,7 +139,7 @@ pg_variant_impact_summary <- function() {
 
 
 
-#' Summarize names and row counts for each table
+#' Name and row count for each table in the pangenome database.
 #'
 #' This function connects to the public panGenomeBreedr API and returns a
 #' summary data frame containing the table names and their respective row counts.
@@ -155,7 +154,7 @@ pg_summarize_tables <- function() {
 
 
 
-#' Check column names and types for any table
+#' Check the column names and types for any table in the pangenome database.
 #'
 #' This function connects to the public panGenomeBreedr API and retrieves
 #' metadata about the columns in a specified table.
@@ -182,7 +181,7 @@ pg_list_table_columns <- function(
 
 
 
-#' Query PostgreSQL pangenome tables using genomic coordinates
+#' Query any table in the pangenome database using chromosome and a genomic position range.
 #'
 #' This function connects to the public panGenomeBreedr API to retrieve data
 #' from the variants, annotations, or genotypes tables based on a specific
@@ -220,7 +219,7 @@ pg_query_db <- function(
 
 
 
-#' Extract variants based on mutation impact
+#' Extract variants from the annotation table based on impact type.
 #'
 #' This function connects to the public panGenomeBreedr API to retrieve variants
 #' filtered by snpEff impact levels (HIGH, MODERATE, etc.) and optional
@@ -257,7 +256,7 @@ pg_query_by_impact <- function(
 
 
 
-#' Extract variants based on allele frequencies within a genomic region
+#' Extract variants based on minimum and maximum allele frequencies within a defined region in the pangenome database.
 #'
 #' This function connects to the public panGenomeBreedr API to query genotypes
 #' within a specific genomic range and filters the results to only include
@@ -299,7 +298,7 @@ pg_query_by_af <- function(
 
 
 
-#' Query genotypes for specific variant IDs
+#' Query genotypes for one or more variant IDs from a wide-format genotype table.
 #'
 #' This function connects to the public panGenomeBreedr API to retrieve genomic
 #' data for a specific list of variant IDs. It expands the genotype array
@@ -351,7 +350,7 @@ pg_query_genotypes <- function(
 
 
 
-#' Count the distribution of variant types
+#' Count the number of variant types in the pangenome database.
 #'
 #' This function connects to the public panGenomeBreedr API to perform a
 #' server-side aggregation, counting the occurrences of different variant types
@@ -372,7 +371,7 @@ pg_count_variant_types <- function(variants_table = "variants") {
 
 
 
-#' Summarize genomic annotations and impacts in a specific region
+#' Query the annotations table within a specified genomic region and summarize the distribution of SnpEff annotations and impact categories by variant type.
 #'
 #' This function connects to the public panGenomeBreedr API to query variants
 #' within a specific genomic range and returns summaries of SnpEff annotations
@@ -418,11 +417,11 @@ pg_query_ann_summary <- function(
 
 
 
-#' Retrieve sample metadata
+#' Retrieve sample metadata from the pangenome database.
 #'
 #' This function connects to the public panGenomeBreedr API to fetch accession-level
-#' metadata, such as origin, race, and classification. It supports optional
-#' filtering by specific columns to subset populations for analysis.
+#' metadata, such as origin, race, and classification from the 'metadata' table. It supports optional
+#' filtering by specific columns to easily subset populations for downstream analysis.
 #'
 #' @param query_col Character. The metadata column to filter by (e.g., "countryorigin").
 #'   If \code{NULL}, all records are returned.
@@ -439,11 +438,11 @@ pg_get_sample_metadata <- function(query_col = NULL, query_value = NULL) {
 
 
 
-#' Query genotypes filtered by sample metadata attributes
+#' Query genotypes filtered by sample metadata attributes in the pangenome database.
 #'
-#' This function connects to the public panGenomeBreedr API to retrieve genotypes
-#' for a genomic region, filtered to only include a subset of samples defined
-#' by metadata attributes (e.g., specific countries, populations, or clusters).
+#' This function connects to the public panGenomeBreedr API to retrieve genotypes for a specific
+#' genomic region, but restricts the output to a subset of samples defined
+#' by metadata attributes (e.g., extracting variants only for specific countries, populations, or phenotypic clusters).
 #'
 #' @param chrom Character. Chromosome name.
 #' @param start Numeric. Genomic start range.
@@ -491,7 +490,3 @@ pg_query_by_metadata <- function(chrom, start, end, meta_col, meta_value) {
 
   return(.api_fetch("/db/query_by_metadata", query = query_params))
 }
-
-# To start the API
-# pr <- plumber::plumb("plumber.R")
-# pr$run(host = "0.0.0.0", port = 8000)

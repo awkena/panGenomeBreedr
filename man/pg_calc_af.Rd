@@ -2,7 +2,7 @@
 % Please edit documentation in R/postgresql_variant_discovery.R
 \name{pg_calc_af}
 \alias{pg_calc_af}
-\title{Compute allele frequencies for a genotype matrix}
+\title{Compute allele frequencies for a VCF genotype matrix (variant x samples).}
 \usage{
 pg_calc_af(gt, variant_id_col = "variant_id", chrom_col = NULL, pos_col = NULL)
 }

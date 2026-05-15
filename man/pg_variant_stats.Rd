@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_variant_stats}
 \alias{pg_variant_stats}
-\title{Get variant statistics from the PostgreSQL database}
+\title{Get variant statistics stored in the pangenome database.}
 \usage{
 pg_variant_stats(include_annotations = TRUE)
 }

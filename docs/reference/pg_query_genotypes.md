@@ -1,4 +1,4 @@
-# Query genotypes for specific variant IDs
+# Query genotypes for one or more variant IDs from a wide-format genotype table.
 
 This function connects to the public panGenomeBreedr API to retrieve
 genomic data for a specific list of variant IDs. It expands the genotype

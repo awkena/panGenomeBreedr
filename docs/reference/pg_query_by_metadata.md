@@ -1,9 +1,10 @@
-# Query genotypes filtered by sample metadata attributes
+# Query genotypes filtered by sample metadata attributes in the pangenome database.
 
 This function connects to the public panGenomeBreedr API to retrieve
-genotypes for a genomic region, filtered to only include a subset of
-samples defined by metadata attributes (e.g., specific countries,
-populations, or clusters).
+genotypes for a specific genomic region, but restricts the output to a
+subset of samples defined by metadata attributes (e.g., extracting
+variants only for specific countries, populations, or phenotypic
+clusters).
 
 ## Usage
 

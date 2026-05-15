@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_query_by_metadata}
 \alias{pg_query_by_metadata}
-\title{Query genotypes filtered by sample metadata attributes}
+\title{Query genotypes filtered by sample metadata attributes in the pangenome database.}
 \usage{
 pg_query_by_metadata(chrom, start, end, meta_col, meta_value)
 }
@@ -21,9 +21,9 @@ pg_query_by_metadata(chrom, start, end, meta_col, meta_value)
 A wide-format data frame (variants x filtered samples).
 }
 \description{
-This function connects to the public panGenomeBreedr API to retrieve genotypes
-for a genomic region, filtered to only include a subset of samples defined
-by metadata attributes (e.g., specific countries, populations, or clusters).
+This function connects to the public panGenomeBreedr API to retrieve genotypes for a specific
+genomic region, but restricts the output to a subset of samples defined
+by metadata attributes (e.g., extracting variants only for specific countries, populations, or phenotypic clusters).
 }
 \examples{
 \dontrun{

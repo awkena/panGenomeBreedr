@@ -1,4 +1,4 @@
-# Summarize genomic annotations and impacts in a specific region
+# Query the annotations table within a specified genomic region and summarize the distribution of SnpEff annotations and impact categories by variant type.
 
 This function connects to the public panGenomeBreedr API to query
 variants within a specific genomic range and returns summaries of SnpEff

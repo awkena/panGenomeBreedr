@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_count_variant_types}
 \alias{pg_count_variant_types}
-\title{Count the distribution of variant types}
+\title{Count the number of variant types in the pangenome database.}
 \usage{
 pg_count_variant_types(variants_table = "variants")
 }

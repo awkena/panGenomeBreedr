@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_variant_impact_summary}
 \alias{pg_variant_impact_summary}
-\title{Get variant impact summary}
+\title{Get variant statistics stored in the pangenome database based on mutation impact.}
 \usage{
 pg_variant_impact_summary()
 }
@@ -12,6 +12,5 @@ columns represent the counts for each impact category.
 }
 \description{
 This function connects to the public panGenomeBreedr API and summarizes the
-distribution of mutation impacts (e.g., HIGH, MODERATE, LOW, MODIFIER)
-across chromosomes.
+distribution of mutation impacts across chromosomes.
 }

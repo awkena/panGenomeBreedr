@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_query_db}
 \alias{pg_query_db}
-\title{Query PostgreSQL pangenome tables using genomic coordinates}
+\title{Query any table in the pangenome database using chromosome and a genomic position range.}
 \usage{
 pg_query_db(
   table_name = c("variants", "annotations", "genotypes"),

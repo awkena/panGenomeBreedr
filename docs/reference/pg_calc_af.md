@@ -1,4 +1,4 @@
-# Compute allele frequencies for a genotype matrix
+# Compute allele frequencies for a VCF genotype matrix (variant x samples).
 
 This function calculates the reference and alternate allele frequencies
 for a variants-by-samples matrix. It handles both phased (\|) and
