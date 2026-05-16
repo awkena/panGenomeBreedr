@@ -337,14 +337,16 @@ pgsql_summarize_tables <- function(con) {
   counts <- sapply(tables, function(tbl) {
     tbl_quoted <- DBI::dbQuoteIdentifier(con, tbl)
     query <- paste0("SELECT COUNT(*) FROM ", tbl_quoted)
-    DBI::dbGetQuery(con, query)[[1]]
+    raw_val <- DBI::dbGetQuery(con, query)[[1]]
+
+    as.numeric(as.character(raw_val))
   })
 
   # Aggregate results into a clean data frame.
   # We cast row counts to numeric to prevent integer overflow errors with massive pangenome tables.
   res <- data.frame(
     table = tables,
-    n_rows = as.numeric(counts),
+    n_rows = counts,
     stringsAsFactors = FALSE
   )
 

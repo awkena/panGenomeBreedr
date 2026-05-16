@@ -1351,36 +1351,140 @@ mod_variant_discovery_server <- function(id) {
 
     # Widget for manual cordinate setting
     observeEvent(input$set_genocod_btn, {
-      req(input$chrom, input$start, input$end)
-      tryCatch(
-        {
-          values$result <- list(
-            chrom = sprintf("Chr%02d", input$chrom),
-            start = input$start,
-            end = input$end
-          )
-          shinyWidgets::show_alert(
-            title = "Gene Coordinates Set",
-            text = sprintf(
-              "Chromosome: %s | Start: %d | End: %d",
-              sprintf("Chr%02d", input$chrom),
-              input$start,
-              input$end
-            ),
-            type = "success",
-            timer = 5000
-          )
-          shinyjs::show(id = 'impact_card')
-        },
-        error = function(e) {
-          shinyWidgets::show_alert(
-            title = "Error Setting Coordinates",
-            text = e$message,
-            type = "error"
-          )
-        }
+      req(input$chrom, input$start, input$end, rv$connected)
+      
+      chr_val <- sprintf("Chr%02d", input$chrom)
+      st_val <- input$start
+      en_val <- input$end
+      
+      if (st_val >= en_val) {
+        shinyWidgets::show_alert(
+          title = "Invalid Range",
+          text = "Start position must be less than end position.",
+          type = "warning"
+        )
+        return()
+      }
+
+      shinybusy::show_modal_spinner(
+        spin = "fading-circle",
+        color = "#27AE60",
+        text = "Validating coordinates... Please wait."
       )
+      
+      c_type <- rv$conn_type
+      d_path <- rv$db_path
+      
+      # Use cached stats if available, otherwise fetch
+      if (!is.null(rv$variant_stats)) {
+        v_stats <- rv$variant_stats
+        chr_stats <- v_stats[v_stats$chrom == chr_val, ]
+        
+        shinybusy::remove_modal_spinner()
+        
+        if (nrow(chr_stats) == 0) {
+          shinyWidgets::show_alert(
+            title = "Invalid Chromosome",
+            text = paste("Chromosome", chr_val, "not found in the database."),
+            type = "warning"
+          )
+          return()
+        }
+        
+        if (en_val < chr_stats$min_pos || st_val > chr_stats$max_pos) {
+          shinyWidgets::show_alert(
+            title = "Coordinates Out of Bounds",
+            text = sprintf("The specified range is outside the available data for %s (Min: %s, Max: %s).", 
+                           chr_val, 
+                           format(chr_stats$min_pos, big.mark = ","), 
+                           format(chr_stats$max_pos, big.mark = ",")),
+            type = "warning"
+          )
+          return()
+        }
+        
+        values$result <- list(
+          chrom = chr_val,
+          start = st_val,
+          end = en_val
+        )
+        shinyWidgets::show_alert(
+          title = "Gene Coordinates Set",
+          text = sprintf(
+            "Chromosome: %s | Start: %d | End: %d",
+            chr_val, st_val, en_val
+          ),
+          type = "success",
+          timer = 5000
+        )
+        shinyjs::show(id = 'impact_card')
+        
+      } else {
+        # Fetch stats asynchronously
+        p <- future::future({
+          if (c_type == "sqlite") {
+            variant_stats(db_path = d_path, include_annotations = FALSE)
+          } else {
+            pg_variant_stats(include_annotations = FALSE)
+          }
+        }, seed = TRUE, packages = c("panGenomeBreedr"))
+        
+        promises::then(
+          p,
+          onFulfilled = function(v_stats) {
+            shinybusy::remove_modal_spinner()
+            
+            chr_stats <- v_stats[v_stats$chrom == chr_val, ]
+            
+            if (nrow(chr_stats) == 0) {
+              shinyWidgets::show_alert(
+                title = "Invalid Chromosome",
+                text = paste("Chromosome", chr_val, "not found in the database."),
+                type = "warning"
+              )
+              return()
+            }
+            
+            if (en_val < chr_stats$min_pos || st_val > chr_stats$max_pos) {
+              shinyWidgets::show_alert(
+                title = "Coordinates Out of Bounds",
+                text = sprintf("The specified range is outside the available data for %s (Min: %s, Max: %s).", 
+                               chr_val, 
+                               format(chr_stats$min_pos, big.mark = ","), 
+                               format(chr_stats$max_pos, big.mark = ",")),
+                type = "warning"
+              )
+              return()
+            }
+            
+            values$result <- list(
+              chrom = chr_val,
+              start = st_val,
+              end = en_val
+            )
+            shinyWidgets::show_alert(
+              title = "Gene Coordinates Set",
+              text = sprintf(
+                "Chromosome: %s | Start: %d | End: %d",
+                chr_val, st_val, en_val
+              ),
+              type = "success",
+              timer = 5000
+            )
+            shinyjs::show(id = 'impact_card')
+          },
+          onRejected = function(err) {
+            shinybusy::remove_modal_spinner()
+            shinyWidgets::show_alert(
+              title = "Error Validating Coordinates",
+              text = err$message,
+              type = "error"
+            )
+          }
+        )
+      }
     })
+
 
 
     # VALUE BOXES UI
