@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_list_tables}
 \alias{pg_list_tables}
-\title{List all tables in the PostgreSQL database}
+\title{List all tables in the connected pangenome database.}
 \usage{
 pg_list_tables()
 }

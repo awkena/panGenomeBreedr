@@ -2,7 +2,7 @@
 % Please edit documentation in R/postgresql_variant_discovery.R
 \name{pg_filter_by_af}
 \alias{pg_filter_by_af}
-\title{Filter extracted variants based on alternate allele frequency}
+\title{Filter extracted variants based on alternate allele frequency.}
 \usage{
 pg_filter_by_af(
   gt,

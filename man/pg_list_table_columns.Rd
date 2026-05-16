@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_list_table_columns}
 \alias{pg_list_table_columns}
-\title{Check column names and types for any table}
+\title{Check the column names and types for any table in the pangenome database.}
 \usage{
 pg_list_table_columns(
   table_name = c("variants", "annotations", "genotypes", "metadata")

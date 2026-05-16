@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_query_by_impact}
 \alias{pg_query_by_impact}
-\title{Extract variants based on mutation impact}
+\title{Extract variants from the annotation table based on impact type.}
 \usage{
 pg_query_by_impact(
   impact_level = c("HIGH", "MODERATE", "LOW", "MODIFIER"),

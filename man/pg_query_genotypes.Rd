@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_query_genotypes}
 \alias{pg_query_genotypes}
-\title{Query genotypes for specific variant IDs}
+\title{Query genotypes for one or more variant IDs from a wide-format genotype table.}
 \usage{
 pg_query_genotypes(
   variant_ids,

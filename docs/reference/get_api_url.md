@@ -8,12 +8,8 @@ API.
 
 ``` r
 get_api_url()
-
-get_api_url()
 ```
 
 ## Value
 
 The character string of the active API URL.
-
-A character string of the API base URL.

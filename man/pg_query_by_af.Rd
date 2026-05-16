@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_query_by_af}
 \alias{pg_query_by_af}
-\title{Extract variants based on allele frequencies within a genomic region}
+\title{Extract variants based on minimum and maximum allele frequencies within a defined region in the pangenome database.}
 \usage{
 pg_query_by_af(min_af = 0, max_af = 1, chrom = NULL, start = NULL, end = NULL)
 }

@@ -1,4 +1,4 @@
-# Get variant statistics from the PostgreSQL database
+# Get variant statistics stored in the pangenome database.
 
 This function connects to the public panGenomeBreedr API and calculates
 summary statistics for variants per chromosome, including variant counts

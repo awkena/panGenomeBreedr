@@ -1,4 +1,4 @@
-# List all tables in the PostgreSQL database
+# List all tables in the connected pangenome database.
 
 This function connects to the public panGenomeBreedr API and retrieves
 the names of all tables within the database.

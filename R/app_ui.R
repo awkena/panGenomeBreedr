@@ -12,7 +12,8 @@ app_ui <- function(request) {
 
     # Floating card CSS
     tags$head(
-      tags$style(HTML("
+      tags$style(HTML(
+        "
     /* The transition makes the movement smooth */
     .feature-card {
       transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out !important;
@@ -25,7 +26,8 @@ app_ui <- function(request) {
       box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
       border-color: #10b981 !important; /* Optional: highlight border on hover */
     }
-  "))
+  "
+      ))
     ),
     # Your application UI logic
     shinybusy::add_busy_bar(color = "#7f8c8d", height = "10px"),
@@ -45,15 +47,18 @@ app_ui <- function(request) {
       fluid = TRUE,
       title = "panGenomeBreedr",
       id = "nav_bar",
-        header = tagList(
-          tags$head(
-            # Helper script for redirecting users to vignette to learn more
-            tags$script('
+      header = tagList(
+        tags$head(
+          # Helper script for redirecting users to vignette to learn more
+          tags$script(
+            '
     Shiny.addCustomMessageHandler("open_link", function(message) {
     window.open(message.url, "_blank");
     });
-    '),)
+    '
           ),
+        )
+      ),
 
       # Home Tab
       nav_panel(
@@ -63,7 +68,10 @@ app_ui <- function(request) {
         # Welcome Section
         tags$section(
           class = "text-center p-5 bg-light border-bottom",
-          tags$h2("Welcome to panGenomeBreedr!", class = "display-5 fw-bold mb-4"),
+          tags$h2(
+            "Welcome to panGenomeBreedr!",
+            class = "display-5 fw-bold mb-4"
+          ),
           tags$p(
             class = "lead text-muted mx-auto",
             style = "max-width: 800px;",
@@ -88,16 +96,23 @@ app_ui <- function(request) {
         tags$section(
           class = "container py-5",
           bslib::layout_column_wrap(
-            width = 1/4, # 4 columns
+            width = 1 / 4, # 4 columns
             gap = "20px",
 
             # Variant Discovery Card
             bslib::card(
               class = "feature-card text-center shadow-sm border-0 p-3",
-              tags$div(class = "h1 text-primary mb-3", icon("magnifying-glass")),
+              tags$div(
+                class = "h1 text-primary mb-3",
+                icon("magnifying-glass")
+              ),
               tags$h5("Variant Discovery", class = "fw-bold"),
               bslib::card_footer(
-                actionButton("btn_variant_discovery", "Learn more", class = "btn-success rounded-pill px-4 btn-sm"),
+                actionButton(
+                  "btn_variant_discovery",
+                  "Learn more",
+                  class = "btn-success rounded-pill px-4 btn-sm"
+                ),
                 class = "bg-transparent border-0"
               )
             ),
@@ -108,7 +123,11 @@ app_ui <- function(request) {
               tags$div(class = "h1 text-primary mb-3", icon("dna")),
               tags$h5("KASP Marker Design", class = "fw-bold"),
               bslib::card_footer(
-                actionButton("btn_kasp_marker", "Learn more", class = "btn-success rounded-pill px-4 btn-sm"),
+                actionButton(
+                  "btn_kasp_marker",
+                  "Learn more",
+                  class = "btn-success rounded-pill px-4 btn-sm"
+                ),
                 class = "bg-transparent border-0"
               )
             ),
@@ -119,7 +138,11 @@ app_ui <- function(request) {
               tags$div(class = "h1 text-primary mb-3", icon("check-circle")),
               tags$h5("KASP Marker Validation", class = "fw-bold"),
               bslib::card_footer(
-                actionButton("btn_marker_validation", "Learn more", class = "btn-success rounded-pill px-4 btn-sm"),
+                actionButton(
+                  "btn_marker_validation",
+                  "Learn more",
+                  class = "btn-success rounded-pill px-4 btn-sm"
+                ),
                 class = "bg-transparent border-0"
               )
             ),
@@ -130,7 +153,11 @@ app_ui <- function(request) {
               tags$div(class = "h1 text-primary mb-3", icon("cogs")),
               tags$h5("Introgression Support", class = "fw-bold"),
               bslib::card_footer(
-                actionButton("btn_introgression", "Learn more", class = "btn-success rounded-pill px-4 btn-sm"),
+                actionButton(
+                  "btn_introgression",
+                  "Learn more",
+                  class = "btn-success rounded-pill px-4 btn-sm"
+                ),
                 class = "bg-transparent border-0"
               )
             )
@@ -139,17 +166,23 @@ app_ui <- function(request) {
 
         # Footer Section
         tags$footer(
-          class = "py-5 border-top bg-light text-center",
-          tags$p(class = "text-muted small mb-1", HTML("&copy; 2025 panGenomeBreedr")),
+          class = "py-4 border-top bg-light text-center mt-auto",
           tags$p(
-            class = "text-muted extra-small mx-auto",
-            style = "max-width: 700px; font-size: 0.8rem;",
-            "Developed by: Alexander Wireko Kena, Israel Tawiah Tetteh, Cruet Burgos, Fanna Maina, Linly Banda, Jacques Faye, Benjamin Annor, Terry Felderhoff, Geoffrey Preston Norris"
+            class = "text-muted mb-2",
+            style = "font-size: 0.95rem;",
+            HTML("&copy; 2025 <strong>panGenomeBreedr</strong>")
+          ),
+          tags$p(
+            class = "text-muted mx-auto mb-0",
+            style = "max-width: 800px; font-size: 0.85rem; line-height: 1.6;",
+            tags$span(class = "fw-semibold text-secondary", "Developed by: "),
+            "Israel Tawiah Tetteh, Alexander Wireko Kena, Clara Cruet Burgos and Geoffrey Preston Morris."
           )
         )
       ),
 
-      bslib::nav_item(), bslib::nav_item(), # space home tab from the rest of the tab
+      bslib::nav_item(),
+      bslib::nav_item(), # space home tab from the rest of the tab
 
       ## Variant Annotation Tab
       bslib::nav_panel(
@@ -217,7 +250,9 @@ app_ui <- function(request) {
             title = tags$strong("QC Plots & Layout"),
             icon = icon("chart-bar"),
             bslib::card(
-              bslib::card_header(h5(tags$b("QC Plots, Predictions & Plate Layout"))),
+              bslib::card_header(h5(tags$b(
+                "QC Plots, Predictions & Plate Layout"
+              ))),
               mod_mv_kasp_qc_ggplot_ui("mv_kasp_qc_ggplot_1")
             )
           ),
@@ -232,7 +267,8 @@ app_ui <- function(request) {
             )
           )
         )
-      ), bslib::nav_item(), # space marker validation tab from the rest of the tab
+      ),
+      bslib::nav_item(), # space marker validation tab from the rest of the tab
 
       ## Trait Introgression Decision Suite
       navbarMenu(
@@ -242,7 +278,9 @@ app_ui <- function(request) {
         # Tab for Trait Introgression Hypothesis Testing
         bslib::nav_panel(
           title = "Trait Introgression Hypothesis Testing",
-          mod_ds_trait_introg_hypothesis_test_ui("ds_trait_introg_hypothesis_test_1")
+          mod_ds_trait_introg_hypothesis_test_ui(
+            "ds_trait_introg_hypothesis_test_1"
+          )
         ),
 
         # Tab for MABC Decision support
@@ -268,7 +306,6 @@ app_ui <- function(request) {
           style = "margin-top: 5px;" # Align with other nav items
         )
       )
-
     )
   )
 }

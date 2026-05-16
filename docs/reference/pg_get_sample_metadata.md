@@ -1,9 +1,9 @@
-# Retrieve sample metadata
+# Retrieve sample metadata from the pangenome database.
 
 This function connects to the public panGenomeBreedr API to fetch
-accession-level metadata, such as origin, race, and classification. It
-supports optional filtering by specific columns to subset populations
-for analysis.
+accession-level metadata, such as origin, race, and classification from
+the 'metadata' table. It supports optional filtering by specific columns
+to easily subset populations for downstream analysis.
 
 ## Usage
 
