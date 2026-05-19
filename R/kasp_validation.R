@@ -121,8 +121,8 @@ read_kasp_csv <- function(file,
 #' possible genotypes in \code{x}.
 #' @export
 get_alleles <- function(x,
-                        sep = ':',
-                        data_type = c('kasp', 'agriplex')) {
+                       sep = ':',
+                       data_type = c('kasp', 'agriplex')) {
 
   data_type <- match.arg(data_type) # Match arguments
 
@@ -145,14 +145,21 @@ get_alleles <- function(x,
 
   # Filter for valid genotype strings based on the separator and content
   keep_1 <- !is.na(x) & vapply(strsplit(x, sep, fixed = TRUE), function(z) {
-    # Check if we have two components and both are valid DNA strings
-    length(z) == 2 && all(is_dna(z))
+    # Check if we have valid components based on the technology
+    if (data_type == 'kasp') {
+      length(z) == 2 && all(is_dna(z))
+    } else {
+      # Agriplex can have 1 component (homozygous) or 2 components (heterozygous)
+      length(z) %in% c(1, 2) && all(is_dna(z))
+    }
   }, logical(1))
 
   geno_uniq <- sort(unique(x[keep_1]))
 
   # Extract unique alleles found in valid genotypes
   alleles <- unique(unlist(strsplit(x = geno_uniq, split = sep)))
+  # Trim whitespace for Agriplex just in case spaces were left around the separator
+  alleles <- trimws(alleles)
   res[[1]] <- alleles
 
   # Initialize genotype placeholders
@@ -1102,7 +1109,7 @@ kasp_qc_ggplot2 <- function(x,
     # Replace '?' and NTC with Blank and Unused for labeling
     plate[, geno_call][plate[, geno_call] == blank] <- 'Blank'
     plate[, geno_call][plate[, geno_call] == unused] <- 'Unused'
-    
+
     # Create tooltip text for interactivity
     if (!is.null(Group_id)) {
       plate$tooltip_text <- paste0(
