@@ -31,7 +31,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
             # Accordion with organized sections
             bslib::accordion(
               id = "introgression_accordion",
-              open = c("files", "mapfile", "settings", "qc"), # Panels open by default
+              open = "files", # Only open the first panel by default to reduce clutter
 
               ## Data Acquisition
               bslib::accordion_panel(
@@ -246,292 +246,197 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
           ),
 
           # Main content area
-          bslib::navset_hidden(id = ns('config_pages'),
-            bslib::nav_panel_hidden(
-              value = "main_config",
-              bslib::input_switch(id = ns("configure"), label = "Plot Configuration", value = T),
-              conditionalPanel(
-                condition = paste0('input["', ns("configure"), '"] == true'),
-                card(
+          # div(
+          #   id = ns("placeholder_ui"),
+          #   class = "d-flex align-items-center justify-content-center text-muted h-100",
+          #   style = "min-height: 600px; flex-direction: column;",
+          #   icon("arrow-left", class = "mb-3", style = "font-size: 4rem; opacity: 0.5;"),
+          #   h4("Upload and process your data using the sidebar controls to begin.", style = "opacity: 0.7;")
+          # ),
+          
+          shinyjs::hidden(
+            div(
+              id = ns("analysis_ui"),
+              bslib::navset_card_underline(
+                id = ns('config_pages'),
+                
+                bslib::nav_panel(
+                  title = "Plot Configuration",
+                  value = "main_config",
+                  icon = icon("sliders"),
                   fluidRow(
                     # Card 1: Heatmap Configuration
                     column(
                       width = 4,
                       bslib::card(
-                        class = "shadow p",
-                        max_height = "850px",
+                        class = "shadow-sm",
                         height = "100%",
                         bslib::card_header(tags$b("Heatmap Computation Parameters"),
-                                           class = "bg-warning text-center",
-                                           style = "font-size:18px;"
+                                           class = "bg-light text-center"
                         ),
                         bslib::card_body(
-                          selectInput(
-                            inputId = ns("snp_ids"),
-                            label = "Select Marker Column",
-                            choices = NULL,
-                            width = "100%"
-                          ),
-                          selectInput(
-                            inputId = ns("chr"),
-                            label = "Select Chromosome Column",
-                            choices = NULL,
-                            width = "100%"
-                          ),
-                          selectInput(
-                            inputId = ns("chr_pos"),
-                            label = "Select Position Column",
-                            choices = NULL,
-                            width = "100%"
-                          ),
-                          selectInput(
-                            inputId = ns("parents"),
-                            label = "Choose Parents",
-                            choices = NULL,
-                            width = "100%",
-                            multiple = TRUE
-                          ),
-                          numericInput(
-                            inputId = ns("group_sz"),
-                            label = "Progeny Batch Size",
-                            value = 0,
-                            min = 0,
-                            step = 1,
-                            width = "100%"
-                          ),
-                          radioButtons(
-                            inputId = ns("options"),
-                            label = "Display Annotations?",
-                            choices = c(
-                              "Hide Annotations" = "no",
-                              "Show Annotations" = "yes" # cross_qc_annotate()/ # cross_qc_heatmap2()
-                            ),
-                            selected = "no",
-                            inline = TRUE
-                          ),
+                          selectInput(inputId = ns("snp_ids"), label = "Select Marker Column", choices = NULL, width = "100%"),
+                          selectInput(inputId = ns("chr"), label = "Select Chromosome Column", choices = NULL, width = "100%"),
+                          selectInput(inputId = ns("chr_pos"), label = "Select Position Column", choices = NULL, width = "100%"),
+                          selectInput(inputId = ns("parents"), label = "Choose Parents", choices = NULL, width = "100%", multiple = TRUE),
+                          numericInput(inputId = ns("group_sz"), label = "Progeny Batch Size", value = 0, min = 0, step = 1, width = "100%"),
+                          radioButtons(inputId = ns("options"), label = "Display Annotations?", choices = c("Hide Annotations" = "no", "Show Annotations" = "yes"), selected = "no", inline = TRUE),
                           conditionalPanel(
                             condition = "input.options == 'yes'",
                             ns = ns,
-                            actionButton(
-                              inputId = ns("newBtn"),
-                              label = "Define QTL Coordinates",
-                              icon = icon("location-crosshairs"),
-                              class = "btn-outline-primary",
-                              style = "font-weight: bold;"
-                            )
-                          ),
-                          radioButtons(
-                            inputId = ns("focus_qtl"),
-                            label = "Annotate Specific QTL?",
-                            choices = c("Yes" = "yes", "No" = "no"),
-                            selected = "no",
-                            inline = TRUE
-                          ),
-                          conditionalPanel(
-                            # reveal based on choice -- Annotate specific QTL
-                            condition = "input.focus_qtl == 'yes'",
-                            ns = ns,
-                            div(
-                              selectInput(
-                                inputId = ns("qtls"),
-                                label = "Select a QTL",
-                                choices = NULL,
-                                multiple = T
+                            actionButton(inputId = ns("newBtn"), label = "Define QTL Coordinates", icon = icon("location-crosshairs"), class = "btn-outline-primary mb-3", style = "font-weight: bold; width: 100%;"),
+                            conditionalPanel(
+                              condition = "output.qtls_defined === true",
+                              ns = ns,
+                              radioButtons(
+                                inputId = ns("focus_qtl"), 
+                                label = "How should the annotations be rendered?", 
+                                choices = c("Show annotations for specific QTLs" = "yes", "Show annotations for all QTLs" = "no"), 
+                                selected = "no"
                               ),
-                              # Using span to keep the icon and text on the same line
-                              helpText(
-                                span(icon("info-circle", vertical_align = "middle")),
-                                "QTL coordinates must first be defined!"
+                              conditionalPanel(
+                                condition = "input.focus_qtl == 'yes'",
+                                ns = ns,
+                                selectInput(inputId = ns("qtls"), label = "Select defined QTL(s)", choices = NULL, multiple = TRUE)
                               )
                             )
                           )
                         )
                       )
                     ),
-
+                    
                     # Card 2: Heatmap Visualization Controls
                     column(
                       width = 8,
                       bslib::card(
-                        class = "shadow p",
-                        max_height = "850px",
+                        class = "shadow-sm",
                         height = "100%",
-                        bslib::card_header(tags$b("Heatmap Visualization Controls"),
-                                           class = "bg-info text-center",
-                                           style = "font-size:18px;"
-                        ),
+                        bslib::card_header(tags$b("Heatmap Visualization Controls"), class = "bg-light text-center"),
                         bslib::card_body(
                           fluidRow(
                             # Left Column - 4 widgets
                             column(
                               width = 6,
-                              textInput(
-                                inputId = ns("legend_title"),
-                                label = "Enter Plot Legend Title",
-                                value = "Heatmap Key",
-                                width = "100%"
-                              ),
-                              selectInput(
-                                inputId = ns("col_mapping"),
-                                label = "Choose Heatmap Colors",
-                                choices = grDevices::colors(),
-                                multiple = TRUE,
-                                width = "100%"
-                              ),
-                              selectInput(
-                                inputId = ns("col_labels"),
-                                label = "Genotype Labels",
-                                choices = NULL,
-                                multiple = TRUE,
-                                width = "100%"
-                              ),
-                              selectInput(
-                                inputId = ns("panel_fill"),
-                                label = "Panel Background Fill Color",
-                                choices = grDevices::colors(),
-                                selected = "grey80",
-                                width = "100%"
-                              ),
-                              numericInput(
-                                inputId = ns("text_scale_fct"),
-                                label = "Text Scaling Size",
-                                value = 0.3,
-                                min = 0.1,
-                                step = 0.01,
-                                max = 1
-                              )
+                              textInput(inputId = ns("legend_title"), label = "Enter Plot Legend Title", value = "Heatmap Key", width = "100%"),
+                              selectInput(inputId = ns("col_mapping"), label = "Choose Heatmap Colors", choices = grDevices::colors(), multiple = TRUE, width = "100%"),
+                              selectInput(inputId = ns("col_labels"), label = "Genotype Labels", choices = NULL, multiple = TRUE, width = "100%"),
+                              selectInput(inputId = ns("panel_fill"), label = "Panel Background Fill Color", choices = grDevices::colors(), selected = "grey80", width = "100%"),
+                              numericInput(inputId = ns("text_scale_fct"), label = "Text Scaling Size", value = 0.3, min = 0.1, step = 0.01, max = 1)
                             ),
                             # Right Column - 4 widgets
                             column(
                               width = 6,
-                              selectInput(
-                                inputId = ns("panel_col"),
-                                label = "Panel Border Color",
-                                choices = grDevices::colors(),
-                                selected = "white",
-                                width = "100%"
-                              ),
-                              numericInput(
-                                inputId = ns("alpha"),
-                                label = "Point Transparency",
-                                value = 1,
-                                min = 0,
-                                max = 1,
-                                step = 0.1,
-                                width = "100%"
-                              ),
-                              numericInput(
-                                inputId = ns("text_size"),
-                                label = "Text Size",
-                                value = 12,
-                                min = 1,
-                                step = 0.1,
-                                width = "100%"
-                              ),
-                              numericInput(
-                                inputId = ns("label_offset"),
-                                label = "Trait Label Position",
-                                value = 0.4,
-                                min = -10,
-                                max = 10,
-                                step = 0.1,
-                                width = "100%"
-                              )
+                              selectInput(inputId = ns("panel_col"), label = "Panel Border Color", choices = grDevices::colors(), selected = "white", width = "100%"),
+                              numericInput(inputId = ns("alpha"), label = "Point Transparency", value = 1, min = 0, max = 1, step = 0.1, width = "100%"),
+                              numericInput(inputId = ns("text_size"), label = "Text Size", value = 12, min = 1, step = 0.1, width = "100%"),
+                              numericInput(inputId = ns("label_offset"), label = "Trait Label Position", value = 0.4, min = -10, max = 10, step = 0.1, width = "100%")
                             )
                           )
-                          # helpText(tags$b("Key for ordering heatmap colors")),
-                          # verbatimTextOutput(outputId = ns("color_format"))
                         )
                       )
                     )
                   ),
-                  actionButton(
-                    inputId = ns("generate_heatmap"),
-                    label = "Generate Heatmap",
-                    icon = icon("play", class = "me-2"),
-                    class = "btn-success btn-lg",
-                    style = "font-weight: 600;"
-                  )
-                )
-              )
-
-            ),
-
-            bslib::nav_panel_hidden(
-              value = 'coord_entry',
-              bslib::card(
-                full_screen = TRUE,
-                bslib::card_header(
-                  div(class = "d-flex justify-content-between align-items-center",
-                      tags$b("Genomic Coordinate Definition"),
-                      actionButton(ns("addTrait"), "Add New Trait", icon = icon("plus"), class = "btn-success btn-sm"))
-                ),
-                bslib::card_body(
-                  p(class = "text-muted", "Define specific points or genomic ranges for heatmap annotation."),
-                  div(id = ns("inputs_container"),
-                      makeTraitInput(1, ns) # Initial row
-                  )
-                ),
-                bslib::card_footer(
-                  div(class = "d-flex justify-content-end gap-2",
-                      actionButton(ns("cancel_coords"), "Cancel", class = "btn-light"),
-                      actionButton(ns("submit_coords"), "Save & Apply", icon = icon("check"), class = "btn-primary"))
-                )
-              )
-            )
-          ),
-
-          # Results Section
-          fluidRow(
-            column(
-              width = 12,
-              bslib::accordion(height = "800px",
-                bslib::accordion_panel(
-                  title = "Heatmap Results & Analysis",
-                  icon = icon("chart-line"),
                   div(
-                    selectInput(
-                      inputId = ns("batch_no"),
-                      label = "Select Batch for Display",
-                      choices = NULL,
-                      width = "30%"
+                    class = "d-flex justify-content-end mt-3",
+                    actionButton(
+                      inputId = ns("generate_heatmap"),
+                      label = "Generate Heatmap",
+                      icon = icon("play", class = "me-2"),
+                      class = "btn-success btn-lg px-5",
+                      style = "font-weight: 600;"
+                    )
+                  )
+                ),
+                
+                bslib::nav_panel_hidden(
+                  value = "coord_entry",
+                  bslib::card(
+                    class = "border-0 shadow-sm",
+                    full_screen = TRUE,
+                    bslib::card_header(
+                      div(class = "d-flex justify-content-between align-items-center",
+                          tags$b("Genomic Coordinate Definition"),
+                          actionButton(ns("addTrait"), "Add New Trait", icon = icon("plus"), class = "btn-success btn-sm"))
                     ),
-                    plotOutput(
-                      outputId = ns("ant_heatmap"),
-                      width = "100%",
-                      height = "650px"
+                    bslib::card_body(
+                      p(class = "text-muted", "Define specific points or genomic ranges for heatmap annotation."),
+                      div(id = ns("inputs_container"),
+                          makeTraitInput(1, ns) # Initial row
+                      )
                     ),
-                    bslib::card(card_footer(
-                      fluidRow(
-                        column(
-                          3,
-                          textInput(
-                            inputId = ns("file_name"),
-                            label = "Enter Filename",
-                            value = "Heatmap_result"
-                          )
-                        ),
-                        column(
-                          3,
-                          numericInput(
-                            inputId = ns("width"),
-                            label = "Set Plot Width",
-                            value = 10, min = 1
-                          )
-                        ), column(
-                          3,
-                          numericInput(
-                            inputId = ns("height"),
-                            label = "Set Plot Height",
-                            value = 7, min = 1
-                          )
-                        )
-                      ),
+                    bslib::card_footer(
+                      class = "bg-white",
+                      div(class = "d-flex justify-content-end gap-2",
+                          actionButton(ns("cancel_coords"), "Cancel", class = "btn-light"),
+                          actionButton(ns("submit_coords"), "Save & Apply", icon = icon("check"), class = "btn-primary"))
+                    )
+                  )
+                ),
+                
+                bslib::nav_panel(
+                  title = "Heatmap Viewer",
+                  value = "plot_tab",
+                  icon = icon("chart-area"),
+                  div(
+                    class = "mb-3 d-flex align-items-end gap-3",
+                    div(
+                      style = "flex: 1; max-width: 300px;",
+                      selectInput(
+                        inputId = ns("batch_no"),
+                        label = "Select Batch for Display",
+                        choices = NULL,
+                        width = "100%"
+                      )
+                    ),
+                    div(
+                      style = "flex: 1; max-width: 250px;",
+                      textInput(
+                        inputId = ns("file_name"),
+                        label = "Enter Filename",
+                        value = "Heatmap_result",
+                        width = "100%"
+                      )
+                    ),
+                    div(
+                      style = "flex: 1; max-width: 150px;",
+                      numericInput(
+                        inputId = ns("width"),
+                        label = "Plot Width",
+                        value = 10, min = 1,
+                        width = "100%"
+                      )
+                    ),
+                    div(
+                      style = "flex: 1; max-width: 150px;",
+                      numericInput(
+                        inputId = ns("height"),
+                        label = "Plot Height",
+                        value = 7, min = 1,
+                        width = "100%"
+                      )
+                    ),
+                    div(
+                      class = "mb-3",
                       downloadButton(
                         outputId = ns("download_plot1"),
-                        label = "Download Plot", class = "btn-success"
+                        label = "Export PDF", 
+                        class = "btn-success"
                       )
-                    ))
+                    )
+                  ),
+                  bslib::card(
+                    class = "shadow-sm border-0",
+                    full_screen = TRUE,
+                    bslib::card_body(
+                      shinycssloaders::withSpinner(
+                        plotOutput(
+                          outputId = ns("ant_heatmap"),
+                          width = "100%",
+                          height = "650px"
+                        ),
+                        type = 4, color = "#0dc5c1"
+                      )
+                    )
                   )
                 )
               )
@@ -650,7 +555,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       updateSelectizeInput(
         session,
         inputId = "cluster_by",
-        choices = c('None',data_colnames()),server = T
+        choices = c('None',data_colnames()),server = TRUE
       )
 
       # Update genotype column selector
@@ -661,7 +566,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
         selected = safe_grep_match(
           pattern = "genotype",
           choices = data_colnames()
-        ),server = T
+        ),server = TRUE
       )
     })
 
@@ -799,10 +704,16 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
    observeEvent(Result(), {
      req(Result()) # Only proceed if Result is not NULL
 
-     #bslib::sidebar_toggle(id = 'sidebar' , open = "closed")
+     # Transition to Main Analysis UI
+     shinyjs::hide("placeholder_ui")
+     shinyjs::show("analysis_ui")
+     
+     # Automatically close sidebar to give main content more space
+     bslib::toggle_sidebar(id = 'sidebar' , open = "closed")
+     
      shinyWidgets::show_alert(
-       title = "Data Processed!",
-       text = "Your genotype data is ready. Please proceed to 'Plot Configuration' to generate your heatmap.",
+       title = "Data Processed Successfully!",
+       text = "Your genotype data is ready. You can now configure your heatmap.",
        type = "success",
        btn_labels = "Got it!",
        closeOnClickOutside = FALSE,
@@ -957,6 +868,11 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       )
     })
 
+    # Manage UI visibility state for the QTL annotation radio buttons
+    output$qtls_defined <- reactive({
+      !is.null(values$trait_data) && length(values$trait_data) > 0
+    })
+    outputOptions(output, "qtls_defined", suspendWhenHidden = FALSE)
 
     ## User defined qtl
     observe({
@@ -968,6 +884,11 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       }
     })
 
+    # Switch tabs eagerly when button is clicked
+    observeEvent(input$generate_heatmap, {
+      req(input$options, Result(), input$snp_ids, input$chr, input$chr_pos, input$parents)
+      bslib::nav_select("config_pages", "plot_tab")
+    })
 
     ## Heat map generation.
     heatmap_plot <- eventReactive( input$generate_heatmap,{
@@ -1225,5 +1146,3 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
   })
 }
-
-
