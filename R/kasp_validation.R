@@ -1779,10 +1779,8 @@ geno_error <- function(x,
   prog_dat <- as.list(as.data.frame(x[-c(rp_row, dp_row), ]))
 
   # Get possible genotypes based on parent alleles
-  get_geno <- function(x) {
-
-    get_alleles(x, sep = sep, data_type = data_type)$genotypes
-
+  get_geno <- function(z) {
+    get_alleles(z, sep = sep, data_type = data_type)$genotypes
   }
 
   exp_geno <- apply(par_dat, MARGIN = 2, FUN = get_geno)
@@ -1795,27 +1793,26 @@ geno_error <- function(x,
   }
 
   # Find markers with errors
-  snp_error <- function(x, y) {
-    any(!x[!is.na(x)] %in% y)
+  snp_error <- function(a, b) {
+    any(!a[!is.na(a)] %in% b)
   }
 
   # Check each progeny genotype against the set of possible genotypes
   col_index <- mapply(FUN = snp_error, prog_dat, exp_geno)
 
   # Subset columns based on col_index
+  # Using drop = FALSE prevents R from coercing a single-column data frame into a vector
   if (any(col_index)) {
-
-    geno_err <- as.data.frame(x[, which(col_index)])
-    colnames(geno_err) <- colnames(x)[col_index]
-
-  } else geno_err <- NULL
+    geno_err <- x[, which(col_index), drop = FALSE]
+  } else {
+    geno_err <- NULL
+  }
 
   if (any(!col_index)) {
-
-    geno_good <- as.data.frame(x[, which(!col_index)])
-    colnames(geno_good) <- colnames(x)[which(!col_index)]
-
-  } else geno_good <- x
+    geno_good <- x[, which(!col_index), drop = FALSE]
+  } else {
+    geno_good <- NULL # Set to NULL instead of x, so it doesn't return the full set of errors as 'good'
+  }
 
   res <- list(geno_err = geno_err,
               geno_good = geno_good)
