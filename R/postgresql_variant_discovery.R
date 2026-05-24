@@ -13,7 +13,7 @@ pgsql_connect <- function(
   dbname = Sys.getenv("PGSQL_DBNAME", "postgres"),
   user = Sys.getenv("PGSQL_USER", "postgres"),
   password = Sys.getenv("PGSQL_PASS"),
-  port = 5432
+  port = as.numeric(Sys.getenv("PGSQL_PORT", 5433))
 ) {
   # Prevent silent local connections
   if (host == "") {
