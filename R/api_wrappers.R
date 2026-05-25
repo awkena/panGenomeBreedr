@@ -40,7 +40,7 @@ get_api_url <- function() {
 
   # If nothing is set, use the sorghum AWS Server
   if (is.null(url) || url == "") {
-    url <- "http://16.171.142.87:8000"
+    url <- "http://145.241.210.166:8000"
   }
 
   return(url)

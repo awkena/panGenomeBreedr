@@ -981,7 +981,7 @@ mod_variant_discovery_server <- function(id) {
           target_url <- if (input$api_choice == "custom") {
             trimws(input$api_url)
           } else {
-            "http://16.171.142.87:8000"  # Sorghum pangenome API -- will change  from mini
+            "http://145.241.210.166:8000" # Using Oracle Cloud endpoint
           }
           
           # Set endpoint API
