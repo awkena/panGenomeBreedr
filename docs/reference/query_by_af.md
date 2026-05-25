@@ -69,7 +69,6 @@ filter_af <- query_by_af(db_path = mini_db_path,
                          chrom = "Chr05",
                          start = 75104537,
                          end = 75106403)
-#> Error in apply(gt_matrix, c(1, 2), parse_gt): dim(X) must have a positive length
 
 # Clean tempdir
 contents <- list.files(tempdir(),

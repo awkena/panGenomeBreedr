@@ -121,8 +121,8 @@ read_kasp_csv <- function(file,
 #' possible genotypes in \code{x}.
 #' @export
 get_alleles <- function(x,
-                        sep = ':',
-                        data_type = c('kasp', 'agriplex')) {
+                       sep = ':',
+                       data_type = c('kasp', 'agriplex')) {
 
   data_type <- match.arg(data_type) # Match arguments
 
@@ -145,14 +145,21 @@ get_alleles <- function(x,
 
   # Filter for valid genotype strings based on the separator and content
   keep_1 <- !is.na(x) & vapply(strsplit(x, sep, fixed = TRUE), function(z) {
-    # Check if we have two components and both are valid DNA strings
-    length(z) == 2 && all(is_dna(z))
+    # Check if we have valid components based on the technology
+    if (data_type == 'kasp') {
+      length(z) == 2 && all(is_dna(z))
+    } else {
+      # Agriplex can have 1 component (homozygous) or 2 components (heterozygous)
+      length(z) %in% c(1, 2) && all(is_dna(z))
+    }
   }, logical(1))
 
   geno_uniq <- sort(unique(x[keep_1]))
 
   # Extract unique alleles found in valid genotypes
   alleles <- unique(unlist(strsplit(x = geno_uniq, split = sep)))
+  # Trim whitespace for Agriplex just in case spaces were left around the separator
+  alleles <- trimws(alleles)
   res[[1]] <- alleles
 
   # Initialize genotype placeholders
@@ -1102,7 +1109,7 @@ kasp_qc_ggplot2 <- function(x,
     # Replace '?' and NTC with Blank and Unused for labeling
     plate[, geno_call][plate[, geno_call] == blank] <- 'Blank'
     plate[, geno_call][plate[, geno_call] == unused] <- 'Unused'
-    
+
     # Create tooltip text for interactivity
     if (!is.null(Group_id)) {
       plate$tooltip_text <- paste0(
@@ -1772,10 +1779,8 @@ geno_error <- function(x,
   prog_dat <- as.list(as.data.frame(x[-c(rp_row, dp_row), ]))
 
   # Get possible genotypes based on parent alleles
-  get_geno <- function(x) {
-
-    get_alleles(x, sep = sep, data_type = data_type)$genotypes
-
+  get_geno <- function(z) {
+    get_alleles(z, sep = sep, data_type = data_type)$genotypes
   }
 
   exp_geno <- apply(par_dat, MARGIN = 2, FUN = get_geno)
@@ -1788,27 +1793,26 @@ geno_error <- function(x,
   }
 
   # Find markers with errors
-  snp_error <- function(x, y) {
-    any(!x[!is.na(x)] %in% y)
+  snp_error <- function(a, b) {
+    any(!a[!is.na(a)] %in% b)
   }
 
   # Check each progeny genotype against the set of possible genotypes
   col_index <- mapply(FUN = snp_error, prog_dat, exp_geno)
 
   # Subset columns based on col_index
+  # Using drop = FALSE prevents R from coercing a single-column data frame into a vector
   if (any(col_index)) {
-
-    geno_err <- as.data.frame(x[, which(col_index)])
-    colnames(geno_err) <- colnames(x)[col_index]
-
-  } else geno_err <- NULL
+    geno_err <- x[, which(col_index), drop = FALSE]
+  } else {
+    geno_err <- NULL
+  }
 
   if (any(!col_index)) {
-
-    geno_good <- as.data.frame(x[, which(!col_index)])
-    colnames(geno_good) <- colnames(x)[which(!col_index)]
-
-  } else geno_good <- x
+    geno_good <- x[, which(!col_index), drop = FALSE]
+  } else {
+    geno_good <- NULL # Set to NULL instead of x, so it doesn't return the full set of errors as 'good'
+  }
 
   res <- list(geno_err = geno_err,
               geno_good = geno_good)
