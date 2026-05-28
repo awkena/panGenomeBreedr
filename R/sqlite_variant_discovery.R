@@ -205,6 +205,7 @@ variant_stats <- function(con, include_annotations = TRUE) {
       FROM variants v
       JOIN annotations a ON v.variant_id = a.variant_id
       GROUP BY chrom
+      ORDER BY chrom
     "
     )
     # Merge the annotation stats with the base stats
@@ -268,9 +269,14 @@ variant_impact_summary <- function(con) {
     )
     ON impact
     USING COUNT(*)
+    ORDER BY chrom
   "
 
   impact_wide <- DBI::dbGetQuery(con, query)
+  if (nrow(impact_wide) == 0) {
+    return(data.frame())
+  }
+
   # Format column names for clarity (e.g. HIGH -> impact_HIGH)
   col_names <- colnames(impact_wide)
   colnames(impact_wide)[-1] <- paste0("impact_", col_names[-1])

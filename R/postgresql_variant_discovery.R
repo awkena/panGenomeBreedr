@@ -178,6 +178,7 @@ pgsql_variant_stats <- function(con, include_annotations = TRUE) {
       FROM variants v
       JOIN annotations a ON v.variant_id = a.variant_id
       GROUP BY chrom
+      ORDER BY chrom
     "
 
     a_counts <- DBI::dbGetQuery(con, a_query)
