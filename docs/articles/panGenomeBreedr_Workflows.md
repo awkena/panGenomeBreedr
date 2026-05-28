@@ -4,9 +4,9 @@
 
 - [Variant Discovery](#variant-discovery)
   - [Curated Sorghum Variant Resource and Database
-    Rationale](#pangenome-data-and-database-rationale)
-  - [Recommended Schema for the SQLite
-    Database](#recommended-schema-for-the-sqlite-database)
+    Rationale](#curated-sorghum-variant-resource-and-database-rationale)
+  - [Recommended Schema for the Parquet / DuckDB
+    Database](#recommended-schema-for-the-parquet-duckdb-database)
   - [Database Creation](#database-creation)
   - [Query Variant Tables](#query-variant-tables)
   - [Query Online Pangenome
