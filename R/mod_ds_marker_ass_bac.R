@@ -30,7 +30,7 @@ mod_ds_marker_ass_bac_ui <- function(id) {
             # Accordion with organized sections
             bslib::accordion(
               id = "introgression_accordion",
-              open = c("files", "mapfile", "settings", "qc"), # Panels open by default
+              open = c("files", "mapfile", "settings","qc"),
 
               ## Data Acquisition
               bslib::accordion_panel(
@@ -233,219 +233,117 @@ mod_ds_marker_ass_bac_ui <- function(id) {
           ),
 
           # Main content area
-          bslib::input_switch(id = ns("configure"), label = "Plot Configuration", value = T),
-          conditionalPanel(
-            condition = paste0('input["', ns("configure"), '"] == true'),
-            card(
-              fluidRow(
-                # Card 1: Heatmap Configuration
-                column(
-                  width = 4,
-                  bslib::card(
-                    class = "shadow p",
-                    max_height = "600px",
-                    height = "100%",
-                    bslib::card_header(tags$b("RPP Calculation Parameters"),
-                      class = "bg-warning text-center",
-                      style = "font-size:18px;"
-                    ),
-                    bslib::card_body(
-                      selectInput(
-                        inputId = ns("snp_ids"),
-                        label = "Select Column for SNP ID",
-                        choices = NULL,
-                        width = "100%"
-                      ),
-                      selectInput(
-                        inputId = ns("chr"),
-                        label = "Select Column for Chromosome",
-                        choices = NULL,
-                        width = "100%"
-                      ),
-                      selectInput(
-                        inputId = ns("chr_pos"),
-                        label = "Select Column for Chromosome Position",
-                        choices = NULL,
-                        width = "100%"
-                      ),
-                      radioButtons(
-                        inputId = ns("weight_rpp"),
-                        label = "Use Weighted RPP?",
-                        choices = c("Yes" = TRUE, "No" = FALSE),
-                        selected = TRUE,
-                        inline = TRUE
+          # div(
+          #   id = ns("placeholder_ui"),
+          #   class = "d-flex align-items-center justify-content-center text-muted h-100",
+          #   style = "min-height: 600px; flex-direction: column;",
+          #   icon("arrow-left", class = "mb-3", style = "font-size: 4rem; opacity: 0.5;"),
+          #   h4("Upload and process your data using the sidebar controls to begin.", style = "opacity: 0.7;")
+          # ),
+          
+          shinyjs::hidden(
+            div(
+              id = ns("analysis_ui"),
+              bslib::navset_card_underline(
+                id = ns("config_pages"),
+                
+                bslib::nav_panel(
+                  title = "Plot Configuration",
+                  value = "main_config",
+                  icon = icon("sliders"),
+                  fluidRow(
+                    # Card 1: RPP Configuration
+                    column(
+                      width = 4,
+                      bslib::card(
+                        class = "shadow-sm",
+                        height = "100%",
+                        bslib::card_header(tags$b("RPP Calculation Parameters"), class = "bg-light text-center"),
+                        bslib::card_body(
+                          selectInput(inputId = ns("snp_ids"), label = "Select Column for SNP ID", choices = NULL, width = "100%"),
+                          selectInput(inputId = ns("chr"), label = "Select Column for Chromosome", choices = NULL, width = "100%"),
+                          selectInput(inputId = ns("chr_pos"), label = "Select Column for Chromosome Position", choices = NULL, width = "100%"),
+                          radioButtons(inputId = ns("weight_rpp"), label = "Use Weighted RPP?", choices = c("Yes" = TRUE, "No" = FALSE), selected = TRUE, inline = TRUE)
+                        )
                       )
+                    ),
+                    
+                    # Card 2: BC Progenies RPP Plot Settings
+                    column(
+                      width = 8,
+                      bslib::card(
+                        class = "shadow-sm",
+                        height = "100%",
+                        bslib::card_header(tags$b("RPP Visualization Controls"), class = "bg-light text-center"),
+                        bslib::card_body(
+                          fluidRow(
+                            column(
+                              width = 6,
+                              selectInput(inputId = ns("rpp_col"), label = "Select Total RPP Column", choices = NULL, width = "100%"),
+                              selectInput(inputId = ns("rpp_sample_id"), label = "Select Sample ID Column", choices = NULL, width = "100%"),
+                              numericInput(inputId = ns("bc_gen"), label = "BC Generation", value = NULL, min = 1, width = "100%"),
+                              numericInput(inputId = ns("rpp_threshold"), label = "Selection Threshold (%)", value = 0.93, min = 0, max = 1, width = "100%"),
+                              selectInput(inputId = ns("thresh_line_col"), label = "Color of Threshold Line", choices = grDevices::colors(), selected = "firebrick", width = "100%"),
+                              bslib::input_switch(id = ns("show_above_thresh"), label = "Show Progenies Above Threshold", value = FALSE)
+                            ),
+                            column(
+                              width = 6,
+                              selectInput(inputId = ns("bar_col"), label = "Set Bar Fill Color", choices = grDevices::colors(), selected = "cornflowerblue", width = "100%"),
+                              numericInput(inputId = ns("alpha"), label = "Adjust Bar Transparency", value = 0.9, min = 0, max = 1, step = 0.1, width = "100%"),
+                              numericInput(inputId = ns("text_size"), label = "Text Size", value = 15, min = 1, width = "100%"),
+                              numericInput(inputId = ns("bar_width"), label = "Set Bar Width", value = 0.5, min = 0.1, width = "100%", step = 0.1),
+                              numericInput(inputId = ns("aspect_ratio"), label = "Set Aspect Ratio of Barplot", value = 0.5, min = 0.1, width = "100%", step = 0.1),
+                              numericInput(inputId = ns("text_scale_fct"), label = "Set Text Size Scaling Factor", value = 0.1, min = 0.1, width = "100%", step = 0.1)
+                            )
+                          )
+                        )
+                      )
+                    )
+                  ),
+                  div(
+                    class = "d-flex justify-content-end mt-3",
+                    actionButton(
+                      inputId = ns("generate_rpp_plot"),
+                      label = "Generate Plot",
+                      icon = icon("play", class = "me-2"),
+                      class = "btn-success btn-lg px-5",
+                      style = "font-weight: 600;"
                     )
                   )
                 ),
-
-                # Card 2: BC Progenies RPP Plot Settings
-                column(
-                  width = 8,
-                  bslib::card(
-                    class = "shadow p",
-                    max_height = "600px",
-                    height = "100%",
-                    bslib::card_header(tags$b("RPP Visualization Controls"),
-                      class = "bg-info text-center",
-                      style = "font-size:18px;"
+                
+                bslib::nav_panel(
+                  title = "RPP Visualization",
+                  value = "plot_tab",
+                  icon = icon("chart-bar"),
+                  div(
+                    class = "mb-3 d-flex align-items-end gap-3",
+                    div(
+                      style = "flex: 1; max-width: 250px;",
+                      textInput(inputId = ns("file_name2"), label = "Enter Filename", value = "rpp_barplot", width = "100%")
                     ),
+                    div(
+                      style = "flex: 1; max-width: 150px;",
+                      numericInput(inputId = ns("width2"), label = "Plot Width", value = 8, min = 1, width = "100%")
+                    ),
+                    div(
+                      style = "flex: 1; max-width: 150px;",
+                      numericInput(inputId = ns("height2"), label = "Plot Height", value = 6, min = 1, width = "100%")
+                    ),
+                    div(
+                      class = "mb-3",
+                      downloadButton(outputId = ns("download_plot2"), label = "Export PDF", class = "btn-success")
+                    )
+                  ),
+                  bslib::card(
+                    class = "shadow-sm border-0",
+                    full_screen = TRUE,
                     bslib::card_body(
-                      fluidRow(
-                        # Left Column - 4 widgets
-                        column(
-                          width = 6,
-                          selectInput(
-                            inputId = ns("rpp_col"),
-                            label = "Select Total RPP Column",
-                            choices = NULL,
-                            width = "100%"
-                          ),
-                          selectInput(
-                            inputId = ns("rpp_sample_id"),
-                            label = "Select Sample ID Column",
-                            choices = NULL,
-                            width = "100%"
-                          ),
-                          numericInput(
-                            inputId = ns("bc_gen"),
-                            label = "BC Generation",
-                            value = NULL,
-                            min = 1,
-                            width = "100%"
-                          ),
-                          numericInput(
-                            inputId = ns("rpp_threshold"),
-                            label = "Selection Threshold (%)",
-                            value = 0.93,
-                            min = 0,
-                            max = 1,
-                            width = "100%"
-                          ),
-                          selectInput(
-                            inputId = ns("thresh_line_col"),
-                            label = "Color of Threshold Line",
-                            choices = grDevices::colors(),
-                            selected = "firebrick",
-                            width = "100%"
-                          ),
-                          bslib::input_switch(
-                            id = ns("show_above_thresh"),
-                            label = "Show Progenies Above Threshold",
-                            value = FALSE
-                          )
-                        ),
-                        # Right Column - 4 widgets
-                        column(
-                          width = 6,
-                          selectInput(
-                            inputId = ns("bar_col"),
-                            label = "Set Bar Fill Color",
-                            choices = grDevices::colors(),
-                            selected = "cornflowerblue",
-                            width = "100%"
-                          ),
-                          numericInput(
-                            inputId = ns("alpha"),
-                            label = "Adjust Bar Transparency",
-                            value = 0.9,
-                            min = 0,
-                            max = 1,
-                            step = 0.1,
-                            width = "100%"
-                          ),
-                          numericInput(
-                            inputId = ns("text_size"),
-                            label = "Text Size",
-                            value = 15,
-                            min = 1,
-                            width = "100%"
-                          ),
-                          numericInput(
-                            inputId = ns("bar_width"),
-                            label = "Set Bar Width",
-                            value = 0.5,
-                            min = 0.1,
-                            width = "100%",
-                            step = 0.1
-                          ),
-                          numericInput(
-                            inputId = ns("aspect_ratio"),
-                            label = "Set Aspect Ratio of Barplot",
-                            value = 0.5,
-                            min = 0.1,
-                            width = "100%",
-                            step = 0.1
-                          ),
-                          numericInput(
-                            inputId = ns("text_scale_fct"),
-                            label = "Set Text Size Scaling Factor",
-                            value = 0.1,
-                            min = 0.1,
-                            width = "100%",
-                            step = 0.1
-                          )
-                        )
+                      shinycssloaders::withSpinner(
+                        plotOutput(outputId = ns("rpp_bar"), width = "100%", height = "600px"),
+                        type = 4, color = "#0dc5c1"
                       )
                     )
-                  )
-                )
-              ),
-              actionButton(
-                inputId = ns("generate_rpp_plot"),
-                label = "Generate Plot",
-                icon = icon("play", class = "me-2"),
-                class = "btn-success btn-lg",
-                style = "font-weight: 600;"
-              )
-            )
-          ),
-
-          # Results Section
-          fluidRow(
-            column(
-              width = 12,
-              bslib::accordion(
-                bslib::accordion_panel(
-                  title = "Recurrent Parent Percentage (%) Plot",
-                  icon = icon("chart-line"),
-                  div(
-                    plotOutput(
-                      outputId = ns("rpp_bar"),
-                      width = "100%",
-                      height = "600px"
-                    ),
-                    bslib::card(card_footer(
-                      fluidRow(
-                        column(
-                          3,
-                          textInput(
-                            inputId = ns("file_name2"),
-                            label = "Enter Filename",
-                            value = "rpp_barplot"
-                          )
-                        ),
-                        column(
-                          3,
-                          numericInput(
-                            inputId = ns("width2"),
-                            label = "Set Plot Width",
-                            value = 8, min = 1
-                          )
-                        ), column(
-                          3,
-                          numericInput(
-                            inputId = ns("height2"),
-                            label = "Set Plot Height",
-                            value = 6, min = 1
-                          )
-                        )
-                      ),
-                      downloadButton(
-                        outputId = ns("download_plot2"),
-                        label = "Download Plot", class = "btn-success"
-                      )
-                    ))
                   )
                 )
               )
@@ -717,10 +615,16 @@ mod_ds_marker_ass_bac_server <- function(id) {
     observeEvent(Result(), {
       req(Result()) # Only proceed if Result is not NULL
 
-      # bslib::sidebar_toggle(id = 'sidebar' , open = "closed")
+      # Transition to Main Analysis UI
+      shinyjs::hide("placeholder_ui")
+      shinyjs::show("analysis_ui")
+      
+      # Automatically close sidebar to give main content more space
+      bslib::toggle_sidebar(id = 'sidebar' , open = "closed")
+      
       shinyWidgets::show_alert(
-        title = "Data Processed!",
-        text = "Your genotype data is ready. Please proceed to 'Plot Configuration'  to generate your heatmap.",
+        title = "Data Processed Successfully!",
+        text = "Your genotype data is ready. You can now configure your RPP plot.",
         type = "success",
         btn_labels = "Got it!",
         closeOnClickOutside = FALSE,
@@ -807,6 +711,12 @@ mod_ds_marker_ass_bac_server <- function(id) {
       )
     })
 
+    # Switch tabs eagerly when button is clicked
+    observeEvent(input$generate_rpp_plot, {
+      req(calc_rpp_bc_result(), input$rpp_col, input$rpp_sample_id)
+      bslib::nav_select("config_pages", "plot_tab")
+    })
+
     #  Generate the Barplot when user clicks the button
     rpp_barplot_result <- eventReactive(input$generate_rpp_plot, {
       req(calc_rpp_bc_result(), input$rpp_col, input$rpp_sample_id)
@@ -860,12 +770,12 @@ mod_ds_marker_ass_bac_server <- function(id) {
           }
         },
         error = function(e) {
-          return(NULL)
           shinyWidgets::show_alert(
             title = "Error",
             text = paste("An error occurred while generating plot", e$message),
             type = "error"
           )
+          return(NULL)
         }
       )
     })

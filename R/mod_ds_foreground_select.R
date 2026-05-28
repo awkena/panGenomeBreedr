@@ -16,6 +16,7 @@ mod_ds_foreground_select_ui <- function(id) {
         icon = icon("flask"),
         bslib::layout_sidebar(
           sidebar = bslib::sidebar(
+            id = ns("sidebar"),
             width = 400,
             position = "left",
             class = "bg-light",
@@ -98,7 +99,7 @@ mod_ds_foreground_select_ui <- function(id) {
                 title = div(
                   icon("sliders", class = "me-2"),
                   tags$span(
-                    "Selection Paramters",
+                    "Selection Parameters",
                     style = "font-weight: bold; font-size: 1.1rem;"
                   )
                 ),
@@ -131,208 +132,156 @@ mod_ds_foreground_select_ui <- function(id) {
           ),
 
           # Main panel.
-          bslib::input_switch(id = ns("config"), label = "Configure Plot", value = FALSE),
-          conditionalPanel(
-            condition = paste0('input["', ns("config"), '"] == true'),
-            tagList(
-              bslib::card(
-                bslib::card_header(
-                  div(
-                    class = "d-flex align-items-center justify-content-between",
-                    div(
-                      icon("chart-bar", class = "me-2"),
-                      strong("UpSet Plot Settings")
-                    )
-                  ),
-                  class = "bg-primary text-white"
-                ),
-                bslib::card_body(
-                  # Basic Settings Section
-                  div(
-                    class = "mb-4",
-                    h5(class = "mb-3", icon("palette", class = "me-2"), "Basic Settings"),
-                    bslib::layout_columns(
-                      col_widths = c(4, 4, 4),
-                      textInput(
-                        inputId = ns("mainbar_y_label"),
-                        label = "Main Bar Y-axis Label",
-                        value = "Locus Intersection Size"
+          # div(
+          #   id = ns("placeholder_ui"),
+          #   class = "d-flex align-items-center justify-content-center text-muted h-100",
+          #   style = "min-height: 600px; flex-direction: column;",
+          #   icon("arrow-left", class = "mb-3", style = "font-size: 4rem; opacity: 0.5;"),
+          #   h4("Upload and process your marker data to begin.", style = "opacity: 0.7;")
+          # ),
+          
+          shinyjs::hidden(
+            div(
+              id = ns("analysis_ui"),
+              bslib::navset_card_underline(
+                id = ns("results_tabs"),
+                
+                bslib::nav_panel(
+                  title = "Plot Configuration",
+                  value = "config_tab",
+                  icon = icon("sliders"),
+                  bslib::card(
+                    class = "shadow-sm border-0",
+                    bslib::card_header(
+                      div(
+                        class = "d-flex align-items-center justify-content-between",
+                        div(icon("chart-bar", class = "me-2"), strong("UpSet Plot Settings"))
                       ),
-                      textInput(
-                        inputId = ns("sets_x_label"),
-                        label = "Sets X-axis Label",
-                        value = "Locus Size"
-                      ),
-                      numericInput(
-                        inputId = ns("text_scale"),
-                        label = "Text Scale",
-                        value = 1.2,
-                        min = 0.5,
-                        max = 3,
-                        step = 0.1
-                      )
-                    )
-                  ),
-                  hr(),
-
-                  # Metadata Settings Section
-                  div(
-                    class = "mb-4",
-                    h5(class = "mb-3", icon("tags", class = "me-2"), "Metadata Settings"),
-                    bslib::layout_columns(
-                      col_widths = c(4, 4, 4),
-                      selectInput(
-                        inputId = ns("plot_type"),
-                        label = "Metadata Plot Type",
-                        choices = c("text"),
-                        selected = "text"
-                      ),
-                      numericInput(
-                        inputId = ns("plot_assign"),
-                        label = "Assign (Position)",
-                        value = 8,
-                        min = 1,
-                        step = 1
-                      ),
-                      textInput(
-                        inputId = ns("plot_column"),
-                        label = "Metadata Column",
-                        value = "locus"
-                      )
+                      class = "bg-light"
                     ),
-                    selectInput(
-                      inputId = ns("plot_colors"),
-                      label = "Colors",
-                      selected = "darkblue",
-                      choices = grDevices::colors()
+                    bslib::card_body(
+                      div(
+                        class = "mb-4",
+                        h5(class = "mb-3", icon("palette", class = "me-2"), "Basic Settings"),
+                        bslib::layout_columns(
+                          col_widths = c(4, 4, 4),
+                          textInput(inputId = ns("mainbar_y_label"), label = "Main Bar Y-axis Label", value = "Locus Intersection Size"),
+                          textInput(inputId = ns("sets_x_label"), label = "Sets X-axis Label", value = "Locus Size"),
+                          numericInput(inputId = ns("text_scale"), label = "Text Scale", value = 1.2, min = 0.5, max = 3, step = 0.1)
+                        )
+                      ),
+                      hr(),
+                      div(
+                        class = "mb-4",
+                        h5(class = "mb-3", icon("tags", class = "me-2"), "Metadata Settings"),
+                        bslib::layout_columns(
+                          col_widths = c(4, 4, 4),
+                          selectInput(inputId = ns("plot_type"), label = "Metadata Plot Type", choices = c("text"), selected = "text"),
+                          numericInput(inputId = ns("plot_assign"), label = "Assign (Position)", value = 8, min = 1, step = 1),
+                          textInput(inputId = ns("plot_column"), label = "Metadata Column", value = "locus")
+                        ),
+                        selectInput(inputId = ns("plot_colors"), label = "Colors", selected = "darkblue", choices = grDevices::colors())
+                      )
+                    )
+                  ),
+                  div(
+                    class = "d-flex justify-content-end mt-3",
+                    actionButton(
+                      inputId = ns("generate_plot"),
+                      label = "Generate UpSet Plot",
+                      icon = icon("play", class = "me-2"),
+                      class = "btn-success btn-lg px-5",
+                      style = "font-weight: 600;"
                     )
                   )
-                )
-              )
-            )
-          ),
-          # Results display section
-          bslib::card(
-            height = "auto",
-            bslib::card_body(
-              navset_card_tab(
-                id = ns("results_tabs"),
+                ),
 
-                # Upset Plot Tab
                 bslib::nav_panel(
-                  title = "Upset Plot Visualization",
-                  icon = icon("chart-line"),
-                  # Upset Plot Output
-                  plotOutput(ns("result_plot"), height = "800px"),
-                  # Download plot card widget
-                  bslib::card(card_footer(
-                    fluidRow(
-                      column(
-                        3,
-                        textInput(
-                          inputId = ns("file_name"),
-                          label = "Enter Filename",
-                          value = "Upset_Plot"
-                        )
-                      ),
-                      column(
-                        3,
-                        numericInput(
-                          inputId = ns("width"),
-                          label = "Set Plot Width",
-                          value = 11, min = 1
-                        )
-                      ), column(
-                        3,
-                        numericInput(
-                          inputId = ns("height"),
-                          label = "Set Plot Height",
-                          value = 10, min = 1
-                        )
-                      )
-                    ),
-                    downloadButton(
-                      outputId = ns("download_plot"),
-                      label = "Download Plot", class = "btn-success"
-                    )
-                  )),
-                  hr(),
-
-                  # Advanced Filtering Section
+                  title = "UpSet Plot Viewer",
+                  value = "plot_tab",
+                  icon = icon("chart-area"),
                   div(
-                    h5(class = "mb-3", icon("filter", class = "me-2"), "Advanced Filtering"),
-                    bslib::input_switch(
-                      id = ns("configure"),
-                      label = "Enable Line Filtering",
-                      value = FALSE
+                    class = "mb-3 d-flex align-items-end gap-3",
+                    div(
+                      style = "flex: 1; max-width: 250px;",
+                      textInput(inputId = ns("file_name"), label = "Enter Filename", value = "Upset_Plot", width = "100%")
                     ),
-
-                    conditionalPanel(
-                      condition = paste0('input["', ns("configure"), '"] == true'),
-                      bslib::card(
-                        class = "mt-3 bg-light",
-                        bslib::layout_column_wrap(
-                          width = 1/2, # Split into two columns
-                          gap = "20px",
-
-                          # --- Left Column: Filter Controls ---
-                          bslib::card(
-                            bslib::card_header(
-                              class = "bg-transparent border-0",
-                              tags$h6(icon("filter", class = "me-2"), "Filter Criteria", class = "fw-bold mb-0")
-                            ),
-                            bslib::card_body(
-                              selectInput(
-                                inputId = ns("present"),
-                                label = "SNPs to be Present",
-                                choices = NULL,
-                                multiple = TRUE,
-                                width = '100%'
-                              ),
-                              selectInput(
-                                inputId = ns("absent"),
-                                label = "SNPs to be Absent",
-                                choices = NULL,
-                                multiple = TRUE,
-                                width = '100%'
-                              ),
-                              div(
-                                class = "d-grid gap-2 mt-3",
-                                actionButton(
-                                  inputId = ns("Search"),
-                                  label = "Find Matching Lines",
-                                  icon = icon("search"),
-                                  class = "btn-primary btn-lg shadow-sm"
-                                )
-                              )
+                    div(
+                      style = "flex: 1; max-width: 150px;",
+                      numericInput(inputId = ns("width"), label = "Plot Width", value = 11, min = 1, width = "100%")
+                    ),
+                    div(
+                      style = "flex: 1; max-width: 150px;",
+                      numericInput(inputId = ns("height"), label = "Plot Height", value = 10, min = 1, width = "100%")
+                    ),
+                    div(
+                      class = "mb-3",
+                      downloadButton(outputId = ns("download_plot"), label = "Export PDF", class = "btn-success")
+                    )
+                  ),
+                  bslib::card(
+                    class = "shadow-sm border-0",
+                    full_screen = TRUE,
+                    bslib::card_body(
+                      shinycssloaders::withSpinner(
+                        plotOutput(ns("result_plot"), height = "800px"),
+                        type = 4, color = "#0dc5c1"
+                      )
+                    )
+                  )
+                ),
+                
+                bslib::nav_panel(
+                  title = "Line Filtering",
+                  value = "filter_tab",
+                  icon = icon("filter"),
+                  bslib::card(
+                    class = "border-0 shadow-sm bg-light",
+                    bslib::card_header(tags$h5(icon("filter", class = "me-2"), "Advanced Line Filtering", class = "mb-0")),
+                    bslib::card_body(
+                      bslib::layout_column_wrap(
+                        width = 1/2,
+                        gap = "20px",
+                        bslib::card(
+                          class = "border-0 shadow-sm",
+                          bslib::card_header(tags$h6(icon("sliders", class = "me-2"), "Filter Criteria", class = "fw-bold mb-0")),
+                          bslib::card_body(
+                            selectInput(inputId = ns("present"), label = "SNPs to be Present", choices = NULL, multiple = TRUE, width = '100%'),
+                            selectInput(inputId = ns("absent"), label = "SNPs to be Absent", choices = NULL, multiple = TRUE, width = '100%'),
+                            div(
+                              class = "d-grid gap-2 mt-3",
+                              actionButton(inputId = ns("Search"), label = "Find Matching Lines", icon = icon("search"), class = "btn-primary btn-lg shadow-sm")
                             )
+                          )
+                        ),
+                        bslib::card(
+                          class = "border-0 shadow-sm",
+                          bslib::card_header(
+                            class = "d-flex justify-content-between align-items-center",
+                            tags$h6(icon("list-check", class = "me-2"), "Matching Genotypes", class = "fw-bold mb-0"),
+                            downloadButton(ns("download_results"), "Export CSV", class = "btn-sm btn-success border-0")
                           ),
-
-                          # --- Right Column: Display Results ---
-                          bslib::card(
-                            bslib::card_header(
-                              class = "d-flex justify-content-between align-items-center bg-transparent border-0",
-                              tags$h6(icon("list-check", class = "me-2"), "Matching Genotypes", class = "fw-bold mb-0"),
-                              # Download button kept at header
-                              downloadButton(ns("download_results"), "Download", class = "btn-sm btn-outline-success border-0")
-                            ),
-                            bslib::card_body(
-                              style = "height: 280px; overflow-y: auto; background-color: #f8f9fa;",
-                              verbatimTextOutput(outputId = ns("display_result"))
-                            )
+                          bslib::card_body(
+                            style = "height: 280px; overflow-y: auto; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;",
+                            verbatimTextOutput(outputId = ns("display_result"))
                           )
                         )
                       )
                     )
                   )
-                ),
-
-                # Data Table Tab
-                bslib::nav_panel(
-                  title = "Binary Matrix of Presence or Absence of favorable Alleles",
-                  icon = icon("table"),
-                  DT::DTOutput(ns("result_table"), height = "800px")
                 )
+
+                # bslib::nav_panel(
+                #   title = "Binary Matrix",
+                #   value = "table_tab",
+                #   icon = icon("table"),
+                #   bslib::card(
+                #     class = "border-0 shadow-sm",
+                #     bslib::card_body(
+                #       DT::DTOutput(ns("result_table"), height = "800px")
+                #     )
+                #   )
+                # )
               )
             )
           )
@@ -451,23 +400,46 @@ mod_ds_foreground_select_server <- function(id) {
     })
 
 
-
-    # Render DT Table
-    output$result_table <- DT::renderDT({
+    # Transition the UI once data is processed
+    observeEvent(result_data(), {
       req(result_data())
-      DT::datatable(result_data(), options = list(pageLength = 15))
+
+      #shinyjs::hide("placeholder_ui")
+      shinyjs::show("analysis_ui")
+      bslib::toggle_sidebar(id = "sidebar", open = "closed")
+
+      shinyWidgets::show_alert(
+        title = "Analysis Complete",
+        text = "Foreground selection matrix generated. You can now configure and view your UpSet plot.",
+        type = "success"
+      )
     })
 
+    # # Render DT Table
+    # output$result_table <- DT::renderDT({
+    #   req(result_data())
+    #   DT::datatable(result_data(), options = list(pageLength = 15))
+    # })
 
 
+
+     # Eagerly switch tabs when user clicks "Generate UpSet Plot"
+    observeEvent(input$generate_plot, {
+      req(result_data(), marker_info())
+      bslib::nav_select("results_tabs", "plot_tab")
+    })
 
     # Generating the upset plot.
-    upset_result <- reactive({
+    upset_result <- eventReactive(input$generate_plot, {
       req(
-        result_data(), marker_info(),
-        input$mainbar_y_label, input$sets_x_label,
-        input$text_scale, input$plot_type,
-        input$plot_assign, input$plot_column,
+        result_data(),
+        marker_info(),
+        input$mainbar_y_label,
+        input$sets_x_label,
+        input$text_scale,
+        input$plot_type,
+        input$plot_assign,
+        input$plot_column,
         input$plot_colors
       )
 
@@ -500,12 +472,6 @@ mod_ds_foreground_select_server <- function(id) {
     output$result_plot <- renderPlot({
       req(upset_result())
       print(upset_result())
-      # Show alert when done
-        shinyWidgets::show_alert(
-          title = "Foreground Selection Analysis Complete",
-          text = "The UpSet plot has been successfully",
-          type = "success"
-        )
     })
 
     # Download handler for the plot as pdf

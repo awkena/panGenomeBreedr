@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{filter_by_af}
 \alias{filter_by_af}
-\title{Filter extracted variants based on alternate allele frequency.}
+\title{Filter extracted genotypes based on alternate allele frequency (local)}
 \usage{
 filter_by_af(
   gt,
@@ -14,63 +14,52 @@ filter_by_af(
 )
 }
 \arguments{
-\item{gt}{A matrix or data frame of variants x samples with chromosome and
-position meta data for each variant.}
+\item{gt}{A matrix or data frame containing variants (rows) across samples (columns), 
+including required variant identification and optional genomic coordinate metadata columns.}
 
-\item{variant_id_col, chrom_col, pos_col}{A character value specifying the
-column names of variant IDs, chromosome, and positions in \code{gt}.}
+\item{variant_id_col}{Character. The column name in \code{gt} matching unique variant identifiers. 
+Defaults to \code{"variant_id"}.}
 
-\item{min_af, max_af}{A numeric value indicating the minimum and maximum allele
-frequency thresholds for filtering variants.}
+\item{chrom_col}{Character. The column name in \code{gt} matching chromosome names. 
+Defaults to \code{"chrom"}.}
+
+\item{pos_col}{Character. The column name in \code{gt} matching genomic positions. 
+Defaults to \code{"pos"}.}
+
+\item{min_af}{Numeric. Minimum alternate allele frequency threshold for filtering. 
+Must fall between 0 and 1. Defaults to \code{0}.}
+
+\item{max_af}{Numeric. Maximum alternate allele frequency threshold for filtering. 
+Must fall between 0 and 1. Defaults to \code{1}.}
 }
 \value{
-A data frame of filtered variants with their reference and alternate
- allele frequencies.
+A data frame of variants passing the frequency thresholds, tracking their coordinates, 
+  calculated reference allele frequencies (\code{ref_af}), and alternate allele frequencies (\code{alt_af}).
 }
 \description{
-Filter extracted variants based on alternate allele frequency.
+Passes an extracted genotype matrix through calculation utilities to compute population-level 
+allele frequencies, then subsets rows down to variants strictly falling between the 
+specified minimum and maximum alternate allele frequency (MAF) thresholds.
 }
 \examples{
-\donttest{
-# example code
+\dontrun{
+# Load the package
 library(panGenomeBreedr)
 
-# Define tempdir
-path <- tempdir()
+# Connect to the database pipeline
+con <- connect_local_db(folder_path = "~/Desktop/curated_sorghum_variant_resource")
 
-# Mini SQLite database
-mini_db <-  system.file("extdata", "mini_sorghum_variant_vcf.db.gz",
-                     package = "panGenomeBreedr",
-                     mustWork = TRUE)
+# Pull wide genotype records for a locus window range
+gt_region <- query_db(con = con, chrom = "Chr05", start = 75104537, 
+                      end = 75106403, table_name = "genotypes")
 
-# Path to SQLite databases: INDEL and SNP
-mini_db_path <- file.path(path, 'mini_sorghum_variant_vcf.db')
+# Filter out rare variants or monomorphic lines by restricting the alternate allele frequency window
+filtered_vars <- filter_by_af(gt_region, variant_id_col = "variant_id", 
+                              chrom_col = "chrom", pos_col = "pos", 
+                              min_af = 0.05, max_af = 0.95)
 
-# Unzip compressed mini database and save in tempdir
-R.utils::gunzip(mini_db,
-               destname = mini_db_path,
-               remove = FALSE)
-
-# Extract variants within a candidate gene and filter by allele frequency
-variant_region <- query_db(db_path = mini_db_path,
-                              chrom = "Chr05",
-                              start = 75104537,
-                              end = 75106403,
-                              table_name = "genotypes",
-                              gene_name = "Sobic.005G213600") |>
-filter_by_af(variant_id_col = 'variant_id',
-             chrom_col = 'chrom',
-             pos_col = 'pos',
-             min_af = 0.01,
-             max_af = 0.99)
-
-# Clean tempdir
-contents <- list.files(tempdir(),
-                             full.names = TRUE,
-                             recursive = TRUE,
-                             all.files = TRUE,
-                             include.dirs = TRUE)
-unlink(contents, recursive = TRUE, force = TRUE)
+# Safely close out the database connection
+disconnect_local_db(con)
 }
 
 }

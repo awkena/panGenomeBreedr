@@ -13,8 +13,11 @@ test_that("pgsql_variant_stats returns correct summary structure from mock DB", 
         user = 'israeltawiahtetteh'
       )
 
-      #  Test full stats 
-      stats_all <- pgsql_variant_stats(con, include_annotations = TRUE)
+      #  Test full stats
+      stats_all <- panGenomeBreedr:::pgsql_variant_stats(
+        con,
+        include_annotations = TRUE
+      )
 
       # Validate structure
       expect_s3_class(stats_all, "data.frame")
@@ -31,8 +34,11 @@ test_that("pgsql_variant_stats returns correct summary structure from mock DB", 
         expect_true(row_03$max_pos >= row_03$min_pos)
       }
 
-      # Test base stats only 
-      stats_base <- pgsql_variant_stats(con, include_annotations = FALSE)
+      # Test base stats only
+      stats_base <- panGenomeBreedr:::pgsql_variant_stats(
+        con,
+        include_annotations = FALSE
+      )
 
       # Ensure optional column is absent
       expect_false("n_annotated" %in% colnames(stats_base))

@@ -1,4 +1,4 @@
-#' Set the API endpoint URL for pangenome database
+#' Set the API endpoint URL for database
 #'
 #' Allows users to connect the package to any custom-hosted database via API.
 #'
@@ -25,7 +25,7 @@ set_api_url <- function(url) {
 #' Get the current API endpoint URL
 #'
 #' Retrieves the active API endpoint. If no custom endpoint has been set
-#' by the user, it safely defaults to the official Sorghum pangenome database API.
+#' by the user, it safely defaults to the official Sorghum database API.
 #'
 #' @returns The character string of the active API URL.
 #' @export
@@ -40,7 +40,7 @@ get_api_url <- function() {
 
   # If nothing is set, use the sorghum AWS Server
   if (is.null(url) || url == "") {
-    url <- "http://16.171.142.87:8000"
+    url <- "http://79.72.72.212:8000"
   }
 
   return(url)
@@ -49,7 +49,7 @@ get_api_url <- function() {
 
 
 
-#' Internal API Fetcher
+#' Internal API fetcher
 #' @noRd
 #' @importFrom jsonlite fromJSON
 .api_fetch <- function(endpoint, query = NULL, simplify = TRUE) {
@@ -87,7 +87,7 @@ get_api_url <- function() {
 
 
 
-#' List all tables in the connected pangenome database.
+#' List all tables in the database (online)
 #'
 #' This function connects to the public panGenomeBreedr API and retrieves the names of
 #' all tables within the database.
@@ -101,7 +101,7 @@ pg_list_tables <- function() {
 
 
 
-#' Get variant statistics stored in the pangenome database.
+#' Get variant statistics from the database (online)
 #'
 #' This function connects to the public panGenomeBreedr API and calculates
 #' summary statistics for variants per chromosome, including variant counts
@@ -123,7 +123,7 @@ pg_variant_stats <- function(include_annotations = TRUE) {
 
 
 
-#' Get variant statistics stored in the pangenome database based on mutation impact.
+#' Summarize variant mutation impacts per chromosome (online)
 #'
 #' This function connects to the public panGenomeBreedr API and summarizes the
 #' distribution of mutation impacts across chromosomes.
@@ -139,7 +139,7 @@ pg_variant_impact_summary <- function() {
 
 
 
-#' Name and row count for each table in the pangenome database.
+#' Name and row count for each table in the database (online)
 #'
 #' This function connects to the public panGenomeBreedr API and returns a
 #' summary data frame containing the table names and their respective row counts.
@@ -154,7 +154,7 @@ pg_summarize_tables <- function() {
 
 
 
-#' Check the column names and types for any table in the pangenome database.
+#' List column names and types for a specified table (online)
 #'
 #' This function connects to the public panGenomeBreedr API and retrieves
 #' metadata about the columns in a specified table.
@@ -181,7 +181,7 @@ pg_list_table_columns <- function(
 
 
 
-#' Query any table in the pangenome database using chromosome and a genomic position range.
+#' Query genomic data tables by coordinate range (online)
 #'
 #' This function connects to the public panGenomeBreedr API to retrieve data
 #' from the variants, annotations, or genotypes tables based on a specific
@@ -219,7 +219,7 @@ pg_query_db <- function(
 
 
 
-#' Extract variants from the annotation table based on impact type.
+#' Extract variants based on functional mutation impact (online)
 #'
 #' This function connects to the public panGenomeBreedr API to retrieve variants
 #' filtered by snpEff impact levels (HIGH, MODERATE, etc.) and optional
@@ -256,11 +256,11 @@ pg_query_by_impact <- function(
 
 
 
-#' Extract variants based on minimum and maximum allele frequencies within a defined region in the pangenome database.
+#' Extract regional variants filtered by allele frequency (online)
 #'
-#' This function connects to the public panGenomeBreedr API to query genotypes
-#' within a specific genomic range and filters the results to only include
-#' variants within the specified alternate allele frequency (AF) thresholds.
+#' This function connects to the public panGenomeBreedr API to query genotypes within
+#' a specific genomic range and filters the results to only include variants
+#' within the specified alternate allele frequency (AF) thresholds.
 #'
 #' @param min_af Numeric. Minimum alternate allele frequency (0-1). Default is 0.
 #' @param max_af Numeric. Maximum alternate allele frequency (0-1). Default is 1.
@@ -298,10 +298,10 @@ pg_query_by_af <- function(
 
 
 
-#' Query genotypes for one or more variant IDs from a wide-format genotype table.
+#' Query genotypes for specific variant IDs (online)
 #'
-#' This function connects to the public panGenomeBreedr API to retrieve genomic
-#' data for a specific list of variant IDs. It expands the genotype array
+#' This function connects to the public panGenomeBreedr API to retrieve genomic data
+#' for a specific list of variant IDs. It expands the genotype array
 #' into a wide format (samples as columns).
 #'
 #' @param variant_ids A character vector of variant IDs to retrieve.
@@ -350,10 +350,10 @@ pg_query_genotypes <- function(
 
 
 
-#' Count the number of variant types in the pangenome database.
+#' Count the distribution of variant types in the database (online)
 #'
-#' This function connects to the public panGenomeBreedr API to perform a
-#' server-side aggregation, counting the occurrences of different variant types
+#' This function connects to the public panGenomeBreedr API to perform a server-side
+#' aggregation, counting the occurrences of different variant types
 #' (e.g., SNP, INDEL) stored in the database.
 #'
 #' @param variants_table Character. The name of the table containing variant
@@ -371,11 +371,11 @@ pg_count_variant_types <- function(variants_table = "variants") {
 
 
 
-#' Query the annotations table within a specified genomic region and summarize the distribution of SnpEff annotations and impact categories by variant type.
+#' Summarize functional annotations and impacts for a genomic region (online)
 #'
-#' This function connects to the public panGenomeBreedr API to query variants
-#' within a specific genomic range and returns summaries of SnpEff annotations
-#' and impact levels, cross-tabulated by variant type.
+#' This function connects to the public panGenomeBreedr API to query variants within
+#' a specific genomic range and returns summaries of SnpEff annotations and
+#' impact levels, cross-tabulated by variant type.
 #'
 #' @param chrom Character. Chromosome name (e.g., "Chr05").
 #' @param start Numeric. Start coordinate of the region.
@@ -417,11 +417,12 @@ pg_query_ann_summary <- function(
 
 
 
-#' Retrieve sample metadata from the pangenome database.
+#' Retrieve sample metadata from the database (online)
 #'
-#' This function connects to the public panGenomeBreedr API to fetch accession-level
-#' metadata, such as origin, race, and classification from the 'metadata' table. It supports optional
-#' filtering by specific columns to easily subset populations for downstream analysis.
+#' This function connects to the public panGenomeBreedr API to fetch
+#' accession-level metadata, such as origin, race, and classification from the
+#' 'metadata' table. It supports optional filtering by specific columns to easily
+#' subset populations for downstream analysis.
 #'
 #' @param query_col Character. The metadata column to filter by (e.g., "countryorigin").
 #'   If \code{NULL}, all records are returned.
@@ -438,11 +439,12 @@ pg_get_sample_metadata <- function(query_col = NULL, query_value = NULL) {
 
 
 
-#' Query genotypes filtered by sample metadata attributes in the pangenome database.
+#' Query genotypes filtered by sample metadata attributes (online)
 #'
-#' This function connects to the public panGenomeBreedr API to retrieve genotypes for a specific
-#' genomic region, but restricts the output to a subset of samples defined
-#' by metadata attributes (e.g., extracting variants only for specific countries, populations, or phenotypic clusters).
+#' This function connects to the public panGenomeBreedr API to retrieve genotypes
+#' for a specific genomic region, but restricts the output to a subset of samples
+#' defined by metadata attributes (e.g., extracting variants only for specific
+#' countries, populations, or phenotypic clusters).
 #'
 #' @param chrom Character. Chromosome name.
 #' @param start Numeric. Genomic start range.

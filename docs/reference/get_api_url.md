@@ -1,8 +1,7 @@
 # Get the current API endpoint URL
 
 Retrieves the active API endpoint. If no custom endpoint has been set by
-the user, it safely defaults to the official Sorghum pangenome database
-API.
+the user, it safely defaults to the official Sorghum database API.
 
 ## Usage
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_query_by_af}
 \alias{pg_query_by_af}
-\title{Extract variants based on minimum and maximum allele frequencies within a defined region in the pangenome database.}
+\title{Extract regional variants filtered by allele frequency (online)}
 \usage{
 pg_query_by_af(min_af = 0, max_af = 1, chrom = NULL, start = NULL, end = NULL)
 }
@@ -20,7 +20,7 @@ A data frame containing variant metadata (ID, Chrom, Pos) and the
   calculated \code{ref_af} and \code{alt_af}.
 }
 \description{
-This function connects to the public panGenomeBreedr API to query genotypes
-within a specific genomic range and filters the results to only include
-variants within the specified alternate allele frequency (AF) thresholds.
+This function connects to the public panGenomeBreedr API to query genotypes within
+a specific genomic range and filters the results to only include variants
+within the specified alternate allele frequency (AF) thresholds.
 }

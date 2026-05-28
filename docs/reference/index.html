@@ -35,6 +35,99 @@
 
       <dl></dl></div><div class="section level2">
 
+      <h3 id="connection-configuration">Connection &amp; Configuration<a class="anchor" aria-label="anchor" href="#connection-configuration"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="connect_local_db.html">connect_local_db()</a></code>
+
+        </dt>
+        <dd>Connect to local offline database</dd>
+
+        <dt>
+
+          <code><a href="disconnect_local_db.html">disconnect_local_db()</a></code>
+
+        </dt>
+        <dd>Disconnect from the local database</dd>
+
+        <dt>
+
+          <code><a href="set_api_url.html">set_api_url()</a></code>
+
+        </dt>
+        <dd>Set the API endpoint URL for database</dd>
+
+        <dt>
+
+          <code><a href="get_api_url.html">get_api_url()</a></code>
+
+        </dt>
+        <dd>Get the current API endpoint URL</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="database-schema-metadata">Database Schema &amp; Metadata<a class="anchor" aria-label="anchor" href="#database-schema-metadata"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="list_sqlite_tables.html">list_sqlite_tables()</a></code>
+
+        </dt>
+        <dd>List all tables in the database (local)</dd>
+
+        <dt>
+
+          <code><a href="pg_list_tables.html">pg_list_tables()</a></code>
+
+        </dt>
+        <dd>List all tables in the database (online)</dd>
+
+        <dt>
+
+          <code><a href="summarize_sqlite_tables.html">summarize_sqlite_tables()</a></code>
+
+        </dt>
+        <dd>Name and row count for each table in the database (local)</dd>
+
+        <dt>
+
+          <code><a href="pg_summarize_tables.html">pg_summarize_tables()</a></code>
+
+        </dt>
+        <dd>Name and row count for each table in the database (online)</dd>
+
+        <dt>
+
+          <code><a href="list_table_columns.html">list_table_columns()</a></code>
+
+        </dt>
+        <dd>List column names and types for a specified table (local)</dd>
+
+        <dt>
+
+          <code><a href="pg_list_table_columns.html">pg_list_table_columns()</a></code>
+
+        </dt>
+        <dd>List column names and types for a specified table (online)</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="core-data-queries">Core Data Queries<a class="anchor" aria-label="anchor" href="#core-data-queries"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
 
 
 
@@ -43,23 +136,206 @@
           <code><a href="query_db.html">query_db()</a></code>
 
         </dt>
-        <dd>Query any table in your SQLite database using chromosome and a genomic position range.</dd>
+        <dd>Query genomic data tables by coordinate range (local)</dd>
 
         <dt>
+
+          <code><a href="pg_query_db.html">pg_query_db()</a></code>
+
+        </dt>
+        <dd>Query genomic data tables by coordinate range (online)</dd>
+
+        <dt>
+
+          <code><a href="query_genotypes.html">query_genotypes()</a></code>
+
+        </dt>
+        <dd>Query genotypes for specific variant IDs (local)</dd>
+
+        <dt>
+
+          <code><a href="pg_query_genotypes.html">pg_query_genotypes()</a></code>
+
+        </dt>
+        <dd>Query genotypes for specific variant IDs (online)</dd>
+
+        <dt>
+
+          <code><a href="get_sample_metadata.html">get_sample_metadata()</a></code>
+
+        </dt>
+        <dd>Retrieve sample metadata from the database (local)</dd>
+
+        <dt>
+
+          <code><a href="pg_get_sample_metadata.html">pg_get_sample_metadata()</a></code>
+
+        </dt>
+        <dd>Retrieve sample metadata from the database (online)</dd>
+
+        <dt>
+
+          <code><a href="query_by_metadata.html">query_by_metadata()</a></code>
+
+        </dt>
+        <dd>Query genotypes filtered by sample metadata attributes (local)</dd>
+
+        <dt>
+
+          <code><a href="pg_query_by_metadata.html">pg_query_by_metadata()</a></code>
+
+        </dt>
+        <dd>Query genotypes filtered by sample metadata attributes (online)</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="targeted-variant-filters">Targeted Variant Filters<a class="anchor" aria-label="anchor" href="#targeted-variant-filters"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="query_by_af.html">query_by_af()</a></code>
 
         </dt>
-        <dd>Extract variants based on minimum and maximum allele frequencies within a defined region in a SQLite database.</dd>
+        <dd>Extract regional variants filtered by allele frequency (local)</dd>
+
+        <dt>
+
+          <code><a href="pg_query_by_af.html">pg_query_by_af()</a></code>
+
+        </dt>
+        <dd>Extract regional variants filtered by allele frequency (online)</dd>
+
+        <dt>
+
+          <code><a href="query_by_impact.html">query_by_impact()</a></code>
+
+        </dt>
+        <dd>Extract variants based on functional mutation impact (local)</dd>
+
+        <dt>
+
+          <code><a href="pg_query_by_impact.html">pg_query_by_impact()</a></code>
+
+        </dt>
+        <dd>Extract variants based on functional mutation impact (online)</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="summaries-statistics">Summaries &amp; Statistics<a class="anchor" aria-label="anchor" href="#summaries-statistics"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="variant_stats.html">variant_stats()</a></code>
+
+        </dt>
+        <dd>Get variant statistics from the database (local)</dd>
+
+        <dt>
+
+          <code><a href="pg_variant_stats.html">pg_variant_stats()</a></code>
+
+        </dt>
+        <dd>Get variant statistics from the database (online)</dd>
+
+        <dt>
+
+          <code><a href="variant_impact_summary.html">variant_impact_summary()</a></code>
+
+        </dt>
+        <dd>Summarize variant mutation impacts per chromosome (local)</dd>
+
+        <dt>
+
+          <code><a href="pg_variant_impact_summary.html">pg_variant_impact_summary()</a></code>
+
+        </dt>
+        <dd>Summarize variant mutation impacts per chromosome (online)</dd>
+
+        <dt>
+
+          <code><a href="count_variant_types.html">count_variant_types()</a></code>
+
+        </dt>
+        <dd>Count the distribution of variant types in the database (local)</dd>
+
+        <dt>
+
+          <code><a href="pg_count_variant_types.html">pg_count_variant_types()</a></code>
+
+        </dt>
+        <dd>Count the distribution of variant types in the database (online)</dd>
 
         <dt>
 
           <code><a href="query_ann_summary.html">query_ann_summary()</a></code>
 
         </dt>
-        <dd>Query the annotations table within a specified genomic region and summarize the distribution of SnpEff annotations and impact categories by variant type.</dd>
+        <dd>Summarize functional annotations and impacts for a genomic region (local)</dd>
 
         <dt>
+
+          <code><a href="pg_query_ann_summary.html">pg_query_ann_summary()</a></code>
+
+        </dt>
+        <dd>Summarize functional annotations and impacts for a genomic region (online)</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="allele-frequency-handlers">Allele Frequency Handlers<a class="anchor" aria-label="anchor" href="#allele-frequency-handlers"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="calc_af.html">calc_af()</a></code>
+
+        </dt>
+        <dd>Compute allele frequencies for a genotype matrix (local)</dd>
+
+        <dt>
+
+          <code><a href="pg_calc_af.html">pg_calc_af()</a></code>
+
+        </dt>
+        <dd>Compute allele frequencies for a genotype matrix (online)</dd>
+
+        <dt>
+
+          <code><a href="filter_by_af.html">filter_by_af()</a></code>
+
+        </dt>
+        <dd>Filter extracted genotypes based on alternate allele frequency (local)</dd>
+
+        <dt>
+
+          <code><a href="pg_filter_by_af.html">pg_filter_by_af()</a></code>
+
+        </dt>
+        <dd>Filter extracted genotypes based on alternate allele frequency (online)</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="marker-design-visualization">Marker Design &amp; Visualization<a class="anchor" aria-label="anchor" href="#marker-design-visualization"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="kasp_marker_design.html">kasp_marker_design()</a></code>
 
@@ -68,80 +344,40 @@
 
         <dt>
 
-          <code><a href="list_sqlite_tables.html">list_sqlite_tables()</a></code>
+          <code><a href="query_map_accessions.html">query_map_accessions()</a></code>
 
         </dt>
-        <dd>List all tables in the SQLite database.</dd>
+        <dd>Interactive geographic exploration of sorghum accessions (local)</dd>
 
         <dt>
 
-          <code><a href="variant_stats.html">variant_stats()</a></code>
+          <code><a href="pg_map_accessions.html">pg_map_accessions()</a></code>
 
         </dt>
-        <dd>Get variants statistics stored in SQLite database</dd>
+        <dd>Interactive geographic exploration of sorghum accessions (online)</dd>
+      </dl></div><div class="section level2">
 
-        <dt>
+      <h3 id="utilities">Utilities<a class="anchor" aria-label="anchor" href="#utilities"></a></h3>
 
-          <code><a href="variant_impact_summary.html">variant_impact_summary()</a></code>
 
-        </dt>
-        <dd>Get variants statistics stored in SQLite database based on mutation impact.</dd>
+      <dl></dl></div><div class="section level2">
 
-        <dt>
 
-          <code><a href="summarize_sqlite_tables.html">summarize_sqlite_tables()</a></code>
 
-        </dt>
-        <dd>Name and row count for each table in SQLite database.</dd>
 
-        <dt>
-
-          <code><a href="list_table_columns.html">list_table_columns()</a></code>
-
-        </dt>
-        <dd>Check the column names and types for any table in a SQLite database.</dd>
-
-        <dt>
+      <dl><dt>
 
           <code><a href="gene_coord_gff.html">gene_coord_gff()</a></code>
 
         </dt>
-        <dd>Get the genomic range of a candidate gene using the Sobic ID from a gff file.</dd>
+        <dd>Get the genomic range of a candidate gene using the Sobic ID from a GFF file (local)</dd>
 
         <dt>
 
-          <code><a href="query_by_impact.html">query_by_impact()</a></code>
+          <code><a href="pg_gene_coords.html">pg_gene_coords()</a></code>
 
         </dt>
-        <dd>Extract variants from annotation table based on impact type: LOW, MODERATE, HIGH, MODIFIER.</dd>
-
-        <dt>
-
-          <code><a href="calc_af.html">calc_af()</a></code>
-
-        </dt>
-        <dd>Compute allele frequencies for a VCF genotype matrix (variant x samples). Chromosome and position may be included in the data.</dd>
-
-        <dt>
-
-          <code><a href="filter_by_af.html">filter_by_af()</a></code>
-
-        </dt>
-        <dd>Filter extracted variants based on alternate allele frequency.</dd>
-
-        <dt>
-
-          <code><a href="query_genotypes.html">query_genotypes()</a></code>
-
-        </dt>
-        <dd>Query genotypes for one or more variant IDs from a wide-format genotype table.</dd>
-
-        <dt>
-
-          <code><a href="count_variant_types.html">count_variant_types()</a></code>
-
-        </dt>
-        <dd>Count the number of variant types in the SQLite database.</dd>
+        <dd>Get the genomic range of a candidate gene using the Sobic ID from a GFF file (online)</dd>
 
         <dt>
 
@@ -163,167 +399,6 @@
 
         </dt>
         <dd>Download files in a shared Google Drive folder without restrictions.</dd>
-
-        <dt>
-
-          <code><a href="get_sample_metadata.html">get_sample_metadata()</a></code>
-
-        </dt>
-        <dd>Retrieve sample metadata from the SQLite database</dd>
-
-        <dt>
-
-          <code><a href="pg_variant_stats.html">pg_variant_stats()</a></code>
-
-        </dt>
-        <dd>Get variant statistics stored in the pangenome database.</dd>
-
-        <dt>
-
-          <code><a href="pg_calc_af.html">pg_calc_af()</a></code>
-
-        </dt>
-        <dd>Compute allele frequencies for a VCF genotype matrix (variant x samples).</dd>
-
-        <dt>
-
-          <code><a href="pg_count_variant_types.html">pg_count_variant_types()</a></code>
-
-        </dt>
-        <dd>Count the number of variant types in the pangenome database.</dd>
-
-        <dt>
-
-          <code><a href="pg_filter_by_af.html">pg_filter_by_af()</a></code>
-
-        </dt>
-        <dd>Filter extracted variants based on alternate allele frequency.</dd>
-
-        <dt>
-
-          <code><a href="pg_gene_coords.html">pg_gene_coords()</a></code>
-
-        </dt>
-        <dd>Get the genomic range of a candidate gene using the Sobic ID from a GFF file</dd>
-
-        <dt>
-
-          <code><a href="pg_get_sample_metadata.html">pg_get_sample_metadata()</a></code>
-
-        </dt>
-        <dd>Retrieve sample metadata from the pangenome database.</dd>
-
-        <dt>
-
-          <code><a href="pg_list_table_columns.html">pg_list_table_columns()</a></code>
-
-        </dt>
-        <dd>Check the column names and types for any table in the pangenome database.</dd>
-
-        <dt>
-
-          <code><a href="pg_list_tables.html">pg_list_tables()</a></code>
-
-        </dt>
-        <dd>List all tables in the connected pangenome database.</dd>
-
-        <dt>
-
-          <code><a href="pg_map_accessions.html">pg_map_accessions()</a></code>
-
-        </dt>
-        <dd>Interactive Geographic Exploration of Sorghum Accessions</dd>
-
-        <dt>
-
-          <code><a href="pg_plot_trait_association.html">pg_plot_trait_association()</a></code>
-
-        </dt>
-        <dd>Generic Trait Association Audit (Cloud/API Version)</dd>
-
-        <dt>
-
-          <code><a href="pg_query_ann_summary.html">pg_query_ann_summary()</a></code>
-
-        </dt>
-        <dd>Query the annotations table within a specified genomic region and summarize the distribution of SnpEff annotations and impact categories by variant type.</dd>
-
-        <dt>
-
-          <code><a href="pg_query_by_af.html">pg_query_by_af()</a></code>
-
-        </dt>
-        <dd>Extract variants based on minimum and maximum allele frequencies within a defined region in the pangenome database.</dd>
-
-        <dt>
-
-          <code><a href="pg_query_by_impact.html">pg_query_by_impact()</a></code>
-
-        </dt>
-        <dd>Extract variants from the annotation table based on impact type.</dd>
-
-        <dt>
-
-          <code><a href="pg_query_by_metadata.html">pg_query_by_metadata()</a></code>
-
-        </dt>
-        <dd>Query genotypes filtered by sample metadata attributes in the pangenome database.</dd>
-
-        <dt>
-
-          <code><a href="pg_query_db.html">pg_query_db()</a></code>
-
-        </dt>
-        <dd>Query any table in the pangenome database using chromosome and a genomic position range.</dd>
-
-        <dt>
-
-          <code><a href="pg_query_genotypes.html">pg_query_genotypes()</a></code>
-
-        </dt>
-        <dd>Query genotypes for one or more variant IDs from a wide-format genotype table.</dd>
-
-        <dt>
-
-          <code><a href="pg_summarize_tables.html">pg_summarize_tables()</a></code>
-
-        </dt>
-        <dd>Name and row count for each table in the pangenome database.</dd>
-
-        <dt>
-
-          <code><a href="pg_variant_impact_summary.html">pg_variant_impact_summary()</a></code>
-
-        </dt>
-        <dd>Get variant statistics stored in the pangenome database based on mutation impact.</dd>
-
-        <dt>
-
-          <code><a href="query_by_metadata.html">query_by_metadata()</a></code>
-
-        </dt>
-        <dd>Query genotypes filtered by sample metadata attributes in SQLite</dd>
-
-        <dt>
-
-          <code><a href="query_map_accessions.html">query_map_accessions()</a></code>
-
-        </dt>
-        <dd>Interactive Geographic Exploration of Sorghum Accessions</dd>
-
-        <dt>
-
-          <code><a href="set_api_url.html">set_api_url()</a></code>
-
-        </dt>
-        <dd>Set the API endpoint URL for pangenome database</dd>
-
-        <dt>
-
-          <code><a href="get_api_url.html">get_api_url()</a></code>
-
-        </dt>
-        <dd>Get the current API endpoint URL</dd>
       </dl></div><div class="section level2">
       <h2 id="kasp-marker-validation">KASP Marker Validation<a class="anchor" aria-label="anchor" href="#kasp-marker-validation"></a></h2>
 

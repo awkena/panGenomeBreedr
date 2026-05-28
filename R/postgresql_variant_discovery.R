@@ -1,4 +1,4 @@
-#' Connect to the panGenomeBreedr Database
+#' Connect to the panGenomeBreedr database
 #'
 #' @param host The database endpoint. Defaults to the 'PGSQL_HOST' environment variable.
 #' @param dbname The database name. Defaults to the 'PGSQL_DBNAME' environment variable or 'postgres'.
@@ -13,7 +13,7 @@ pgsql_connect <- function(
   dbname = Sys.getenv("PGSQL_DBNAME", "postgres"),
   user = Sys.getenv("PGSQL_USER", "postgres"),
   password = Sys.getenv("PGSQL_PASS"),
-  port = 5432
+  port = as.numeric(Sys.getenv("PGSQL_PORT", 5433))
 ) {
   # Prevent silent local connections
   if (host == "") {
@@ -54,10 +54,10 @@ pgsql_connect <- function(
 
 
 
-#' List all tables in the connected pangenome database.
+#' List all tables in the connected database.
 #'
-#' This function connects to the pangenome database and retrieves the names of
-#' all tables within the database.
+#' This function connects to the database and retrieves the names of all
+#' tables within the database.
 #'
 #' @param con A \code{DBIConnection} object, as returned by \code{\link[DBI]{dbConnect}}.
 #' @returns A character vector of table names.
@@ -106,10 +106,10 @@ pgsql_list_tables <- function(con) {
 
 
 
-#' Get variant statistics stored in the pangenome database.
+#' Get variant statistics stored in the database.
 #'
 #' This function calculates summary statistics for variants per chromosome,
-#' including variant counts and genomic ranges. It can optionally include
+#' including variant counts and genomic ranges. It can optionally include a
 #' statistics for the annotations table.
 #'
 #' @param con A \code{DBIConnection} object, as returned by \code{\link[DBI]{dbConnect}}.
@@ -195,11 +195,11 @@ pgsql_variant_stats <- function(con, include_annotations = TRUE) {
 
 
 
-#' Get variants statistics stored in the pangenome database based on mutation impact.
+#' Get variants statistics stored in the database based on mutation impact.
 #'
-#' This function connects to the pangenome database and summarizes the
-#' distribution of mutation impacts (e.g., HIGH, MODERATE, LOW, MODIFIER)
-#' across chromosomes.
+#' This function connects to the database and summarizes the distribution
+#' of mutation impacts (e.g., HIGH, MODERATE, LOW, MODIFIER) across
+#' chromosomes.
 #'
 #' @param con A \code{DBIConnection} object, as returned by \code{\link[DBI]{dbConnect}}.
 #'
@@ -274,11 +274,11 @@ pgsql_variant_impact_summary <- function(con) {
 
 
 
-#' Name and row count for each table in the pangenome database.
+#' Name and row count for each table in the database.
 #'
-#' This function iterates through all tables in the connected pangenome database
-#' and returns a summary data frame containing the table names and their
-#' respective row counts.
+#' This function iterates through all tables in the connected database and
+#' returns a summary data frame containing the table names and their respective
+#' row counts.
 #'
 #' @param con A \code{DBIConnection} object, as returned by \code{\link[DBI]{dbConnect}}.
 #'
@@ -337,10 +337,10 @@ pgsql_summarize_tables <- function(con) {
   counts <- sapply(tables, function(tbl) {
     tbl_quoted <- DBI::dbQuoteIdentifier(con, tbl)
     query <- paste0("SELECT COUNT(*) FROM ", tbl_quoted)
-    DBI::dbGetQuery(con, query)[[1]]
+    raw_val <- DBI::dbGetQuery(con, query)[[1]]
+    as.numeric(as.character(raw_val))
   })
 
-  # Aggregate results into a clean data frame.
   # We cast row counts to numeric to prevent integer overflow errors with massive pangenome tables.
   res <- data.frame(
     table = tables,
@@ -357,10 +357,10 @@ pgsql_summarize_tables <- function(con) {
 
 
 
-#' Check the column names and types for any table in the pangenome database.
+#' Check the column names and types for any table in the database.
 #'
-#' This function retrieves metadata about the columns in a specified table,
-#' including column names, data types, and nullability.
+#' This function retrieves metadata about the columns in a specified table, including
+#' column names, data types, and nullability.
 #'
 #' @param con A \code{DBIConnection} object, as returned by \code{\link[DBI]{dbConnect}}.
 #' @param table_name A character value specifying the name of the table.
@@ -440,10 +440,11 @@ pgsql_list_table_columns <- function(
 
 
 
-#' Query any table in the pangenome database using chromosome and a genomic position range.
+#' Query any table in the database using chromosome and a genomic position range.
 #'
-#' This function connects to the pangenome database to retrieve data from the variants, 
-#' annotations, or genotypes tables based on a specific chromosome and genomic range.
+#' This function connects to the database to retrieve data from the
+#' variants, annotations, or genotypes tables based on a specific chromosome and
+#' genomic range.
 #'
 #' @param con A \code{DBIConnection} object.
 #' @param table_name Character. One of "variants", "annotations", or "genotypes".
@@ -604,7 +605,7 @@ pgsql_query_db <- function(
 
 
 
-#' Get the genomic range of a candidate gene using the Sobic ID from a GFF file
+#' Get the genomic range of a candidate gene using the Sobic ID from a GFF file (online)
 #'
 #' This function parses a GFF3 file to extract the chromosome, start, and
 #' end coordinates for a specific gene ID. It supports local files,
@@ -720,9 +721,9 @@ pg_gene_coords <- function(gene_name, gff_path) {
 
 
 
-#' Extract variants from the annotation table based on impact type: LOW, MODERATE, HIGH, MODIFIER.
+#' Extract variants from the annotation table based on impact type.
 #'
-#' This function connects to the pangenome database to retrieve variants
+#' This function connects to the database to retrieve variants
 #' filtered by snpEff impact levels (HIGH, MODERATE, etc.) and optional
 #' genomic coordinates.
 #'
@@ -829,7 +830,7 @@ pgsql_query_by_impact <- function(
 
 
 
-#' Compute allele frequencies for a VCF genotype matrix (variant x samples).
+#' Compute allele frequencies for a genotype matrix (online)
 #'
 #' This function calculates the reference and alternate allele frequencies
 #' for a variants-by-samples matrix. It handles both phased (|) and unphased (/)
@@ -906,7 +907,7 @@ pg_calc_af <- function(
 
 
 
-#' Filter extracted variants based on alternate allele frequency.
+#' Filter extracted genotypes based on alternate allele frequency (online)
 #'
 #' Calculates allele frequencies for a genotype matrix and filters variants
 #' based on a user-defined range locally on your machine. Useful for removing
@@ -977,11 +978,11 @@ pg_filter_by_af <- function(
 
 
 
-#' Extract variants based on minimum and maximum allele frequencies within a defined region in the pangenome database.
+#' Extract variants based on minimum and maximum allele frequencies within a defined region in the database.
 #'
-#' This function queries the pangenome database for genotypes within a specific
-#' genomic range and filters the results to only include variants within the
-#' specified alternate allele frequency (AF) thresholds.
+#' This function queries the database for genotypes within a specific genomic
+#' range and filters the results to only include variants within the specified
+#' alternate allele frequency (AF) thresholds.
 #'
 #' @param con A \code{DBIConnection} object (PostgreSQL).
 #' @param min_af Numeric. Minimum alternate allele frequency (0-1). Default is 0.
@@ -1075,10 +1076,11 @@ pgsql_query_by_af <- function(
 
 
 
-#' Query genotypes for one or more variant IDs from a wide-format genotype table.
+#' Query genotypes for one or more variant IDs from a wide-format table.
 #'
-#' This function connects to the pangenome database to retrieve genomic data for a specific list of variant IDs.
-#' It expands the genotype array into a wide format (samples as columns).
+#' This function connects to the database to retrieve genomic data for a
+#' specific list of variant IDs. It expands the genotype array into a wide format
+#' (samples as columns).
 #'
 #' @param con A \code{DBIConnection} object (PostgreSQL).
 #' @param variant_ids A character vector of variant IDs to retrieve.
@@ -1181,10 +1183,11 @@ pgsql_query_genotypes <- function(
 
 
 
-#' Count the number of variant types in the pangenome database.
+#' Count the number of variant types in the database.
 #'
-#' This function connects to the pangenome database to perform a server-side aggregation, counting the occurrences
-#' of different variant types (e.g., SNP, INDEL) stored in the database.
+#' This function connects to the database to perform a server-side
+#' aggregation, counting the occurrences of different variant types (e.g., SNP,
+#' INDEL) stored in the database.
 #'
 #' @param con A \code{DBIConnection} object (PostgreSQL).
 #' @param variants_table Character. The name of the table containing variant
@@ -1197,8 +1200,8 @@ pgsql_query_genotypes <- function(
 #' }
 #'
 #' @details
-#' This function leverages PostgreSQL's \code{COUNT} and \code{GROUP BY}
-#' operations. Given the size of the pangenome, this is significantly faster
+#' This function leverages PostgreSQL's \code{COUNT} and \code{GROUP BY} operations.
+#' Given the size of the database, this is significantly faster
 #' than retrieving the data into R for counting.
 #'
 #' @examples
@@ -1244,7 +1247,7 @@ pgsql_count_variant_types <- function(con, variants_table = "variants") {
   # Use quoted identifiers to maintain compatibility with case-sensitive PostgreSQL environments.
   tbl_quoted <- DBI::dbQuoteIdentifier(con, variants_table)
 
-  # Grouping on the server side is vital for pangenome scale to prevent R from crashing.
+  # Grouping on the server side is vital for database scale to prevent R from crashing.
   query <- paste0(
     "SELECT variant_type, COUNT(*) AS n ",
     "FROM ",
@@ -1267,10 +1270,10 @@ pgsql_count_variant_types <- function(con, variants_table = "variants") {
 
 
 
-#' Query the annotations table within a specified genomic region and summarize the distribution of SnpEff annotations and impact categories by variant type.
+#' Query the annotations table within a specified genomic region.
 #'
-#' This function queries the pangenome database for variants within a specific
-#' genomic range and returns summaries of SnpEff annotations and impact levels,
+#' This function queries the database for variants within a specific genomic
+#' range and returns summaries of SnpEff annotations and impact levels,
 #' cross-tabulated by variant type.
 #'
 #' @param con A \code{DBIConnection} object (PostgreSQL).
@@ -1325,7 +1328,7 @@ pgsql_query_ann_summary <- function(
     }
   }
 
-  # Defensive check to ensure the required pangenome tables exist in the schema.
+  # Defensive check to ensure the required database tables exist in the schema.
   if (!DBI::dbExistsTable(con, annotations_table)) {
     stop(sprintf("Table '%s' not found.", annotations_table))
   }
@@ -1435,10 +1438,11 @@ pgsql_query_ann_summary <- function(
 
 
 
-#' Retrieve sample metadata from the pangenome database.
+#' Retrieve sample metadata from the database.
 #'
-#' This function connects to the pangenome database to fetch accession-level metadata, such as origin, race,
-#' and classification from the 'metadata' table. It supports optional
+#' This function connects to the database to fetch accession-level
+#' metadata, such as origin, race, and classification from the 'metadata' table.
+#' It supports optional
 #' filtering by specific columns to easily subset populations for downstream analysis.
 #'
 #' @param con A \code{DBIConnection} object (PostgreSQL).
@@ -1505,11 +1509,11 @@ pgsql_get_sample_metadata <- function(con, query_col = NULL, query_value = NULL)
 
 
 
-#' Query genotypes filtered by sample metadata attributes in the pangenome database.
+#' Query genotypes filtered by sample metadata attributes in the database.
 #'
-#' This function retrieves genotypes for a specific genomic region, but restricts the output to
-#' a subset of samples defined by metadata attributes (e.g., extracting variants only for
-#' specific countries, populations, or phenotypic clusters).
+#' This function retrieves genotypes for a specific genomic region, but
+#' restricts the output to a subset of samples defined by metadata attributes
+#' (e.g., extracting variants only for specific countries, populations, or phenotypic clusters).
 #'
 #' @param con A \code{DBIConnection} object.
 #' @param chrom Character. Chromosome name.
@@ -1566,7 +1570,7 @@ pgsql_query_by_metadata <- function(con, chrom, start, end, meta_col, meta_value
 
 
 
-#' Interactive Geographic Exploration of Sorghum Accessions
+#' Interactive geographic exploration of sorghum accessions (online)
 #'
 #' This function generates a high-performance interactive map showing the geographic
 #' distribution of sorghum lines. It dynamically generates rich, scrollable popups
@@ -1598,12 +1602,11 @@ pgsql_query_by_metadata <- function(con, chrom, start, end, meta_col, meta_value
 #' meta <- pg_get_sample_metadata()
 #'
 #' # Explore the geographic distribution colored by genetic cluster
-#' pg_map_accessions(meta, color_by = "kmeans_cluster")
+#' pg_map_accessions(meta, color_by = "countryorigin")
 #' }
 #'
 #' @export
 pg_map_accessions <- function(metadata, color_by = "countryorigin") {
-
   # Dependency chceck
   if (!requireNamespace("leaflet", quietly = TRUE)) {
     stop(
@@ -1619,11 +1622,17 @@ pg_map_accessions <- function(metadata, color_by = "countryorigin") {
     )
   }
 
-  # Check if coordinate columns exist and filter for complete cases
+  # Check if coordinate columns exist
   if (!all(c("lat", "lon") %in% names(metadata))) {
-    stop("Metadata must contain 'lat' and 'lon' columns for geographic mapping.")
+    stop(
+      "Metadata must contain 'lat' and 'lon' columns for geographic mapping."
+    )
   }
 
+  metadata$lat <- suppressWarnings(as.numeric(metadata$lat))
+  metadata$lon <- suppressWarnings(as.numeric(metadata$lon))
+
+  # Filter for complete cases now that everything is properly numeric/NA
   plot_data <- metadata[!is.na(metadata$lat) & !is.na(metadata$lon), ]
 
   if (nrow(plot_data) == 0) {
@@ -1665,7 +1674,7 @@ pg_map_accessions <- function(metadata, color_by = "countryorigin") {
       lng = ~lon,
       lat = ~lat,
       radius = 5,
-      color = ~pal(plot_data[[color_by]]),
+      color = ~ pal(plot_data[[color_by]]),
       stroke = FALSE,
       fillOpacity = 0.8,
       popup = popup_info,
@@ -1676,174 +1685,173 @@ pg_map_accessions <- function(metadata, color_by = "countryorigin") {
 }
 
 
-#' Generic Trait Association Audit (Cloud/API Version)
-#'
-#' This function performs an association analysis between a specific genomic
-#' variant and a phenotypic trait. It pulls genotypes from the AWS API and
-#' merges them with your local phenotypic data for statistical testing and plotting.
-#'
-#' @param variant_id Character. The specific SNP or INDEL ID to analyze.
-#' @param pheno_df Data frame containing local phenotypic data. The first column
-#'   must contain accession identifiers (PI numbers).
-#' @param trait_col Character. The name of the column in \code{pheno_df}
-#'   containing the trait scores.
-#' @param trait_type Character. Either "qualitative" or "quantitative".
-#'   Determines the statistical test and plot type.
-#'
-#' @returns A ggplot object displaying the association and statistical summary.
-#'
-#' @export
-#' @import ggplot2
-#' @import stats
-pg_plot_trait_association <- function(
-  variant_id,
-  pheno_df,
-  trait_col,
-  trait_type = c("qualitative", "quantitative")
-) {
-  trait_type <- match.arg(trait_type)
-  genotype <- NULL # Resolve R CMD check for ggplot2 global variable
+# #' Generic trait association audit (cloud/API version)
+# #'
+# #' This function performs an association analysis between a specific genomic
+# #' variant and a phenotypic trait. It pulls genotypes from the AWS API and
+# #' merges them with your local phenotypic data for statistical testing and plotting.
+# #'
+# #' @param variant_id Character. The specific SNP or INDEL ID to analyze.
+# #' @param pheno_df Data frame containing local phenotypic data. The first column
+# #'   must contain accession identifiers (PI numbers).
+# #' @param trait_col Character. The name of the column in \code{pheno_df}
+# #'   containing the trait scores.
+# #' @param trait_type Character. Either "qualitative" or "quantitative".
+# #'   Determines the statistical test and plot type.
+# #'
+# #' @returns A ggplot object displaying the association and statistical summary.
+# #'
+# #' @import ggplot2
+# #' @import stats
+# pg_plot_trait_association <- function(
+#   variant_id,
+#   pheno_df,
+#   trait_col,
+#   trait_type = c("qualitative", "quantitative")
+# ) {
+#   trait_type <- match.arg(trait_type)
+#   genotype <- NULL # Resolve R CMD check for ggplot2 global variable
 
-  # Dependency check
-  if (trait_type == "qualitative" && !requireNamespace("scales", quietly = TRUE)) {
-    stop(
-      "The 'scales' package is required to format qualitative trait plots. ",
-      "Please install it by running: install.packages('scales')",
-      call. = FALSE
-    )
-  }
+#   # Dependency check
+#   if (trait_type == "qualitative" && !requireNamespace("scales", quietly = TRUE)) {
+#     stop(
+#       "The 'scales' package is required to format qualitative trait plots. ",
+#       "Please install it by running: install.packages('scales')",
+#       call. = FALSE
+#     )
+#   }
 
-  # 1. Pull genotype data using the API wrapper (Cloud fetch)
-  gt_data <- pg_query_genotypes(variant_ids = variant_id)
+#   # 1. Pull genotype data using the API wrapper (Cloud fetch)
+#   gt_data <- pg_query_genotypes(variant_ids = variant_id)
   
-  if (nrow(gt_data) == 0) {
-    stop(paste(
-      "Variant ID",
-      variant_id,
-      "was not found in the cloud database."
-    ))
-  }
+#   if (nrow(gt_data) == 0) {
+#     stop(paste(
+#       "Variant ID",
+#       variant_id,
+#       "was not found in the cloud database."
+#     ))
+#   }
 
-  # 2. Fetch sample metadata mapping from the cloud
-  pi_map <- pg_get_sample_metadata()
+#   # 2. Fetch sample metadata mapping from the cloud
+#   pi_map <- pg_get_sample_metadata()
 
-  # Note: To avoid creating a brand new API endpoint just for a single annotation impact, 
-  # we default it to "UNKNOWN" for the API wrapper. If you want the full verdict logic, 
-  # you can add a dedicated annotation endpoint later.
-  impact <- "UNKNOWN"
+#   # Note: To avoid creating a brand new API endpoint just for a single annotation impact, 
+#   # we default it to "UNKNOWN" for the API wrapper. If you want the full verdict logic, 
+#   # you can add a dedicated annotation endpoint later.
+#   impact <- "UNKNOWN"
 
-  # Align genotype samples with phenotype PI numbers
-  sample_cols <- setdiff(
-    names(gt_data),
-    c(
-      "variant_id",
-      "chrom",
-      "pos",
-      "ref",
-      "alt",
-      "qual",
-      "filter",
-      "variant_type"
-    )
-  )
+#   # Align genotype samples with phenotype PI numbers
+#   sample_cols <- setdiff(
+#     names(gt_data),
+#     c(
+#       "variant_id",
+#       "chrom",
+#       "pos",
+#       "ref",
+#       "alt",
+#       "qual",
+#       "filter",
+#       "variant_type"
+#     )
+#   )
 
-  gt_long <- data.frame(
-    pinumber = pi_map$pinumber[match(sample_cols, pi_map$lib)],
-    genotype = as.character(unlist(gt_data[1, sample_cols])),
-    stringsAsFactors = FALSE
-  )
+#   gt_long <- data.frame(
+#     pinumber = pi_map$pinumber[match(sample_cols, pi_map$lib)],
+#     genotype = as.character(unlist(gt_data[1, sample_cols])),
+#     stringsAsFactors = FALSE
+#   )
 
-  # Ensure the phenotype data frame is ready for merging
-  colnames(pheno_df)[1] <- "pinumber"
-  plot_data <- merge(gt_long, pheno_df, by = "pinumber")
+#   # Ensure the phenotype data frame is ready for merging
+#   colnames(pheno_df)[1] <- "pinumber"
+#   plot_data <- merge(gt_long, pheno_df, by = "pinumber")
 
-  # Filter out missing genotypes and phenotypes to ensure statistical integrity
-  plot_data <- plot_data[
-    !is.na(plot_data[[trait_col]]) &
-      plot_data[[trait_col]] != "-" &
-      plot_data$genotype != "./.",
-  ]
+#   # Filter out missing genotypes and phenotypes to ensure statistical integrity
+#   plot_data <- plot_data[
+#     !is.na(plot_data[[trait_col]]) &
+#       plot_data[[trait_col]] != "-" &
+#       plot_data$genotype != "./.",
+#   ]
 
-  # Clean trait data based on user-defined type.
-  if (trait_type == "quantitative") {
-    if (!is.numeric(plot_data[[trait_col]])) {
-      plot_data[[trait_col]] <- as.numeric(gsub(
-        ".*[^0-9.]",
-        "",
-        as.character(plot_data[[trait_col]])
-      ))
-    }
-  } else {
-    # Categorical traits are forced to factors to prevent numerical misinterpretation
-    plot_data[[trait_col]] <- as.factor(plot_data[[trait_col]])
-  }
+#   # Clean trait data based on user-defined type.
+#   if (trait_type == "quantitative") {
+#     if (!is.numeric(plot_data[[trait_col]])) {
+#       plot_data[[trait_col]] <- as.numeric(gsub(
+#         ".*[^0-9.]",
+#         "",
+#         as.character(plot_data[[trait_col]])
+#       ))
+#     }
+#   } else {
+#     # Categorical traits are forced to factors to prevent numerical misinterpretation
+#     plot_data[[trait_col]] <- as.factor(plot_data[[trait_col]])
+#   }
 
-  # Compute population genetics parameters (MAF) for the audit
-  alleles <- unlist(strsplit(plot_data$genotype, "[|/]"))
-  maf <- min(table(alleles)) / length(alleles)
-  p_val <- NA
-  pve_val <- 0
+#   # Compute population genetics parameters (MAF) for the audit
+#   alleles <- unlist(strsplit(plot_data$genotype, "[|/]"))
+#   maf <- min(table(alleles)) / length(alleles)
+#   p_val <- NA
+#   pve_val <- 0
 
-  # Statistical tests based on the trait distribution
-  if (trait_type == "quantitative") {
-    p_val <- stats::kruskal.test(
-      plot_data[[trait_col]] ~ plot_data$genotype
-    )$p.value
-    pve_val <- summary(stats::lm(
-      plot_data[[trait_col]] ~ plot_data$genotype
-    ))$r.squared
-  } else {
-    p_val <- stats::chisq.test(
-      table(plot_data$genotype, plot_data[[trait_col]]),
-      simulate.p.value = TRUE
-    )$p.value
-  }
+#   # Statistical tests based on the trait distribution
+#   if (trait_type == "quantitative") {
+#     p_val <- stats::kruskal.test(
+#       plot_data[[trait_col]] ~ plot_data$genotype
+#     )$p.value
+#     pve_val <- summary(stats::lm(
+#       plot_data[[trait_col]] ~ plot_data$genotype
+#     ))$r.squared
+#   } else {
+#     p_val <- stats::chisq.test(
+#       table(plot_data$genotype, plot_data[[trait_col]]),
+#       simulate.p.value = TRUE
+#     )$p.value
+#   }
 
-  is_sig <- !is.na(p_val) && p_val < 0.05
+#   is_sig <- !is.na(p_val) && p_val < 0.05
 
-  # The VALIDATE verdict is triggered by strong stats (PVE > 10%)
-  verdict <- if (is_sig && pve_val > 0.1) {
-    "VALIDATE"
-  } else if (is_sig) {
-    "CAUTION"
-  } else {
-    "DISCARD"
-  }
+#   # The VALIDATE verdict is triggered by strong stats (PVE > 10%)
+#   verdict <- if (is_sig && pve_val > 0.1) {
+#     "VALIDATE"
+#   } else if (is_sig) {
+#     "CAUTION"
+#   } else {
+#     "DISCARD"
+#   }
 
-  # Generate the diagnostic visualization (Local processing)
-  p <- ggplot2::ggplot(plot_data, ggplot2::aes(x = genotype)) +
-    ggplot2::theme_minimal() +
-    ggplot2::scale_fill_brewer(palette = "Set1")
+#   # Generate the diagnostic visualization (Local processing)
+#   p <- ggplot2::ggplot(plot_data, ggplot2::aes(x = genotype)) +
+#     ggplot2::theme_minimal() +
+#     ggplot2::scale_fill_brewer(palette = "Set1")
 
-  if (trait_type == "quantitative") {
-    p <- p +
-      ggplot2::aes(y = .data[[trait_col]], fill = genotype) +
-      ggplot2::geom_boxplot(outlier.shape = NA, alpha = 0.5) +
-      ggplot2::geom_jitter(width = 0.2, alpha = 0.4)
-  } else {
-    p <- p +
-      ggplot2::aes(fill = .data[[trait_col]]) +
-      ggplot2::geom_bar(position = "fill", color = "white", linewidth = 0.3) +
-      ggplot2::scale_y_continuous(labels = scales::percent)
-  }
+#   if (trait_type == "quantitative") {
+#     p <- p +
+#       ggplot2::aes(y = .data[[trait_col]], fill = genotype) +
+#       ggplot2::geom_boxplot(outlier.shape = NA, alpha = 0.5) +
+#       ggplot2::geom_jitter(width = 0.2, alpha = 0.4)
+#   } else {
+#     p <- p +
+#       ggplot2::aes(fill = .data[[trait_col]]) +
+#       ggplot2::geom_bar(position = "fill", color = "white", linewidth = 0.3) +
+#       ggplot2::scale_y_continuous(labels = scales::percent)
+#   }
 
-  # Finalize plot metadata and labels
-  p <- p +
-    ggplot2::labs(
-      title = paste("Association Audit:", variant_id),
-      subtitle = paste0(
-        "P-val: ",
-        format.pval(p_val, digits = 3),
-        " | PVE: ",
-        round(pve_val * 100, 1),
-        "% | MAF: ",
-        round(maf, 3),
-        "\nVerdict: ",
-        verdict
-      ),
-      x = "Genotype",
-      y = if (trait_type == "quantitative") trait_col else "Frequency (%)"
-    )
+#   # Finalize plot metadata and labels
+#   p <- p +
+#     ggplot2::labs(
+#       title = paste("Association Audit:", variant_id),
+#       subtitle = paste0(
+#         "P-val: ",
+#         format.pval(p_val, digits = 3),
+#         " | PVE: ",
+#         round(pve_val * 100, 1),
+#         "% | MAF: ",
+#         round(maf, 3),
+#         "\nVerdict: ",
+#         verdict
+#       ),
+#       x = "Genotype",
+#       y = if (trait_type == "quantitative") trait_col else "Frequency (%)"
+#     )
 
-  return(p)
-}
+#   return(p)
+# }

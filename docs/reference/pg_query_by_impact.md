@@ -1,4 +1,4 @@
-# Extract variants from the annotation table based on impact type.
+# Extract variants based on functional mutation impact (online)
 
 This function connects to the public panGenomeBreedr API to retrieve
 variants filtered by snpEff impact levels (HIGH, MODERATE, etc.) and

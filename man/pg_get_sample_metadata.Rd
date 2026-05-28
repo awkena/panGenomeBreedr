@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_get_sample_metadata}
 \alias{pg_get_sample_metadata}
-\title{Retrieve sample metadata from the pangenome database.}
+\title{Retrieve sample metadata from the database (online)}
 \usage{
 pg_get_sample_metadata(query_col = NULL, query_value = NULL)
 }
@@ -16,7 +16,8 @@ If \code{NULL}, all records are returned.}
 A data frame containing the sample metadata records.
 }
 \description{
-This function connects to the public panGenomeBreedr API to fetch accession-level
-metadata, such as origin, race, and classification from the 'metadata' table. It supports optional
-filtering by specific columns to easily subset populations for downstream analysis.
+This function connects to the public panGenomeBreedr API to fetch
+accession-level metadata, such as origin, race, and classification from the
+'metadata' table. It supports optional filtering by specific columns to easily
+subset populations for downstream analysis.
 }

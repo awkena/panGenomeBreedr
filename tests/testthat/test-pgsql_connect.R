@@ -1,8 +1,17 @@
+# Retrieve the internal unexported function cleanly into the test workspace
+pgsql_connect_internal <- getFromNamespace("pgsql_connect", "panGenomeBreedr")
+
 test_that("pgsql_connect creates a valid connection object (Mocked)", {
-  # simulate a database environment
+  # Set temporary dummy environment variables for this test scope
+  withr::local_envvar(c(
+    "PGSQL_HOST" = "localhost",
+    "PGSQL_USER" = "postgres",
+    "PGSQL_DB" = "test_db"
+  ))
+
+  # Simulate the database environment using dittodb
   dittodb::with_mock_db({
-    # Test that the function returns a connection object
-    con <- pgsql_connect(password = "test_pass")
+    con <- pgsql_connect_internal(password = "test_pass")
 
     expect_s4_class(con, "DBIConnection")
 
@@ -12,9 +21,17 @@ test_that("pgsql_connect creates a valid connection object (Mocked)", {
 })
 
 test_that("pgsql_connect throws a helpful error on failure", {
-  # We force an error by providing a non-existent host
+  # Set the environment variables so it passes the pre-flight guard check
+  # but fails during the actual connection attempt
+  withr::local_envvar(c(
+    "PGSQL_HOST" = "non-existent-link",
+    "PGSQL_USER" = "postgres",
+    "PGSQL_DB" = "test_db"
+  ))
+
+  # Test that the connection failure error string is handled gracefully
   expect_error(
-    pgsql_connect(host = "non-existent-link", password = "pass"),
-    "Failed to connect to the database"
+    pgsql_connect_internal(password = "pass"),
+    "Database host not found|Failed to connect to the database"
   )
 })

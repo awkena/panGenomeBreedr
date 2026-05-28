@@ -1,4 +1,4 @@
-# Count the number of variant types in the pangenome database.
+# Count the distribution of variant types in the database (online)
 
 This function connects to the public panGenomeBreedr API to perform a
 server-side aggregation, counting the occurrences of different variant

@@ -1,4 +1,4 @@
-# Interactive Geographic Exploration of Sorghum Accessions
+# Interactive geographic exploration of sorghum accessions (online)
 
 This function generates a high-performance interactive map showing the
 geographic distribution of sorghum lines. It dynamically generates rich,
@@ -49,6 +49,6 @@ library(panGenomeBreedr)
 meta <- pg_get_sample_metadata()
 
 # Explore the geographic distribution colored by genetic cluster
-pg_map_accessions(meta, color_by = "kmeans_cluster")
+pg_map_accessions(meta, color_by = "countryorigin")
 } # }
 ```

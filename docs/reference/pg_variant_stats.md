@@ -1,4 +1,4 @@
-# Get variant statistics stored in the pangenome database.
+# Get variant statistics from the database (online)
 
 This function connects to the public panGenomeBreedr API and calculates
 summary statistics for variants per chromosome, including variant counts

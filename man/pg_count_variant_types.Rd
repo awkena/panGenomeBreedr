@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_count_variant_types}
 \alias{pg_count_variant_types}
-\title{Count the number of variant types in the pangenome database.}
+\title{Count the distribution of variant types in the database (online)}
 \usage{
 pg_count_variant_types(variants_table = "variants")
 }
@@ -14,7 +14,7 @@ metadata. Defaults to "variants".}
 A data frame with two columns: \code{variant_type} and \code{n}.
 }
 \description{
-This function connects to the public panGenomeBreedr API to perform a
-server-side aggregation, counting the occurrences of different variant types
+This function connects to the public panGenomeBreedr API to perform a server-side
+aggregation, counting the occurrences of different variant types
 (e.g., SNP, INDEL) stored in the database.
 }

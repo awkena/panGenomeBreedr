@@ -1,4 +1,4 @@
-# Query any table in the pangenome database using chromosome and a genomic position range.
+# Query genomic data tables by coordinate range (online)
 
 This function connects to the public panGenomeBreedr API to retrieve
 data from the variants, annotations, or genotypes tables based on a

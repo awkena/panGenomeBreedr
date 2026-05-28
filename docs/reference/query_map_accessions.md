@@ -1,8 +1,10 @@
-# Interactive Geographic Exploration of Sorghum Accessions
+# Interactive geographic exploration of sorghum accessions (local)
 
-This function generates a high-performance interactive map showing the
-geographic distribution of sorghum lines. It dynamically generates rich,
-scrollable popups containing all available metadata for each accession.
+Generates an interactive web map via `leaflet` displaying the geographic
+distribution of sorghum lines based on latitude and longitude
+coordinates. Points are dynamically colored by a user-specified metadata
+category and display scrollable, auto-formatted HTML tooltips containing
+all available metadata attributes.
 
 ## Usage
 
@@ -14,54 +16,52 @@ query_map_accessions(metadata, color_by = "countryorigin")
 
 - metadata:
 
-  A data frame containing sample metadata. Must include 'lat' and 'lon'
-  columns, along with the specified coloring column.
+  A data frame containing sample metadata tracking information. Must
+  include explicit numeric `"lat"` and `"lon"` columns alongside the
+  column specified in `color_by`.
 
 - color_by:
 
-  Character. The metadata column to use for point coloration. Defaults
-  to "countryorigin".
+  Character. The specific metadata column name used to group and assign
+  discrete color palette attributes to markers. Defaults to
+  `"countryorigin"`.
 
 ## Value
 
-A `leaflet` map object (htmlwidget) representing the interactive map.
+A `leaflet` map object (htmlwidget) displaying interactive geographic
+coordinate plots.
 
 ## Details
 
-The function automatically filters out records with missing geographic
-coordinates. Instead of hardcoding specific tooltip values, it
-dynamically reads all non-coordinate columns from the provided
-`metadata` data frame and formats them into a scrollable HTML popup for
-each point.
+The function automatically strips out tracking lines containing missing
+spatial coordinates. Rather than hardcoding fixed tooltip categories, it
+dynamically extracts all non-coordinate metadata attributes present in
+the provided matrix, formatting them into clear, scrollable HTML popup
+panels for every marker.
 
-**Dependency Note:** To keep the core package lightweight, the `leaflet`
-and `tools` packages are listed as "Suggested" dependencies. If they are
-not currently installed on your system, the function will gracefully
-stop and prompt you to install them before plotting.
+**Dependency Note:** To keep core package requirements lean, `leaflet`
+and `tools` are configured as suggested package attachments. If they are
+absent from the local execution workspace, the script will halt cleanly
+and prompt appropriate installation commands.
 
 ## Examples
 
 ``` r
 if (FALSE) { # \dontrun{
+# Load the package
 library(panGenomeBreedr)
 
-# Define tempdir and setup mini SQLite database
-path <- tempdir()
-mini_db <- system.file(
-  "extdata", "mini_sorghum_variant_vcf.db.gz", 
-  package = "panGenomeBreedr", mustWork = TRUE
-)
-mini_db_path <- file.path(path, 'mini_sorghum_variant_vcf.db')
-R.utils::gunzip(mini_db, destname = mini_db_path, remove = FALSE)
+# Connect to the database pipeline
+con <- connect_local_db(folder_path = "~/Desktop/curated_sorghum_variant_resource")
 
-# Fetch metadata for all accessions originating from Ethiopia
-eth_samples <- get_sample_metadata(
-  db_path = mini_db_path,
-  query_col = "NULL",
-  query_value = "NULL"
-)
+# Fetch passport metadata details for all accessions matching the resource
+sample_metadata <- get_sample_metadata(con = con)
 
-# Explore the geographic distribution colored by genetic cluster
-query_map_accessions(meta, color_by = "kmeans_cluster")
+# Generate an interactive geographic distribution plot colored by
+# K-Means genetic cluster assignments
+query_map_accessions(sample_metadata, color_by = "kmeans_cluster")
+
+# Safely close out the database connection
+disconnect_local_db(con)
 } # }
 ```

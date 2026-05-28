@@ -23,7 +23,8 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
         title = "Trait Introgression Hypothesis Testing",
         icon = icon("flask"),
         bslib::layout_sidebar(
-          sidebar = bslib::sidebar(id = ns('sidebar'),
+          sidebar = bslib::sidebar(
+            id = ns('sidebar'),
             width = 400,
             position = "left",
             class = "bg-light",
@@ -31,7 +32,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
             # Accordion with organized sections
             bslib::accordion(
               id = "introgression_accordion",
-              open = c("files", "mapfile", "settings", "qc"), # Panels open by default
+              open = c("files", "mapfile", "settings", "qc"),
 
               ## Data Acquisition
               bslib::accordion_panel(
@@ -46,27 +47,30 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
 
                 fileInput(
                   inputId = ns("data_id"),
-                  label = "Upload Genotype Data " ,
+                  label = "Upload Genotype Data ",
                   placeholder = ".csv,  .xlsx",
                   multiple = FALSE,
-                  accept = c(".csv",".xlsx")
+                  accept = c(".csv", ".xlsx")
                 ),
 
-                layout_columns(col_widths = c(6,6),
+                layout_columns(
+                  col_widths = c(6, 6),
 
-                               selectInput(
-                                 inputId = ns("data_type"),
-                                 label = "Data Type:",
-                                 choices = c("Agriplex", "Kasp / DArTag"),
-                                 selected = "Agriplex",
-                                 width = "100%"
-                               ),
-                               numericInput(inputId = ns("marker_start"),
-                                            label = "Marker Start:",
-                                            value = 7,
-                                            min = 1,
-                                            width = "100%" )
-                               ),
+                  selectInput(
+                    inputId = ns("data_type"),
+                    label = "Data Type:",
+                    choices = c("Agriplex", "Kasp / DArTag"),
+                    selected = "Agriplex",
+                    width = "100%"
+                  ),
+                  numericInput(
+                    inputId = ns("marker_start"),
+                    label = "Marker Start:",
+                    value = 7,
+                    min = 1,
+                    width = "100%"
+                  )
+                ),
                 textInput(
                   inputId = ns("allele_sep"),
                   label = "Enter Allele Separator for Data Format",
@@ -154,14 +158,14 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                   width = "100%"
                 ),
 
-                  selectizeInput(
-                    inputId = ns("cluster_by"),
-                    label = "Group By:",
-                    choices = NULL,
-                    width = "100%"
-                  ),
+                selectizeInput(
+                  inputId = ns("cluster_by"),
+                  label = "Group By:",
+                  choices = NULL,
+                  width = "100%"
+                ),
 
-                  uiOutput(outputId = ns("cluster_focus_ui")),
+                uiOutput(outputId = ns("cluster_focus_ui")),
 
                 bslib::layout_columns(
                   col_widths = c(6, 6),
@@ -185,7 +189,6 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                     ),
                     uiOutput(outputId = ns('donor_help'))
                   )
-
                 )
               ),
 
@@ -246,24 +249,34 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
           ),
 
           # Main content area
-          bslib::navset_hidden(id = ns('config_pages'),
-            bslib::nav_panel_hidden(
-              value = "main_config",
-              bslib::input_switch(id = ns("configure"), label = "Plot Configuration", value = T),
-              conditionalPanel(
-                condition = paste0('input["', ns("configure"), '"] == true'),
-                card(
+          # div(
+          #   id = ns("placeholder_ui"),
+          #   class = "d-flex align-items-center justify-content-center text-muted h-100",
+          #   style = "min-height: 600px; flex-direction: column;",
+          #   icon("arrow-left", class = "mb-3", style = "font-size: 4rem; opacity: 0.5;"),
+          #   h4("Upload and process your data using the sidebar controls to begin.", style = "opacity: 0.7;")
+          # ),
+
+          shinyjs::hidden(
+            div(
+              id = ns("analysis_ui"),
+              bslib::navset_card_underline(
+                id = ns('config_pages'),
+
+                bslib::nav_panel(
+                  title = "Plot Configuration",
+                  value = "main_config",
+                  icon = icon("sliders"),
                   fluidRow(
                     # Card 1: Heatmap Configuration
                     column(
                       width = 4,
                       bslib::card(
-                        class = "shadow p",
-                        max_height = "850px",
+                        class = "shadow-sm",
                         height = "100%",
-                        bslib::card_header(tags$b("Heatmap Computation Parameters"),
-                                           class = "bg-warning text-center",
-                                           style = "font-size:18px;"
+                        bslib::card_header(
+                          tags$b("Heatmap Computation Parameters"),
+                          class = "bg-light text-center"
                         ),
                         bslib::card_body(
                           selectInput(
@@ -304,7 +317,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                             label = "Display Annotations?",
                             choices = c(
                               "Hide Annotations" = "no",
-                              "Show Annotations" = "yes" # cross_qc_annotate()/ # cross_qc_heatmap2()
+                              "Show Annotations" = "yes"
                             ),
                             selected = "no",
                             inline = TRUE
@@ -316,32 +329,30 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                               inputId = ns("newBtn"),
                               label = "Define QTL Coordinates",
                               icon = icon("location-crosshairs"),
-                              class = "btn-outline-primary",
-                              style = "font-weight: bold;"
-                            )
-                          ),
-                          radioButtons(
-                            inputId = ns("focus_qtl"),
-                            label = "Annotate Specific QTL?",
-                            choices = c("Yes" = "yes", "No" = "no"),
-                            selected = "no",
-                            inline = TRUE
-                          ),
-                          conditionalPanel(
-                            # reveal based on choice -- Annotate specific QTL
-                            condition = "input.focus_qtl == 'yes'",
-                            ns = ns,
-                            div(
-                              selectInput(
-                                inputId = ns("qtls"),
-                                label = "Select a QTL",
-                                choices = NULL,
-                                multiple = T
+                              class = "btn-outline-primary mb-3",
+                              style = "font-weight: bold; width: 100%;"
+                            ),
+                            conditionalPanel(
+                              condition = "output.qtls_defined === true",
+                              ns = ns,
+                              radioButtons(
+                                inputId = ns("focus_qtl"),
+                                label = "How should the annotations be rendered?",
+                                choices = c(
+                                  "Show annotations for specific QTLs" = "yes",
+                                  "Show annotations for all QTLs" = "no"
+                                ),
+                                selected = "no"
                               ),
-                              # Using span to keep the icon and text on the same line
-                              helpText(
-                                span(icon("info-circle", vertical_align = "middle")),
-                                "QTL coordinates must first be defined!"
+                              conditionalPanel(
+                                condition = "input.focus_qtl == 'yes'",
+                                ns = ns,
+                                selectInput(
+                                  inputId = ns("qtls"),
+                                  label = "Select defined QTL(s)",
+                                  choices = NULL,
+                                  multiple = TRUE
+                                )
                               )
                             )
                           )
@@ -353,12 +364,11 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                     column(
                       width = 8,
                       bslib::card(
-                        class = "shadow p",
-                        max_height = "850px",
+                        class = "shadow-sm",
                         height = "100%",
-                        bslib::card_header(tags$b("Heatmap Visualization Controls"),
-                                           class = "bg-info text-center",
-                                           style = "font-size:18px;"
+                        bslib::card_header(
+                          tags$b("Heatmap Visualization Controls"),
+                          class = "bg-light text-center"
                         ),
                         bslib::card_body(
                           fluidRow(
@@ -439,99 +449,136 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                               )
                             )
                           )
-                          # helpText(tags$b("Key for ordering heatmap colors")),
-                          # verbatimTextOutput(outputId = ns("color_format"))
                         )
                       )
                     )
                   ),
-                  actionButton(
-                    inputId = ns("generate_heatmap"),
-                    label = "Generate Heatmap",
-                    icon = icon("play", class = "me-2"),
-                    class = "btn-success btn-lg",
-                    style = "font-weight: 600;"
-                  )
-                )
-              )
-
-            ),
-
-            bslib::nav_panel_hidden(
-              value = 'coord_entry',
-              bslib::card(
-                full_screen = TRUE,
-                bslib::card_header(
-                  div(class = "d-flex justify-content-between align-items-center",
-                      tags$b("Genomic Coordinate Definition"),
-                      actionButton(ns("addTrait"), "Add New Trait", icon = icon("plus"), class = "btn-success btn-sm"))
-                ),
-                bslib::card_body(
-                  p(class = "text-muted", "Define specific points or genomic ranges for heatmap annotation."),
-                  div(id = ns("inputs_container"),
-                      makeTraitInput(1, ns) # Initial row
-                  )
-                ),
-                bslib::card_footer(
-                  div(class = "d-flex justify-content-end gap-2",
-                      actionButton(ns("cancel_coords"), "Cancel", class = "btn-light"),
-                      actionButton(ns("submit_coords"), "Save & Apply", icon = icon("check"), class = "btn-primary"))
-                )
-              )
-            )
-          ),
-
-          # Results Section
-          fluidRow(
-            column(
-              width = 12,
-              bslib::accordion(height = "800px",
-                bslib::accordion_panel(
-                  title = "Heatmap Results & Analysis",
-                  icon = icon("chart-line"),
                   div(
-                    selectInput(
-                      inputId = ns("batch_no"),
-                      label = "Select Batch for Display",
-                      choices = NULL,
-                      width = "30%"
-                    ),
-                    plotOutput(
-                      outputId = ns("ant_heatmap"),
-                      width = "100%",
-                      height = "650px"
-                    ),
-                    bslib::card(card_footer(
-                      fluidRow(
-                        column(
-                          3,
-                          textInput(
-                            inputId = ns("file_name"),
-                            label = "Enter Filename",
-                            value = "Heatmap_result"
-                          )
-                        ),
-                        column(
-                          3,
-                          numericInput(
-                            inputId = ns("width"),
-                            label = "Set Plot Width",
-                            value = 10, min = 1
-                          )
-                        ), column(
-                          3,
-                          numericInput(
-                            inputId = ns("height"),
-                            label = "Set Plot Height",
-                            value = 7, min = 1
-                          )
+                    class = "d-flex justify-content-end mt-3",
+                    actionButton(
+                      inputId = ns("generate_heatmap"),
+                      label = "Generate Heatmap",
+                      icon = icon("play", class = "me-2"),
+                      class = "btn-success btn-lg px-5",
+                      style = "font-weight: 600;"
+                    )
+                  )
+                ),
+
+                bslib::nav_panel_hidden(
+                  value = "coord_entry",
+                  bslib::card(
+                    class = "border-0 shadow-sm",
+                    full_screen = TRUE,
+                    bslib::card_header(
+                      div(
+                        class = "d-flex justify-content-between align-items-center",
+                        tags$b("Genomic Coordinate Definition"),
+                        actionButton(
+                          ns("addTrait"),
+                          "Add New Trait",
+                          icon = icon("plus"),
+                          class = "btn-success btn-sm"
                         )
+                      )
+                    ),
+                    bslib::card_body(
+                      p(
+                        class = "text-muted",
+                        "Define specific points or genomic ranges for heatmap annotation."
                       ),
+                      div(
+                        id = ns("inputs_container"),
+                        makeTraitInput(1, ns) # Initial row
+                      )
+                    ),
+                    bslib::card_footer(
+                      class = "bg-white",
+                      div(
+                        class = "d-flex justify-content-end gap-2",
+                        actionButton(
+                          ns("cancel_coords"),
+                          "Cancel",
+                          class = "btn-light"
+                        ),
+                        actionButton(
+                          ns("submit_coords"),
+                          "Save & Apply",
+                          icon = icon("check"),
+                          class = "btn-primary"
+                        )
+                      )
+                    )
+                  )
+                ),
+
+                bslib::nav_panel(
+                  title = "Heatmap Viewer",
+                  value = "plot_tab",
+                  icon = icon("chart-area"),
+                  div(
+                    class = "mb-3 d-flex align-items-end gap-3",
+                    div(
+                      style = "flex: 1; max-width: 300px;",
+                      selectInput(
+                        inputId = ns("batch_no"),
+                        label = "Select Batch for Display",
+                        choices = NULL,
+                        width = "100%"
+                      )
+                    ),
+                    div(
+                      style = "flex: 1; max-width: 250px;",
+                      textInput(
+                        inputId = ns("file_name"),
+                        label = "Enter Filename",
+                        value = "Heatmap_result",
+                        width = "100%"
+                      )
+                    ),
+                    div(
+                      style = "flex: 1; max-width: 150px;",
+                      numericInput(
+                        inputId = ns("width"),
+                        label = "Plot Width",
+                        value = 10,
+                        min = 1,
+                        width = "100%"
+                      )
+                    ),
+                    div(
+                      style = "flex: 1; max-width: 150px;",
+                      numericInput(
+                        inputId = ns("height"),
+                        label = "Plot Height",
+                        value = 7,
+                        min = 1,
+                        width = "100%"
+                      )
+                    ),
+                    div(
+                      class = "mb-3",
                       downloadButton(
                         outputId = ns("download_plot1"),
-                        label = "Download Plot", class = "btn-success"
+                        label = "Export PDF",
+                        class = "btn-success"
                       )
-                    ))
+                    )
+                  ),
+                  bslib::card(
+                    class = "shadow-sm border-0",
+                    full_screen = TRUE,
+                    bslib::card_body(
+                      shinycssloaders::withSpinner(
+                        plotOutput(
+                          outputId = ns("ant_heatmap"),
+                          width = "100%",
+                          height = "650px"
+                        ),
+                        type = 4,
+                        color = "#0dc5c1"
+                      )
+                    )
                   )
                 )
               )
@@ -650,7 +697,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       updateSelectizeInput(
         session,
         inputId = "cluster_by",
-        choices = c('None',data_colnames()),server = T
+        choices = c('None',data_colnames()),server = TRUE
       )
 
       # Update genotype column selector
@@ -661,7 +708,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
         selected = safe_grep_match(
           pattern = "genotype",
           choices = data_colnames()
-        ),server = T
+        ),server = TRUE
       )
     })
 
@@ -799,10 +846,16 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
    observeEvent(Result(), {
      req(Result()) # Only proceed if Result is not NULL
 
-     #bslib::sidebar_toggle(id = 'sidebar' , open = "closed")
+     # Transition to Main Analysis UI
+     shinyjs::hide("placeholder_ui")
+     shinyjs::show("analysis_ui")
+     
+     # Automatically close sidebar to give main content more space
+     bslib::toggle_sidebar(id = 'sidebar' , open = "closed")
+     
      shinyWidgets::show_alert(
-       title = "Data Processed!",
-       text = "Your genotype data is ready. Please proceed to 'Plot Configuration' to generate your heatmap.",
+       title = "Data Processed Successfully!",
+       text = "Your genotype data is ready. You can now configure your heatmap.",
        type = "success",
        btn_labels = "Got it!",
        closeOnClickOutside = FALSE,
@@ -957,6 +1010,11 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       )
     })
 
+    # Manage UI visibility state for the QTL annotation radio buttons
+    output$qtls_defined <- reactive({
+      !is.null(values$trait_data) && length(values$trait_data) > 0
+    })
+    outputOptions(output, "qtls_defined", suspendWhenHidden = FALSE)
 
     ## User defined qtl
     observe({
@@ -968,6 +1026,11 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       }
     })
 
+    # Switch tabs eagerly when button is clicked
+    observeEvent(input$generate_heatmap, {
+      req(input$options, Result(), input$snp_ids, input$chr, input$chr_pos, input$parents)
+      bslib::nav_select("config_pages", "plot_tab")
+    })
 
     ## Heat map generation.
     heatmap_plot <- eventReactive( input$generate_heatmap,{
@@ -1225,5 +1288,3 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
   })
 }
-
-

@@ -1,7 +1,10 @@
-# Compute allele frequencies for a VCF genotype matrix (variant x samples). Chromosome and position may be included in the data.
+# Compute allele frequencies for a genotype matrix (local)
 
-Compute allele frequencies for a VCF genotype matrix (variant x
-samples). Chromosome and position may be included in the data.
+Calculates the reference (REF) and alternate (ALT) allele frequencies
+for an extracted wide matrix or data frame of variants by samples.
+Converts standard VCF genotype strings (e.g., "0/0", "0\|1", "1\|1")
+into numerical alternate allele dosages (0, 1, 2) to perform
+population-level frequency calculations.
 
 ## Usage
 
@@ -13,60 +16,50 @@ calc_af(gt, variant_id_col = "variant_id", chrom_col = NULL, pos_col = NULL)
 
 - gt:
 
-  A matrix or data frame of variants x samples with chromosome and
-  position meta data for each variant.
+  A matrix or data frame containing variants (rows) across samples
+  (columns), including required variant identification and optional
+  genomic coordinate metadata columns.
 
-- variant_id_col, chrom_col, pos_col:
+- variant_id_col:
 
-  A character value specifying the column names of variant IDs,
-  chromosome, and positions in `gt`.
+  Character. The column name in `gt` matching unique variant
+  identifiers. Defaults to `"variant_id"`.
+
+- chrom_col:
+
+  Character. Optional column name in `gt` matching chromosome names.
+  Defaults to `NULL`.
+
+- pos_col:
+
+  Character. Optional column name in `gt` matching genomic positions.
+  Defaults to `NULL`.
 
 ## Value
 
-A data frame of variants with their reference and alternate allele
-frequencies.
+A data frame containing unique variant identifiers, optional coordinate
+tracking columns, calculated reference allele frequencies (`ref_af`),
+and alternate allele frequencies (`alt_af`).
 
 ## Examples
 
 ``` r
-# \donttest{
-# example code
+if (FALSE) { # \dontrun{
+# Load the package
 library(panGenomeBreedr)
 
-# Define tempdir
-path <- tempdir()
+# Connect to the database pipeline
+con <- connect_local_db(folder_path = "~/Desktop/curated_sorghum_variant_resource")
 
-# Mini SQLite database
-mini_db <-  system.file("extdata", "mini_sorghum_variant_vcf.db.gz",
-                     package = "panGenomeBreedr",
-                     mustWork = TRUE)
+# Pull wide genotype records for a locus window range
+gt_region <- query_db(con = con, chrom = "Chr05", start = 75104537, 
+                      end = 75106403, table_name = "genotypes")
 
-# Path to SQLite databases: INDEL and SNP
-mini_db_path <- file.path(path, 'mini_sorghum_variant_vcf.db')
+# Compute allele frequencies across all samples in the dataset
+af_metrics <- calc_af(gt_region, variant_id_col = "variant_id", 
+                      chrom_col = "chrom", pos_col = "pos")
 
-# Unzip compressed mini database and save in tempdir
-R.utils::gunzip(mini_db,
-               destname = mini_db_path,
-               remove = FALSE)
-
-# Extract variants within a candidate gene and their calculate allele
-# frequencies
-variant_region <- query_db(db_path = mini_db_path,
-                              chrom = "Chr05",
-                              start = 75104537,
-                              end = 75106403,
-                              table_name = "genotypes",
-                              gene_name = "Sobic.005G213600") |>
-calc_af(variant_id_col = 'variant_id',
-       chrom_col = 'chrom',
-       pos_col = 'pos')
-
-# Clean tempdir
-contents <- list.files(tempdir(),
-                             full.names = TRUE,
-                             recursive = TRUE,
-                             all.files = TRUE,
-                             include.dirs = TRUE)
-unlink(contents, recursive = TRUE, force = TRUE)
-# }
+# Safely close out the database connection
+disconnect_local_db(con)
+} # }
 ```

@@ -13,7 +13,7 @@ test_that("pgsql_count_variant_types retrieves variant distribution from mock DB
       )
 
       # Execute
-      res <- pgsql_count_variant_types(con)
+      res <- panGenomeBreedr:::pgsql_count_variant_types(con)
 
       # Structural Check
       expect_s3_class(res, "data.frame")
@@ -37,14 +37,20 @@ test_that("pgsql_count_variant_types handles missing tables and columns", {
 
   # Table doesn't exist
   expect_error(
-    pgsql_count_variant_types(con, variants_table = "ghost_table"),
+    panGenomeBreedr:::pgsql_count_variant_types(
+      con,
+      variants_table = "ghost_table"
+    ),
     "does not exist in the database"
   )
 
   # Test: Column 'variant_type' is missing
   DBI::dbExecute(con, "CREATE TABLE variants (chrom TEXT, pos INTEGER)")
   expect_error(
-    pgsql_count_variant_types(con, variants_table = "variants"),
+    panGenomeBreedr:::pgsql_count_variant_types(
+      con,
+      variants_table = "variants"
+    ),
     "does not have a 'variant_type' column"
   )
 

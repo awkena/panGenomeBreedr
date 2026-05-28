@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_query_ann_summary}
 \alias{pg_query_ann_summary}
-\title{Query the annotations table within a specified genomic region and summarize the distribution of SnpEff annotations and impact categories by variant type.}
+\title{Summarize functional annotations and impacts for a genomic region (online)}
 \usage{
 pg_query_ann_summary(
   chrom,
@@ -28,7 +28,7 @@ A list containing three data frames: \code{annotation_summary},
   \code{impact_summary}, and \code{variant_type_totals}.
 }
 \description{
-This function connects to the public panGenomeBreedr API to query variants
-within a specific genomic range and returns summaries of SnpEff annotations
-and impact levels, cross-tabulated by variant type.
+This function connects to the public panGenomeBreedr API to query variants within
+a specific genomic range and returns summaries of SnpEff annotations and
+impact levels, cross-tabulated by variant type.
 }

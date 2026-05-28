@@ -40,7 +40,7 @@ Imports:
     gridExtra,
     R.utils,
     reshape2,
-    RSQLite,
+    duckdb,
     jsonlite,
     shiny,
     stats,

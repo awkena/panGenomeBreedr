@@ -1,4 +1,4 @@
-# Filter extracted variants based on alternate allele frequency.
+# Filter extracted genotypes based on alternate allele frequency (online)
 
 Calculates allele frequencies for a genotype matrix and filters variants
 based on a user-defined range locally on your machine. Useful for

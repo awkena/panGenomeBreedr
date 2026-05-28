@@ -70,8 +70,8 @@
 <li>
 <a href="#variant-discovery">Variant Discovery</a>
 <ul>
-<li><a href="#pangenome-data-and-database-rationale">Pangenome Data and
-Database Rationale</a></li>
+<li><a href="#pangenome-data-and-database-rationale">Curated Sorghum
+Variant Resource and Database Rationale</a></li>
 <li><a href="#recommended-schema-for-the-sqlite-database">Recommended
 Schema for the SQLite Database</a></li>
 <li><a href="#database-creation">Database Creation</a></li>
@@ -108,34 +108,43 @@ Support for Foreground Selection</a></li>
 <h2 id="variant-discovery">Variant Discovery<a class="anchor" aria-label="anchor" href="#variant-discovery"></a>
 </h2>
 <div class="section level3">
-<h3 id="pangenome-data-and-database-rationale">Pangenome Data and Database Rationale<a class="anchor" aria-label="anchor" href="#pangenome-data-and-database-rationale"></a>
+<h3 id="curated-sorghum-variant-resource-and-database-rationale">Curated Sorghum Variant Resource and Database Rationale<a class="anchor" aria-label="anchor" href="#curated-sorghum-variant-resource-and-database-rationale"></a>
 </h3>
-<p>The examples used in this documentation are based on <strong>sorghum
-pangenome resources</strong> derived from whole-genome resequencing data
-of <strong>1,676 sorghum lines</strong>. Variant calling was performed
-using version <strong>v5.1</strong> of the <strong>BTx623</strong>
-reference genome. The resulting <strong>SNP</strong> and
-<strong>INDEL</strong> variants were functionally annotated using
-<strong>snpEff</strong>.</p>
-<p>Direct querying of <strong>snpEff-annotated VCF files</strong> from R
-is often computationally slow and inefficient, especially with large
-datasets. To overcome this limitation, we built a <strong>SQLite
-database</strong> that stores the variants, annotations, and genotypes
-in normalized tables. This structure allows for <strong>fast and
-flexible access</strong> to relevant data, supporting workflows for
-trait-predictive marker discovery.</p>
-<p><strong>We strongly recommend the creation of similar databases for
-other crops</strong>. The SQLite format offers a compact, portable, and
-queryable representation of pangenome-derived variant data,
-significantly improving performance and reproducibility in variant
-discovery pipelines.</p>
-<p><strong>A compressed format of the SQLite database for sorghum can be
-downloaded</strong> <a href="https://drive.google.com/file/d/1L4S7_ZGeFyu_bA7rRsmTpf9V8__VLB-R/view?usp=sharing" class="external-link">here</a>.</p>
+<p>The examples used in this documentation are based on a
+<strong>Curated Sorghum Variant Resource</strong> derived from
+whole-genome resequencing data of <strong>1,676 sorghum lines</strong>.
+Variant calling was performed using version <strong>v5.1</strong> of the
+<strong>BTx623</strong> reference genome. The resulting
+<strong>SNP</strong> and <strong>INDEL</strong> variants were
+functionally annotated using <strong>snpEff</strong>.</p>
+<p>Direct querying of raw <strong>snpEff-annotated VCF files</strong>
+from R is computationally slow and inefficient, especially with large
+datasets. To handle this efficiently, <code>panGenomeBreedr</code>
+offers two flexible ways to access your data:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Cloud Database:</strong> Connect to a central database
+securely hosted on the internet. This allows multiple breeders to
+quickly search massive datasets at the same time, without needing to
+download massive files or rely on expensive local computer
+hardware.</li>
+<li>
+<strong>Local Database:</strong> Work directly on your own computer
+using a highly optimized, compact file format (Parquet/DuckDB). This
+option is incredibly fast, requires no complicated server setup, and is
+perfect for working offline or on a personal machine.</li>
+</ol>
+<p><strong>We strongly recommend adopting these structured database
+formats for other crop systems.</strong> Organizing your data this way
+standardizes and accelerates the path from raw variant annotated files
+to precision marker development and targeted crop improvement.</p>
+<p>A zipped archive containing the <strong>Curated Sorghum Variant
+Resource</strong> can be downloaded <a href="https://drive.google.com/file/d/1yoW8MSr45vlJvqj5hYvGMHW6feBsQQa4/view?usp=drive_link" class="external-link">here</a>.</p>
 </div>
 <div class="section level3">
-<h3 id="recommended-schema-for-the-sqlite-database">Recommended Schema for the SQLite Database<a class="anchor" aria-label="anchor" href="#recommended-schema-for-the-sqlite-database"></a>
+<h3 id="recommended-schema-for-the-parquet-duckdb-database">Recommended Schema for the Parquet / DuckDB Database<a class="anchor" aria-label="anchor" href="#recommended-schema-for-the-parquet-duckdb-database"></a>
 </h3>
-<p>The SQLite database contains the following four key tables:</p>
+<p>The database contains the following four key tables:</p>
 <div class="section level4">
 <h4 id="variants">
 <code>variants</code><a class="anchor" aria-label="anchor" href="#variants"></a>
@@ -258,13 +267,14 @@ array column (<code>calls</code>).</p>
 <h4 id="metadata">
 <code>metadata</code><a class="anchor" aria-label="anchor" href="#metadata"></a>
 </h4>
-<p>This table stores metadata for the samples in the pangenome. Because
-the genotypes are packed into a single text array to save space, this
-table is required to map those array positions back to their specific
-sample names. While users can include rich phenotypic or geographic data
-(like <code>lat</code>, <code>lon</code>, and
-<code>countryorigin</code>), only a few base columns are strictly
-required.</p>
+<p>This table stores the essential passport and phenotypic data for the
+samples present in the <code>genotypes</code> table. To keep the
+database fast and compact, genotypes are stored efficiently in a single
+array format. This metadata table acts as the bridge to accurately map
+those genotype calls back to their specific sample names. While you can
+include rich phenotypic or geographic data (like <code>lat</code>,
+<code>lon</code>, and <code>countryorigin</code> for interactive maps),
+only a few base columns are strictly required.</p>
 <table class="table">
 <colgroup>
 <col width="22%">
@@ -309,23 +319,23 @@ in the <code>genotypes</code> array</td>
 <div class="section level3">
 <h3 id="database-creation">Database Creation<a class="anchor" aria-label="anchor" href="#database-creation"></a>
 </h3>
-<p>We generated the SQLite database using a custom workflow that</p>
+<p>We generated the curated database using a custom workflow that:</p>
 <ol style="list-style-type: decimal">
-<li>Parses a multi-sample VCF file annotated by snpEff,</li>
-<li>Extracts variant, annotation, and genotype data,</li>
-<li>Writes the data into normalized relational tables
-(<code>variants</code>, <code>annotations</code>,
-<code>genotypes</code>).</li>
+<li>Parses a multi-sample VCF file annotated by snpEff.</li>
+<li>Extracts variant, annotation, and genotype data.</li>
+<li>Writes the data into a highly compressed, normalized Parquet file
+tree (<code>variants.parquet</code>, <code>annotations.parquet</code>,
+<code>genotypes.parquet</code>, <code>metadata.parquet</code>).</li>
 </ol>
-<p>A prebuilt mini example database
-(<code>mini_sorghum_variant_vcf.db.gz</code>) is included in the
+<p>A prebuilt mini example database directory
+(<code>mini_curated_sorghum_variant_resource</code>) is included in the
 <code>extdata/</code> folder of the package.</p>
 </div>
 <div class="section level3">
 <h3 id="query-variant-tables">Query Variant Tables<a class="anchor" aria-label="anchor" href="#query-variant-tables"></a>
 </h3>
 <p>The <code><a href="../reference/query_db.html">query_db()</a></code> function allows users to query specific
-tables within a panGenomeBreedr-formatted SQLite database for variants,
+tables within a panGenomeBreedr-formatted DuckDB database for variants,
 annotations, or genotypes based on chromosome coordinates or candidate
 gene IDs.</p>
 <p>This function retrieves records from one of the following tables in
@@ -349,35 +359,36 @@ data frame containing the filtered records from the selected table.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># This example uses the mini SQLite database included in the package.</span></span>
-<span><span class="co"># Define a temporary path and decompress the example database</span></span>
-<span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">mini_db</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_sorghum_variant_vcf.db.gz"</span>,</span>
-<span>                       package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">mini_db_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">path</span>, <span class="st">'mini_sorghum_variant_vcf.db'</span><span class="op">)</span></span>
-<span><span class="fu">R.utils</span><span class="fu">::</span><span class="fu"><a href="https://henrikbengtsson.github.io/R.utils/reference/compressFile.html" class="external-link">gunzip</a></span><span class="op">(</span><span class="va">mini_db</span>, destname <span class="op">=</span> <span class="va">mini_db_path</span>, remove <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co"># Locate the package example database folder</span></span>
+<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_curated_sorghum_variant_resource"</span>, </span>
+<span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, </span>
+<span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Query VCF genotypes within the genomic range: Chr05:75104537-75106403</span></span>
-<span><span class="va">gt_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_db.html">query_db</a></span><span class="op">(</span>db_path <span class="op">=</span> <span class="va">mini_db_path</span>,</span>
+<span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
+<span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
+<span></span>
+<span><span class="co"># Query VCF genotypes within the genomic range: Chr05:75,104,537 - 75,106,403</span></span>
+<span><span class="va">gt_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_db.html">query_db</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
+<span>                      table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span>
 <span>                      chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
 <span>                      start <span class="op">=</span> <span class="fl">75104537</span>,</span>
-<span>                      end <span class="op">=</span> <span class="fl">75106403</span>,</span>
-<span>                      table_name <span class="op">=</span> <span class="st">"genotypes"</span><span class="op">)</span></span>
+<span>                      end <span class="op">=</span> <span class="fl">75106403</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Query snpEff annotations within a candidate gene</span></span>
-<span><span class="va">annota_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_db.html">query_db</a></span><span class="op">(</span>db_path <span class="op">=</span> <span class="va">mini_db_path</span>,</span>
+<span><span class="co">#  Query snpEff annotations within a candidate locus gene region</span></span>
+<span><span class="va">annota_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_db.html">query_db</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
+<span>                          table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span>
 <span>                          chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
 <span>                          start <span class="op">=</span> <span class="fl">75104537</span>,</span>
 <span>                          end <span class="op">=</span> <span class="fl">75106403</span>,</span>
-<span>                          table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span>
 <span>                          gene_name <span class="op">=</span> <span class="st">"Sobic.005G213600"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Clean up temporary files</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, </span>
-<span>       recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Cleanly close the connection and release memory allocations</span></span>
+<span><span class="fu"><a href="../reference/disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_demo</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully disconnected from the local database. Memory cleared.</span></span></code></pre></div>
 <table class="table">
 <caption>
-Table 1: Queried genotypes for varaints from the SQLite database.
+Table 1: Queried genotypes for variants from the local database.
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -576,7 +587,7 @@ T
 </table>
 <table class="table">
 <caption>
-Table 2: Queried annotations for variants from the SQLite database.
+Table 2: Queried annotations for variants from the local database.
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -610,10 +621,10 @@ transcript_biotype
 rank
 </th>
 <th style="text-align:left;">
-HGVS_c
+hgvs_c
 </th>
 <th style="text-align:left;">
-HGVS_p
+hgvs_p
 </th>
 <th style="text-align:left;">
 chrom
@@ -841,24 +852,21 @@ Chr05
 </tbody>
 </table>
 <div class="section level4">
-<h4 id="query-online-pangenome-databases">Query Online Pangenome Databases<a class="anchor" aria-label="anchor" href="#query-online-pangenome-databases"></a>
+<h4 id="query-online-databases-pg_-functions">Query Online Databases (pg_ Functions)<a class="anchor" aria-label="anchor" href="#query-online-databases-pg_-functions"></a>
 </h4>
-<p>In addition to local SQLite files, <code>panGB</code> allows you to
-connect to pangenome databases hosted online. The online database
-contains the exact same data as the local SQLite file, but it saves you
-from having to download massive files to your laptop’s hard drive and
-allows multiple researchers to query the data at the same time.</p>
-<p>By default, <code>panGB</code> connects to the public Sorghum
-Pangenome database. However, you can also configure the package to
-connect to your own institution’s hosted database. The functions for
-querying online databases are exactly the same as the local ones, but
-they start with <code>pg_</code> (e.g., <code><a href="../reference/pg_query_db.html">pg_query_db()</a></code>
-instead of <code><a href="../reference/query_db.html">query_db()</a></code>).</p>
+<p>When using the cloud backend, <code>panGenomeBreedr</code> connects
+directly to a central database over the internet. This allows breeders
+to seamlessly query massive datasets without needing to download large
+files to their local computers. By default, the package connects to the
+public <strong>Curated Sorghum Variant Resource</strong>. However, if
+your breeding program or institution hosts its own private database, you
+can easily point the package to it using the <code><a href="../reference/set_api_url.html">set_api_url()</a></code>
+function.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Connect to your institution's online database (Optional)</span></span>
-<span><span class="co"># If not set, it defaults to the public Sorghum Pangenome database</span></span>
+<span><span class="co"># If not set, it defaults to the public Sorghum database</span></span>
 <span><span class="fu"><a href="../reference/set_api_url.html">set_api_url</a></span><span class="op">(</span><span class="st">"http://16.171.142.87:8000"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; panGenomeBreedr API endpoint successfully set to: http://16.171.142.87:8000</span></span>
 <span></span>
@@ -887,28 +895,29 @@ genomic intervals of interest.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Prepare test database</span></span>
-<span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">mini_db</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_sorghum_variant_vcf.db.gz"</span>,</span>
-<span>                       package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">mini_db_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">path</span>, <span class="st">'mini_sorghum_variant_vcf.db'</span><span class="op">)</span></span>
-<span><span class="fu">R.utils</span><span class="fu">::</span><span class="fu"><a href="https://henrikbengtsson.github.io/R.utils/reference/compressFile.html" class="external-link">gunzip</a></span><span class="op">(</span><span class="va">mini_db</span>, destname <span class="op">=</span> <span class="va">mini_db_path</span>, remove <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co"># Locate the package example database folder</span></span>
+<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_curated_sorghum_variant_resource"</span>, </span>
+<span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, </span>
+<span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Run annotation summary for region Chr05:75104537-75106403</span></span>
-<span><span class="va">ann_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_ann_summary.html">query_ann_summary</a></span><span class="op">(</span>db_path <span class="op">=</span> <span class="va">mini_db_path</span>,</span>
+<span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
+<span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
+<span></span>
+<span><span class="co"># Run functional annotation summary for region Chr05:75,104,537 - 75,106,403</span></span>
+<span><span class="va">ann_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_ann_summary.html">query_ann_summary</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
 <span>                                 chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
 <span>                                 start <span class="op">=</span> <span class="fl">75104537</span>,</span>
 <span>                                 end <span class="op">=</span> <span class="fl">75106403</span><span class="op">)</span></span>
-<span><span class="co"># Clean up</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, </span>
-<span>       recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span></span>
+<span><span class="co"># Cleanly close the connection and release memory allocations</span></span>
+<span><span class="fu"><a href="../reference/disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_demo</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully disconnected from the local database. Memory cleared.</span></span></code></pre></div>
 <table class="table">
 <caption>
 Annotation summary for variants within the genomic range.
 </caption>
 <thead><tr>
-<th style="text-align:left;">
-</th>
 <th style="text-align:left;">
 annotation
 </th>
@@ -922,9 +931,6 @@ count
 <tbody>
 <tr>
 <td style="text-align:left;">
-24
-</td>
-<td style="text-align:left;">
 upstream_gene_variant
 </td>
 <td style="text-align:left;">
@@ -935,9 +941,6 @@ SNP
 </td>
 </tr>
 <tr>
-<td style="text-align:left;">
-12
-</td>
 <td style="text-align:left;">
 upstream_gene_variant
 </td>
@@ -950,9 +953,6 @@ INDEL
 </tr>
 <tr>
 <td style="text-align:left;">
-19
-</td>
-<td style="text-align:left;">
 downstream_gene_variant
 </td>
 <td style="text-align:left;">
@@ -963,9 +963,6 @@ SNP
 </td>
 </tr>
 <tr>
-<td style="text-align:left;">
-22
-</td>
 <td style="text-align:left;">
 missense_variant
 </td>
@@ -978,9 +975,6 @@ SNP
 </tr>
 <tr>
 <td style="text-align:left;">
-23
-</td>
-<td style="text-align:left;">
 synonymous_variant
 </td>
 <td style="text-align:left;">
@@ -991,9 +985,6 @@ SNP
 </td>
 </tr>
 <tr>
-<td style="text-align:left;">
-13
-</td>
 <td style="text-align:left;">
 3_prime_UTR_variant
 </td>
@@ -1012,8 +1003,6 @@ Functional impact summary for variants within the genomic range.
 </caption>
 <thead><tr>
 <th style="text-align:left;">
-</th>
-<th style="text-align:left;">
 impact
 </th>
 <th style="text-align:left;">
@@ -1026,9 +1015,6 @@ count
 <tbody>
 <tr>
 <td style="text-align:left;">
-8
-</td>
-<td style="text-align:left;">
 MODIFIER
 </td>
 <td style="text-align:left;">
@@ -1039,9 +1025,6 @@ SNP
 </td>
 </tr>
 <tr>
-<td style="text-align:left;">
-4
-</td>
 <td style="text-align:left;">
 MODIFIER
 </td>
@@ -1054,9 +1037,6 @@ INDEL
 </tr>
 <tr>
 <td style="text-align:left;">
-7
-</td>
-<td style="text-align:left;">
 MODERATE
 </td>
 <td style="text-align:left;">
@@ -1067,9 +1047,6 @@ SNP
 </td>
 </tr>
 <tr>
-<td style="text-align:left;">
-6
-</td>
 <td style="text-align:left;">
 LOW
 </td>
@@ -1082,9 +1059,6 @@ SNP
 </tr>
 <tr>
 <td style="text-align:left;">
-1
-</td>
-<td style="text-align:left;">
 HIGH
 </td>
 <td style="text-align:left;">
@@ -1095,9 +1069,6 @@ INDEL
 </td>
 </tr>
 <tr>
-<td style="text-align:left;">
-3
-</td>
 <td style="text-align:left;">
 MODERATE
 </td>
@@ -1127,23 +1098,27 @@ variants, we need to use the <code><a href="../reference/query_by_impact.html">q
 shown below:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co"># Prepare test database</span></span>
-<span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">mini_db</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_sorghum_variant_vcf.db.gz"</span>,</span>
-<span>                       package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">mini_db_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">path</span>, <span class="st">'mini_sorghum_variant_vcf.db'</span><span class="op">)</span></span>
-<span><span class="fu">R.utils</span><span class="fu">::</span><span class="fu"><a href="https://henrikbengtsson.github.io/R.utils/reference/compressFile.html" class="external-link">gunzip</a></span><span class="op">(</span><span class="va">mini_db</span>, destname <span class="op">=</span> <span class="va">mini_db_path</span>, remove <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Extract HIGH impact variant for a region or gene</span></span>
-<span><span class="va">high_variants</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_by_impact.html">query_by_impact</a></span><span class="op">(</span>db_path <span class="op">=</span> <span class="va">mini_db_path</span>,</span>
-<span>                                impact_level <span class="op">=</span> <span class="st">'high'</span>,</span>
-<span>                                chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
-<span>                                start <span class="op">=</span> <span class="fl">75104537</span>,</span>
-<span>                                end <span class="op">=</span> <span class="fl">75106403</span><span class="op">)</span></span>
+<span><span class="co"># Locate the package example database folder</span></span>
+<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_curated_sorghum_variant_resource"</span>, </span>
+<span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, </span>
+<span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Clean up</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, </span>
-<span>       recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
+<span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
+<span></span>
+<span><span class="co"># Extract HIGH impact functional variants within the target Chr05 window</span></span>
+<span><span class="va">high_variants</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_by_impact.html">query_by_impact</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
+<span>                                 impact_level <span class="op">=</span> <span class="st">"HIGH"</span>,</span>
+<span>                                 chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
+<span>                                 start <span class="op">=</span> <span class="fl">75104537</span>,</span>
+<span>                                 end <span class="op">=</span> <span class="fl">75106403</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Cleanly close the connection and release memory allocations</span></span>
+<span><span class="fu"><a href="../reference/disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_demo</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully disconnected from the local database. Memory cleared.</span></span></code></pre></div>
 <table class="table">
 <caption>
 HIGH impact variants within a defined genomic range.
@@ -1201,10 +1176,10 @@ transcript_biotype
 rank
 </th>
 <th style="text-align:left;">
-HGVS_c
+hgvs_c
 </th>
 <th style="text-align:left;">
-HGVS_p
+hgvs_p
 </th>
 </tr></thead>
 <tbody>
@@ -1581,22 +1556,27 @@ shown in the code snippet below:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Define temporary directory and decompress demo database</span></span>
-<span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">mini_db</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_sorghum_variant_vcf.db.gz"</span>,</span>
-<span>                       package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">mini_db_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">path</span>, <span class="st">'mini_sorghum_variant_vcf.db'</span><span class="op">)</span></span>
-<span><span class="fu">R.utils</span><span class="fu">::</span><span class="fu"><a href="https://henrikbengtsson.github.io/R.utils/reference/compressFile.html" class="external-link">gunzip</a></span><span class="op">(</span><span class="va">mini_db</span>, destname <span class="op">=</span> <span class="va">mini_db_path</span>, remove <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co"># Locate the package example database folder</span></span>
+<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_curated_sorghum_variant_resource"</span>, </span>
+<span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, </span>
+<span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
+<span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Extract genotype data for all HIGH impact variants and filter by alternate allele frequency</span></span>
-<span><span class="va">geno_high_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_genotypes.html">query_genotypes</a></span><span class="op">(</span>db_path <span class="op">=</span> <span class="va">mini_db_path</span>,</span>
+<span><span class="va">geno_high_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_genotypes.html">query_genotypes</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
 <span>                                      variant_ids <span class="op">=</span> <span class="va">high_variants</span><span class="op">$</span><span class="va">variant_id</span>,</span>
-<span>                                      meta_data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'chrom'</span>, <span class="st">'pos'</span>, <span class="st">'ref'</span>, <span class="st">'alt'</span>, <span class="st">'variant_type'</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  </span>
-<span>  <span class="fu"><a href="../reference/filter_by_af.html">filter_by_af</a></span><span class="op">(</span>min_af <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span></code></pre></div>
+<span>                                      meta_data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chrom"</span>, <span class="st">"pos"</span>, <span class="st">"ref"</span>, <span class="st">"alt"</span>, <span class="st">"variant_type"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/filter_by_af.html">filter_by_af</a></span><span class="op">(</span>min_af <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Cleanly close the connection and release memory allocations</span></span>
+<span><span class="fu"><a href="../reference/disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_demo</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully disconnected from the local database. Memory cleared.</span></span></code></pre></div>
 <table class="table">
 <caption>
-Table 3: Filtered variants from the SQLite database.
+Table 3: Filtered variants from the local database.
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -1681,14 +1661,25 @@ Chr05
 </tbody>
 </table>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Get genotype data for HIGH impact variants that passed allele filter</span></span>
-<span><span class="va">geno_high_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_genotypes.html">query_genotypes</a></span><span class="op">(</span>db_path <span class="op">=</span> <span class="va">mini_db_path</span>,</span>
-<span>                                      variant_ids <span class="op">=</span> <span class="va">geno_high_filtered</span><span class="op">$</span><span class="va">variant_id</span>,</span>
-<span>                                      meta_data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'chrom'</span>, <span class="st">'pos'</span>, <span class="st">'ref'</span>, <span class="st">'alt'</span>, <span class="st">'variant_type'</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Clean up temporary files</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, </span>
-<span>       recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Locate the package example database folder</span></span>
+<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_curated_sorghum_variant_resource"</span>, </span>
+<span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, </span>
+<span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>                           </span>
+<span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
+<span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
+<span></span>
+<span><span class="co"># Get genotype data for HIGH impact variants that passed allele filter</span></span>
+<span><span class="va">geno_high_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_genotypes.html">query_genotypes</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
+<span>                                      variant_ids <span class="op">=</span> <span class="va">geno_high_filtered</span><span class="op">$</span><span class="va">variant_id</span>,</span>
+<span>                                      meta_data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chrom"</span>, <span class="st">"pos"</span>, <span class="st">"ref"</span>, <span class="st">"alt"</span>, <span class="st">"variant_type"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Cleanly close the connection and release memory allocations</span></span>
+<span><span class="fu"><a href="../reference/disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_demo</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully disconnected from the local database. Memory cleared.</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -1709,10 +1700,10 @@ polymorphic variants surrounding a focal variant and generates:</p>
 </ul>
 <p>The vcf file must contain the variant ID, Chromosome ID, Position,
 REF and ALT alleles, as well as the genotype data for samples, as shown
-in Table 1:</p>
+in Table 4:</p>
 <table class="table">
 <caption>
-Filtered HIGH impact variants for marker development.
+Table 4: Filtered HIGH impact variants for marker development.
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -1829,7 +1820,7 @@ INDEL
 <span><span class="co"># Path to import sorghum genome sequence for Chromosome 5</span></span>
 <span><span class="va">path1</span> <span class="op">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/awkena/panGB/main/Chr05.fa.gz"</span></span>
 <span></span>
-<span><span class="co"># KASP marker design for variant ID: INDEL_Chr05_75106156 in Table 1</span></span>
+<span><span class="co"># KASP marker design for variant ID: INDEL_Chr05_75106156 in Table 4</span></span>
 <span><span class="va">lgs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kasp_marker_design.html">kasp_marker_design</a></span><span class="op">(</span>gt_df <span class="op">=</span> <span class="va">geno_high_filtered</span>,</span>
 <span>                           variant_id_col <span class="op">=</span> <span class="st">'variant_id'</span>,</span>
 <span>                           chrom_col <span class="op">=</span> <span class="st">'chrom'</span>,</span>
@@ -2107,7 +2098,7 @@ above. If this information is not available, set the argument
 </h3>
 <p>The <code><a href="../reference/pred_summary.html">pred_summary()</a></code> function produces a summary of
 predicted genotypes for positive controls in each reaction plate after
-verification (Table 3), as shown in the code snippet below:</p>
+verification (Table 6), as shown in the code snippet below:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get prediction summary for all plates</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
@@ -2119,7 +2110,7 @@ verification (Table 3), as shown in the code snippet below:</p>
 <span>                       rate_out <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <caption>
-Table 3: Summary of verified prediction status for samples in plates
+Table 6: Summary of verified prediction status for samples in plates
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -2307,7 +2298,7 @@ Fig. 5. Match/Mismatch rate of predictions for snp: snpSB00804.
 </h3>
 <p>Users can visualize the observed genotype calls in a plate design
 format using the <code><a href="../reference/plot_plate.html">plot_plate()</a></code> function as depicted in
-Figure 5, using the code snippet below:</p>
+Figure 6, using the code snippet below:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_plate.html">plot_plate</a></span><span class="op">(</span><span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>, pdf <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $`SE-24-1088_P01_d1_snpSB00804`</span></span></code></pre></div>
@@ -2349,7 +2340,7 @@ and uses single nucleotides to represent homozygous SNP calls.</p>
 </h3>
 <p>To exemplify the steps for creating heatmap, we will use a
 mid-density marker data for three groups of near-isogenic lines (NILs)
-and their parents (Table 4). The NILs and their parents were genotyped
+and their parents (Table 7). The NILs and their parents were genotyped
 using the Agriplex platform. Each NIL group was genotyped using 2421
 markers.</p>
 <p>The imported data frame has the markers as columns and genotyped
@@ -2368,10 +2359,10 @@ embedded in the marker names
 <span><span class="va">geno</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span>file <span class="op">=</span> <span class="va">path1</span>, header <span class="op">=</span> <span class="cn">TRUE</span>, colClasses <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"character"</span><span class="op">)</span><span class="op">)</span> <span class="co"># genotype calls</span></span>
 <span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://yihui.org/knitr/" class="external-link">knitr</a></span><span class="op">)</span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">geno</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span>, caption <span class="op">=</span> <span class="st">'Table 4: Agriplex data format'</span>, format <span class="op">=</span> <span class="st">'html'</span>, booktabs <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">geno</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span>, caption <span class="op">=</span> <span class="st">'Table 7: Agriplex data format'</span>, format <span class="op">=</span> <span class="st">'html'</span>, booktabs <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <caption>
-Table 4: Agriplex data format
+Table 7: Agriplex data format
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -2608,12 +2599,12 @@ wrangling functions for KASP, Agriplex, and DArTag data.</p>
 monomorphic loci from the data.</p>
 <p>Since our imported Agriplex data has informative SNP IDs, we can use
 the <code><a href="../reference/parse_marker_ns.html">parse_marker_ns()</a></code> function to generate a map file
-(Table 5) for the markers.<br>
+(Table 8) for the markers.<br>
 The generated map file is then passed to the <code><a href="../reference/proc_kasp.html">proc_kasp()</a></code>
 function to order the SNP markers according to their chromosome numbers
 and positions.</p>
 <p>The <code><a href="../reference/kasp_numeric.html">kasp_numeric()</a></code> function converts the output of the
-<code><a href="../reference/proc_kasp.html">proc_kasp()</a></code> function into a numeric format (Table 6). The
+<code><a href="../reference/proc_kasp.html">proc_kasp()</a></code> function into a numeric format (Table 9). The
 re-coding to numeric format is done as follows:</p>
 <ul>
 <li>Homozygous for Parent 1 allele = 1.</li>
@@ -2644,7 +2635,7 @@ re-coding to numeric format is done as follows:</p>
 <span><span class="va">map_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/order_markers.html">order_markers</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">map_file</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <caption>
-Table 5: Map file for the imported Agriplex data.
+Table 8: Map file for the imported Agriplex data.
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -2792,7 +2783,7 @@ S1_1985365
 <span>                         data_type <span class="op">=</span> <span class="st">'agriplex'</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <caption>
-Table 6: Agriplex data converted to a numeric format.
+Table 9: Agriplex data converted to a numeric format.
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -3086,7 +3077,7 @@ Stg5-|-_3
 </tr>
 </tbody>
 </table>
-<p>All is now set to generate the heatmap (Figure 6) using the
+<p>All is now set to generate the heatmap (Figure 7) using the
 <code><a href="../reference/cross_qc_ggplot.html">cross_qc_ggplot()</a></code> function, as shown in the code snippet
 below:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
@@ -3107,8 +3098,8 @@ below:</p>
 <span>                text_size <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $Batch1</span></span></code></pre></div>
 <div class="figure">
-<img src="figures/heatmap1-1.png" class="r-plt" alt="Fig. 6. A heatmap that compares the genetic background of parents and stg5 NIL progenies across all markers." width="100%"><p class="caption">
-Fig. 6. A heatmap that compares the genetic background of parents and
+<img src="figures/heatmap1-1.png" class="r-plt" alt="Fig. 7. A heatmap that compares the genetic background of parents and stg5 NIL progenies across all markers." width="100%"><p class="caption">
+Fig. 7. A heatmap that compares the genetic background of parents and
 stg5 NIL progenies across all markers.
 </p>
 </div>
@@ -3129,7 +3120,7 @@ PDF file in a directory outside R.</p>
 </h3>
 <p>To test the hypothesis that the <em>stg5</em> NIL development was
 effective, we can use the <code><a href="../reference/cross_qc_annotate.html">cross_qc_annotate()</a></code> function to
-generate a heatmap (Figure 7) with an annotation of the position of the
+generate a heatmap (Figure 8) with an annotation of the position of the
 <em>stg5</em> locus on Chr 1, as shown below:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
@@ -3156,8 +3147,8 @@ generate a heatmap (Figure 7) with an annotation of the position of the
 <span>                  text_size <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $Batch1</span></span></code></pre></div>
 <div class="figure">
-<img src="figures/heatmap2-1.png" class="r-plt" alt="Fig. 7. Heatmap annotation of the stg5 locus on Chr 1." width="100%"><p class="caption">
-Fig. 7. Heatmap annotation of the stg5 locus on Chr 1.
+<img src="figures/heatmap2-1.png" class="r-plt" alt="Fig. 8. Heatmap annotation of the stg5 locus on Chr 1." width="100%"><p class="caption">
+Fig. 8. Heatmap annotation of the stg5 locus on Chr 1.
 </p>
 </div>
 <p>In the code snippet above, the numeric matrix of genotype calls and
@@ -3171,7 +3162,7 @@ The <code>trait_pos</code> argument was used to specify the position of
 the target locus (<em>stg5</em>) on chromosome one. Users can specify
 the positions of multiple target loci as components of a list object for
 annotation.</p>
-<p>In Figure 7, the color intensity correlates positively with the
+<p>In Figure 8, the color intensity correlates positively with the
 marker density or coverage. Thus, areas with no color (white vertical
 gaps) depicts gaps in the marker coverage in the data.</p>
 </div>
@@ -3215,13 +3206,13 @@ snippet below:</p>
 <span>            aspect_ratio <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>            pdf <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="figures/barplot_rpp1-1.png" class="r-plt" alt="Fig. 8. Computed RPP values for the stg5 NILs." width="100%"><p class="caption">
-Fig. 8. Computed RPP values for the stg5 NILs.
+<img src="figures/barplot_rpp1-1.png" class="r-plt" alt="Fig. 9. Computed RPP values for the stg5 NILs." width="100%"><p class="caption">
+Fig. 9. Computed RPP values for the stg5 NILs.
 </p>
 </div>
 <table class="table">
 <caption>
-RPP computation across and for each chromosome.
+Table 10: RPP computation across and for each chromosome.
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -3767,7 +3758,7 @@ function is shown in the code snippet below:</p>
 <span>                                       select_type <span class="op">=</span> <span class="st">"homo"</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <caption>
-Binary matrix of presence or absence of favorable alleles.
+Table 11: Binary matrix of presence or absence of favorable alleles.
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -3960,8 +3951,9 @@ favorable allele for each individual target locus.</p></li>
 <span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span></code></pre></div>
 <div class="figure">
-<img src="figures/upset_plot1-1.png" class="r-plt" alt="Fig. 9. Visualizing the co-occurrence of favorable alleles across lines." width="100%"><p class="caption">
-Fig. 9. Visualizing the co-occurrence of favorable alleles across lines.
+<img src="figures/upset_plot1-1.png" class="r-plt" alt="Fig. 10. Visualizing the co-occurrence of favorable alleles across lines." width="100%"><p class="caption">
+Fig. 10. Visualizing the co-occurrence of favorable alleles across
+lines.
 </p>
 </div>
 </div>

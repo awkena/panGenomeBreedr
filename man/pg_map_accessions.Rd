@@ -2,7 +2,7 @@
 % Please edit documentation in R/postgresql_variant_discovery.R
 \name{pg_map_accessions}
 \alias{pg_map_accessions}
-\title{Interactive Geographic Exploration of Sorghum Accessions}
+\title{Interactive geographic exploration of sorghum accessions (online)}
 \usage{
 pg_map_accessions(metadata, color_by = "countryorigin")
 }
@@ -40,7 +40,7 @@ library(panGenomeBreedr)
 meta <- pg_get_sample_metadata()
 
 # Explore the geographic distribution colored by genetic cluster
-pg_map_accessions(meta, color_by = "kmeans_cluster")
+pg_map_accessions(meta, color_by = "countryorigin")
 }
 
 }

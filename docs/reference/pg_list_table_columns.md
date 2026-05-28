@@ -1,4 +1,4 @@
-# Check the column names and types for any table in the pangenome database.
+# List column names and types for a specified table (online)
 
 This function connects to the public panGenomeBreedr API and retrieves
 metadata about the columns in a specified table.

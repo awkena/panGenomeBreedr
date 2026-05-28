@@ -17,7 +17,7 @@ test_that("pgsql_get_sample_metadata logic holds in SQLite (Mock-independent)", 
   )
 
   # Test filtering logic
-  res <- pgsql_get_sample_metadata(
+  res <- panGenomeBreedr:::pgsql_get_sample_metadata(
     con,
     query_col = "countryorigin",
     query_value = "Ghana"
