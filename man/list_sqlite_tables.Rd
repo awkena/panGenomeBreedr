@@ -2,49 +2,28 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{list_sqlite_tables}
 \alias{list_sqlite_tables}
-\title{List all tables in the SQLite database.}
+\title{List all tables in the database}
 \usage{
-list_sqlite_tables(db_path)
+list_sqlite_tables(con)
 }
 \arguments{
-\item{db_path}{A character value indicating the path to the SQLite database.}
+\item{con}{A DBI connection object to the local database.}
 }
 \value{
-A character vector of names of SQLite databases
+A character vector of table names in the database.
 }
 \description{
-List all tables in the SQLite database.
+List all tables in the database
 }
 \examples{
-\donttest{
+\dontrun{
+# Load the package
 library(panGenomeBreedr)
 
-# Define tempdir
-path <- tempdir()
-
-# Mini SQLite database
-mini_db <-  system.file("extdata", "mini_sorghum_variant_vcf.db.gz",
-                     package = "panGenomeBreedr",
-                     mustWork = TRUE)
-
-# Path to SQLite databases: INDEL and SNP
-mini_db_path <- file.path(path, 'mini_sorghum_variant_vcf.db')
-
-# Unzip compressed mini database and save in tempdir
-R.utils::gunzip(mini_db,
-               destname = mini_db_path,
-               remove = FALSE)
-
-# List tables in the SQLite database
-list_sqlite_tables(mini_db_path)
-
-# Clean tempdir
-contents <- list.files(tempdir(),
-                             full.names = TRUE,
-                             recursive = TRUE,
-                             all.files = TRUE,
-                             include.dirs = TRUE)
-unlink(contents, recursive = TRUE, force = TRUE)
+my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
+con <- connect_local_db(folder_path = my_db_folder)
+list_sqlite_tables(con)
+disconnect_local_db(con)
 }
 
 }

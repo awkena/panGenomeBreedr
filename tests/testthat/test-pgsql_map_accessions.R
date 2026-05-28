@@ -1,4 +1,4 @@
-test_that("pgsql_map_accessions returns a valid interactive leaflet object", {
+test_that("pg_map_accessions returns a valid interactive leaflet object", {
   # Skip the test gracefully if the suggested packages are not present
   skip_if_not_installed("leaflet")
   skip_if_not_installed("tools")
@@ -15,7 +15,7 @@ test_that("pgsql_map_accessions returns a valid interactive leaflet object", {
   )
 
   # Execute
-  p_inter <- pgsql_map_accessions(mock_metadata)
+  p_inter <- panGenomeBreedr:::pg_map_accessions(mock_metadata)
 
   # Core Assertions
   expect_s3_class(p_inter, "leaflet")
@@ -40,7 +40,7 @@ test_that("pgsql_map_accessions returns a valid interactive leaflet object", {
   expect_equal(length(passed_lats), 2)
 })
 
-test_that("pgsql_map_accessions handles custom coloring without noise", {
+test_that("pg_map_accessions handles custom coloring without noise", {
   skip_if_not_installed("leaflet")
   skip_if_not_installed("tools")
 
@@ -56,12 +56,15 @@ test_that("pgsql_map_accessions handles custom coloring without noise", {
 
   # The function is robust and should execute flawlessly without throwing errors
   expect_error(
-    pgsql_map_accessions(mock_metadata, color_by = "kmeans_cluster"),
+    panGenomeBreedr:::pg_map_accessions(
+      mock_metadata,
+      color_by = "kmeans_cluster"
+    ),
     NA
   )
 })
 
-test_that("pgsql_map_accessions triggers graceful stops for bad inputs", {
+test_that("pg_map_accessions triggers graceful stops for bad inputs", {
   skip_if_not_installed("leaflet")
   skip_if_not_installed("tools")
 
@@ -71,7 +74,7 @@ test_that("pgsql_map_accessions triggers graceful stops for bad inputs", {
     countryorigin = c("Ghana", "USA")
   )
   expect_error(
-    pgsql_map_accessions(bad_metadata),
+    panGenomeBreedr:::pg_map_accessions(bad_metadata),
     "Metadata must contain 'lat' and 'lon' columns"
   )
 
@@ -83,7 +86,7 @@ test_that("pgsql_map_accessions triggers graceful stops for bad inputs", {
     countryorigin = c("Ghana", "USA")
   )
   expect_error(
-    pgsql_map_accessions(empty_coords),
+    panGenomeBreedr:::pg_map_accessions(empty_coords),
     "No samples with valid latitude and longitude found"
   )
 })

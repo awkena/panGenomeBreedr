@@ -16,7 +16,7 @@ test_that("pgsql_query_by_impact filters correctly for every impact level", {
       target_levels <- c("HIGH", "MODERATE", "LOW", "MODIFIER")
 
       for (lvl in target_levels) {
-        res <- pgsql_query_by_impact(
+        res <- panGenomeBreedr:::pgsql_query_by_impact(
           con,
           impact_level = lvl,
           chrom = "Chr03",
@@ -43,7 +43,7 @@ test_that("pgsql_query_by_impact filters correctly for every impact level", {
       }
 
       # 3. Test the default behavior (Full Pangenome Impact)
-      res_all <- pgsql_query_by_impact(
+      res_all <- panGenomeBreedr:::pgsql_query_by_impact(
         con,
         chrom = "Chr03",
         start = 79037800,

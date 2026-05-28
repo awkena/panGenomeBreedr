@@ -1,26 +1,19 @@
-test_that("list_sqlite_tables() correctly lists tables in a SQLite database", {
-  # Skip test on CRAN and in case required packages aren't available
-  skip_on_cran()
-  skip_if_not_installed("DBI")
-  skip_if_not_installed("RSQLite")
+test_that("list_sqlite_tables() correctly lists tables in the database", {
+  # Skip check if the global test connection wasn't initialized cleanly
+  skip_if_not(
+    exists("con_test"),
+    message = "Global test connection 'con_test' not found."
+  )
 
-  # Create temporary SQLite database
-  db_path <- tempfile(fileext = ".db")
-  con <- DBI::dbConnect(RSQLite::SQLite(), db_path)
+  # Use the function to list tables from your active mini Parquet views
+  tables <- list_sqlite_tables(con_test)
 
-  # Add two example tables
-  DBI::dbWriteTable(con, "genes", data.frame(id = 1:3, name = c("A", "B", "C")))
-  DBI::dbWriteTable(con, "variants", data.frame(pos = c(100, 200), allele = c("A", "T")))
+  # Check structure
+  expect_type(tables, "character")
 
-  DBI::dbDisconnect(con)
-
-  # Use your function to list tables
-  tables <- list_sqlite_tables(db_path)
-
-  # Expect both tables to be found
-  expect_true(all(c("genes", "variants") %in% tables))
-  expect_length(tables, 2)
-
-  # Cleanup
-  unlink(db_path)
+  # Expect all 4 essential tables to be mounted and discovered
+  expect_true(all(
+    c("genotypes", "variants", "metadata", "annotations") %in% tables
+  ))
+  expect_length(tables, 4)
 })

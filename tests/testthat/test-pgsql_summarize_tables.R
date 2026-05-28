@@ -14,7 +14,7 @@ test_that("pgsql_summarize_tables returns correct row counts from mock DB", {
       )
 
       # Execute summary
-      summary_df <- pgsql_summarize_tables(con)
+      summary_df <- panGenomeBreedr:::pgsql_summarize_tables(con)
 
       # Validate structure
       expect_s3_class(summary_df, "data.frame")

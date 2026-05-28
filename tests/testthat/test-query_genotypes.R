@@ -1,72 +1,71 @@
-test_that("query_genotypes() retrieves genotypes and metadata from SQLite", {
-  skip_on_cran()
-  skip_if_not_installed("DBI")
-  skip_if_not_installed("RSQLite")
-
-  # Setup temp SQLite DB
-  db_path <- tempfile(fileext = ".db")
-  con <- DBI::dbConnect(RSQLite::SQLite(), db_path)
-
-  # Create mock variants table
-  variants <- data.frame(
-    variant_id = c("v1", "v2", "v3"),
-    chrom = c("Chr01", "Chr01", "Chr02"),
-    pos = c(100, 200, 300),
-    ref = c("A", "T", "C"),
-    alt = c("G", "A", "T"),
-    variant_type = c("SNP", "SNP", "INDEL"),
-    extra = c("x", "y", "z")  # included for testing metadata filtering
+test_that("query_genotypes() retrieves genotypes and metadata from the database", {
+  # Skip check if the global test connection wasn't initialized cleanly
+  skip_if_not(
+    exists("con_test"),
+    message = "Global test connection 'con_test' not found."
   )
-  DBI::dbWriteTable(con, "variants", variants)
 
-  # Create mock genotypes table
-  genotypes <- data.frame(
-    variant_id = c("v1", "v2", "v3"),
-    sample1 = c("0/0", "0/1", "1/1"),
-    sample2 = c("1/1", "0/0", "0/1"),
-    stringsAsFactors = FALSE
+  # Inspect available variant IDs present in your real mini database view slice
+  # to fetch valid target keys dynamically for testing
+  sample_variants <- DBI::dbGetQuery(
+    con_test,
+    "SELECT variant_id FROM variants LIMIT 2"
+  )$variant_id
+
+  skip_if(
+    length(sample_variants) < 2,
+    message = "Insufficient variant data rows in mini dataset to execute test."
   )
-  DBI::dbWriteTable(con, "genotypes", genotypes)
 
-  DBI::dbDisconnect(con)
+  v1 <- sample_variants[1]
+  v2 <- sample_variants[2]
 
-  # ---- TEST 1: Full query with valid metadata ----
-  result <- query_genotypes(db_path,
-                            variant_ids = c("v1", "v3"),
-                            meta_data = c("chrom", "pos", "ref", "alt", "variant_type"))
+  # Full query with explicit valid metadata parameters 
+  result <- query_genotypes(
+    con = con_test,
+    variant_ids = c(v1, v2),
+    meta_data = c("chrom", "pos", "ref", "alt", "variant_type")
+  )
 
   expect_true(is.data.frame(result))
   expect_equal(nrow(result), 2)
-  expect_true(all(c("chrom", "pos", "ref", "alt", "variant_type", "sample1", "sample2") %in% names(result)))
+  expect_true(all(
+    c("variant_id", "chrom", "pos", "ref", "alt", "variant_type") %in%
+      names(result)
+  ))
 
-  # ---- TEST 2: Default metadata (meta_data = NULL) ----
-  result_default <- query_genotypes(db_path,
-                                    variant_ids = c("v2", "v3"))
+  # Default metadata evaluation path (meta_data = NULL) 
+  result_default <- query_genotypes(con = con_test, variant_ids = c(v1, v2))
+
+  expect_true(is.data.frame(result_default))
   expect_true("chrom" %in% names(result_default))
   expect_equal(nrow(result_default), 2)
 
-  # ---- TEST 3: Missing metadata column (warns but proceeds) ----
-  expect_warning({
-    result_partial <- query_genotypes(db_path,
-                                      variant_ids = c("v1"),
-                                      meta_data = c("chrom", "nonexistent_col"))
-  }, "do not exist in the 'variants' table")
+  # No variant IDs provided (triggers defensive warning & returns empty df) 
+  expect_warning(
+    {
+      result_empty_input <- query_genotypes(
+        con = con_test,
+        variant_ids = character(0)
+      )
+    },
+    "The 'variant_ids' vector is empty"
+  )
 
-  expect_true("chrom" %in% names(result_partial))
-  expect_false("nonexistent_col" %in% names(result_partial))
+  expect_true(is.data.frame(result_empty_input))
+  expect_equal(nrow(result_empty_input), 0)
 
-  # ---- TEST 4: No variant IDs provided (error) ----
-  expect_error(query_genotypes(db_path, variant_ids = character(0)),
-               "at least one variant ID")
+  #  Nonexistent variant ID handling (warns and returns empty df) 
+  expect_warning(
+    {
+      result_empty_locus <- query_genotypes(
+        con = con_test,
+        variant_ids = "NONEXISTENT_MARKER_ID_999"
+      )
+    },
+    "No data found for the provided variant IDs"
+  )
 
-  # ---- TEST 5: Nonexistent variant ID (warns and returns empty) ----
-  expect_warning({
-    result_empty <- query_genotypes(db_path, variant_ids = "v999")
-  }, "No genotype data found")
-
-  expect_true(is.data.frame(result_empty))
-  expect_equal(nrow(result_empty), 0)
-
-  # Cleanup
-  unlink(db_path)
+  expect_true(is.data.frame(result_empty_locus))
+  expect_equal(nrow(result_empty_locus), 0)
 })

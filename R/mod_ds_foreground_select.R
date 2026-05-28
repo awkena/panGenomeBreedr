@@ -269,19 +269,19 @@ mod_ds_foreground_select_ui <- function(id) {
                       )
                     )
                   )
-                ),
-
-                bslib::nav_panel(
-                  title = "Binary Matrix",
-                  value = "table_tab",
-                  icon = icon("table"),
-                  bslib::card(
-                    class = "border-0 shadow-sm",
-                    bslib::card_body(
-                      DT::DTOutput(ns("result_table"), height = "800px")
-                    )
-                  )
                 )
+
+                # bslib::nav_panel(
+                #   title = "Binary Matrix",
+                #   value = "table_tab",
+                #   icon = icon("table"),
+                #   bslib::card(
+                #     class = "border-0 shadow-sm",
+                #     bslib::card_body(
+                #       DT::DTOutput(ns("result_table"), height = "800px")
+                #     )
+                #   )
+                # )
               )
             )
           )
@@ -415,11 +415,11 @@ mod_ds_foreground_select_server <- function(id) {
       )
     })
 
-    # Render DT Table
-    output$result_table <- DT::renderDT({
-      req(result_data())
-      DT::datatable(result_data(), options = list(pageLength = 15))
-    })
+    # # Render DT Table
+    # output$result_table <- DT::renderDT({
+    #   req(result_data())
+    #   DT::datatable(result_data(), options = list(pageLength = 15))
+    # })
 
 
 

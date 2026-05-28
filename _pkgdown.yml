@@ -49,47 +49,63 @@ navbar:
 reference:
   - title: "Variant Discovery & KASP Marker Design"
     contents:
-      - query_db
-      - query_by_af
-      - query_ann_summary
-      - kasp_marker_design
+      - subtitle: "Connection & Configuration"
+      - connect_local_db
+      - disconnect_local_db
+      - set_api_url
+      - get_api_url
+      
+      - subtitle: "Database Schema & Metadata"
       - list_sqlite_tables
-      - variant_stats
-      - variant_impact_summary
+      - pg_list_tables
       - summarize_sqlite_tables
+      - pg_summarize_tables
       - list_table_columns
-      - gene_coord_gff
-      - query_by_impact
-      - calc_af
-      - filter_by_af
+      - pg_list_table_columns
+      
+      - subtitle: "Core Data Queries"
+      - query_db
+      - pg_query_db
       - query_genotypes
+      - pg_query_genotypes
+      - get_sample_metadata
+      - pg_get_sample_metadata
+      - query_by_metadata
+      - pg_query_by_metadata
+      
+      - subtitle: "Targeted Variant Filters"
+      - query_by_af
+      - pg_query_by_af
+      - query_by_impact
+      - pg_query_by_impact
+      
+      - subtitle: "Summaries & Statistics"
+      - variant_stats
+      - pg_variant_stats
+      - variant_impact_summary
+      - pg_variant_impact_summary
       - count_variant_types
+      - pg_count_variant_types
+      - query_ann_summary
+      - pg_query_ann_summary
+      
+      - subtitle: "Allele Frequency Handlers"
+      - calc_af
+      - pg_calc_af
+      - filter_by_af
+      - pg_filter_by_af
+      
+      - subtitle: "Marker Design & Visualization"
+      - kasp_marker_design
+      - query_map_accessions
+      - pg_map_accessions
+      
+      - subtitle: "Utilities"
+      - gene_coord_gff
+      - pg_gene_coords
       - extract_variant
       - get_google_id
       - folder_download_gd
-      - get_sample_metadata
-      - pg_variant_stats
-      - pg_calc_af
-      - pg_count_variant_types
-      - pg_filter_by_af
-      - pg_gene_coords
-      - pg_get_sample_metadata
-      - pg_list_table_columns
-      - pg_list_tables
-      - pg_map_accessions
-      - pg_plot_trait_association
-      - pg_query_ann_summary
-      - pg_query_by_af
-      - pg_query_by_impact
-      - pg_query_by_metadata
-      - pg_query_db
-      - pg_query_genotypes
-      - pg_summarize_tables
-      - pg_variant_impact_summary
-      - query_by_metadata
-      - query_map_accessions
-      - set_api_url
-      - get_api_url
 
   - title: "KASP Marker Validation"
     contents:

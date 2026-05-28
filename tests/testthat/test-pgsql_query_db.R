@@ -20,12 +20,12 @@ test_that("pgsql_query_db retrieves and unpacks genomic data correctly", {
       en <- 79037890
 
       # 1. Test Variants Query
-      res_var <- pgsql_query_db(con, "variants", chr, st, en)
+      res_var <- panGenomeBreedr:::pgsql_query_db(con, "variants", chr, st, en)
       expect_s3_class(res_var, "data.frame")
       expect_true(all(res_var$chrom == chr))
 
       # 2. Test Annotations Query
-      res_ann <- pgsql_query_db(
+      res_ann <- panGenomeBreedr:::pgsql_query_db(
         con,
         "annotations",
         chr,
@@ -37,7 +37,7 @@ test_that("pgsql_query_db retrieves and unpacks genomic data correctly", {
       expect_true("impact" %in% colnames(res_ann))
 
       # 3. Test Genotypes Unpacking (The heavy lifting)
-      res_gt <- pgsql_query_db(con, "genotypes", chr, st, en)
+      res_gt <- panGenomeBreedr:::pgsql_query_db(con, "genotypes", chr, st, en)
       expect_s3_class(res_gt, "data.frame")
       expect_false("calls" %in% colnames(res_gt))
       expect_true(ncol(res_gt) > 1000)
@@ -55,7 +55,13 @@ test_that("pgsql_query_db handles empty results gracefully", {
   DBI::dbExecute(con, "CREATE TABLE variants (chrom TEXT, pos INTEGER)")
 
   # Query a chromosome that is logically empty
-  res_empty <- pgsql_query_db(con, "variants", "Chr99", 1, 100)
+  res_empty <- panGenomeBreedr:::pgsql_query_db(
+    con,
+    "variants",
+    "Chr99",
+    1,
+    100
+  )
 
   # Assertions
   expect_s3_class(res_empty, "data.frame")

@@ -26,7 +26,7 @@ test_that("pgsql_query_by_af filtering logic works independently of DB", {
   # Wrap the call in expect_warning to catch the expected "No variants passed" message
   expect_warning(
     {
-      res_none <- pgsql_query_by_af(
+      res_none <- panGenomeBreedr:::pgsql_query_by_af(
         con = con,
         chrom = "Chr01",
         start = 1,

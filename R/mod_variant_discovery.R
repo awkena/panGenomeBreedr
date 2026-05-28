@@ -474,18 +474,18 @@ gene_cord_tab <- function(ns) {
         class = "text-center shadow-sm p-4",
         style = "border-top: 4px solid #3498DB;",
         tags$div(class = "h1 text-info mb-3", icon("database")),
-        tags$h5("Local Database File (.db)", class = "fw-bold"),
+        tags$h5("Local Database Folder (Parquet)", class = "fw-bold"),
         p(
-          "Perform offline variant discovery using a local database file.",
+          "Perform offline variant discovery using a local Parquet directory.",
           class = "text-muted mb-4"
         ),
-        shinyFiles::shinyFilesButton(
+        shinyFiles::shinyDirButton(
           id = ns("connect_btn"),
-          label = "Browse for SQLite File",
+          label = "Browse for Parquet Folder",
           icon = icon("folder-open"),
-          title = "Select Database File",
+          title = "Select Database Folder",
           class = "btn-info btn-lg rounded-pill px-4",
-          multiple = FALSE,
+          multiple = FALSE
         )
       ),
       bslib::card(
@@ -494,7 +494,7 @@ gene_cord_tab <- function(ns) {
         tags$div(class = "h1 text-success mb-3", icon("server")),
         tags$h5("Cloud / Remote Database", class = "fw-bold"),
         p(
-          "Perform online variant discovery using hosted pangenome resources.",
+          "Perform online variant discovery using a remote curated sorghum variant resource.",
           class = "text-muted mb-4"
         ),
         actionButton(
@@ -854,9 +854,9 @@ mod_variant_discovery_server <- function(id) {
     # DATABASE CONNECTION MODE LOGIC
     # ------------------------------------------------------------------
 
-    #  SQLite Connection
-    volumes <- shinyFiles::getVolumes()
-    shinyFiles::shinyFileChoose(
+    #  Local DuckDB/Parquet Connection
+    volumes <- c(Home = path.expand("~"), shinyFiles::getVolumes()())
+    shinyFiles::shinyDirChoose(
       input,
       "connect_btn",
       roots = volumes,
@@ -865,9 +865,11 @@ mod_variant_discovery_server <- function(id) {
 
     observeEvent(input$connect_btn, {
       shinyjs::hide(id = 'impact_card')
-      file_selected <- shinyFiles::parseFilePaths(volumes, input$connect_btn)
+      
+      # Check if a valid directory was selected
+      if (!is.integer(input$connect_btn)) {
+        db_path <- shinyFiles::parseDirPath(volumes, input$connect_btn)
 
-      if (nrow(file_selected) > 0) {
         shinybusy::show_modal_spinner(
           spin = "fading-circle",
           color = "#27AE60",
@@ -875,31 +877,23 @@ mod_variant_discovery_server <- function(id) {
         )
         tryCatch(
           {
-            db_path <- as.character(file_selected$datapath)
-            if (!file.exists(db_path)) {
-              shinyWidgets::show_toast(
-                "Error: Database file not found",
-                type = "error"
-              )
-              return()
-            }
             if (!is.null(rv$conn) && rv$conn_type == "sqlite") {
-              RSQLite::dbDisconnect(rv$conn)
+              disconnect_local_db(rv$conn)
               rv$conn <- NULL
             }
 
-            rv$conn <- RSQLite::dbConnect(RSQLite::SQLite(), db_path)
+            rv$conn <- connect_local_db(folder_path = db_path)
             rv$connected <- TRUE
             rv$conn_type <- "sqlite"
-            rv$tables <- list_sqlite_tables(db_path)
-            rv$sample_metadata <- get_sample_metadata(db_path = db_path)
+            rv$tables <- list_sqlite_tables(con = rv$conn)
+            rv$sample_metadata <- get_sample_metadata(con = rv$conn)
             rv$db_path <- db_path
 
             shinyjs::hide("pre_connection_panel")
             shinyjs::show("active_dashboard_panel")
             shinyWidgets::show_alert(
               title = "Success!",
-              text = "SQLite connected successfully",
+              text = "Local Database connected successfully",
               type = "success",
               timer = 3000
             )
@@ -934,14 +928,14 @@ mod_variant_discovery_server <- function(id) {
           fade = TRUE,
           div(
             class = "mb-4 text-muted",
-            "By default, panGB connects to the public ", tags$b("Sorghum Pangenome"), " database. ",
-            "If your institution hosts a custom pangenome database for another crop, you can specify the endpoint below."
+            "By default, panGB connects to the public ", tags$b("Curated Sorghum Variant Resource"), " database. ",
+            "If your institution hosts a custom database for another crop, you can specify the endpoint below."
           ),
           radioButtons(
             ns("api_choice"),
             label = tags$b("Select Database Source:"),
             choices = c(
-              "Public Sorghum Pangenome Database" = "default",
+              "Curated Sorghum Variant Resource" = "default",
               "Custom API Endpoint" = "custom"
             ),
             selected = "default"
@@ -981,7 +975,7 @@ mod_variant_discovery_server <- function(id) {
           target_url <- if (input$api_choice == "custom") {
             trimws(input$api_url)
           } else {
-            "http://145.241.210.166:8000" # Using Oracle Cloud endpoint
+            "http://79.72.72.212:8000" # Using Oracle Cloud endpoint
           }
           
           # Set endpoint API
@@ -1019,7 +1013,7 @@ mod_variant_discovery_server <- function(id) {
     # 3. Disconnect
     observeEvent(input$disconnect_btn, {
       if (!is.null(rv$conn) && rv$conn_type == "sqlite") {
-        RSQLite::dbDisconnect(rv$conn)
+        disconnect_local_db(rv$conn)
       }
       rv$conn <- NULL
       rv$connected <- FALSE
@@ -1051,7 +1045,7 @@ mod_variant_discovery_server <- function(id) {
     session$onSessionEnded(function() {
       isolate({
         if (!is.null(rv$conn) && rv$conn_type == "sqlite") {
-          RSQLite::dbDisconnect(rv$conn)
+          disconnect_local_db(rv$conn)
           rv$conn <- NULL
         }
       })
@@ -1146,7 +1140,12 @@ mod_variant_discovery_server <- function(id) {
         # Launch data extraction asynchronously
         p <- future::future({
           if (c_type == "sqlite") {
-            do.call(sqlite_func_name, list(db_path = d_path))
+            # DuckDB connections cannot be serialized to future workers
+            # We spin up a temporary connection inside the background worker
+            temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
+            res <- do.call(sqlite_func_name, list(con = temp_con))
+            disconnect_local_db(temp_con, quiet = TRUE)
+            res
           } else {
             do.call(pg_func_name, list())
           }
@@ -1206,7 +1205,10 @@ mod_variant_discovery_server <- function(id) {
       
       p <- future::future({
         if (c_type == "sqlite") {
-          list_table_columns(db_path = d_path, table_name = t_name)
+          temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
+          res <- list_table_columns(con = temp_con, table_name = t_name)
+          disconnect_local_db(temp_con, quiet = TRUE)
+          res
         } else {
           pg_list_table_columns(table_name = t_name)
         }
@@ -1423,7 +1425,10 @@ mod_variant_discovery_server <- function(id) {
         # Fetch stats asynchronously
         p <- future::future({
           if (c_type == "sqlite") {
-            variant_stats(db_path = d_path, include_annotations = FALSE)
+            temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
+            res <- variant_stats(con = temp_con, include_annotations = FALSE)
+            disconnect_local_db(temp_con, quiet = TRUE)
+            res
           } else {
             pg_variant_stats(include_annotations = FALSE)
           }
@@ -1567,20 +1572,22 @@ mod_variant_discovery_server <- function(id) {
       # Launch data extraction and plotting asynchronously
       future::future({
         if (c_type == "sqlite") {
+          temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
           v_table <- query_db(
-            db_path = d_path,
+            con = temp_con,
             table_name = "variants",
             chrom = chr,
             start = st,
             end = en
           )
           a_table <- query_db(
-            db_path = d_path,
+            con = temp_con,
             table_name = "annotations",
             chrom = chr,
             start = st,
             end = en
           )
+          disconnect_local_db(temp_con, quiet = TRUE)
         } else {
           v_table <- pg_query_db(
             table_name = "variants",
@@ -1713,7 +1720,7 @@ mod_variant_discovery_server <- function(id) {
             # Branching Based on DB Type
             if (rv$conn_type == "sqlite") {
               values$query_db_val <- query_db(
-                db_path = rv$db_path,
+                con = rv$conn,
                 table_name = input$table_name,
                 chrom = values$result$chrom,
                 start = values$result$start,
@@ -1744,7 +1751,7 @@ mod_variant_discovery_server <- function(id) {
             # Branching Based on DB Type
             if (rv$conn_type == "sqlite") {
               values$query_ann_react <- query_ann_summary(
-                db_path = rv$db_path,
+                con = rv$conn,
                 variants_table = input$table_name_v,
                 annotations_table = input$table_name_a,
                 chrom = values$result$chrom,
@@ -1884,13 +1891,15 @@ mod_variant_discovery_server <- function(id) {
       p <- future::future(
         {
           if (c_type == "sqlite") {
+            temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
             res <- query_db(
-              db_path = d_path,
+              con = temp_con,
               table_name = "variants",
               chrom = chr,
               start = st,
               end = en
             )
+            disconnect_local_db(temp_con, quiet = TRUE)
           } else {
             res <- pg_query_db(
               table_name = "variants",
@@ -1951,7 +1960,7 @@ mod_variant_discovery_server <- function(id) {
         {
           if (rv$conn_type == "sqlite") {
             values$query_geno_react <- query_genotypes(
-              db_path = rv$db_path,
+              con = rv$conn,
               variant_ids = input$manual_variant_ids,
               meta_data = c("chrom", "pos", "ref", "alt", "variant_type")
             )
@@ -2003,7 +2012,7 @@ mod_variant_discovery_server <- function(id) {
       req(rv$connected, input$impact_level, values$result)
       if (rv$conn_type == "sqlite") {
         query_by_impact(
-          db_path = rv$db_path,
+          con = rv$conn,
           impact_level = input$impact_level,
           chrom = values$result$chrom,
           start = values$result$start,
@@ -2024,7 +2033,7 @@ mod_variant_discovery_server <- function(id) {
       req(query_by_impact_result(), rv$connected)
       if (rv$conn_type == "sqlite") {
         query_genotypes(
-          db_path = rv$db_path,
+          con = rv$conn,
           variant_ids = query_by_impact_result()$variant_id,
           meta_data = c("chrom", "pos", "ref", "alt", "variant_type")
         )

@@ -40,7 +40,7 @@ library(panGenomeBreedr)
 meta <- pg_get_sample_metadata()
 
 # Explore the geographic distribution colored by genetic cluster
-pg_map_accessions(meta, color_by = "kmeans_cluster")
+pg_map_accessions(meta, color_by = "countryorigin")
 }
 
 }

@@ -14,7 +14,7 @@ test_that("pgsql_variant_impact_summary returns reshaped impact data from mock D
       )
 
       # Execute summary function
-      impact_stats <- pgsql_variant_impact_summary(con)
+      impact_stats <- panGenomeBreedr:::pgsql_variant_impact_summary(con)
 
       # 1. Validate structure
       expect_s3_class(impact_stats, "data.frame")

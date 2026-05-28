@@ -15,7 +15,7 @@ test_that("pgsql_list_tables returns expected table names from mock DB", {
       )
 
       # List tables
-      table_names <- pgsql_list_tables(con)
+      table_names <- panGenomeBreedr:::pgsql_list_tables(con)
 
       # Validate results
       expect_type(table_names, "character")
@@ -35,7 +35,7 @@ test_that("pgsql_list_tables throws error on invalid connection", {
 
   # Check error handling
   expect_error(
-    pgsql_list_tables(con),
+    panGenomeBreedr:::pgsql_list_tables(con),
     "The provided database connection is not valid"
   )
 })

@@ -1,4 +1,4 @@
-test_that("pgsql_calc_af computes accurate frequencies for mixed genotypes", {
+test_that("pg_calc_af computes accurate frequencies for mixed genotypes", {
   # A Genotype sample"
   test_gt <- data.frame(
     variant_id = c("v1", "v2", "v3"),
@@ -11,7 +11,11 @@ test_that("pgsql_calc_af computes accurate frequencies for mixed genotypes", {
   )
 
   # Execute
-  res <- pgsql_calc_af(test_gt, chrom_col = "chrom", pos_col = "pos")
+  res <- panGenomeBreedr:::pg_calc_af(
+    test_gt,
+    chrom_col = "chrom",
+    pos_col = "pos"
+  )
 
   # 2. Assertions
   expect_s3_class(res, "data.frame")
@@ -28,7 +32,7 @@ test_that("pgsql_calc_af computes accurate frequencies for mixed genotypes", {
   expect_true(all(c("variant_id", "chrom", "pos") %in% colnames(res)))
 })
 
-test_that("pgsql_calc_af handles 100% missing data gracefully", {
+test_that("pg_calc_af handles 100% missing data gracefully", {
   missing_gt <- data.frame(
     variant_id = "v_all_na",
     SampleA = "./.",
@@ -36,7 +40,7 @@ test_that("pgsql_calc_af handles 100% missing data gracefully", {
     stringsAsFactors = FALSE
   )
 
-  res <- pgsql_calc_af(missing_gt)
+  res <- panGenomeBreedr:::pg_calc_af(missing_gt)
 
   # Should return NA rather than NaN or crashing
   expect_true(is.na(res$alt_af[1]))
