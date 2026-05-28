@@ -1,9 +1,9 @@
-#' Helper Functions for PanGenomeBreedr Application
+#' Helper functions for panGenomeBreedr application
 #'
 #' This file contains various helper functions used throughout the application.
 #' Functions are organized by their purpose and usage context.
 #' None of these functions are exported as they're meant for internal use only.
-#' Extract Marker IDs and Chromosome IDs from VCF File
+#' Extract marker IDs and chromosome IDs from VCF file
 #'
 #' This function reads a VCF file and extracts all unique marker IDs and chromosome IDs.
 #'
@@ -178,7 +178,7 @@ get_calls <- function(x, a) {
   return(x_filtered[["Call"]]) # Returns call column as a vector
 }
 
-#' Get colnames from KASP Data
+#' Get colnames from KASP data
 #'
 #' @param x a data frame of KASP genotype calls for one or multiple plates
 #'
@@ -400,7 +400,7 @@ height_width <- function(string) {
 
 
 ################### Writing a bulk function to carry out decision support.
-#' Extract Genotype Names for User Selection
+#' Extract genotype names for user selection
 #'
 #' This function extracts genotype names from a specific batch in the dataset
 #' to provide options for user selection of recurrent parent (rp) and donor
@@ -430,7 +430,7 @@ Genotypes_user <- function(data, sample_id = 'Genotype') {
 }
 
 
-#' Read Map File from CSV or Excel Format
+#' Read map file from CSV or Excel format
 #'
 #' This function reads a map file containing marker information from either
 #' CSV or Excel formats and returns it as a data frame. The function automatically
@@ -463,7 +463,7 @@ read_mapfile <- function(filepath) {
 }
 
 
-#' Generate Mapfile, Process KASP Data, and other user decision support info
+#' Generate mapfile, process KASP data, and other user decision support info
 #'
 #' This function takes genotype data and processes it to generate a map file and
 #' convert KASP genotype data to numeric format. It handles SNP marker parsing,
@@ -687,7 +687,7 @@ proc_nd_map_func <- function(data = NULL,
 }
 
 
-#' Convert SNP Positions to Genomic Windows
+#' Convert SNP positions to genomic windows
 #'
 #' @param pos_list A named list where each element is a numeric vector with 'chr' and 'pos'.
 #' @return A list with 'chr', 'start', and 'end' for each trait.
@@ -714,7 +714,7 @@ get_trait_windows <- function(pos_list) {
 
 
 
-#' Check and Standardize Separator Format
+#' Check and standardize separator format
 #'
 #' This function validates and standardizes separator characters used in genotype
 #' data processing. It ensures the separator is a single character and converts
@@ -766,7 +766,7 @@ check_sep <- function(sep) {
 
 
 
-#' Generate Named List from Vector
+#' Generate named list from vector
 #'
 #' Creates a named list where the names are derived from the input vector.
 #' Each element in the resulting list is initialized as NULL and named
@@ -935,7 +935,7 @@ window_size_func <- function(data, mapfile, chr) {
 
 
 
-#' Check and Categorize Genetic Numeric Codes
+#' Check and categorize genetic numeric codes
 #'
 #' This function checks genetic numeric codes present in the recoded data and categorizes
 #' them into valid genetic markers and potential issues (monomorphic, error, or missing loci).
@@ -1014,7 +1014,7 @@ read_vcf_as_df <- function(vcf_file) {
 
 
 
-#' Safe Pattern Matching in Character Vector
+#' Safe pattern matching in character vector
 #'
 #' Safely searches for a pattern in a character vector and returns the first match.
 #' If no match is found, returns the first element of the vector. If the vector
@@ -1036,7 +1036,7 @@ safe_grep_match <- function(pattern, choices) {
 }
 
 
-#' Generate an UpSet Plot for Foreground Marker Selection
+#' Generate an UpSet plot for foreground marker selection
 #'
 #' @description
 #' This function generates an UpSet plot using the \pkg{UpSetR} package to visualize
@@ -1180,7 +1180,7 @@ create_padded_df <- function(snps_present, snps_absent, sample_name) {
 
 
 
-#' Generate a Trait Input Row for Genomic Coordinates
+#' Generate a trait input row for genomic coordinates
 #'
 #' This helper function creates a stylized UI row containing inputs for
 #' a trait name, chromosome number, and physical position. It is used
@@ -1245,7 +1245,7 @@ makeTraitInput <- function(id, ns) {
 
 
 
-#' Render a Ghost Plate Error Plot
+#' Render a ghost plate error plot
 #'
 #' @description This function generates a stylized ggplot2 plot that visually
 #' represents a plate layout error. It displays a "ghost" plate background 
@@ -1332,7 +1332,7 @@ render_ghost_plate_error <- function(error_msg, text_size = 12) {
 
 
 
-#' Render a Reactable Table with Custom Theming
+#' Render a reactable table with custom theming
 #'
 #' @description This helper function generates a `reactable` table with a default
 #'   theme and common display options. It allows for easy and consistent styling
@@ -1384,13 +1384,14 @@ render_ghost_plate_error <- function(error_msg, text_size = 12) {
 
 
 
-#' Plot Variant Hotspots
+#' Plot variant hotspots
 #'
 #' @param variant_table Data frame containing basic variants
 #' @param annotation_table Data frame containing annotations
 #' @param region_start Numeric start position
 #' @param region_end Numeric end position
 #' @import ggplot2
+#' @importFrom stats runif
 #' @noRd
 #'
 plot_variant_hotspots <- function(
@@ -1564,7 +1565,7 @@ plot_variant_hotspots <- function(
 
 
 
-#' Update Sidebar Navigation Buttons
+#' Update sidebar navigation buttons
 #'
 #' This function dynamically updates the CSS classes of sidebar navigation buttons
 #' to visually indicate the active tab. It uses `shinyjs` to toggle Bootstrap 5

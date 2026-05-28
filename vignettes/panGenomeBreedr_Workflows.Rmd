@@ -117,7 +117,7 @@ We generated the curated database using a custom workflow that:
 2. Extracts variant, annotation, and genotype data.
 3. Writes the data into a highly compressed, normalized Parquet file tree (`variants.parquet`, `annotations.parquet`, `genotypes.parquet`, `metadata.parquet`).
 
-A prebuilt mini example database directory (`mini_curated_variant_resource`) is included in the `extdata/` folder of the package.
+A prebuilt mini example database directory (`mini_curated_sorghum_variant_resource`) is included in the `extdata/` folder of the package.
 
 ## Query Variant Tables
 
@@ -137,7 +137,7 @@ If used correctly, the `query_db()` function returns a data frame containing the
 library(panGenomeBreedr)
 
 # Locate the package example database folder
-mini_folder <- system.file("extdata", "mini_curated_variant_resource", 
+mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
                            package = "panGenomeBreedr", 
                            mustWork = TRUE)
 
@@ -188,7 +188,7 @@ When using the cloud backend, `panGenomeBreedr` connects directly to a central d
 library(panGenomeBreedr)
 
 # Connect to your institution's online database (Optional)
-# If not set, it defaults to the public Sorghum Pangenome database
+# If not set, it defaults to the public Sorghum database
 set_api_url("http://16.171.142.87:8000")
 
 # Extract genotypes within a genomic range from the online database
@@ -214,7 +214,7 @@ This function enables users to quickly assess the types and functional implicati
 library(panGenomeBreedr)
 
 # Locate the package example database folder
-mini_folder <- system.file("extdata", "mini_curated_variant_resource", 
+mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
                            package = "panGenomeBreedr", 
                            mustWork = TRUE)
 
@@ -265,7 +265,7 @@ The `query_ann_summary()` function returns a `list` with the following elements:
 library(panGenomeBreedr)
 
 # Locate the package example database folder
-mini_folder <- system.file("extdata", "mini_curated_variant_resource", 
+mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
                            package = "panGenomeBreedr", 
                            mustWork = TRUE)
 
@@ -309,7 +309,7 @@ An example usage for the `filter_by_af()` function is shown in the code snippet 
 library(panGenomeBreedr)
 
 # Locate the package example database folder
-mini_folder <- system.file("extdata", "mini_curated_variant_resource", 
+mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
                            package = "panGenomeBreedr", 
                            mustWork = TRUE)
 
@@ -339,6 +339,16 @@ knitr::kable(geno_high_filtered,
 
 
 ```{r, echo=TRUE}
+library(panGenomeBreedr)
+
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
+                           
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+
 # Get genotype data for HIGH impact variants that passed allele filter
 geno_high_filtered <- query_genotypes(con = con_demo,
                                       variant_ids = geno_high_filtered$variant_id,

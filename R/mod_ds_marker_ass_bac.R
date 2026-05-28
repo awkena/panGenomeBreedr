@@ -30,7 +30,7 @@ mod_ds_marker_ass_bac_ui <- function(id) {
             # Accordion with organized sections
             bslib::accordion(
               id = "introgression_accordion",
-              open = "files", # Only open the first panel by default to reduce clutter
+              open = c("files", "mapfile", "settings","qc"),
 
               ## Data Acquisition
               bslib::accordion_panel(

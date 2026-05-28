@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{query_by_impact}
 \alias{query_by_impact}
-\title{Extract Variants Based on Functional Mutation Impact}
+\title{Extract variants based on functional mutation impact (local)}
 \usage{
 query_by_impact(
   con,

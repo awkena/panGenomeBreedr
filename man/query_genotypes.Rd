@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{query_genotypes}
 \alias{query_genotypes}
-\title{Query Genotypes for Specific Variant IDs}
+\title{Query genotypes for specific variant IDs (local)}
 \usage{
 query_genotypes(
   con,

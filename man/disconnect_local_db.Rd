@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{disconnect_local_db}
 \alias{disconnect_local_db}
-\title{Disconnect from the Local Database}
+\title{Disconnect from the local database}
 \usage{
 disconnect_local_db(con, quiet = FALSE)
 }

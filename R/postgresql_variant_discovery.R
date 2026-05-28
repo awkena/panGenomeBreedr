@@ -1,4 +1,4 @@
-#' Connect to the panGenomeBreedr Database
+#' Connect to the panGenomeBreedr database
 #'
 #' @param host The database endpoint. Defaults to the 'PGSQL_HOST' environment variable.
 #' @param dbname The database name. Defaults to the 'PGSQL_DBNAME' environment variable or 'postgres'.
@@ -54,10 +54,10 @@ pgsql_connect <- function(
 
 
 
-#' List all tables in the connected pangenome database.
+#' List all tables in the connected database.
 #'
-#' This function connects to the pangenome database and retrieves the names of
-#' all tables within the database.
+#' This function connects to the database and retrieves the names of all
+#' tables within the database.
 #'
 #' @param con A \code{DBIConnection} object, as returned by \code{\link[DBI]{dbConnect}}.
 #' @returns A character vector of table names.
@@ -106,10 +106,10 @@ pgsql_list_tables <- function(con) {
 
 
 
-#' Get variant statistics stored in the pangenome database.
+#' Get variant statistics stored in the database.
 #'
 #' This function calculates summary statistics for variants per chromosome,
-#' including variant counts and genomic ranges. It can optionally include
+#' including variant counts and genomic ranges. It can optionally include a
 #' statistics for the annotations table.
 #'
 #' @param con A \code{DBIConnection} object, as returned by \code{\link[DBI]{dbConnect}}.
@@ -195,11 +195,11 @@ pgsql_variant_stats <- function(con, include_annotations = TRUE) {
 
 
 
-#' Get variants statistics stored in the pangenome database based on mutation impact.
+#' Get variants statistics stored in the database based on mutation impact.
 #'
-#' This function connects to the pangenome database and summarizes the
-#' distribution of mutation impacts (e.g., HIGH, MODERATE, LOW, MODIFIER)
-#' across chromosomes.
+#' This function connects to the database and summarizes the distribution
+#' of mutation impacts (e.g., HIGH, MODERATE, LOW, MODIFIER) across
+#' chromosomes.
 #'
 #' @param con A \code{DBIConnection} object, as returned by \code{\link[DBI]{dbConnect}}.
 #'
@@ -274,11 +274,11 @@ pgsql_variant_impact_summary <- function(con) {
 
 
 
-#' Name and row count for each table in the pangenome database.
+#' Name and row count for each table in the database.
 #'
-#' This function iterates through all tables in the connected pangenome database
-#' and returns a summary data frame containing the table names and their
-#' respective row counts.
+#' This function iterates through all tables in the connected database and
+#' returns a summary data frame containing the table names and their respective
+#' row counts.
 #'
 #' @param con A \code{DBIConnection} object, as returned by \code{\link[DBI]{dbConnect}}.
 #'
@@ -357,10 +357,10 @@ pgsql_summarize_tables <- function(con) {
 
 
 
-#' Check the column names and types for any table in the pangenome database.
+#' Check the column names and types for any table in the database.
 #'
-#' This function retrieves metadata about the columns in a specified table,
-#' including column names, data types, and nullability.
+#' This function retrieves metadata about the columns in a specified table, including
+#' column names, data types, and nullability.
 #'
 #' @param con A \code{DBIConnection} object, as returned by \code{\link[DBI]{dbConnect}}.
 #' @param table_name A character value specifying the name of the table.
@@ -440,10 +440,11 @@ pgsql_list_table_columns <- function(
 
 
 
-#' Query any table in the pangenome database using chromosome and a genomic position range.
+#' Query any table in the database using chromosome and a genomic position range.
 #'
-#' This function connects to the pangenome database to retrieve data from the variants, 
-#' annotations, or genotypes tables based on a specific chromosome and genomic range.
+#' This function connects to the database to retrieve data from the
+#' variants, annotations, or genotypes tables based on a specific chromosome and
+#' genomic range.
 #'
 #' @param con A \code{DBIConnection} object.
 #' @param table_name Character. One of "variants", "annotations", or "genotypes".
@@ -604,7 +605,7 @@ pgsql_query_db <- function(
 
 
 
-#' Get the genomic range of a candidate gene using the Sobic ID from a GFF file
+#' Get the genomic range of a candidate gene using the Sobic ID from a GFF file (online)
 #'
 #' This function parses a GFF3 file to extract the chromosome, start, and
 #' end coordinates for a specific gene ID. It supports local files,
@@ -720,9 +721,9 @@ pg_gene_coords <- function(gene_name, gff_path) {
 
 
 
-#' Extract variants from the annotation table based on impact type: LOW, MODERATE, HIGH, MODIFIER.
+#' Extract variants from the annotation table based on impact type.
 #'
-#' This function connects to the pangenome database to retrieve variants
+#' This function connects to the database to retrieve variants
 #' filtered by snpEff impact levels (HIGH, MODERATE, etc.) and optional
 #' genomic coordinates.
 #'
@@ -829,7 +830,7 @@ pgsql_query_by_impact <- function(
 
 
 
-#' Compute allele frequencies for a VCF genotype matrix (variant x samples).
+#' Compute allele frequencies for a genotype matrix (online)
 #'
 #' This function calculates the reference and alternate allele frequencies
 #' for a variants-by-samples matrix. It handles both phased (|) and unphased (/)
@@ -906,7 +907,7 @@ pg_calc_af <- function(
 
 
 
-#' Filter extracted variants based on alternate allele frequency.
+#' Filter extracted genotypes based on alternate allele frequency (online)
 #'
 #' Calculates allele frequencies for a genotype matrix and filters variants
 #' based on a user-defined range locally on your machine. Useful for removing
@@ -977,11 +978,11 @@ pg_filter_by_af <- function(
 
 
 
-#' Extract variants based on minimum and maximum allele frequencies within a defined region in the pangenome database.
+#' Extract variants based on minimum and maximum allele frequencies within a defined region in the database.
 #'
-#' This function queries the pangenome database for genotypes within a specific
-#' genomic range and filters the results to only include variants within the
-#' specified alternate allele frequency (AF) thresholds.
+#' This function queries the database for genotypes within a specific genomic
+#' range and filters the results to only include variants within the specified
+#' alternate allele frequency (AF) thresholds.
 #'
 #' @param con A \code{DBIConnection} object (PostgreSQL).
 #' @param min_af Numeric. Minimum alternate allele frequency (0-1). Default is 0.
@@ -1075,10 +1076,11 @@ pgsql_query_by_af <- function(
 
 
 
-#' Query genotypes for one or more variant IDs from a wide-format genotype table.
+#' Query genotypes for one or more variant IDs from a wide-format table.
 #'
-#' This function connects to the pangenome database to retrieve genomic data for a specific list of variant IDs.
-#' It expands the genotype array into a wide format (samples as columns).
+#' This function connects to the database to retrieve genomic data for a
+#' specific list of variant IDs. It expands the genotype array into a wide format
+#' (samples as columns).
 #'
 #' @param con A \code{DBIConnection} object (PostgreSQL).
 #' @param variant_ids A character vector of variant IDs to retrieve.
@@ -1181,10 +1183,11 @@ pgsql_query_genotypes <- function(
 
 
 
-#' Count the number of variant types in the pangenome database.
+#' Count the number of variant types in the database.
 #'
-#' This function connects to the pangenome database to perform a server-side aggregation, counting the occurrences
-#' of different variant types (e.g., SNP, INDEL) stored in the database.
+#' This function connects to the database to perform a server-side
+#' aggregation, counting the occurrences of different variant types (e.g., SNP,
+#' INDEL) stored in the database.
 #'
 #' @param con A \code{DBIConnection} object (PostgreSQL).
 #' @param variants_table Character. The name of the table containing variant
@@ -1197,8 +1200,8 @@ pgsql_query_genotypes <- function(
 #' }
 #'
 #' @details
-#' This function leverages PostgreSQL's \code{COUNT} and \code{GROUP BY}
-#' operations. Given the size of the pangenome, this is significantly faster
+#' This function leverages PostgreSQL's \code{COUNT} and \code{GROUP BY} operations.
+#' Given the size of the database, this is significantly faster
 #' than retrieving the data into R for counting.
 #'
 #' @examples
@@ -1244,7 +1247,7 @@ pgsql_count_variant_types <- function(con, variants_table = "variants") {
   # Use quoted identifiers to maintain compatibility with case-sensitive PostgreSQL environments.
   tbl_quoted <- DBI::dbQuoteIdentifier(con, variants_table)
 
-  # Grouping on the server side is vital for pangenome scale to prevent R from crashing.
+  # Grouping on the server side is vital for database scale to prevent R from crashing.
   query <- paste0(
     "SELECT variant_type, COUNT(*) AS n ",
     "FROM ",
@@ -1267,10 +1270,10 @@ pgsql_count_variant_types <- function(con, variants_table = "variants") {
 
 
 
-#' Query the annotations table within a specified genomic region and summarize the distribution of SnpEff annotations and impact categories by variant type.
+#' Query the annotations table within a specified genomic region.
 #'
-#' This function queries the pangenome database for variants within a specific
-#' genomic range and returns summaries of SnpEff annotations and impact levels,
+#' This function queries the database for variants within a specific genomic
+#' range and returns summaries of SnpEff annotations and impact levels,
 #' cross-tabulated by variant type.
 #'
 #' @param con A \code{DBIConnection} object (PostgreSQL).
@@ -1325,7 +1328,7 @@ pgsql_query_ann_summary <- function(
     }
   }
 
-  # Defensive check to ensure the required pangenome tables exist in the schema.
+  # Defensive check to ensure the required database tables exist in the schema.
   if (!DBI::dbExistsTable(con, annotations_table)) {
     stop(sprintf("Table '%s' not found.", annotations_table))
   }
@@ -1435,10 +1438,11 @@ pgsql_query_ann_summary <- function(
 
 
 
-#' Retrieve sample metadata from the pangenome database.
+#' Retrieve sample metadata from the database.
 #'
-#' This function connects to the pangenome database to fetch accession-level metadata, such as origin, race,
-#' and classification from the 'metadata' table. It supports optional
+#' This function connects to the database to fetch accession-level
+#' metadata, such as origin, race, and classification from the 'metadata' table.
+#' It supports optional
 #' filtering by specific columns to easily subset populations for downstream analysis.
 #'
 #' @param con A \code{DBIConnection} object (PostgreSQL).
@@ -1505,11 +1509,11 @@ pgsql_get_sample_metadata <- function(con, query_col = NULL, query_value = NULL)
 
 
 
-#' Query genotypes filtered by sample metadata attributes in the pangenome database.
+#' Query genotypes filtered by sample metadata attributes in the database.
 #'
-#' This function retrieves genotypes for a specific genomic region, but restricts the output to
-#' a subset of samples defined by metadata attributes (e.g., extracting variants only for
-#' specific countries, populations, or phenotypic clusters).
+#' This function retrieves genotypes for a specific genomic region, but
+#' restricts the output to a subset of samples defined by metadata attributes
+#' (e.g., extracting variants only for specific countries, populations, or phenotypic clusters).
 #'
 #' @param con A \code{DBIConnection} object.
 #' @param chrom Character. Chromosome name.
@@ -1566,7 +1570,7 @@ pgsql_query_by_metadata <- function(con, chrom, start, end, meta_col, meta_value
 
 
 
-#' Interactive Geographic Exploration of Sorghum Accessions
+#' Interactive geographic exploration of sorghum accessions (online)
 #'
 #' This function generates a high-performance interactive map showing the geographic
 #' distribution of sorghum lines. It dynamically generates rich, scrollable popups
@@ -1681,7 +1685,7 @@ pg_map_accessions <- function(metadata, color_by = "countryorigin") {
 }
 
 
-# #' Generic Trait Association Audit (Cloud/API Version)
+# #' Generic trait association audit (cloud/API version)
 # #'
 # #' This function performs an association analysis between a specific genomic
 # #' variant and a phenotypic trait. It pulls genotypes from the AWS API and

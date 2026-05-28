@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{query_ann_summary}
 \alias{query_ann_summary}
-\title{Summarize Functional Annotations and Impacts for a Genomic Region}
+\title{Summarize functional annotations and impacts for a genomic region (local)}
 \usage{
 query_ann_summary(
   con,

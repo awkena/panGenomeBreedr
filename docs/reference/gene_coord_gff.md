@@ -1,7 +1,7 @@
-# Get the genomic range of a candidate gene using the Sobic ID from a gff file.
+# Get the genomic range of a candidate gene using the Sobic ID from a GFF file (local)
 
-Get the genomic range of a candidate gene using the Sobic ID from a gff
-file.
+Get the genomic range of a candidate gene using the Sobic ID from a GFF
+file (local)
 
 ## Usage
 

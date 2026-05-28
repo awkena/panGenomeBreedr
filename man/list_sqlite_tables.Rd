@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{list_sqlite_tables}
 \alias{list_sqlite_tables}
-\title{List all tables in the database}
+\title{List all tables in the database (local)}
 \usage{
 list_sqlite_tables(con)
 }
@@ -13,7 +13,7 @@ list_sqlite_tables(con)
 A character vector of table names in the database.
 }
 \description{
-List all tables in the database
+List all tables in the database (local)
 }
 \examples{
 \dontrun{

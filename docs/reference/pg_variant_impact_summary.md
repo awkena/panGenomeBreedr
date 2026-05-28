@@ -1,4 +1,4 @@
-# Get variant statistics stored in the pangenome database based on mutation impact.
+# Summarize variant mutation impacts per chromosome (online)
 
 This function connects to the public panGenomeBreedr API and summarizes
 the distribution of mutation impacts across chromosomes.

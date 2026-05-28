@@ -1,4 +1,4 @@
-# Query genotypes filtered by sample metadata attributes in the pangenome database.
+# Query genotypes filtered by sample metadata attributes (online)
 
 This function connects to the public panGenomeBreedr API to retrieve
 genotypes for a specific genomic region, but restricts the output to a

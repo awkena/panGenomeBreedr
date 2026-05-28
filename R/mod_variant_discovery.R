@@ -788,7 +788,6 @@ gene_cord_tab <- function(ns) {
 #' @description Server logic for variant discovery module.
 #'
 #' @param id Internal parameter for {shiny}.
-#' @importFrom RSQLite dbConnect dbDisconnect
 #' @importFrom shiny showModal modalDialog
 #'
 #' @noRd

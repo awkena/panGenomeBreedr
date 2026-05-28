@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_query_genotypes}
 \alias{pg_query_genotypes}
-\title{Query genotypes for one or more variant IDs from a wide-format genotype table.}
+\title{Query genotypes for specific variant IDs (online)}
 \usage{
 pg_query_genotypes(
   variant_ids,
@@ -30,7 +30,7 @@ A data frame in wide format (variants x samples) with the
   requested metadata columns.
 }
 \description{
-This function connects to the public panGenomeBreedr API to retrieve genomic
-data for a specific list of variant IDs. It expands the genotype array
+This function connects to the public panGenomeBreedr API to retrieve genomic data
+for a specific list of variant IDs. It expands the genotype array
 into a wide format (samples as columns).
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{variant_impact_summary}
 \alias{variant_impact_summary}
-\title{Summarize Variant Mutation Impacts Per Chromosome}
+\title{Summarize variant mutation impacts per chromosome (local)}
 \usage{
 variant_impact_summary(con)
 }

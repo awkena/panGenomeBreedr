@@ -1,4 +1,4 @@
-#' Connect to Local Offline Database
+#' Connect to local offline database
 #' 
 #' Initializes a high-performance, offline DuckDB database engine and maps 
 #' local Parquet files to virtual tables for instant querying. This function 
@@ -67,7 +67,7 @@ connect_local_db <- function(folder_path, max_memory = "8GB", quiet = FALSE) {
 
 
 
-#' Disconnect from the Local Database
+#' Disconnect from the local database
 #'
 #' Safely closes the DuckDB connection and clears the virtual Parquet views from memory.
 #' This is the companion function to \code{connect_local_db()} and should be
@@ -110,7 +110,7 @@ disconnect_local_db <- function(con, quiet = FALSE) {
 
 
 
-#' List all tables in the database
+#' List all tables in the database (local)
 #' 
 #' @param con A DBI connection object to the local database.
 #' @return A character vector of table names in the database.
@@ -144,7 +144,7 @@ list_sqlite_tables <- function(con) {
 
 
 
-#' Get Variant Statistics from the Database
+#' Get variant statistics from the database (local)
 #' 
 #' Computes summary statistics for variants across chromosomes, including total counts, 
 #' genomic ranges (minimum and maximum positions), and optionally distinct annotated 
@@ -224,7 +224,7 @@ variant_stats <- function(con, include_annotations = TRUE) {
 
 
 
-#' Summarize Variant Mutation Impacts Per Chromosome
+#' Summarize variant mutation impacts per chromosome (local)
 #' 
 #' Dynamically cross-tabulates and pivots the counts of functional mutation impact categories 
 #' (e.g., HIGH, MODERATE, LOW, MODIFIER) across all chromosomes in the database.
@@ -284,7 +284,7 @@ variant_impact_summary <- function(con) {
 
 
 
-#' Name and Row Count for Each Table in the Database
+#' Name and row count for each table in the database (local)
 #' 
 #' Queries the active local database to instantly retrieve a list of all mounted 
 #' tables along with their respective total row counts.
@@ -339,7 +339,7 @@ summarize_sqlite_tables <- function(con) {
 
 
 
-#' Get the genomic range of a candidate gene using the Sobic ID from a gff file.
+#' Get the genomic range of a candidate gene using the Sobic ID from a GFF file (local)
 #' @param gene_name A character value indicating the Sobic ID of candidate gene.
 #' @param gff_path A character value specifying the path to gff3 file. GZ compressed
 #' files and URL file paths are acceptable.
@@ -438,7 +438,7 @@ gene_coord_gff <- function(gene_name,
 
 
 
-#' List Column Names and Types for a Specified Table
+#' List column names and types for a specified table (local)
 #' 
 #' Queries the database schema to return detailed information about column names, 
 #' data types, nullability, and key properties for a selected table.
@@ -488,7 +488,7 @@ list_table_columns <- function(
 
 
 
-#' Query Genomic Data Tables by Coordinate Range
+#' Query genomic data tables by coordinate range (local)
 #' 
 #' Extracts structural genomic data chunks from a target virtual view based on 
 #' chromosome, coordinate windows, and gene identification filters. Automatically 
@@ -673,7 +673,7 @@ query_db <- function(
 
 
 
-#' Extract Variants Based on Functional Mutation Impact
+#' Extract variants based on functional mutation impact (local)
 #' 
 #' Queries the database to extract variants filtered by their functional impact severity 
 #' classification (HIGH, MODERATE, LOW, or MODIFIER) following snpEff conventions. 
@@ -767,7 +767,7 @@ query_by_impact <- function(
 
 
 
-#' Compute Allele Frequencies for a Genotype Matrix
+#' Compute allele frequencies for a genotype matrix (local)
 #' 
 #' Calculates the reference (REF) and alternate (ALT) allele frequencies for an 
 #' extracted wide matrix or data frame of variants by samples. Converts standard VCF 
@@ -861,7 +861,7 @@ calc_af <- function(gt,
 
 
 
-#' Filter Extracted Genotypes Based on Alternate Allele Frequency
+#' Filter extracted genotypes based on alternate allele frequency (local)
 #' 
 #' Passes an extracted genotype matrix through calculation utilities to compute population-level 
 #' allele frequencies, then subsets rows down to variants strictly falling between the 
@@ -931,7 +931,7 @@ filter_by_af <- function(gt,
 
 
 
-#' Extract Regional Variants Filtered by Allele Frequency
+#' Extract regional variants filtered by allele frequency (local)
 #' 
 #' Queries a specific genomic coordinate region to extract genotype matrices, computes 
 #' population-level alternate allele frequencies on the fly, and returns a subset of 
@@ -1022,7 +1022,7 @@ query_by_af <- function(
 
 
 
-#' Query Genotypes for Specific Variant IDs
+#' Query genotypes for specific variant IDs (local)
 #' 
 #' Extracts complete genotype call records along with specified variant metadata properties 
 #' for an explicit vector list of unique variant identifiers. Automatically resolves 
@@ -1172,7 +1172,7 @@ query_genotypes <- function(
 
 
 
-#' Count the Distribution of Variant Types in the Database
+#' Count the distribution of variant types in the database (local)
 #' 
 #' Queries the database to calculate a global summary of how many variants 
 #' exist for each distinct structural classification type (e.g., SNP, INDEL).
@@ -1229,7 +1229,7 @@ count_variant_types <- function(con) {
 
 
 
-#' Summarize Functional Annotations and Impacts for a Genomic Region
+#' Summarize functional annotations and impacts for a genomic region (local)
 #' 
 #' Queries a target coordinate window region to generate aggregated cross-tabulations 
 #' of snpEff functional annotations (e.g., missense, synonymous) and predicted impact 
@@ -1368,7 +1368,7 @@ query_ann_summary <- function(
 
 
 
-#' Retrieve Sample Metadata from the Database
+#' Retrieve sample metadata from the database (local)
 #' 
 #' Retrieves accession-level passport data and descriptive population metadata 
 #' from the 'metadata' table. It supports safe parameter-driven dynamic column filtering 
@@ -1448,7 +1448,7 @@ get_sample_metadata <- function(
 
 
 
-#' Query Genotypes Filtered by Sample Metadata Attributes
+#' Query genotypes filtered by sample metadata attributes (local)
 #' 
 #' Retrieves genotype calls for a specific genomic region, but restricts the wide-format 
 #' column outputs to a subset of samples defined by matching metadata attributes (e.g., 
@@ -1523,7 +1523,7 @@ query_by_metadata <- function(
 }
 
 
-#' Interactive Geographic Exploration of Sorghum Accessions
+#' Interactive geographic exploration of sorghum accessions (local)
 #'
 #' Generates an interactive web map via \code{leaflet} displaying the geographic 
 #' distribution of sorghum lines based on latitude and longitude coordinates. Points 
@@ -1558,7 +1558,8 @@ query_by_metadata <- function(
 #' # Fetch passport metadata details for all accessions matching the resource
 #' sample_metadata <- get_sample_metadata(con = con)
 #'
-#' # Generate an interactive geographic distribution plot colored by K-Means genetic cluster assignments
+#' # Generate an interactive geographic distribution plot colored by
+#' # K-Means genetic cluster assignments
 #' query_map_accessions(sample_metadata, color_by = "kmeans_cluster")
 #' 
 #' # Safely close out the database connection

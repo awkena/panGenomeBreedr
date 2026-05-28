@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{query_map_accessions}
 \alias{query_map_accessions}
-\title{Interactive Geographic Exploration of Sorghum Accessions}
+\title{Interactive geographic exploration of sorghum accessions (local)}
 \usage{
 query_map_accessions(metadata, color_by = "countryorigin")
 }
@@ -43,7 +43,8 @@ con <- connect_local_db(folder_path = "~/Desktop/curated_sorghum_variant_resourc
 # Fetch passport metadata details for all accessions matching the resource
 sample_metadata <- get_sample_metadata(con = con)
 
-# Generate an interactive geographic distribution plot colored by K-Means genetic cluster assignments
+# Generate an interactive geographic distribution plot colored by
+# K-Means genetic cluster assignments
 query_map_accessions(sample_metadata, color_by = "kmeans_cluster")
 
 # Safely close out the database connection

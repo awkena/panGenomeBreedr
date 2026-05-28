@@ -1,4 +1,4 @@
-# Set the API endpoint URL for pangenome database
+# Set the API endpoint URL for database
 
 Allows users to connect the package to any custom-hosted database via
 API.

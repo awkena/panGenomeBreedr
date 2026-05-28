@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{gene_coord_gff}
 \alias{gene_coord_gff}
-\title{Get the genomic range of a candidate gene using the Sobic ID from a gff file.}
+\title{Get the genomic range of a candidate gene using the Sobic ID from a GFF file (local)}
 \usage{
 gene_coord_gff(gene_name, gff_path)
 }
@@ -17,7 +17,7 @@ A list object of three components indicating the chromosome, start
 and end coordinates of candidate gene.
 }
 \description{
-Get the genomic range of a candidate gene using the Sobic ID from a gff file.
+Get the genomic range of a candidate gene using the Sobic ID from a GFF file (local)
 }
 \examples{
 \donttest{

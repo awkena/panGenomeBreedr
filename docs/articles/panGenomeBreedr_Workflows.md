@@ -3,7 +3,7 @@
 ## Table of contents
 
 - [Variant Discovery](#variant-discovery)
-  - [Pangenome Data and Database
+  - [Curated Sorghum Variant Resource and Database
     Rationale](#pangenome-data-and-database-rationale)
   - [Recommended Schema for the SQLite
     Database](#recommended-schema-for-the-sqlite-database)
@@ -30,34 +30,40 @@
 
 ## Variant Discovery
 
-### Pangenome Data and Database Rationale
+### Curated Sorghum Variant Resource and Database Rationale
 
-The examples used in this documentation are based on **sorghum pangenome
-resources** derived from whole-genome resequencing data of **1,676
-sorghum lines**. Variant calling was performed using version **v5.1** of
-the **BTx623** reference genome. The resulting **SNP** and **INDEL**
-variants were functionally annotated using **snpEff**.
+The examples used in this documentation are based on a **Curated Sorghum
+Variant Resource** derived from whole-genome resequencing data of
+**1,676 sorghum lines**. Variant calling was performed using version
+**v5.1** of the **BTx623** reference genome. The resulting **SNP** and
+**INDEL** variants were functionally annotated using **snpEff**.
 
-Direct querying of **snpEff-annotated VCF files** from R is often
+Direct querying of raw **snpEff-annotated VCF files** from R is
 computationally slow and inefficient, especially with large datasets. To
-overcome this limitation, we built a **SQLite database** that stores the
-variants, annotations, and genotypes in normalized tables. This
-structure allows for **fast and flexible access** to relevant data,
-supporting workflows for trait-predictive marker discovery.
+handle this efficiently, `panGenomeBreedr` offers two flexible ways to
+access your data:
 
-**We strongly recommend the creation of similar databases for other
-crops**. The SQLite format offers a compact, portable, and queryable
-representation of pangenome-derived variant data, significantly
-improving performance and reproducibility in variant discovery
-pipelines.
+1.  **Cloud Database:** Connect to a central database securely hosted on
+    the internet. This allows multiple breeders to quickly search
+    massive datasets at the same time, without needing to download
+    massive files or rely on expensive local computer hardware.
+2.  **Local Database:** Work directly on your own computer using a
+    highly optimized, compact file format (Parquet/DuckDB). This option
+    is incredibly fast, requires no complicated server setup, and is
+    perfect for working offline or on a personal machine.
 
-**A compressed format of the SQLite database for sorghum can be
-downloaded**
-[here](https://drive.google.com/file/d/1L4S7_ZGeFyu_bA7rRsmTpf9V8__VLB-R/view?usp=sharing).
+**We strongly recommend adopting these structured database formats for
+other crop systems.** Organizing your data this way standardizes and
+accelerates the path from raw variant annotated files to precision
+marker development and targeted crop improvement.
 
-### Recommended Schema for the SQLite Database
+A zipped archive containing the **Curated Sorghum Variant Resource** can
+be downloaded
+[here](https://drive.google.com/file/d/1yoW8MSr45vlJvqj5hYvGMHW6feBsQQa4/view?usp=drive_link).
 
-The SQLite database contains the following four key tables:
+### Recommended Schema for the Parquet / DuckDB Database
+
+The database contains the following four key tables:
 
 #### `variants`
 
@@ -102,12 +108,13 @@ array column (`calls`).
 
 #### `metadata`
 
-This table stores metadata for the samples in the pangenome. Because the
-genotypes are packed into a single text array to save space, this table
-is required to map those array positions back to their specific sample
-names. While users can include rich phenotypic or geographic data (like
-`lat`, `lon`, and `countryorigin`), only a few base columns are strictly
-required.
+This table stores the essential passport and phenotypic data for the
+samples present in the `genotypes` table. To keep the database fast and
+compact, genotypes are stored efficiently in a single array format. This
+metadata table acts as the bridge to accurately map those genotype calls
+back to their specific sample names. While you can include rich
+phenotypic or geographic data (like `lat`, `lon`, and `countryorigin`
+for interactive maps), only a few base columns are strictly required.
 
 | Column | Description |
 |----|----|
@@ -120,22 +127,24 @@ required.
 
 ### Database Creation
 
-We generated the SQLite database using a custom workflow that
+We generated the curated database using a custom workflow that:
 
-1.  Parses a multi-sample VCF file annotated by snpEff,
-2.  Extracts variant, annotation, and genotype data,
-3.  Writes the data into normalized relational tables (`variants`,
-    `annotations`, `genotypes`).
+1.  Parses a multi-sample VCF file annotated by snpEff.
+2.  Extracts variant, annotation, and genotype data.
+3.  Writes the data into a highly compressed, normalized Parquet file
+    tree (`variants.parquet`, `annotations.parquet`,
+    `genotypes.parquet`, `metadata.parquet`).
 
-A prebuilt mini example database (`mini_sorghum_variant_vcf.db.gz`) is
-included in the `extdata/` folder of the package.
+A prebuilt mini example database directory
+(`mini_curated_sorghum_variant_resource`) is included in the `extdata/`
+folder of the package.
 
 ### Query Variant Tables
 
 The
 [`query_db()`](https://awkena.github.io/panGenomeBreedr/reference/query_db.md)
 function allows users to query specific tables within a
-panGenomeBreedr-formatted SQLite database for variants, annotations, or
+panGenomeBreedr-formatted DuckDB database for variants, annotations, or
 genotypes based on chromosome coordinates or candidate gene IDs.
 
 This function retrieves records from one of the following tables in the
@@ -159,32 +168,33 @@ selected table.
 
 library(panGenomeBreedr)
 
-# This example uses the mini SQLite database included in the package.
-# Define a temporary path and decompress the example database
-path <- tempdir()
-mini_db <- system.file("extdata", "mini_sorghum_variant_vcf.db.gz",
-                       package = "panGenomeBreedr", mustWork = TRUE)
-mini_db_path <- file.path(path, 'mini_sorghum_variant_vcf.db')
-R.utils::gunzip(mini_db, destname = mini_db_path, remove = FALSE)
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
 
-# Query VCF genotypes within the genomic range: Chr05:75104537-75106403
-gt_region <- query_db(db_path = mini_db_path,
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> Successfully connected to the local offline database! Virtual views mounted safely.
+
+# Query VCF genotypes within the genomic range: Chr05:75,104,537 - 75,106,403
+gt_region <- query_db(con = con_demo,
+                      table_name = "genotypes",
                       chrom = "Chr05",
                       start = 75104537,
-                      end = 75106403,
-                      table_name = "genotypes")
+                      end = 75106403)
 
-# Query snpEff annotations within a candidate gene
-annota_region <- query_db(db_path = mini_db_path,
+#  Query snpEff annotations within a candidate locus gene region
+annota_region <- query_db(con = con_demo,
+                          table_name = "annotations",
                           chrom = "Chr05",
                           start = 75104537,
                           end = 75106403,
-                          table_name = "annotations",
                           gene_name = "Sobic.005G213600")
 
-# Clean up temporary files
-unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
-       recursive = TRUE)
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
 ```
 
 | variant_id           | chrom |      pos | variant_type | ref | alt  | IDMM | ISGC | ISGK | ISHC |
@@ -195,10 +205,10 @@ unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE),
 | INDEL_Chr05_75104564 | Chr05 | 75104564 | INDEL        | C   | CA   | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
 | SNP_Chr05_75104568   | Chr05 | 75104568 | SNP          | G   | T    | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
 
-Table 1: Queried genotypes for varaints from the SQLite database.
+Table 1: Queried genotypes for variants from the local database.
 {.table}
 
-| variant_id | allele | annotation | impact | gene_name | gene_id | feature_type | feature_id | transcript_biotype | rank | HGVS_c | HGVS_p | chrom | pos |
+| variant_id | allele | annotation | impact | gene_name | gene_id | feature_type | feature_id | transcript_biotype | rank | hgvs_c | hgvs_p | chrom | pos |
 |:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|---:|
 | INDEL_Chr05_75104541 | TGAC | 3_prime_UTR_variant | MODIFIER | Sobic.005G213600 | Sobic.005G213600.v5.1 | transcript | Sobic.005G213600.1.v5.1 | protein_coding | 2/2 | c.*322\_*324dupGTC |  | Chr05 | 75104541 |
 | SNP_Chr05_75104557 | T | 3_prime_UTR_variant | MODIFIER | Sobic.005G213600 | Sobic.005G213600.v5.1 | transcript | Sobic.005G213600.1.v5.1 | protein_coding | 2/2 | c.\*309G\>A |  | Chr05 | 75104557 |
@@ -206,32 +216,27 @@ Table 1: Queried genotypes for varaints from the SQLite database.
 | INDEL_Chr05_75104564 | CA | 3_prime_UTR_variant | MODIFIER | Sobic.005G213600 | Sobic.005G213600.v5.1 | transcript | Sobic.005G213600.1.v5.1 | protein_coding | 2/2 | c.\*301dupT |  | Chr05 | 75104564 |
 | SNP_Chr05_75104568 | T | 3_prime_UTR_variant | MODIFIER | Sobic.005G213600 | Sobic.005G213600.v5.1 | transcript | Sobic.005G213600.1.v5.1 | protein_coding | 2/2 | c.\*298C\>A |  | Chr05 | 75104568 |
 
-Table 2: Queried annotations for variants from the SQLite database.
+Table 2: Queried annotations for variants from the local database.
 {.table}
 
-#### Query Online Pangenome Databases
+#### Query Online Databases (pg\_ Functions)
 
-In addition to local SQLite files, `panGB` allows you to connect to
-pangenome databases hosted online. The online database contains the
-exact same data as the local SQLite file, but it saves you from having
-to download massive files to your laptop’s hard drive and allows
-multiple researchers to query the data at the same time.
-
-By default, `panGB` connects to the public Sorghum Pangenome database.
-However, you can also configure the package to connect to your own
-institution’s hosted database. The functions for querying online
-databases are exactly the same as the local ones, but they start with
-`pg_` (e.g.,
-[`pg_query_db()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_db.md)
-instead of
-[`query_db()`](https://awkena.github.io/panGenomeBreedr/reference/query_db.md)).
+When using the cloud backend, `panGenomeBreedr` connects directly to a
+central database over the internet. This allows breeders to seamlessly
+query massive datasets without needing to download large files to their
+local computers. By default, the package connects to the public
+**Curated Sorghum Variant Resource**. However, if your breeding program
+or institution hosts its own private database, you can easily point the
+package to it using the
+[`set_api_url()`](https://awkena.github.io/panGenomeBreedr/reference/set_api_url.md)
+function.
 
 ``` r
 
 library(panGenomeBreedr)
 
 # Connect to your institution's online database (Optional)
-# If not set, it defaults to the public Sorghum Pangenome database
+# If not set, it defaults to the public Sorghum database
 set_api_url("http://16.171.142.87:8000")
 #> panGenomeBreedr API endpoint successfully set to: http://16.171.142.87:8000
 
@@ -263,42 +268,45 @@ intervals of interest.
 
 library(panGenomeBreedr)
 
-# Prepare test database
-path <- tempdir()
-mini_db <- system.file("extdata", "mini_sorghum_variant_vcf.db.gz",
-                       package = "panGenomeBreedr", mustWork = TRUE)
-mini_db_path <- file.path(path, 'mini_sorghum_variant_vcf.db')
-R.utils::gunzip(mini_db, destname = mini_db_path, remove = FALSE)
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
 
-# Run annotation summary for region Chr05:75104537-75106403
-ann_summary <- query_ann_summary(db_path = mini_db_path,
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> Successfully connected to the local offline database! Virtual views mounted safely.
+
+# Run functional annotation summary for region Chr05:75,104,537 - 75,106,403
+ann_summary <- query_ann_summary(con = con_demo,
                                  chrom = "Chr05",
                                  start = 75104537,
                                  end = 75106403)
-# Clean up
-unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
-       recursive = TRUE)
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
 ```
 
-|     | annotation              | variant_type | count |
-|:----|:------------------------|:-------------|------:|
-| 24  | upstream_gene_variant   | SNP          |   149 |
-| 12  | upstream_gene_variant   | INDEL        |    53 |
-| 19  | downstream_gene_variant | SNP          |    46 |
-| 22  | missense_variant        | SNP          |    29 |
-| 23  | synonymous_variant      | SNP          |    21 |
-| 13  | 3_prime_UTR_variant     | SNP          |    18 |
+| annotation              | variant_type | count |
+|:------------------------|:-------------|------:|
+| upstream_gene_variant   | SNP          |   149 |
+| upstream_gene_variant   | INDEL        |    53 |
+| downstream_gene_variant | SNP          |    46 |
+| missense_variant        | SNP          |    29 |
+| synonymous_variant      | SNP          |    21 |
+| 3_prime_UTR_variant     | SNP          |    18 |
 
 Annotation summary for variants within the genomic range. {.table}
 
-|     | impact   | variant_type | count |
-|:----|:---------|:-------------|------:|
-| 8   | MODIFIER | SNP          |   220 |
-| 4   | MODIFIER | INDEL        |    82 |
-| 7   | MODERATE | SNP          |    29 |
-| 6   | LOW      | SNP          |    21 |
-| 1   | HIGH     | INDEL        |     6 |
-| 3   | MODERATE | INDEL        |     5 |
+| impact   | variant_type | count |
+|:---------|:-------------|------:|
+| MODIFIER | SNP          |   220 |
+| MODIFIER | INDEL        |    82 |
+| MODERATE | SNP          |    29 |
+| LOW      | SNP          |    21 |
+| HIGH     | INDEL        |     6 |
+| MODERATE | INDEL        |     5 |
 
 Functional impact summary for variants within the genomic range.
 {.table}
@@ -325,26 +333,30 @@ function, as shown below:
 ``` r
 
 
-# Prepare test database
-path <- tempdir()
-mini_db <- system.file("extdata", "mini_sorghum_variant_vcf.db.gz",
-                       package = "panGenomeBreedr", mustWork = TRUE)
-mini_db_path <- file.path(path, 'mini_sorghum_variant_vcf.db')
-R.utils::gunzip(mini_db, destname = mini_db_path, remove = FALSE)
+library(panGenomeBreedr)
 
-# Extract HIGH impact variant for a region or gene
-high_variants <- query_by_impact(db_path = mini_db_path,
-                                impact_level = 'high',
-                                chrom = "Chr05",
-                                start = 75104537,
-                                end = 75106403)
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
 
-# Clean up
-unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
-       recursive = TRUE)
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> Successfully connected to the local offline database! Virtual views mounted safely.
+
+# Extract HIGH impact functional variants within the target Chr05 window
+high_variants <- query_by_impact(con = con_demo,
+                                 impact_level = "HIGH",
+                                 chrom = "Chr05",
+                                 start = 75104537,
+                                 end = 75106403)
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
 ```
 
-| variant_id | chrom | pos | ref | alt | qual | filter | variant_type | allele | annotation | impact | gene_name | gene_id | feature_type | feature_id | transcript_biotype | rank | HGVS_c | HGVS_p |
+| variant_id | chrom | pos | ref | alt | qual | filter | variant_type | allele | annotation | impact | gene_name | gene_id | feature_type | feature_id | transcript_biotype | rank | hgvs_c | hgvs_p |
 |:---|:---|---:|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|
 | INDEL_Chr05_75104881 | Chr05 | 75104881 | G | GTCGA | . | PASS | INDEL | GTCGA | frameshift_variant | HIGH | Sobic.005G213600 | Sobic.005G213600.v5.1 | transcript | Sobic.005G213600.1.v5.1 | protein_coding | 2/2 | c.1343_1344insTCGA | p.Ser449fs |
 | INDEL_Chr05_75105587 | Chr05 | 75105587 | GC | G | . | PASS | INDEL | G | frameshift_variant | HIGH | Sobic.005G213600 | Sobic.005G213600.v5.1 | transcript | Sobic.005G213600.1.v5.1 | protein_coding | 2/2 | c.637delG | p.Ala213fs |
@@ -376,19 +388,24 @@ function is shown in the code snippet below:
 
 library(panGenomeBreedr)
 
-# Define temporary directory and decompress demo database
-path <- tempdir()
-mini_db <- system.file("extdata", "mini_sorghum_variant_vcf.db.gz",
-                       package = "panGenomeBreedr", mustWork = TRUE)
-mini_db_path <- file.path(path, 'mini_sorghum_variant_vcf.db')
-R.utils::gunzip(mini_db, destname = mini_db_path, remove = FALSE)
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
+
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> Successfully connected to the local offline database! Virtual views mounted safely.
 
 # Extract genotype data for all HIGH impact variants and filter by alternate allele frequency
-geno_high_filtered <- query_genotypes(db_path = mini_db_path,
+geno_high_filtered <- query_genotypes(con = con_demo,
                                       variant_ids = high_variants$variant_id,
-                                      meta_data = c('chrom', 'pos', 'ref', 'alt', 'variant_type')) |>
-  
+                                      meta_data = c("chrom", "pos", "ref", "alt", "variant_type")) |>
   filter_by_af(min_af = 0.05)
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
 ```
 
 |     | variant_id           | chrom |      pos |    ref_af |    alt_af |
@@ -397,18 +414,29 @@ geno_high_filtered <- query_genotypes(db_path = mini_db_path,
 | 4   | INDEL_Chr05_75106156 | Chr05 | 75106156 | 0.9474940 | 0.0525060 |
 | 5   | INDEL_Chr05_75106295 | Chr05 | 75106295 | 0.9439141 | 0.0560859 |
 
-Table 3: Filtered variants from the SQLite database. {.table}
+Table 3: Filtered variants from the local database. {.table}
 
 ``` r
 
-# Get genotype data for HIGH impact variants that passed allele filter
-geno_high_filtered <- query_genotypes(db_path = mini_db_path,
-                                      variant_ids = geno_high_filtered$variant_id,
-                                      meta_data = c('chrom', 'pos', 'ref', 'alt', 'variant_type'))
+library(panGenomeBreedr)
 
-# Clean up temporary files
-unlink(list.files(tempdir(), full.names = TRUE, recursive = TRUE), 
-       recursive = TRUE)
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
+                           
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> Successfully connected to the local offline database! Virtual views mounted safely.
+
+# Get genotype data for HIGH impact variants that passed allele filter
+geno_high_filtered <- query_genotypes(con = con_demo,
+                                      variant_ids = geno_high_filtered$variant_id,
+                                      meta_data = c("chrom", "pos", "ref", "alt", "variant_type"))
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
 ```
 
 ## KASP Marker Design
@@ -430,7 +458,7 @@ polymorphic variants surrounding a focal variant and generates:
 
 The vcf file must contain the variant ID, Chromosome ID, Position, REF
 and ALT alleles, as well as the genotype data for samples, as shown in
-Table 1:
+Table 4:
 
 | variant_id           | chrom |      pos | ref   | alt   | variant_type | IDMM | ISGC |
 |:---------------------|:------|---------:|:------|:------|:-------------|:-----|:-----|
@@ -438,7 +466,7 @@ Table 1:
 | INDEL_Chr05_75106156 | Chr05 | 75106156 | CGTAT | C     | INDEL        | 0\|0 | 0\|0 |
 | INDEL_Chr05_75106295 | Chr05 | 75106295 | A     | ATC   | INDEL        | 0\|0 | 0\|0 |
 
-Filtered HIGH impact variants for marker development. {.table}
+Table 4: Filtered HIGH impact variants for marker development. {.table}
 
 ``` r
 
@@ -449,7 +477,7 @@ path <- tempdir() # (default directory for saving alignment outputs)
 # Path to import sorghum genome sequence for Chromosome 5
 path1 <- "https://raw.githubusercontent.com/awkena/panGB/main/Chr05.fa.gz"
 
-# KASP marker design for variant ID: INDEL_Chr05_75106156 in Table 1
+# KASP marker design for variant ID: INDEL_Chr05_75106156 in Table 4
 lgs1 <- kasp_marker_design(gt_df = geno_high_filtered,
                            variant_id_col = 'variant_id',
                            chrom_col = 'chrom',
@@ -716,7 +744,7 @@ the argument `Group_id = NULL`.
 The
 [`pred_summary()`](https://awkena.github.io/panGenomeBreedr/reference/pred_summary.md)
 function produces a summary of predicted genotypes for positive controls
-in each reaction plate after verification (Table 3), as shown in the
+in each reaction plate after verification (Table 6), as shown in the
 code snippet below:
 
 ``` r
@@ -742,7 +770,7 @@ my_sum <- pred_summary(x = dat1,
 | SE-24-1088_P01_d1_snpSB00805 | snpSB00805 |  0.15 | 0.19 |       0.66 |
 | SE-24-1088_P01_d2_snpSB00805 | snpSB00805 |  0.15 | 0.19 |       0.66 |
 
-Table 3: Summary of verified prediction status for samples in plates
+Table 6: Summary of verified prediction status for samples in plates
 {.table}
 
 The output of the
@@ -780,7 +808,7 @@ Fig. 5. Match/Mismatch rate of predictions for snp: snpSB00804.
 Users can visualize the observed genotype calls in a plate design format
 using the
 [`plot_plate()`](https://awkena.github.io/panGenomeBreedr/reference/plot_plate.md)
-function as depicted in Figure 5, using the code snippet below:
+function as depicted in Figure 6, using the code snippet below:
 
 ``` r
 
@@ -822,7 +850,7 @@ nucleotides to represent homozygous SNP calls.
 
 To exemplify the steps for creating heatmap, we will use a mid-density
 marker data for three groups of near-isogenic lines (NILs) and their
-parents (Table 4). The NILs and their parents were genotyped using the
+parents (Table 7). The NILs and their parents were genotyped using the
 Agriplex platform. Each NIL group was genotyped using 2421 markers.
 
 The imported data frame has the markers as columns and genotyped samples
@@ -842,7 +870,7 @@ path1 <-  system.file("extdata", "agriplex_dat.csv",
 geno <- read.csv(file = path1, header = TRUE, colClasses = c("character")) # genotype calls
 
 library(knitr)
-knitr::kable(geno[1:6, 1:10], caption = 'Table 4: Agriplex data format', format = 'html', booktabs = TRUE)
+knitr::kable(geno[1:6, 1:10], caption = 'Table 7: Agriplex data format', format = 'html', booktabs = TRUE)
 ```
 
 | Plate.name | Well | Sample_ID | Batch | Genotype | Status | S1_778962 | S1_1019896 | S1_1613105 | S1_1954298 |
@@ -854,7 +882,7 @@ knitr::kable(geno[1:6, 1:10], caption = 'Table 4: Agriplex data format', format 
 | RHODES_PLATE1 | D07 | NIL_5 | 1 | RMES1+\|+\_1 | NIL+ | A | G | G | A |
 | RHODES_PLATE1 | F08 | NIL_6 | 1 | RMES1+\|+\_2 | NIL+ | A | G | G | A |
 
-Table 4: Agriplex data format {.table}
+Table 7: Agriplex data format {.table}
 
 To create a heatmap that compares the genetic background of parents and
 NILs across all markers, we need to first process the raw Agriplex data
@@ -867,7 +895,7 @@ function can be used to filter out all monomorphic loci from the data.
 
 Since our imported Agriplex data has informative SNP IDs, we can use the
 [`parse_marker_ns()`](https://awkena.github.io/panGenomeBreedr/reference/parse_marker_ns.md)
-function to generate a map file (Table 5) for the markers.  
+function to generate a map file (Table 8) for the markers.  
 The generated map file is then passed to the
 [`proc_kasp()`](https://awkena.github.io/panGenomeBreedr/reference/proc_kasp.md)
 function to order the SNP markers according to their chromosome numbers
@@ -877,7 +905,7 @@ The
 [`kasp_numeric()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_numeric.md)
 function converts the output of the
 [`proc_kasp()`](https://awkena.github.io/panGenomeBreedr/reference/proc_kasp.md)
-function into a numeric format (Table 6). The re-coding to numeric
+function into a numeric format (Table 9). The re-coding to numeric
 format is done as follows:
 
 - Homozygous for Parent 1 allele = 1.
@@ -919,7 +947,7 @@ map_file <- order_markers(x = map_file)
 | 1.3   | S1_1954298 |   1 | 1954298 |
 | 1.4   | S1_1985365 |   1 | 1985365 |
 
-Table 5: Map file for the imported Agriplex data. {.table}
+Table 8: Map file for the imported Agriplex data. {.table}
 
 ``` r
 
@@ -952,9 +980,9 @@ num_geno <- kasp_numeric(x = stg5,
 | Stg5-\|-\_2 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
 | Stg5-\|-\_3 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
 
-Table 6: Agriplex data converted to a numeric format. {.table}
+Table 9: Agriplex data converted to a numeric format. {.table}
 
-All is now set to generate the heatmap (Figure 6) using the
+All is now set to generate the heatmap (Figure 7) using the
 [`cross_qc_ggplot()`](https://awkena.github.io/panGenomeBreedr/reference/cross_qc_ggplot.md)
 function, as shown in the code snippet below:
 
@@ -978,10 +1006,10 @@ cross_qc_heatmap(x = num_geno,
 #> $Batch1
 ```
 
-![Fig. 6. A heatmap that compares the genetic background of parents and
+![Fig. 7. A heatmap that compares the genetic background of parents and
 stg5 NIL progenies across all markers.](figures/heatmap1-1.png)
 
-Fig. 6. A heatmap that compares the genetic background of parents and
+Fig. 7. A heatmap that compares the genetic background of parents and
 stg5 NIL progenies across all markers.
 
 The
@@ -1003,7 +1031,7 @@ directory outside R.
 To test the hypothesis that the *stg5* NIL development was effective, we
 can use the
 [`cross_qc_annotate()`](https://awkena.github.io/panGenomeBreedr/reference/cross_qc_annotate.md)
-function to generate a heatmap (Figure 7) with an annotation of the
+function to generate a heatmap (Figure 8) with an annotation of the
 position of the *stg5* locus on Chr 1, as shown below:
 
 ``` r
@@ -1033,10 +1061,10 @@ cross_qc_heatmap(x = stg5_ch1,
 #> $Batch1
 ```
 
-![Fig. 7. Heatmap annotation of the stg5 locus on Chr
+![Fig. 8. Heatmap annotation of the stg5 locus on Chr
 1.](figures/heatmap2-1.png)
 
-Fig. 7. Heatmap annotation of the stg5 locus on Chr 1.
+Fig. 8. Heatmap annotation of the stg5 locus on Chr 1.
 
 In the code snippet above, the numeric matrix of genotype calls and its
 associated map file are required.
@@ -1051,7 +1079,7 @@ The `trait_pos` argument was used to specify the position of the target
 locus (*stg5*) on chromosome one. Users can specify the positions of
 multiple target loci as components of a list object for annotation.
 
-In Figure 7, the color intensity correlates positively with the marker
+In Figure 8, the color intensity correlates positively with the marker
 density or coverage. Thus, areas with no color (white vertical gaps)
 depicts gaps in the marker coverage in the data.
 
@@ -1104,10 +1132,10 @@ rpp_barplot(rpp_df = rpp,
             pdf = FALSE)
 ```
 
-![Fig. 8. Computed RPP values for the stg5
+![Fig. 9. Computed RPP values for the stg5
 NILs.](figures/barplot_rpp1-1.png)
 
-Fig. 8. Computed RPP values for the stg5 NILs.
+Fig. 9. Computed RPP values for the stg5 NILs.
 
 |  | sample_id | chr_1 | chr_2 | chr_3 | chr_4 | chr_5 | chr_6 | chr_7 | chr_8 | chr_9 | chr_10 | total_rpp |
 |:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -1121,7 +1149,7 @@ Fig. 8. Computed RPP values for the stg5 NILs.
 | Stg5-\|-\_2 | Stg5-\|-\_2 | 0.991 | 1.000 | 0.286 | 0.987 | 1 | 0.995 | 1 | 0.949 | 1 | 0.845 | 0.905 |
 | Stg5-\|-\_3 | Stg5-\|-\_3 | 0.991 | 1.000 | 0.278 | 0.987 | 1 | 0.931 | 1 | 0.949 | 1 | 0.845 | 0.898 |
 
-RPP computation across and for each chromosome. {.table}
+Table 10: RPP computation across and for each chromosome. {.table}
 
 The
 [`calc_rpp_bc()`](https://awkena.github.io/panGenomeBreedr/reference/calc_rpp_bc.md)
@@ -1248,7 +1276,8 @@ foreground_matrix <- foreground_select(geno_data = geno,
 | Line3 |    0 |    0 |    0 |
 | Line4 |    1 |    0 |    0 |
 
-Binary matrix of presence or absence of favorable alleles. {.table}
+Table 11: Binary matrix of presence or absence of favorable alleles.
+{.table}
 
 The
 [`foreground_select()`](https://awkena.github.io/panGenomeBreedr/reference/foreground_select.md)
@@ -1329,10 +1358,11 @@ UpSetR::upset(foreground_matrix,
 #> generated.
 ```
 
-![Fig. 9. Visualizing the co-occurrence of favorable alleles across
+![Fig. 10. Visualizing the co-occurrence of favorable alleles across
 lines.](figures/upset_plot1-1.png)
 
-Fig. 9. Visualizing the co-occurrence of favorable alleles across lines.
+Fig. 10. Visualizing the co-occurrence of favorable alleles across
+lines.
 
 #### Query Lines by Intersection Category: `find_lines()` function
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/postgresql_variant_discovery.R
 \name{pg_gene_coords}
 \alias{pg_gene_coords}
-\title{Get the genomic range of a candidate gene using the Sobic ID from a GFF file}
+\title{Get the genomic range of a candidate gene using the Sobic ID from a GFF file (online)}
 \usage{
 pg_gene_coords(gene_name, gff_path)
 }

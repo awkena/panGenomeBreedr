@@ -22,7 +22,7 @@ ensure_con <- function() {
 
 
 #* @apiTitle panGenomeBreedr REST API
-#* @apiDescription Public programmatic access to the Sorghum bicolor pangenome.
+#* @apiDescription Public programmatic access to the Sorghum bicolor database.
 #* @apiContact list(name = "Israel Tetteh", email = "your.email@knust.edu.gh")
 
 # ---  DATABASE METADATA ENDPOINTS ---
@@ -148,7 +148,7 @@ function(
 
 # ---  DATA QUERY ENDPOINTS ---
 
-#* Query pangenome tables by genomic coordinates
+#* Query database tables by genomic coordinates
 #* @param table_name Which table to query
 #* @param chrom Chromosome name
 #* @param start Genomic start position

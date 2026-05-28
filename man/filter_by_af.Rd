@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{filter_by_af}
 \alias{filter_by_af}
-\title{Filter Extracted Genotypes Based on Alternate Allele Frequency}
+\title{Filter extracted genotypes based on alternate allele frequency (local)}
 \usage{
 filter_by_af(
   gt,

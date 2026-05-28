@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{query_by_metadata}
 \alias{query_by_metadata}
-\title{Query Genotypes Filtered by Sample Metadata Attributes}
+\title{Query genotypes filtered by sample metadata attributes (local)}
 \usage{
 query_by_metadata(con, chrom, start = NULL, end = NULL, meta_col, meta_value)
 }

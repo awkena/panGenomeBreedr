@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{count_variant_types}
 \alias{count_variant_types}
-\title{Count the Distribution of Variant Types in the Database}
+\title{Count the distribution of variant types in the database (local)}
 \usage{
 count_variant_types(con)
 }

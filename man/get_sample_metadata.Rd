@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{get_sample_metadata}
 \alias{get_sample_metadata}
-\title{Retrieve Sample Metadata from the Database}
+\title{Retrieve sample metadata from the database (local)}
 \usage{
 get_sample_metadata(con, query_col = NULL, query_value = NULL)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{list_table_columns}
 \alias{list_table_columns}
-\title{List Column Names and Types for a Specified Table}
+\title{List column names and types for a specified table (local)}
 \usage{
 list_table_columns(con, table_name = c("variants", "annotations", "genotypes"))
 }

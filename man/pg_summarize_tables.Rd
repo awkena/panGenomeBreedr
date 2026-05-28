@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{pg_summarize_tables}
 \alias{pg_summarize_tables}
-\title{Name and row count for each table in the pangenome database.}
+\title{Name and row count for each table in the database (online)}
 \usage{
 pg_summarize_tables()
 }

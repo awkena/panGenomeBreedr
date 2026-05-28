@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{query_by_af}
 \alias{query_by_af}
-\title{Extract Regional Variants Filtered by Allele Frequency}
+\title{Extract regional variants filtered by allele frequency (local)}
 \usage{
 query_by_af(
   con,

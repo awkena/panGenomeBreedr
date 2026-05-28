@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{variant_stats}
 \alias{variant_stats}
-\title{Get Variant Statistics from the Database}
+\title{Get variant statistics from the database (local)}
 \usage{
 variant_stats(con, include_annotations = TRUE)
 }

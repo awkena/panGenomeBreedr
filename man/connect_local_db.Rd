@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{connect_local_db}
 \alias{connect_local_db}
-\title{Connect to Local Offline Database}
+\title{Connect to local offline database}
 \usage{
 connect_local_db(folder_path, max_memory = "8GB", quiet = FALSE)
 }

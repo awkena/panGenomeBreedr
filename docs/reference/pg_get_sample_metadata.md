@@ -1,4 +1,4 @@
-# Retrieve sample metadata from the pangenome database.
+# Retrieve sample metadata from the database (online)
 
 This function connects to the public panGenomeBreedr API to fetch
 accession-level metadata, such as origin, race, and classification from

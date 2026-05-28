@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{summarize_sqlite_tables}
 \alias{summarize_sqlite_tables}
-\title{Name and Row Count for Each Table in the Database}
+\title{Name and row count for each table in the database (local)}
 \usage{
 summarize_sqlite_tables(con)
 }

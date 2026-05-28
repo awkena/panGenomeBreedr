@@ -48,14 +48,16 @@ navbar:
 
 reference:
   - title: "Variant Discovery & KASP Marker Design"
+
+  - subtitle: "Connection & Configuration"
     contents:
-      - subtitle: "Connection & Configuration"
       - connect_local_db
       - disconnect_local_db
       - set_api_url
       - get_api_url
       
-      - subtitle: "Database Schema & Metadata"
+  - subtitle: "Database Schema & Metadata"
+    contents:
       - list_sqlite_tables
       - pg_list_tables
       - summarize_sqlite_tables
@@ -63,7 +65,8 @@ reference:
       - list_table_columns
       - pg_list_table_columns
       
-      - subtitle: "Core Data Queries"
+  - subtitle: "Core Data Queries"
+    contents:
       - query_db
       - pg_query_db
       - query_genotypes
@@ -73,13 +76,15 @@ reference:
       - query_by_metadata
       - pg_query_by_metadata
       
-      - subtitle: "Targeted Variant Filters"
+  - subtitle: "Targeted Variant Filters"
+    contents:
       - query_by_af
       - pg_query_by_af
       - query_by_impact
       - pg_query_by_impact
       
-      - subtitle: "Summaries & Statistics"
+  - subtitle: "Summaries & Statistics"
+    contents:
       - variant_stats
       - pg_variant_stats
       - variant_impact_summary
@@ -89,18 +94,21 @@ reference:
       - query_ann_summary
       - pg_query_ann_summary
       
-      - subtitle: "Allele Frequency Handlers"
+  - subtitle: "Allele Frequency Handlers"
+    contents:
       - calc_af
       - pg_calc_af
       - filter_by_af
       - pg_filter_by_af
       
-      - subtitle: "Marker Design & Visualization"
+  - subtitle: "Marker Design & Visualization"
+    contents:
       - kasp_marker_design
       - query_map_accessions
       - pg_map_accessions
       
-      - subtitle: "Utilities"
+  - subtitle: "Utilities"
+    contents:
       - gene_coord_gff
       - pg_gene_coords
       - extract_variant

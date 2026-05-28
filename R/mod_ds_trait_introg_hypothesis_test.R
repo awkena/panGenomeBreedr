@@ -23,7 +23,8 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
         title = "Trait Introgression Hypothesis Testing",
         icon = icon("flask"),
         bslib::layout_sidebar(
-          sidebar = bslib::sidebar(id = ns('sidebar'),
+          sidebar = bslib::sidebar(
+            id = ns('sidebar'),
             width = 400,
             position = "left",
             class = "bg-light",
@@ -31,7 +32,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
             # Accordion with organized sections
             bslib::accordion(
               id = "introgression_accordion",
-              open = "files", # Only open the first panel by default to reduce clutter
+              open = c("files", "mapfile", "settings", "qc"),
 
               ## Data Acquisition
               bslib::accordion_panel(
@@ -46,27 +47,30 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
 
                 fileInput(
                   inputId = ns("data_id"),
-                  label = "Upload Genotype Data " ,
+                  label = "Upload Genotype Data ",
                   placeholder = ".csv,  .xlsx",
                   multiple = FALSE,
-                  accept = c(".csv",".xlsx")
+                  accept = c(".csv", ".xlsx")
                 ),
 
-                layout_columns(col_widths = c(6,6),
+                layout_columns(
+                  col_widths = c(6, 6),
 
-                               selectInput(
-                                 inputId = ns("data_type"),
-                                 label = "Data Type:",
-                                 choices = c("Agriplex", "Kasp / DArTag"),
-                                 selected = "Agriplex",
-                                 width = "100%"
-                               ),
-                               numericInput(inputId = ns("marker_start"),
-                                            label = "Marker Start:",
-                                            value = 7,
-                                            min = 1,
-                                            width = "100%" )
-                               ),
+                  selectInput(
+                    inputId = ns("data_type"),
+                    label = "Data Type:",
+                    choices = c("Agriplex", "Kasp / DArTag"),
+                    selected = "Agriplex",
+                    width = "100%"
+                  ),
+                  numericInput(
+                    inputId = ns("marker_start"),
+                    label = "Marker Start:",
+                    value = 7,
+                    min = 1,
+                    width = "100%"
+                  )
+                ),
                 textInput(
                   inputId = ns("allele_sep"),
                   label = "Enter Allele Separator for Data Format",
@@ -154,14 +158,14 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                   width = "100%"
                 ),
 
-                  selectizeInput(
-                    inputId = ns("cluster_by"),
-                    label = "Group By:",
-                    choices = NULL,
-                    width = "100%"
-                  ),
+                selectizeInput(
+                  inputId = ns("cluster_by"),
+                  label = "Group By:",
+                  choices = NULL,
+                  width = "100%"
+                ),
 
-                  uiOutput(outputId = ns("cluster_focus_ui")),
+                uiOutput(outputId = ns("cluster_focus_ui")),
 
                 bslib::layout_columns(
                   col_widths = c(6, 6),
@@ -185,7 +189,6 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                     ),
                     uiOutput(outputId = ns('donor_help'))
                   )
-
                 )
               ),
 
@@ -253,13 +256,13 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
           #   icon("arrow-left", class = "mb-3", style = "font-size: 4rem; opacity: 0.5;"),
           #   h4("Upload and process your data using the sidebar controls to begin.", style = "opacity: 0.7;")
           # ),
-          
+
           shinyjs::hidden(
             div(
               id = ns("analysis_ui"),
               bslib::navset_card_underline(
                 id = ns('config_pages'),
-                
+
                 bslib::nav_panel(
                   title = "Plot Configuration",
                   value = "main_config",
@@ -271,65 +274,179 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                       bslib::card(
                         class = "shadow-sm",
                         height = "100%",
-                        bslib::card_header(tags$b("Heatmap Computation Parameters"),
-                                           class = "bg-light text-center"
+                        bslib::card_header(
+                          tags$b("Heatmap Computation Parameters"),
+                          class = "bg-light text-center"
                         ),
                         bslib::card_body(
-                          selectInput(inputId = ns("snp_ids"), label = "Select Marker Column", choices = NULL, width = "100%"),
-                          selectInput(inputId = ns("chr"), label = "Select Chromosome Column", choices = NULL, width = "100%"),
-                          selectInput(inputId = ns("chr_pos"), label = "Select Position Column", choices = NULL, width = "100%"),
-                          selectInput(inputId = ns("parents"), label = "Choose Parents", choices = NULL, width = "100%", multiple = TRUE),
-                          numericInput(inputId = ns("group_sz"), label = "Progeny Batch Size", value = 0, min = 0, step = 1, width = "100%"),
-                          radioButtons(inputId = ns("options"), label = "Display Annotations?", choices = c("Hide Annotations" = "no", "Show Annotations" = "yes"), selected = "no", inline = TRUE),
+                          selectInput(
+                            inputId = ns("snp_ids"),
+                            label = "Select Marker Column",
+                            choices = NULL,
+                            width = "100%"
+                          ),
+                          selectInput(
+                            inputId = ns("chr"),
+                            label = "Select Chromosome Column",
+                            choices = NULL,
+                            width = "100%"
+                          ),
+                          selectInput(
+                            inputId = ns("chr_pos"),
+                            label = "Select Position Column",
+                            choices = NULL,
+                            width = "100%"
+                          ),
+                          selectInput(
+                            inputId = ns("parents"),
+                            label = "Choose Parents",
+                            choices = NULL,
+                            width = "100%",
+                            multiple = TRUE
+                          ),
+                          numericInput(
+                            inputId = ns("group_sz"),
+                            label = "Progeny Batch Size",
+                            value = 0,
+                            min = 0,
+                            step = 1,
+                            width = "100%"
+                          ),
+                          radioButtons(
+                            inputId = ns("options"),
+                            label = "Display Annotations?",
+                            choices = c(
+                              "Hide Annotations" = "no",
+                              "Show Annotations" = "yes"
+                            ),
+                            selected = "no",
+                            inline = TRUE
+                          ),
                           conditionalPanel(
                             condition = "input.options == 'yes'",
                             ns = ns,
-                            actionButton(inputId = ns("newBtn"), label = "Define QTL Coordinates", icon = icon("location-crosshairs"), class = "btn-outline-primary mb-3", style = "font-weight: bold; width: 100%;"),
+                            actionButton(
+                              inputId = ns("newBtn"),
+                              label = "Define QTL Coordinates",
+                              icon = icon("location-crosshairs"),
+                              class = "btn-outline-primary mb-3",
+                              style = "font-weight: bold; width: 100%;"
+                            ),
                             conditionalPanel(
                               condition = "output.qtls_defined === true",
                               ns = ns,
                               radioButtons(
-                                inputId = ns("focus_qtl"), 
-                                label = "How should the annotations be rendered?", 
-                                choices = c("Show annotations for specific QTLs" = "yes", "Show annotations for all QTLs" = "no"), 
+                                inputId = ns("focus_qtl"),
+                                label = "How should the annotations be rendered?",
+                                choices = c(
+                                  "Show annotations for specific QTLs" = "yes",
+                                  "Show annotations for all QTLs" = "no"
+                                ),
                                 selected = "no"
                               ),
                               conditionalPanel(
                                 condition = "input.focus_qtl == 'yes'",
                                 ns = ns,
-                                selectInput(inputId = ns("qtls"), label = "Select defined QTL(s)", choices = NULL, multiple = TRUE)
+                                selectInput(
+                                  inputId = ns("qtls"),
+                                  label = "Select defined QTL(s)",
+                                  choices = NULL,
+                                  multiple = TRUE
+                                )
                               )
                             )
                           )
                         )
                       )
                     ),
-                    
+
                     # Card 2: Heatmap Visualization Controls
                     column(
                       width = 8,
                       bslib::card(
                         class = "shadow-sm",
                         height = "100%",
-                        bslib::card_header(tags$b("Heatmap Visualization Controls"), class = "bg-light text-center"),
+                        bslib::card_header(
+                          tags$b("Heatmap Visualization Controls"),
+                          class = "bg-light text-center"
+                        ),
                         bslib::card_body(
                           fluidRow(
                             # Left Column - 4 widgets
                             column(
                               width = 6,
-                              textInput(inputId = ns("legend_title"), label = "Enter Plot Legend Title", value = "Heatmap Key", width = "100%"),
-                              selectInput(inputId = ns("col_mapping"), label = "Choose Heatmap Colors", choices = grDevices::colors(), multiple = TRUE, width = "100%"),
-                              selectInput(inputId = ns("col_labels"), label = "Genotype Labels", choices = NULL, multiple = TRUE, width = "100%"),
-                              selectInput(inputId = ns("panel_fill"), label = "Panel Background Fill Color", choices = grDevices::colors(), selected = "grey80", width = "100%"),
-                              numericInput(inputId = ns("text_scale_fct"), label = "Text Scaling Size", value = 0.3, min = 0.1, step = 0.01, max = 1)
+                              textInput(
+                                inputId = ns("legend_title"),
+                                label = "Enter Plot Legend Title",
+                                value = "Heatmap Key",
+                                width = "100%"
+                              ),
+                              selectInput(
+                                inputId = ns("col_mapping"),
+                                label = "Choose Heatmap Colors",
+                                choices = grDevices::colors(),
+                                multiple = TRUE,
+                                width = "100%"
+                              ),
+                              selectInput(
+                                inputId = ns("col_labels"),
+                                label = "Genotype Labels",
+                                choices = NULL,
+                                multiple = TRUE,
+                                width = "100%"
+                              ),
+                              selectInput(
+                                inputId = ns("panel_fill"),
+                                label = "Panel Background Fill Color",
+                                choices = grDevices::colors(),
+                                selected = "grey80",
+                                width = "100%"
+                              ),
+                              numericInput(
+                                inputId = ns("text_scale_fct"),
+                                label = "Text Scaling Size",
+                                value = 0.3,
+                                min = 0.1,
+                                step = 0.01,
+                                max = 1
+                              )
                             ),
                             # Right Column - 4 widgets
                             column(
                               width = 6,
-                              selectInput(inputId = ns("panel_col"), label = "Panel Border Color", choices = grDevices::colors(), selected = "white", width = "100%"),
-                              numericInput(inputId = ns("alpha"), label = "Point Transparency", value = 1, min = 0, max = 1, step = 0.1, width = "100%"),
-                              numericInput(inputId = ns("text_size"), label = "Text Size", value = 12, min = 1, step = 0.1, width = "100%"),
-                              numericInput(inputId = ns("label_offset"), label = "Trait Label Position", value = 0.4, min = -10, max = 10, step = 0.1, width = "100%")
+                              selectInput(
+                                inputId = ns("panel_col"),
+                                label = "Panel Border Color",
+                                choices = grDevices::colors(),
+                                selected = "white",
+                                width = "100%"
+                              ),
+                              numericInput(
+                                inputId = ns("alpha"),
+                                label = "Point Transparency",
+                                value = 1,
+                                min = 0,
+                                max = 1,
+                                step = 0.1,
+                                width = "100%"
+                              ),
+                              numericInput(
+                                inputId = ns("text_size"),
+                                label = "Text Size",
+                                value = 12,
+                                min = 1,
+                                step = 0.1,
+                                width = "100%"
+                              ),
+                              numericInput(
+                                inputId = ns("label_offset"),
+                                label = "Trait Label Position",
+                                value = 0.4,
+                                min = -10,
+                                max = 10,
+                                step = 0.1,
+                                width = "100%"
+                              )
                             )
                           )
                         )
@@ -347,32 +464,54 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                     )
                   )
                 ),
-                
+
                 bslib::nav_panel_hidden(
                   value = "coord_entry",
                   bslib::card(
                     class = "border-0 shadow-sm",
                     full_screen = TRUE,
                     bslib::card_header(
-                      div(class = "d-flex justify-content-between align-items-center",
-                          tags$b("Genomic Coordinate Definition"),
-                          actionButton(ns("addTrait"), "Add New Trait", icon = icon("plus"), class = "btn-success btn-sm"))
+                      div(
+                        class = "d-flex justify-content-between align-items-center",
+                        tags$b("Genomic Coordinate Definition"),
+                        actionButton(
+                          ns("addTrait"),
+                          "Add New Trait",
+                          icon = icon("plus"),
+                          class = "btn-success btn-sm"
+                        )
+                      )
                     ),
                     bslib::card_body(
-                      p(class = "text-muted", "Define specific points or genomic ranges for heatmap annotation."),
-                      div(id = ns("inputs_container"),
-                          makeTraitInput(1, ns) # Initial row
+                      p(
+                        class = "text-muted",
+                        "Define specific points or genomic ranges for heatmap annotation."
+                      ),
+                      div(
+                        id = ns("inputs_container"),
+                        makeTraitInput(1, ns) # Initial row
                       )
                     ),
                     bslib::card_footer(
                       class = "bg-white",
-                      div(class = "d-flex justify-content-end gap-2",
-                          actionButton(ns("cancel_coords"), "Cancel", class = "btn-light"),
-                          actionButton(ns("submit_coords"), "Save & Apply", icon = icon("check"), class = "btn-primary"))
+                      div(
+                        class = "d-flex justify-content-end gap-2",
+                        actionButton(
+                          ns("cancel_coords"),
+                          "Cancel",
+                          class = "btn-light"
+                        ),
+                        actionButton(
+                          ns("submit_coords"),
+                          "Save & Apply",
+                          icon = icon("check"),
+                          class = "btn-primary"
+                        )
+                      )
                     )
                   )
                 ),
-                
+
                 bslib::nav_panel(
                   title = "Heatmap Viewer",
                   value = "plot_tab",
@@ -402,7 +541,8 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                       numericInput(
                         inputId = ns("width"),
                         label = "Plot Width",
-                        value = 10, min = 1,
+                        value = 10,
+                        min = 1,
                         width = "100%"
                       )
                     ),
@@ -411,7 +551,8 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                       numericInput(
                         inputId = ns("height"),
                         label = "Plot Height",
-                        value = 7, min = 1,
+                        value = 7,
+                        min = 1,
                         width = "100%"
                       )
                     ),
@@ -419,7 +560,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                       class = "mb-3",
                       downloadButton(
                         outputId = ns("download_plot1"),
-                        label = "Export PDF", 
+                        label = "Export PDF",
                         class = "btn-success"
                       )
                     )
@@ -434,7 +575,8 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                           width = "100%",
                           height = "650px"
                         ),
-                        type = 4, color = "#0dc5c1"
+                        type = 4,
+                        color = "#0dc5c1"
                       )
                     )
                   )

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{query_db}
 \alias{query_db}
-\title{Query Genomic Data Tables by Coordinate Range}
+\title{Query genomic data tables by coordinate range (local)}
 \usage{
 query_db(
   con,

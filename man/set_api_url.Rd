@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_wrappers.R
 \name{set_api_url}
 \alias{set_api_url}
-\title{Set the API endpoint URL for pangenome database}
+\title{Set the API endpoint URL for database}
 \usage{
 set_api_url(url)
 }

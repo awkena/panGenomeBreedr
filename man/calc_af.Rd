@@ -2,7 +2,7 @@
 % Please edit documentation in R/sqlite_variant_discovery.R
 \name{calc_af}
 \alias{calc_af}
-\title{Compute Allele Frequencies for a Genotype Matrix}
+\title{Compute allele frequencies for a genotype matrix (local)}
 \usage{
 calc_af(gt, variant_id_col = "variant_id", chrom_col = NULL, pos_col = NULL)
 }
