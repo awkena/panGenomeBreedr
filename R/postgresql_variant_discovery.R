@@ -238,36 +238,29 @@ pgsql_variant_impact_summary <- function(con) {
     }
   }
 
-  # Join annotations with variants to group functional impact categories by chromosome
+   # Dynamically pivot the data by counting occurrences of each impact type per chromosome
   query <- "
-    SELECT v.chrom, a.impact, COUNT(*) AS n
-    FROM annotations a
-    JOIN variants v ON a.variant_id = v.variant_id
-    GROUP BY v.chrom, a.impact
-    ORDER BY v.chrom, a.impact
+    PIVOT (
+      SELECT v.chrom, a.impact
+      FROM annotations a
+      JOIN variants v ON a.variant_id = v.variant_id
+    )
+    ON impact
+    USING COUNT(*)
+    ORDER BY chrom
   "
 
-  impact_df <- DBI::dbGetQuery(con, query)
-
-  # Return an empty data frame if the query returns no records
-  if (nrow(impact_df) == 0) {
+  impact_wide <- DBI::dbGetQuery(con, query)
+  if (nrow(impact_wide) == 0) {
     return(data.frame())
   }
 
-  # Pivot the data to wide format for easier chromosome-to-chromosome comparison
-  impact_wide <- stats::reshape(
-    impact_df,
-    idvar = "chrom",
-    timevar = "impact",
-    direction = "wide"
-  )
+  # Format column names for clarity (e.g. HIGH -> impact_HIGH)
+  col_names <- colnames(impact_wide)
+  colnames(impact_wide)[-1] <- paste0("impact_", col_names[-1])
 
-  # Standardize column naming convention and fill missing combinations with zero
-  colnames(impact_wide) <- gsub("n\\.", "impact_", colnames(impact_wide))
+  # Replace any NA with 0 for chromosomes that might be missing a specific impact type entirely
   impact_wide[is.na(impact_wide)] <- 0
-
-  # Ensure the resulting data frame has clean indices
-  rownames(impact_wide) <- NULL
 
   return(impact_wide)
 }
