@@ -20,6 +20,11 @@ knitr::opts_chunk$set(
 )
 ```
 
+
+
+
+
+
 <!-- badges: start -->
 <!-- badges: end -->
 
@@ -41,7 +46,6 @@ knitr::opts_chunk$set(
     - [Decision Support for MABC](#decision-support-for-mabc)
     - [Weighted RPP computation in panGB](#weighted-rpp-computation-in-pangb)
     - [Decision Support for Foreground Selection](#decision-support-for-foreground-selection)
-
 
 # Variant Discovery 
 ## Curated Sorghum Variant Resource and Database Rationale
@@ -164,7 +168,7 @@ disconnect_local_db(con_demo)
 ```
 
 ```{r, echo=FALSE}
-knitr::kable(gt_region[1:5, 1:10], 
+knitr::kable(gt_region[1:5, 1:14], 
              caption = 'Table 1: Queried genotypes for variants from the local database.', 
              format = 'html', 
              padding = 0, 
@@ -177,31 +181,65 @@ knitr::kable(annota_region[1:5,],
              padding = 0, 
              booktabs = TRUE, 
              escape = FALSE)
-
 ```
 
-### Query Online Databases (pg_ Functions)
 
-When using the cloud backend, `panGenomeBreedr` connects directly to a central database over the internet. This allows breeders to seamlessly query massive datasets without needing to download large files to their local computers. By default, the package connects to the public **Curated Sorghum Variant Resource**. However, if your breeding program or institution hosts its own private database, you can easily point the package to it using the `set_api_url()` function.
+
+### Query Online Database (pg_ Functions)
+
+`panGenomeBreedr` connects directly to online databases, allowing you to seamlessly query massive datasets without downloading heavy files to your local computer. Depending on your breeding program's needs, you can easily use the default public database or connect to your own private server.
+
+#### Scenario A: Using the Default Public Database
+
+By default, the package connects automatically to the public **Curated Sorghum Variant Resource**. If you want to use this public database, you do not need to configure any URLs, you can start querying immediately using the functions with prefix `pg_`
 
 ```{r}
 library(panGenomeBreedr)
 
-# Connect to your institution's online database (Optional)
-# If not set, it defaults to the public Sorghum database
-set_api_url("http://16.171.142.87:8000")
+# Extract genotypes within a genomic range from the default public database
+pg_gt_region <- pg_query_db(
+  table_name = "genotypes",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403
+)
 
-# Extract genotypes within a genomic range from the online database
-pg_gt_region <- pg_query_db(table_name = "genotypes",
-                            chrom = "Chr05",
-                            start = 75104537,
-                            end = 75106403)
-
-# Extract annotations for a specific candidate gene from the online database
-pg_annota_region <- pg_query_db(table_name = "annotations",
-                                chrom = "Chr05",
-                                gene_name = "Sobic.005G213600")
+# Extract annotations for a specific candidate gene
+pg_annota_region <- pg_query_db(
+  table_name = "annotations",
+  chrom = "Chr05",
+  gene_name = "Sobic.005G213600"
+)
 ```
+
+
+
+#### Scenario B: Using a Custom or Private API Endpoint
+
+If your institution hosts its own database, you must point the package to your specific server before running any queries. You can do this using the `set_api_url()` function.
+
+*Note:* To ensure compatibility, your private database schema must match the structure of the **Curated Sorghum Variant Resource**.
+
+```{r}
+library(panGenomeBreedr)
+
+# 1. Point the package to your custom API endpoint
+set_api_url("http://16.171.142.87:8000")
+#> panGenomeBreedr API endpoint successfully set to: http://16.171.142.87:8000
+
+# 2. Query your private database exactly as you normally would
+pg_gt_private <- pg_query_db(
+  table_name = "genotypes",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403
+)
+```
+
+
+
+
+
 
 
 ## Summarize SnpEff Annotation and Impact 
@@ -229,7 +267,6 @@ ann_summary <- query_ann_summary(con = con_demo,
 
 # Cleanly close the connection and release memory allocations
 disconnect_local_db(con_demo)
-
 ```
 
 ```{r, echo=FALSE}
@@ -246,8 +283,12 @@ knitr::kable(head(ann_summary$impact_summary),
              padding = 0, 
              booktabs = TRUE, 
              escape = FALSE)
-
 ```
+
+
+
+
+
 
 
 The `query_ann_summary()` function returns a `list` with the following elements:  
@@ -281,7 +322,6 @@ high_variants <- query_by_impact(con = con_demo,
 
 # Cleanly close the connection and release memory allocations
 disconnect_local_db(con_demo)
-
 ```
 
 ```{r, echo=FALSE}
@@ -292,8 +332,6 @@ knitr::kable(head(high_variants),
              padding = 0, 
              booktabs = TRUE, 
              escape = FALSE)
-
-
 ```
 
 
@@ -324,9 +362,7 @@ geno_high_filtered <- query_genotypes(con = con_demo,
 
 # Cleanly close the connection and release memory allocations
 disconnect_local_db(con_demo)
-
 ```
-
 
 ```{r, echo = FALSE}
 knitr::kable(geno_high_filtered, 
@@ -336,7 +372,6 @@ knitr::kable(geno_high_filtered,
              booktabs = TRUE, 
              escape = FALSE)
 ```
-
 
 ```{r, echo=TRUE}
 library(panGenomeBreedr)
@@ -356,7 +391,74 @@ geno_high_filtered <- query_genotypes(con = con_demo,
 
 # Cleanly close the connection and release memory allocations
 disconnect_local_db(con_demo)
+
 ```
+
+
+
+## Evaluating Linkage Disequilibrium (LD) for Marker Design
+
+After identifying the causal variants, the next critical step is to evaluate their genomic context. Variants rarely exist in isolation; they are often co-inherited with neighboring variants in segments of the genome known as **haplotype blocks**, which are regions of high Linkage Disequilibrium (LD).
+
+Analyzing LD is a vital decision-support tool that helps you:
+
+1.  **Eliminate Redundancy:** If multiple candidate variants fall within the same tightly linked haplotype block (i.e., they have a high $R^2$ value), you only need to design a single KASP assay for one of them to effectively "tag" the entire block. This saves time and resources.
+
+2.  **Assess Marker-Trait Association:** Visualizing the LD landscape helps confirm that your target variants are strongly associated with the genomic region of your trait of interest, while also helping you avoid regions with high genomic complexity that might complicate marker design.
+
+The `panGenomeBreedr` package simplifies this analysis. First, we compute the pairwise LD metrics for our filtered variants across the target region:
+
+```{r}
+# Compute LD around our causal variants
+ld_result <- compute_LD(
+  df = gt_region,
+  target_variant_ids = geno_high_filtered$variant_id,
+  genotype_start_col = 11
+)
+```
+```{r, echo = FALSE}
+knitr::kable(
+  head(ld_result),
+  caption = "Table 4: Pairwise Linkage Disequilibrium (LD) metrics for causal variants.",
+  format = 'html',
+  padding = 0,
+  booktabs = TRUE,
+  escape = FALSE
+)
+```
+
+
+With the LD statistics calculated, we can generate a `Geodesic Linkage Disequilibrium (LD) Landscape plot`. This function projects the pairwise $R^2$ values as physical trajectories, making it highly intuitive to spot tightly linked variant clusters.
+
+*Note:* We set `block_threshold = 0.95` below to group variants exhibiting very strong, but realistic, linkage into our output haploblock table.
+
+```{r ld_plot, fig.width=12, fig.height=6, out.width="100%", fig.align="center", dpi=300}
+# Visualize the LD and extract haploblock tables
+ld_haplo_plot <- plot_ld_geodesic(
+  ld_df = ld_result,
+  query_db_geno = gt_region,
+  query_db_annot = annota_region,
+  threshold = 0.95, # Minimum R² to draw an arc
+  block_threshold = 0.95, # Minimum R² to define a haploblock in the table
+  target_variant_ids = geno_high_filtered$variant_id
+)
+
+# Render the plot
+ld_haplo_plot$plot
+```
+
+```{r, echo = FALSE}
+knitr::kable(
+  head(ld_haplo_plot$table),
+  caption = "Table 4: Haplotype Blocks Identified via LD Mapping",
+  format = 'html',
+  padding = 0,
+  booktabs = TRUE,
+  escape = FALSE
+)
+```
+
+
 
 
 
@@ -374,13 +476,12 @@ The vcf file must contain the variant ID, Chromosome ID, Position, REF and ALT a
 ```{r, echo = FALSE}
 # View summaries
 knitr::kable(geno_high_filtered[, 1:8], 
-             caption = 'Table 4: Filtered HIGH impact variants for marker development.',
+             caption = 'Table 5: Filtered HIGH impact variants for marker development.',
              format = 'html', 
              padding = 0, 
              booktabs = TRUE, 
              escape = FALSE)
 ```
-
 
 ```{r, echo = TRUE}
 # Example to design a KASP marker on a HIGH impact Deletion variant
@@ -398,7 +499,7 @@ lgs1 <- kasp_marker_design(gt_df = geno_high_filtered,
                            ref_al_col = 'ref',
                            alt_al_col = 'alt',
                            genome_file = path1,
-                           geno_start = 7,
+                           geno_start = 11,
                            marker_ID = "INDEL_Chr05_75106156",
                            chr = "Chr05",
                            save_alignment = TRUE,
@@ -411,8 +512,12 @@ path3 <- file.path(path, list.files(path = path, "alignment_"))
 system(paste0('open "', path3, '"')) # Open PDF file from R
 
 on.exit(unlink(path)) # Clear the temp directory on exit
-
 ```
+
+
+
+
+
 
 
 The `kasp_marker_design()` function returns a list object including a `data.frame` with marker design metadata:
@@ -439,13 +544,18 @@ The required sequence for submission to Intertek for the designed KASP marker is
 ```{r, echo = FALSE}
 library(knitr)
 knitr::kable(lgs1$marker_data, 
-             caption = 'Table 5: Intertek required sequence for a KASP marker.', 
+             caption = 'Table 6: Intertek required sequence for a KASP marker.', 
              format = 'html', 
              padding = 0, 
              booktabs = TRUE, 
              escape = FALSE)
  
 ```
+
+
+
+
+
 
 
 
@@ -493,6 +603,11 @@ file1 <- read_kasp_csv(file = path1,
 kasp_dat <- file1$Data
 ```
 
+
+
+
+
+
 ## Assigning colors and PCH symbols for KASP cluster plotting
 The next step after importing data is to assign FAM and HEX fluorescence colors to samples based on their observed genotype calls. This step is accomplished using the `kasp_color()` function in `panGB` as shown in the code snippet below:  
 
@@ -512,6 +627,11 @@ dat1 <- kasp_color(x = kasp_dat,
                    assign_cols = c(FAM = "blue", HEX = "gold" , 
                                    het = "forestgreen"))
 ```
+
+
+
+
+
 
 The `kasp_color()` function requires the KASP genotype call file as a data frame and can do bulk processing if there are multiple master plates. The default values for the arguments in the `kasp_color()` function are based on KASP annotations. 
 
@@ -556,6 +676,11 @@ library(panGenomeBreedr)
                   legend.pos.x = 0.6,
                   legend.pos.y = 0.75)
 ```
+
+
+
+
+
 Color-blind-friendly color combinations are used to visualize verified genotype predictions (Figure 3).
 
 In Figure 4, the three genotype classes are grouped based on plot PCH symbols using the FAM and HEX scores for observed genotype calls.
@@ -575,7 +700,6 @@ To visualize predictions for positive controls to validate KASP markers, the col
 ## Summary of Prediction Verification in Plates
 The `pred_summary()` function produces a summary of predicted genotypes for positive controls in each reaction plate after verification (Table 6), as shown in the code snippet below:
 
-
 ```{r, eval=TRUE}
 # Get prediction summary for all plates
 library(panGenomeBreedr)
@@ -589,9 +713,14 @@ my_sum <- pred_summary(x = dat1,
 
 ```{r, echo = FALSE}
 library(knitr)
-knitr::kable(my_sum$summ, caption = 'Table 6: Summary of verified prediction status for samples in plates', format = 'html', booktabs = TRUE)
+knitr::kable(my_sum$summ, caption = 'Table 7: Summary of verified prediction status for samples in plates', format = 'html', booktabs = TRUE)
  
 ```
+
+
+
+
+
 
 The output of the `pred_summary()` function can be visualized as bar plots using the `pred_summary_plot()` function as shown in the code snippet below:
 
@@ -610,17 +739,24 @@ my_sum <- my_sum[my_sum$snp_id == 'snpSB00804',]
                     width = 6,
                     height = 6,
                     angle = 45)
-
-
 ```
+
+
+
+
+
 
 ## Plot Plate Design
 Users can visualize the observed genotype calls in a plate design format using the `plot_plate()` function as depicted in Figure 6, using the code snippet below:  
 
 ```{r plate_05_design, fig.cap = "Fig. 6. Observed genotype calls for samples in Plate 5 in a plate design format.", eval=TRUE}
 plot_plate(dat1[5], pdf = FALSE)
-
 ```
+
+
+
+
+
 
 
 # Decision Support for Trait Introgression and MABC
@@ -641,8 +777,6 @@ To exemplify the steps for creating heatmap, we will use a mid-density marker da
 
 The imported data frame has the markers as columns and genotyped samples as rows. It comes with some meta data about the samples. Marker names are informative: chromosome number and position coordinates are embedded in the marker names (`Eg. S1_778962: chr = 1, pos = 779862`).  
 
-
-
 ```{r}
 
 # Set path to the directory where your data is located
@@ -655,9 +789,12 @@ geno <- read.csv(file = path1, header = TRUE, colClasses = c("character")) # gen
 
 library(knitr)
 knitr::kable(geno[1:6, 1:10], caption = 'Table 7: Agriplex data format', format = 'html', booktabs = TRUE)
-
-
 ```
+
+
+
+
+
 
 To create a heatmap that compares the genetic background of parents and NILs across all markers, we need to first process the raw Agriplex data into a numeric format. The panGB package has customizable data wrangling functions for KASP, Agriplex, and DArTag data.  
 
@@ -674,8 +811,6 @@ The `kasp_numeric()` function converts the output of the `proc_kasp()` function 
 * Monomorphic loci = -1. 
 * Loci with a suspected genotype error = -2. 
 * Loci with at least one missing parental or any other genotype = -5. 
-
-
 
 ```{r}
 
@@ -695,16 +830,12 @@ map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
 
 # order markers in map file
 map_file <- order_markers(x = map_file)
-
 ```
 
 ```{r, echo=FALSE}
 library(knitr)
 knitr::kable(map_file[1:8,], caption = 'Table 8: Map file for the imported Agriplex data.', format = 'html', booktabs = TRUE)
-
 ```
-
-
 
 ```{r}
 # Process genotype data to re-order SNPs based on chromosome and positions
@@ -722,18 +853,19 @@ num_geno <- kasp_numeric(x = stg5,
                          dp_row = 3,
                          sep = ' / ',
                          data_type = 'agriplex')
-
 ```
-
 
 ```{r, echo=FALSE}
 library(knitr)
 knitr::kable(num_geno[, 1:8], caption = 'Table 9: Agriplex data converted to a numeric format.', format = 'html', booktabs = TRUE)
-
 ```
 
-All is now set to generate the heatmap (Figure 7) using the `cross_qc_ggplot()` function, as shown in the code snippet below:  
 
+
+
+
+
+All is now set to generate the heatmap (Figure 7) using the `cross_qc_ggplot()` function, as shown in the code snippet below:  
 
 ```{r heatmap1, fig.cap = "Fig. 7. A heatmap that compares the genetic background of parents and stg5 NIL progenies across all markers.", fig.width=12.5, fig.height=8.5, eval=TRUE}
 
@@ -751,8 +883,12 @@ cross_qc_heatmap(x = num_geno,
                 legend_title = 'stg5_NILs',
                 alpha = 0.9,
                 text_size = 15)
-
 ```
+
+
+
+
+
 
 
 
@@ -790,8 +926,12 @@ cross_qc_heatmap(x = stg5_ch1,
                   legend_title = 'Stg5_NILs',
                   alpha = 0.9,
                   text_size = 15)
-
 ```
+
+
+
+
+
 
 
 In the code snippet above, the numeric matrix of genotype calls and its associated map file are required. 
@@ -814,8 +954,6 @@ In the computation, partially regions are ignored, hence, heterozygous scores ar
 The output for he `calc_rpp_bc()` function can be passed to the `rpp_barplot()` function to visualize the computed RPP values for progenies as a bar plot. Users can specify an RPP threshold to easily identify lines that have RPP values above or equal to the defined RPP threshold on the bar plot.  
 
 We can compute and visualize the observed RPP values for the *stg5* NILs across all polymorphic loci as shown in the code snippet below:  
-
-
 
 ```{r barplot_rpp1, fig.cap = "Fig. 9. Computed RPP values for the stg5 NILs.", fig.width=10.5, fig.height=6.5, eval=TRUE}
 
@@ -846,8 +984,12 @@ library(knitr)
 knitr::kable(rpp, caption = 'Table 10: RPP computation across and for each chromosome.', 
              format = 'html', 
              booktabs = TRUE)
-
 ```
+
+
+
+
+
 
 
 
@@ -903,7 +1045,6 @@ The `foreground_select()` and `find_lines()` functions are designed to help bree
 ### Generate a Binary Matrix: `foreground_select()` function
 The `foreground_select()` function score Lines for presence of favorable alleles by converting raw marker genotype data into a binary matrix (1 = favorable allele present, 0 = absent) based on a set of trait-predictive markers. The `foreground_select()` function is shown in the code snippet below:
 
-
 ```{r, echo=TRUE}
 library(panGenomeBreedr)
 
@@ -935,9 +1076,12 @@ knitr::kable(foreground_matrix,
              caption = 'Table 11: Binary matrix of presence or absence of favorable alleles.', 
              format = 'html', 
              booktabs = TRUE)
-
-
 ```
+
+
+
+
+
 
 The `foreground_select()` function has the following input parameters:
 
@@ -970,7 +1114,6 @@ Generate an UpSet plot using the `UpSetR` package to explore the co-occurrence o
 
 - **Left bar plot:** shows how many lines have the favorable allele for each individual target locus.
 
-
 ```{r upset_plot1, fig.cap = "Fig. 10. Visualizing the co-occurrence of favorable alleles across lines.", fig.width=10.5, fig.height=6.5, eval=TRUE}
 # Make an Upset plot and overlay with trait loci names
 metadata <- data.frame(sets = marker_info$qtl_markers,
@@ -988,8 +1131,12 @@ UpSetR::upset(foreground_matrix,
                                             assign = 8,
                                             column = 'locus',
                                             colors = rep('firebrick2', nl)))))
-
 ```
+
+
+
+
+
 
 ###  Query Lines by Intersection Category: `find_lines()` function
 The `find_lines()` function identifies lines based on target loci profile by filtering the binary output of `foreground_select()` to return line names that match a desired allele presence/absence profile across loci. Using the binary matrix, users can extract line IDs corresponding to any intersection (i.e., specific combinations of favorable alleles revealed by the UpSet plot).
@@ -1002,8 +1149,12 @@ selected_lines <- find_lines(mat = foreground_matrix,
                              present = c('SNP1', 'SNP2', 'SNP3'))
 
 print(selected_lines)
-
 ```
+
+
+
+
+
 
 The `find_lines()` function has the following input parameters:  
 

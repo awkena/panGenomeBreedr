@@ -42,3 +42,19 @@ pg_query_ann_summary(
 
 A list containing three data frames: `annotation_summary`,
 `impact_summary`, and `variant_type_totals`.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# Load the package
+library(panGenomeBreedr)
+
+# Extract functional distribution summaries across a specific gene locus window
+query_ann_summary_result <- pg_query_ann_summary(chrom = "Chr05",
+                                              start = 75104537,
+                                              end = 75106403)
+print(query_ann_summary_result)
+
+} # }
+```

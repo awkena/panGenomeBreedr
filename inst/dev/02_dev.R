@@ -70,6 +70,39 @@ usethis::use_data_raw(name = "my_dataset", open = FALSE)
 ## Tests ----
 ## Add one line by test you want to create
 usethis::use_test("app")
+usethis::use_test(name = 'set_api_url')
+usethis::use_test(name = 'pg_list_tables')
+usethis::use_test(name = 'pg_varinat_stats')
+usethis::use_test(name = 'pg_variant_impact_summary')
+usethis::use_test(name = 'pg_summarize_tables')
+usethis::use_test(name = 'pg_list_table_columns')
+usethis::use_test(name = 'pg_query_db')
+usethis::use_test(name = 'pg_query_by_impact')
+usethis::use_test(name = 'pg_query_by_af')
+usethis::use_test(name = 'pg_query_genotypes')
+usethis::use_test(name = 'pg_count_variant_types')
+usethis::use_test(name = 'pg_query_ann_summary')
+usethis::use_test(name = 'pg_get_sample_metadata')
+usethis::use_test(name = 'pg_query_geno_by_meta')
+usethis::use_test(name = 'pg_calc_af')
+usethis::use_test(name = 'pg_filter_by_af')
+usethis::use_test(name = 'pg_map_accessions')
+usethis::use_test(name = 'connect_local_db')
+usethis::use_test(name = 'disconnect_local_db')
+usethis::use_test(name = 'list_sqlite_tables')
+usethis::use_test(name = 'variant_stats')
+usethis::use_test(name = 'variant_impact_summary')
+usethis::use_test(name = 'summarize_sqlite_tables')
+usethis::use_test(name = 'fct_helpers')
+usethis::use_test(name = '')
+usethis::use_test(name = '')
+usethis::use_test(name = '')
+usethis::use_test(name = '')
+usethis::use_test(name = '')
+usethis::use_test(name = '')
+usethis::use_test(name = '')
+usethis::use_test(name = '')
+usethis::use_test(name = '')
 
 # Documentation
 
@@ -82,7 +115,7 @@ devtools::build_vignettes()
 usethis::use_coverage()
 
 # Create a summary readme for the testthat subdirectory
-covrpage::covrpage()
+#covrpage::covrpage()
 
 ## CI ----
 ## Use this part of the script if you need to set up a CI

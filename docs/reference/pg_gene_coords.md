@@ -1,8 +1,7 @@
 # Get the genomic range of a candidate gene using the Sobic ID from a GFF file (online)
 
-This function parses a GFF3 file to extract the chromosome, start, and
-end coordinates for a specific gene ID. It supports local files,
-GZ-compressed files, and direct URLs.
+Get the genomic range of a candidate gene using the Sobic ID from a GFF
+file (online)
 
 ## Usage
 

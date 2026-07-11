@@ -1,8 +1,6 @@
-# Interactive geographic exploration of sorghum accessions (online)
+# Interactive geographic exploration of the samples (online)
 
-This function generates a high-performance interactive map showing the
-geographic distribution of sorghum lines. It dynamically generates rich,
-scrollable popups containing all available metadata for each accession.
+Interactive geographic exploration of the samples (online)
 
 ## Usage
 
@@ -25,19 +23,6 @@ pg_map_accessions(metadata, color_by = "countryorigin")
 ## Value
 
 A `leaflet` map object (htmlwidget) representing the interactive map.
-
-## Details
-
-The function automatically filters out records with missing geographic
-coordinates. Instead of hardcoding specific tooltip values, it
-dynamically reads all non-coordinate columns from the provided
-`metadata` data frame and formats them into a scrollable HTML popup for
-each point.
-
-**Dependency Note:** To keep the core package lightweight, the `leaflet`
-and `tools` packages are listed as "Suggested" dependencies. If they are
-not currently installed on your system, the function will gracefully
-stop and prompt you to install them before plotting.
 
 ## Examples
 

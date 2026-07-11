@@ -197,13 +197,13 @@ disconnect_local_db(con_demo)
 #> Successfully disconnected from the local database. Memory cleared.
 ```
 
-| variant_id           | chrom |      pos | variant_type | ref | alt  | IDMM | ISGC | ISGK | ISHC |
-|:---------------------|:------|---------:|:-------------|:----|:-----|:-----|:-----|:-----|:-----|
-| INDEL_Chr05_75104541 | Chr05 | 75104541 | INDEL        | T   | TGAC | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
-| SNP_Chr05_75104557   | Chr05 | 75104557 | SNP          | C   | T    | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
-| SNP_Chr05_75104560   | Chr05 | 75104560 | SNP          | C   | T    | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
-| INDEL_Chr05_75104564 | Chr05 | 75104564 | INDEL        | C   | CA   | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
-| SNP_Chr05_75104568   | Chr05 | 75104568 | SNP          | G   | T    | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
+| variant_id | chrom | pos | ref | alt | variant_type | major_allele | minor_allele | major_allele_freq | minor_allele_freq | IDMM | ISGC | ISGK | ISHC |
+|:---|:---|---:|:---|:---|:---|:---|:---|---:|---:|:---|:---|:---|:---|
+| INDEL_Chr05_75104541 | Chr05 | 75104541 | T | TGAC | INDEL | T | TGAC | 0.99881 | 0.00119 | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
+| SNP_Chr05_75104557 | Chr05 | 75104557 | C | T | SNP | C | T | 0.89051 | 0.10949 | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
+| SNP_Chr05_75104560 | Chr05 | 75104560 | C | T | SNP | C | T | 0.88962 | 0.11038 | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
+| INDEL_Chr05_75104564 | Chr05 | 75104564 | C | CA | INDEL | C | CA | 0.88544 | 0.11456 | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
+| SNP_Chr05_75104568 | Chr05 | 75104568 | G | T | SNP | G | T | 0.99791 | 0.00209 | 0\|0 | 0\|0 | 0\|0 | 0\|0 |
 
 Table 1: Queried genotypes for variants from the local database.
 {.table}
@@ -219,37 +219,68 @@ Table 1: Queried genotypes for variants from the local database.
 Table 2: Queried annotations for variants from the local database.
 {.table}
 
-#### Query Online Databases (pg\_ Functions)
+#### Query Online Database (pg\_ Functions)
 
-When using the cloud backend, `panGenomeBreedr` connects directly to a
-central database over the internet. This allows breeders to seamlessly
-query massive datasets without needing to download large files to their
-local computers. By default, the package connects to the public
-**Curated Sorghum Variant Resource**. However, if your breeding program
-or institution hosts its own private database, you can easily point the
-package to it using the
-[`set_api_url()`](https://awkena.github.io/panGenomeBreedr/reference/set_api_url.md)
-function.
+`panGenomeBreedr` connects directly to online databases, allowing you to
+seamlessly query massive datasets without downloading heavy files to
+your local computer. Depending on your breeding program’s needs, you can
+easily use the default public database or connect to your own private
+server.
+
+##### Scenario A: Using the Default Public Database
+
+By default, the package connects automatically to the public **Curated
+Sorghum Variant Resource**. If you want to use this public database, you
+do not need to configure any URLs, you can start querying immediately
+using the functions with prefix `pg_`
 
 ``` r
 
 library(panGenomeBreedr)
 
-# Connect to your institution's online database (Optional)
-# If not set, it defaults to the public Sorghum database
+# Extract genotypes within a genomic range from the default public database
+pg_gt_region <- pg_query_db(
+  table_name = "genotypes",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403
+)
+
+# Extract annotations for a specific candidate gene
+pg_annota_region <- pg_query_db(
+  table_name = "annotations",
+  chrom = "Chr05",
+  gene_name = "Sobic.005G213600"
+)
+```
+
+##### Scenario B: Using a Custom or Private API Endpoint
+
+If your institution hosts its own database, you must point the package
+to your specific server before running any queries. You can do this
+using the
+[`set_api_url()`](https://awkena.github.io/panGenomeBreedr/reference/set_api_url.md)
+function.
+
+*Note:* To ensure compatibility, your private database schema must match
+the structure of the **Curated Sorghum Variant Resource**.
+
+``` r
+
+library(panGenomeBreedr)
+
+# 1. Point the package to your custom API endpoint
 set_api_url("http://16.171.142.87:8000")
 #> panGenomeBreedr API endpoint successfully set to: http://16.171.142.87:8000
+#> panGenomeBreedr API endpoint successfully set to: http://16.171.142.87:8000
 
-# Extract genotypes within a genomic range from the online database
-pg_gt_region <- pg_query_db(table_name = "genotypes",
-                            chrom = "Chr05",
-                            start = 75104537,
-                            end = 75106403)
-
-# Extract annotations for a specific candidate gene from the online database
-pg_annota_region <- pg_query_db(table_name = "annotations",
-                                chrom = "Chr05",
-                                gene_name = "Sobic.005G213600")
+# 2. Query your private database exactly as you normally would
+pg_gt_private <- pg_query_db(
+  table_name = "genotypes",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403
+)
 ```
 
 ### Summarize SnpEff Annotation and Impact
@@ -439,6 +470,88 @@ disconnect_local_db(con_demo)
 #> Successfully disconnected from the local database. Memory cleared.
 ```
 
+### Evaluating Linkage Disequilibrium (LD) for Marker Design
+
+After identifying the causal variants, the next critical step is to
+evaluate their genomic context. Variants rarely exist in isolation; they
+are often co-inherited with neighboring variants in segments of the
+genome known as **haplotype blocks**, which are regions of high Linkage
+Disequilibrium (LD).
+
+Analyzing LD is a vital decision-support tool that helps you:
+
+1.  **Eliminate Redundancy:** If multiple candidate variants fall within
+    the same tightly linked haplotype block (i.e., they have a high
+    $`R^2`$ value), you only need to design a single KASP assay for one
+    of them to effectively “tag” the entire block. This saves time and
+    resources.
+
+2.  **Assess Marker-Trait Association:** Visualizing the LD landscape
+    helps confirm that your target variants are strongly associated with
+    the genomic region of your trait of interest, while also helping you
+    avoid regions with high genomic complexity that might complicate
+    marker design.
+
+The `panGenomeBreedr` package simplifies this analysis. First, we
+compute the pairwise LD metrics for our filtered variants across the
+target region:
+
+``` r
+
+# Compute LD around our causal variants
+ld_result <- compute_LD(
+  df = gt_region,
+  target_variant_ids = geno_high_filtered$variant_id,
+  genotype_start_col = 11
+)
+```
+
+| variant_1 | position_1 | variant_type_1 | variant_2 | position_2 | variant_type_2 | distance_bp | R2 | D_prime |
+|:---|---:|:---|:---|---:|:---|---:|---:|---:|
+| INDEL_Chr05_75104881 | 75104881 | INDEL | INDEL_Chr05_75104541 | 75104541 | INDEL | 340 | 0.00006 | 1.00000 |
+| INDEL_Chr05_75104881 | 75104881 | INDEL | SNP_Chr05_75104557 | 75104557 | SNP | 324 | 0.33979 | 0.88704 |
+| INDEL_Chr05_75104881 | 75104881 | INDEL | SNP_Chr05_75104560 | 75104560 | SNP | 321 | 0.33661 | 0.88693 |
+| INDEL_Chr05_75104881 | 75104881 | INDEL | INDEL_Chr05_75104564 | 75104564 | INDEL | 317 | 0.39948 | 0.98663 |
+| INDEL_Chr05_75104881 | 75104881 | INDEL | SNP_Chr05_75104568 | 75104568 | SNP | 313 | 0.00011 | 1.00000 |
+| INDEL_Chr05_75104881 | 75104881 | INDEL | SNP_Chr05_75104569 | 75104569 | SNP | 312 | 0.00011 | 1.00000 |
+
+Table 4: Pairwise Linkage Disequilibrium (LD) metrics for causal
+variants. {.table}
+
+With the LD statistics calculated, we can generate a
+`Geodesic Linkage Disequilibrium (LD) Landscape plot`. This function
+projects the pairwise $`R^2`$ values as physical trajectories, making it
+highly intuitive to spot tightly linked variant clusters.
+
+*Note:* We set `block_threshold = 0.95` below to group variants
+exhibiting very strong, but realistic, linkage into our output
+haploblock table.
+
+``` r
+
+# Visualize the LD and extract haploblock tables
+ld_haplo_plot <- plot_ld_geodesic(
+  ld_df = ld_result,
+  query_db_geno = gt_region,
+  query_db_annot = annota_region,
+  threshold = 0.95, # Minimum R² to draw an arc
+  block_threshold = 0.95, # Minimum R² to define a haploblock in the table
+  target_variant_ids = geno_high_filtered$variant_id
+)
+
+# Render the plot
+ld_haplo_plot$plot
+```
+
+![](figures/ld_plot-1.png)
+
+| Block_1 | Block_1_Impact_Level | Block_2 | Block_2_Impact_Level | Block_3 | Block_3_Impact_Level |
+|:---|:---|:---|:---|:---|:---|
+| INDEL_Chr05_75106156 | HIGH | INDEL_Chr05_75106156 | HIGH | INDEL_Chr05_75106156 | HIGH |
+| SNP_Chr05_75104743 | MODIFIER | SNP_Chr05_75104779 | MODIFIER | SNP_Chr05_75106033 | LOW |
+
+Table 4: Haplotype Blocks Identified via LD Mapping {.table}
+
 ## KASP Marker Design
 
 The
@@ -466,7 +579,7 @@ Table 4:
 | INDEL_Chr05_75106156 | Chr05 | 75106156 | CGTAT | C     | INDEL        | 0\|0 | 0\|0 |
 | INDEL_Chr05_75106295 | Chr05 | 75106295 | A     | ATC   | INDEL        | 0\|0 | 0\|0 |
 
-Table 4: Filtered HIGH impact variants for marker development. {.table}
+Table 5: Filtered HIGH impact variants for marker development. {.table}
 
 ``` r
 
@@ -485,7 +598,7 @@ lgs1 <- kasp_marker_design(gt_df = geno_high_filtered,
                            ref_al_col = 'ref',
                            alt_al_col = 'alt',
                            genome_file = path1,
-                           geno_start = 7,
+                           geno_start = 11,
                            marker_ID = "INDEL_Chr05_75106156",
                            chr = "Chr05",
                            save_alignment = TRUE,
@@ -527,7 +640,7 @@ marker is shown in Table 5.
 
 [TABLE]
 
-Table 5: Intertek required sequence for a KASP marker. {.table}
+Table 6: Intertek required sequence for a KASP marker. {.table}
 
 ## KASP Marker Validation
 
@@ -537,7 +650,7 @@ KASP marker QC and validation.
 
 `panGB` offers customizable functions for KASP marker validation through
 hypothesis testing. These functions allow users to easily perform the
-following tasks:  
+following tasks:\
 - Import raw or polished KASP genotyping results files (.csv) into R.
 
 - Process imported data and assign FAM and HEX fluorescence colors for
@@ -770,7 +883,7 @@ my_sum <- pred_summary(x = dat1,
 | SE-24-1088_P01_d1_snpSB00805 | snpSB00805 |  0.15 | 0.19 |       0.66 |
 | SE-24-1088_P01_d2_snpSB00805 | snpSB00805 |  0.15 | 0.19 |       0.66 |
 
-Table 6: Summary of verified prediction status for samples in plates
+Table 7: Summary of verified prediction status for samples in plates
 {.table}
 
 The output of the
@@ -895,7 +1008,7 @@ function can be used to filter out all monomorphic loci from the data.
 
 Since our imported Agriplex data has informative SNP IDs, we can use the
 [`parse_marker_ns()`](https://awkena.github.io/panGenomeBreedr/reference/parse_marker_ns.md)
-function to generate a map file (Table 8) for the markers.  
+function to generate a map file (Table 8) for the markers.\
 The generated map file is then passed to the
 [`proc_kasp()`](https://awkena.github.io/panGenomeBreedr/reference/proc_kasp.md)
 function to order the SNP markers according to their chromosome numbers
@@ -1074,7 +1187,7 @@ argument.
 
 The `snp_ids, chr, and chr_pos` arguments can be used to specify the
 column names for marker IDs, chromosome number and positions in the
-attached map file.  
+attached map file.\
 The `trait_pos` argument was used to specify the position of the target
 locus (*stg5*) on chromosome one. Users can specify the positions of
 multiple target loci as components of a list object for annotation.

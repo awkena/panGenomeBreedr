@@ -1,7 +1,6 @@
-# List column names and types for a specified table (local)
+# Get table schema details (local)
 
-Queries the database schema to return detailed information about column
-names, data types, nullability, and key properties for a selected table.
+Get table schema details (local)
 
 ## Usage
 
@@ -33,14 +32,16 @@ if (FALSE) { # \dontrun{
 # Load the package
 library(panGenomeBreedr)
 
-# Connect to the local database
+# Define the path to the curated_sorghum_variant_resource folder
 my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
+
+# Establish the connection
 con <- connect_local_db(folder_path = my_db_folder)
 
 # Inspect the schema layout of the variants table
 column_schema <- list_table_columns(con, table_name = "variants")
 
-# Safely close the connection
+# Disconnect at the end of your session
 disconnect_local_db(con)
 } # }
 ```

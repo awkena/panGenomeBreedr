@@ -34,7 +34,6 @@ Language: en-US
 Imports: 
     bslib,
     DBI,
-    RPostgres,
     ggplot2,
     golem,
     gridExtra,
@@ -80,6 +79,8 @@ Suggests:
     shinyWidgets,
     testthat (>= 3.0.0),
     UpSetR,
+    mgcv ,
+    ggrepel,
     vcfR,
     writexl,
     httptest,

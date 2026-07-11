@@ -1,9 +1,6 @@
-# Query genomic data tables by coordinate range (local)
+# Query database tables by genomic coordinates (local)
 
-Extracts structural genomic data chunks from a target virtual view based
-on chromosome, coordinate windows, and gene identification filters.
-Automatically parses and scales underlying list-packed genotype vectors
-into clear sample columns when hitting the genotypes engine.
+Query database tables by genomic coordinates (local)
 
 ## Usage
 
@@ -61,8 +58,11 @@ if (FALSE) { # \dontrun{
 # Load the package
 library(panGenomeBreedr)
 
-# Spin up the database pipeline
-con <- connect_local_db("~/Desktop/curated_sorghum_variant_resource")
+# Define the path to the curated_sorghum_variant_resource folder
+my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
+
+# Establish the connection
+con <- connect_local_db(folder_path = my_db_folder)
 
 # Extract functional functional annotations inside a candidate locus region
 annota_region <- query_db(con = con, chrom = "Chr05", start = 75104537, 
@@ -73,7 +73,8 @@ annota_region <- query_db(con = con, chrom = "Chr05", start = 75104537,
 gt_region <- query_db(con = con, chrom = "Chr05", start = 75104537, 
                       end = 75106403, table_name = "genotypes")
                       
-# Safely close out resources
+# Disconnect at the end of your session
 disconnect_local_db(con)
+
 } # }
 ```

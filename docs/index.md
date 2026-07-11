@@ -2,7 +2,7 @@
 
 `panGenomeBreedr` (`panGB`) is conceptualized to be a unified, crop
 agnostic platform for pangenome-enabled breeding that follows
-standardized conventions for natural or casual variant analysis using
+standardized conventions for natural or causal variant analysis using
 pangenomes, marker design, and marker QC hypothesis testing (Figure 1).
 It seeks to simplify and enhance the use of pangenome resources in
 cultivar development.
@@ -25,7 +25,7 @@ In its current development version, panGB provides customizable R
 functions for **variant discovery from snpEff-annotated VCF files, KASP
 marker design, and marker validation** (Steps 1–3 in Fig. 1).
 
-To expand accessibility, `panGB` will include a user-friendly Shiny
+To expand accessibility, `panGB` includes a user-friendly Shiny
 application, allowing non-R users to leverage its core features without
 requiring R programming experience.
 
@@ -111,23 +111,40 @@ for (pkg in bioc_packages) {
 }
 ```
 
+### Launching the Interactive Web Application
+
+Fulfilling its goal to expand accessibility, `panGenomeBreedr` provides
+an interactive web application for code-free analysis. This graphical
+interface is perfect for users who prefer not to write R code, offering
+point-and-click access to the package’s core features.
+
+To launch the app, simply run the following command in your R console:
+
+``` r
+
+# Launch the interactive Shiny application
+panGenomeBreedr::run_app()
+```
+
+This will open the panGB application in your default web browser.
+
 # Current Functionality of `panGB`
 
 `panGB` currently provides functionality for the following key tasks:
 
-1.  **Variant discovery**  
+1.  **Variant discovery**\
     Identify variants within candidate genes or any user-defined genomic
     interval using *snpEff*-annotated VCF files.
 
-2.  **KASP marker design**  
+2.  **KASP marker design**\
     Generate allele-specific markers targeting either causal variants or
     any variant of interest.
 
-3.  **Marker validation and QC visualization**  
+3.  **Marker validation and QC visualization**\
     Produce quality control plots and perform hypothesis-driven
     evaluations to assess marker reliability.
 
-4.  **Decision-support for trait introgression**  
+4.  **Decision-support for trait introgression**\
     Guide marker-assisted backcrossing by profiling foreground,
     background, and precision-introgression markers to support selection
     decisions.

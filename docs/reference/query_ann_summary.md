@@ -1,9 +1,7 @@
-# Summarize functional annotations and impacts for a genomic region (local)
+# Get summarized functional annotations, impacts and variant types for a genomic region (local)
 
-Queries a target coordinate window region to generate aggregated
-cross-tabulations of snpEff functional annotations (e.g., missense,
-synonymous) and predicted impact categories (e.g., HIGH, MODERATE)
-stratified by variant structural classification type (SNP/INDEL).
+Get summarized functional annotations, impacts and variant types for a
+genomic region (local)
 
 ## Usage
 
@@ -55,11 +53,11 @@ A list object containing three summarized summary data frames:
 - `annotation_summary`: Counts of distinct functional mutations grouped
   by type.
 
-- `impact_summary`: Counts of predicted functional impact severities
-  grouped by type.
+- `impact_summary`: Counts of predicted functional impacts grouped by
+  type.
 
-- `variant_type_totals`: Global marker breakdown counts across the
-  selected coordinate window.
+- `variant_type_totals`: Entire marker breakdown counts across the
+  defined coordinate window.
 
 ## Examples
 
@@ -68,19 +66,21 @@ if (FALSE) { # \dontrun{
 # Load the package
 library(panGenomeBreedr)
 
-# Connect to the database pipeline
-con <- connect_local_db(folder_path = "~/Desktop/curated_sorghum_variant_resource")
+# Define the path to the curated_sorghum_variant_resource folder
+my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
+
+# Establish the connection
+con <- connect_local_db(folder_path = my_db_folder)
 
 # Extract functional distribution summaries across a specific gene locus window
-regional_summaries <- query_ann_summary(con = con,
+query_ann_summary_result <- query_ann_summary(con = con,
                                         chrom = "Chr05",
                                         start = 75104537,
                                         end = 75106403)
+print(query_ann_summary_result)
 
-# Access targeted dataframes directly from the output list
-print(regional_summaries$impact_summary)
 
-# Safely close out the database connection
+# Disconnect at the end of your session
 disconnect_local_db(con)
 } # }
 ```

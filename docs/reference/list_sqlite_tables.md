@@ -25,9 +25,18 @@ if (FALSE) { # \dontrun{
 # Load the package
 library(panGenomeBreedr)
 
+# Define the path to the curated_sorghum_variant_resource folder
 my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
+
+# Establish the connection
 con <- connect_local_db(folder_path = my_db_folder)
-list_sqlite_tables(con)
+
+# List tables 
+list_sqlite_tables_result <- list_sqlite_tables(con)
+print(list_sqlite_tables_result)
+
+# Disconnect at the end of your session
 disconnect_local_db(con)
+
 } # }
 ```

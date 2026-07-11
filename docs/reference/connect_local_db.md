@@ -1,9 +1,6 @@
-# Connect to local offline database
+# Connect to the local offline database
 
-Initializes a high-performance, offline DuckDB database engine and maps
-local Parquet files to virtual tables for instant querying. This
-function creates a persistent connection that should be passed to all
-downstream query functions.
+Connect to the local offline database
 
 ## Usage
 
@@ -39,14 +36,11 @@ if (FALSE) { # \dontrun{
 # Load the package
 library(panGenomeBreedr)
 
-# Connect to the database at the start of your session
+# Define the path to the curated_sorghum_variant_resource folder
 my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
+
+# Establish the connection
 con <- connect_local_db(folder_path = my_db_folder, max_memory = "8GB")
 
-# Pass the connection to downstream functions
-summary_df <- summarize_sqlite_tables(con)
-
-# Disconnect at the end of your session
-disconnect_local_db(con)
 } # }
 ```

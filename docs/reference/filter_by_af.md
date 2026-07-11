@@ -1,9 +1,6 @@
-# Filter extracted genotypes based on alternate allele frequency (local)
+# Filter genotypes by allele frequency (Local)
 
-Passes an extracted genotype matrix through calculation utilities to
-compute population-level allele frequencies, then subsets rows down to
-variants strictly falling between the specified minimum and maximum
-alternate allele frequency (MAF) thresholds.
+Filter genotypes by allele frequency (Local)
 
 ## Usage
 
@@ -22,9 +19,8 @@ filter_by_af(
 
 - gt:
 
-  A matrix or data frame containing variants (rows) across samples
-  (columns), including required variant identification and optional
-  genomic coordinate metadata columns.
+  A data frame containing genotype calls queried from the genotypes
+  table.
 
 - variant_id_col:
 
@@ -64,10 +60,13 @@ if (FALSE) { # \dontrun{
 # Load the package
 library(panGenomeBreedr)
 
-# Connect to the database pipeline
-con <- connect_local_db(folder_path = "~/Desktop/curated_sorghum_variant_resource")
+# Define the path to the curated_sorghum_variant_resource folder
+my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
 
-# Pull wide genotype records for a locus window range
+# Establish the connection
+con <- connect_local_db(folder_path = my_db_folder)
+
+# Query genotypes 
 gt_region <- query_db(con = con, chrom = "Chr05", start = 75104537, 
                       end = 75106403, table_name = "genotypes")
 
@@ -76,7 +75,7 @@ filtered_vars <- filter_by_af(gt_region, variant_id_col = "variant_id",
                               chrom_col = "chrom", pos_col = "pos", 
                               min_af = 0.05, max_af = 0.95)
 
-# Safely close out the database connection
+# Disconnect at the end of your session
 disconnect_local_db(con)
 } # }
 ```

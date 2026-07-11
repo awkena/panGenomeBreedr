@@ -1,10 +1,6 @@
 # Compute allele frequencies for a genotype matrix (local)
 
-Calculates the reference (REF) and alternate (ALT) allele frequencies
-for an extracted wide matrix or data frame of variants by samples.
-Converts standard VCF genotype strings (e.g., "0/0", "0\|1", "1\|1")
-into numerical alternate allele dosages (0, 1, 2) to perform
-population-level frequency calculations.
+Compute allele frequencies for a genotype matrix (local)
 
 ## Usage
 
@@ -48,8 +44,11 @@ if (FALSE) { # \dontrun{
 # Load the package
 library(panGenomeBreedr)
 
-# Connect to the database pipeline
-con <- connect_local_db(folder_path = "~/Desktop/curated_sorghum_variant_resource")
+# Define the path to the curated_sorghum_variant_resource folder
+my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
+
+# Establish the connection
+con <- connect_local_db(folder_path = my_db_folder)
 
 # Pull wide genotype records for a locus window range
 gt_region <- query_db(con = con, chrom = "Chr05", start = 75104537, 
@@ -59,7 +58,7 @@ gt_region <- query_db(con = con, chrom = "Chr05", start = 75104537,
 af_metrics <- calc_af(gt_region, variant_id_col = "variant_id", 
                       chrom_col = "chrom", pos_col = "pos")
 
-# Safely close out the database connection
+# Disconnect at the end of your session
 disconnect_local_db(con)
 } # }
 ```
