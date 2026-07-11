@@ -2816,11 +2816,33 @@ mod_variant_discovery_server <- function(id) {
             if (rv$conn_type == "sqlite") {
               values$query_geno_react <- query_genotypes(
                 con = rv$conn,
-                variant_ids = input$manual_variant_ids
+                variant_ids = input$manual_variant_ids,
+                meta_data = c(
+                  "chrom",
+                  "pos",
+                  "ref",
+                  "alt",
+                  "variant_type",
+                  "major_allele",
+                  "minor_allele",
+                  "major_allele_freq",
+                  "minor_allele_freq"
+                )
               )
             } else {
               values$query_geno_react <- pg_query_genotypes(
-                variant_ids = input$manual_variant_ids
+                variant_ids = input$manual_variant_ids,
+                meta_data = c(
+                  "chrom",
+                  "pos",
+                  "ref",
+                  "alt",
+                  "variant_type",
+                  "major_allele",
+                  "minor_allele",
+                  "major_allele_freq",
+                  "minor_allele_freq"
+                )
               )
             }
 
