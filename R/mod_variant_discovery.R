@@ -1554,7 +1554,7 @@ mod_variant_discovery_server <- function(id) {
           values$regional_annotations <- data$annotations
           values$regional_genotypes <- data$genotypes
           shinybusy::remove_modal_spinner()
-          shinyWidgets::show_toast("Regional data loaded.", type = "success")
+          shinyWidgets::show_toast("Variant hotspots plotted.", type = "success")
         },
         onRejected = function(err) {
           shinybusy::remove_modal_spinner()
