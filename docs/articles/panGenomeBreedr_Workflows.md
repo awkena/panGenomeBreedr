@@ -175,6 +175,10 @@ mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource",
 
 # Establish a virtual connection to the offline database engine
 con_demo <- connect_local_db(folder_path = mini_folder)
+#> duckdb is keeping downloaded extensions in a temporary directory:
+#> ℹ /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//RtmpMqMRrK/duckdb/extensions
+#> This is removed when the R session ends, so extensions are re-downloaded each session.
+#> ℹ To keep them, point `options(duckdb.extension_directory =)` or the `DUCKDB_EXTENSION_DIRECTORY` environment variable at a permanent path.
 #> Successfully connected to the local offline database! Virtual views mounted safely.
 
 # Query VCF genotypes within the genomic range: Chr05:75,104,537 - 75,106,403
@@ -650,7 +654,7 @@ KASP marker QC and validation.
 
 `panGB` offers customizable functions for KASP marker validation through
 hypothesis testing. These functions allow users to easily perform the
-following tasks:\
+following tasks:  
 - Import raw or polished KASP genotyping results files (.csv) into R.
 
 - Process imported data and assign FAM and HEX fluorescence colors for
@@ -1008,7 +1012,7 @@ function can be used to filter out all monomorphic loci from the data.
 
 Since our imported Agriplex data has informative SNP IDs, we can use the
 [`parse_marker_ns()`](https://awkena.github.io/panGenomeBreedr/reference/parse_marker_ns.md)
-function to generate a map file (Table 8) for the markers.\
+function to generate a map file (Table 8) for the markers.  
 The generated map file is then passed to the
 [`proc_kasp()`](https://awkena.github.io/panGenomeBreedr/reference/proc_kasp.md)
 function to order the SNP markers according to their chromosome numbers
@@ -1187,7 +1191,7 @@ argument.
 
 The `snp_ids, chr, and chr_pos` arguments can be used to specify the
 column names for marker IDs, chromosome number and positions in the
-attached map file.\
+attached map file.  
 The `trait_pos` argument was used to specify the position of the target
 locus (*stg5*) on chromosome one. Users can specify the positions of
 multiple target loci as components of a list object for annotation.
@@ -1451,21 +1455,21 @@ UpSetR::upset(foreground_matrix,
 #> ℹ Please use tidy evaluation idioms with `aes()`.
 #> ℹ See also `vignette("ggplot2-in-packages")` for more information.
 #> ℹ The deprecated feature was likely used in the UpSetR package.
-#>   Please report the issue to the authors.
+#>   Please report the issue at <https://github.com/hms-dbmi/UpSetR/issues>.
 #> This warning is displayed once per session.
 #> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
 #> generated.
 #> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
 #> ℹ Please use `linewidth` instead.
 #> ℹ The deprecated feature was likely used in the UpSetR package.
-#>   Please report the issue to the authors.
+#>   Please report the issue at <https://github.com/hms-dbmi/UpSetR/issues>.
 #> This warning is displayed once per session.
 #> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
 #> generated.
 #> Warning: The `size` argument of `element_line()` is deprecated as of ggplot2 3.4.0.
 #> ℹ Please use the `linewidth` argument instead.
 #> ℹ The deprecated feature was likely used in the UpSetR package.
-#>   Please report the issue to the authors.
+#>   Please report the issue at <https://github.com/hms-dbmi/UpSetR/issues>.
 #> This warning is displayed once per session.
 #> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
 #> generated.
