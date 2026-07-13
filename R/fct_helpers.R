@@ -121,32 +121,39 @@ kasp_marker_map <- function(kasp_data) {
   )
 
   # for loop to generate and insert
-  for (variable in seq_len(SNP_ids_length)) {
-    # Insert value into snpid column
-    kasp_map[variable, "SNPID"] <- SNP_ids[variable]
+  for (i in seq_len(SNP_ids_length)) {
+    current_snp_id <- SNP_ids[i]
+    kasp_map[i, "SNPID"] <- current_snp_id
 
-    # Insert value into snpid_2
-    #- Split and format first
-    formatted_ids <- as.vector(regmatches(SNP_ids[variable], regexec("([a-zA-Z]+)(\\d+)", SNP_ids[variable]))[[1]])
+    # Assumes format like "Chr01_100"
+    parts <- strsplit(current_snp_id, "_")[[1]]
+    if (length(parts) == 2) {
+      chr_part <- parts[1]
+      pos_part <- parts[2]
 
-    #- if statement to check and validate, also to crop of..
-    if (SNP_ids[variable] %in% formatted_ids) {
-      aa <- formatted_ids[formatted_ids != SNP_ids[variable]]
+      # Parse chromosome part like "Chr01" into "Chr" and "01"
+      chr_matches <- regexec("([a-zA-Z]+)(\\d+)", chr_part)
+      chr_components <- regmatches(chr_part, chr_matches)[[1]]
 
-      kasp_map[variable, "SNP_ID2"] <- paste(aa[1], aa[2], sep = "|")
+      if (length(chr_components) == 3) {
+        kasp_map[i, "SNP_ID2"] <- paste(chr_components[2], chr_components[3], sep = "|")
+        kasp_map[i, "chr"] <- as.numeric(chr_components[3])
+      } else {
+        kasp_map[i, "SNP_ID2"] <- chr_part
+        kasp_map[i, "chr"] <- NA
+      }
+      kasp_map[i, "pos"] <- as.integer(pos_part)
     } else {
-      kasp_map[variable, "SNP_ID2"] <- paste(formatted_ids[1], formatted_ids[2], sep = "|") # inserted
+      kasp_map[i, "pos"] <- NA
+      kasp_map[i, "chr"] <- NA
     }
-
-    # Insert value into chr column.
-    kasp_map[variable, "chr"] <- variable
-
-    # Insert position
-    kasp_map[variable, "pos"] <- formatted_ids[length(formatted_ids)] |> as.integer()
   }
 
   return(kasp_map)
 }
+
+
+
 
 #' Extract genotype calls
 #'
@@ -942,6 +949,8 @@ window_size_func <- function(data, mapfile, chr) {
 #'
 #' @param data A dataframe containing color codes to be checked against predefined
 #'   genetic marker categories.
+#' @param par_1 parent 1
+#' @param par_2 parent 2
 #'
 #' @return A list containing two elements:
 #' \describe{
@@ -1347,6 +1356,10 @@ render_ghost_plate_error <- function(error_msg, text_size = 12) {
 #' @noRd
  # Reactable Helper
     render_reactable <- function(data, theme = NULL) {
+     # Add validation check for the data input
+      if (is.null(data) || (!is.data.frame(data) && !is.matrix(data))) {
+        return(NULL) # Return NULL to avoid error 
+      }
       if (is.null(theme)) {
         theme <- reactable::reactableTheme(
           backgroundColor = "hsl(0, 0%, 100%)",
@@ -1362,9 +1375,9 @@ render_ghost_plate_error <- function(error_msg, text_size = 12) {
         data,
         defaultColDef = reactable::colDef(
           headerClass = "header",
-          align = "left",
+          align = "center",
           minWidth = 100,
-          width = 200
+          width = 250
         ),
         pagination = TRUE,
         showPageSizeOptions = TRUE,
@@ -1594,3 +1607,47 @@ update_sidebar_buttons <- function(active_id) {
     }
   }
 }
+
+
+
+# FUTURE USE WHEN GENOTYPE CALLS BECOME INCREASINGLY HIGH
+# THIS WILL ALLOW US TO DO THE UNPACKING OF THE GENOTYPE CALLS ON LOCAL MACHINES.
+# #' Expand Compact Genotypes into a Wide Matrix
+# #'
+# #' This function takes a data frame with a compact 'calls' column
+# #' and expands it into a wide matrix using sample names from the metadata API.
+# #'
+# #' @param df A data frame returned from the API containing a 'calls' column.
+# #' @returns A wide data frame with sample names as columns.
+# #' @noRd
+# .expand_matrix <- function(df) {
+#   if (is.null(df) || nrow(df) == 0 || !"calls" %in% colnames(df)) {
+#     return(df)
+#   }
+
+#   # Fetch the sample names from your API
+#   # The API already orders them by array_index ASC natively
+#   meta_df <- .api_fetch("/db/metadata")
+#   sample_names <- meta_df$lib
+
+#   # Strip the Postgres array brackets if they exist
+#   clean_calls <- gsub("\\{|\\}", "", df$calls)
+
+#   # Split the comma-separated strings into a list
+#   calls_list <- strsplit(clean_calls, ",")
+
+#   # Bind the list into a highly optimized C-level matrix
+#   calls_mat <- do.call(rbind, calls_list)
+
+#   # Rename the columns to match the sample names
+#   colnames(calls_mat) <- sample_names[1:ncol(calls_mat)]
+
+#   # Drop the original 'calls' column and attach the new wide matrix
+#   meta_cols <- df[, setdiff(colnames(df), "calls"), drop = FALSE]
+#   wide_df <- cbind(
+#     meta_cols,
+#     as.data.frame(calls_mat, stringsAsFactors = FALSE)
+#   )
+
+#   return(wide_df)
+# }

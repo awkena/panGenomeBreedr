@@ -12,8 +12,8 @@
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="panGenomeBreedr_Workflows">
 </head>
@@ -401,13 +401,25 @@ chrom
 pos
 </th>
 <th style="text-align:left;">
-variant_type
-</th>
-<th style="text-align:left;">
 ref
 </th>
 <th style="text-align:left;">
 alt
+</th>
+<th style="text-align:left;">
+variant_type
+</th>
+<th style="text-align:left;">
+major_allele
+</th>
+<th style="text-align:left;">
+minor_allele
+</th>
+<th style="text-align:right;">
+major_allele_freq
+</th>
+<th style="text-align:right;">
+minor_allele_freq
 </th>
 <th style="text-align:left;">
 IDMM
@@ -434,6 +446,12 @@ Chr05
 75104541
 </td>
 <td style="text-align:left;">
+T
+</td>
+<td style="text-align:left;">
+TGAC
+</td>
+<td style="text-align:left;">
 INDEL
 </td>
 <td style="text-align:left;">
@@ -441,6 +459,12 @@ T
 </td>
 <td style="text-align:left;">
 TGAC
+</td>
+<td style="text-align:right;">
+0.99881
+</td>
+<td style="text-align:right;">
+0.00119
 </td>
 <td style="text-align:left;">
 0|0
@@ -466,6 +490,12 @@ Chr05
 75104557
 </td>
 <td style="text-align:left;">
+C
+</td>
+<td style="text-align:left;">
+T
+</td>
+<td style="text-align:left;">
 SNP
 </td>
 <td style="text-align:left;">
@@ -473,6 +503,12 @@ C
 </td>
 <td style="text-align:left;">
 T
+</td>
+<td style="text-align:right;">
+0.89051
+</td>
+<td style="text-align:right;">
+0.10949
 </td>
 <td style="text-align:left;">
 0|0
@@ -498,6 +534,12 @@ Chr05
 75104560
 </td>
 <td style="text-align:left;">
+C
+</td>
+<td style="text-align:left;">
+T
+</td>
+<td style="text-align:left;">
 SNP
 </td>
 <td style="text-align:left;">
@@ -505,6 +547,12 @@ C
 </td>
 <td style="text-align:left;">
 T
+</td>
+<td style="text-align:right;">
+0.88962
+</td>
+<td style="text-align:right;">
+0.11038
 </td>
 <td style="text-align:left;">
 0|0
@@ -530,6 +578,12 @@ Chr05
 75104564
 </td>
 <td style="text-align:left;">
+C
+</td>
+<td style="text-align:left;">
+CA
+</td>
+<td style="text-align:left;">
 INDEL
 </td>
 <td style="text-align:left;">
@@ -537,6 +591,12 @@ C
 </td>
 <td style="text-align:left;">
 CA
+</td>
+<td style="text-align:right;">
+0.88544
+</td>
+<td style="text-align:right;">
+0.11456
 </td>
 <td style="text-align:left;">
 0|0
@@ -562,6 +622,12 @@ Chr05
 75104568
 </td>
 <td style="text-align:left;">
+G
+</td>
+<td style="text-align:left;">
+T
+</td>
+<td style="text-align:left;">
 SNP
 </td>
 <td style="text-align:left;">
@@ -569,6 +635,12 @@ G
 </td>
 <td style="text-align:left;">
 T
+</td>
+<td style="text-align:right;">
+0.99791
+</td>
+<td style="text-align:right;">
+0.00209
 </td>
 <td style="text-align:left;">
 0|0
@@ -852,34 +924,64 @@ Chr05
 </tbody>
 </table>
 <div class="section level4">
-<h4 id="query-online-databases-pg_-functions">Query Online Databases (pg_ Functions)<a class="anchor" aria-label="anchor" href="#query-online-databases-pg_-functions"></a>
+<h4 id="query-online-database-pg_-functions">Query Online Database (pg_ Functions)<a class="anchor" aria-label="anchor" href="#query-online-database-pg_-functions"></a>
 </h4>
-<p>When using the cloud backend, <code>panGenomeBreedr</code> connects
-directly to a central database over the internet. This allows breeders
-to seamlessly query massive datasets without needing to download large
-files to their local computers. By default, the package connects to the
-public <strong>Curated Sorghum Variant Resource</strong>. However, if
-your breeding program or institution hosts its own private database, you
-can easily point the package to it using the <code><a href="../reference/set_api_url.html">set_api_url()</a></code>
-function.</p>
+<p><code>panGenomeBreedr</code> connects directly to online databases,
+allowing you to seamlessly query massive datasets without downloading
+heavy files to your local computer. Depending on your breeding program’s
+needs, you can easily use the default public database or connect to your
+own private server.</p>
+<div class="section level5">
+<h5 id="scenario-a-using-the-default-public-database">Scenario A: Using the Default Public Database<a class="anchor" aria-label="anchor" href="#scenario-a-using-the-default-public-database"></a>
+</h5>
+<p>By default, the package connects automatically to the public
+<strong>Curated Sorghum Variant Resource</strong>. If you want to use
+this public database, you do not need to configure any URLs, you can
+start querying immediately using the functions with prefix
+<code>pg_</code></p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Connect to your institution's online database (Optional)</span></span>
-<span><span class="co"># If not set, it defaults to the public Sorghum database</span></span>
+<span><span class="co"># Extract genotypes within a genomic range from the default public database</span></span>
+<span><span class="va">pg_gt_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pg_query_db.html">pg_query_db</a></span><span class="op">(</span></span>
+<span>  table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span>
+<span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
+<span>  start <span class="op">=</span> <span class="fl">75104537</span>,</span>
+<span>  end <span class="op">=</span> <span class="fl">75106403</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Extract annotations for a specific candidate gene</span></span>
+<span><span class="va">pg_annota_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pg_query_db.html">pg_query_db</a></span><span class="op">(</span></span>
+<span>  table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span>
+<span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
+<span>  gene_name <span class="op">=</span> <span class="st">"Sobic.005G213600"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level5">
+<h5 id="scenario-b-using-a-custom-or-private-api-endpoint">Scenario B: Using a Custom or Private API Endpoint<a class="anchor" aria-label="anchor" href="#scenario-b-using-a-custom-or-private-api-endpoint"></a>
+</h5>
+<p>If your institution hosts its own database, you must point the
+package to your specific server before running any queries. You can do
+this using the <code><a href="../reference/set_api_url.html">set_api_url()</a></code> function.</p>
+<p><em>Note:</em> To ensure compatibility, your private database schema
+must match the structure of the <strong>Curated Sorghum Variant
+Resource</strong>.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 1. Point the package to your custom API endpoint</span></span>
 <span><span class="fu"><a href="../reference/set_api_url.html">set_api_url</a></span><span class="op">(</span><span class="st">"http://16.171.142.87:8000"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; panGenomeBreedr API endpoint successfully set to: http://16.171.142.87:8000</span></span>
+<span><span class="co">#&gt; panGenomeBreedr API endpoint successfully set to: http://16.171.142.87:8000</span></span>
 <span></span>
-<span><span class="co"># Extract genotypes within a genomic range from the online database</span></span>
-<span><span class="va">pg_gt_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pg_query_db.html">pg_query_db</a></span><span class="op">(</span>table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span>
-<span>                            chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
-<span>                            start <span class="op">=</span> <span class="fl">75104537</span>,</span>
-<span>                            end <span class="op">=</span> <span class="fl">75106403</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Extract annotations for a specific candidate gene from the online database</span></span>
-<span><span class="va">pg_annota_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pg_query_db.html">pg_query_db</a></span><span class="op">(</span>table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span>
-<span>                                chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
-<span>                                gene_name <span class="op">=</span> <span class="st">"Sobic.005G213600"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># 2. Query your private database exactly as you normally would</span></span>
+<span><span class="va">pg_gt_private</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pg_query_db.html">pg_query_db</a></span><span class="op">(</span></span>
+<span>  table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span>
+<span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
+<span>  start <span class="op">=</span> <span class="fl">75104537</span>,</span>
+<span>  end <span class="op">=</span> <span class="fl">75106403</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
 </div>
 </div>
 <div class="section level3">
@@ -892,7 +994,7 @@ indels) within a defined genomic region.</p>
 <p>This function enables users to quickly assess the types and
 functional implications of variants located within candidate genes or
 genomic intervals of interest.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Locate the package example database folder</span></span>
@@ -1096,7 +1198,7 @@ region grouped by variant type.</p></li>
 variants with a HIGH impact on protein function.</strong> To see these
 variants, we need to use the <code><a href="../reference/query_by_impact.html">query_by_impact()</a></code> function, as
 shown below:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
@@ -1553,7 +1655,7 @@ meet desired minor allele frequency (MAF) thresholds for marker
 development.</p>
 <p>An example usage for the <code><a href="../reference/filter_by_af.html">filter_by_af()</a></code> function is
 shown in the code snippet below:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Locate the package example database folder</span></span>
@@ -1660,7 +1762,7 @@ Chr05
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Locate the package example database folder</span></span>
@@ -1680,6 +1782,341 @@ Chr05
 <span><span class="co"># Cleanly close the connection and release memory allocations</span></span>
 <span><span class="fu"><a href="../reference/disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_demo</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Successfully disconnected from the local database. Memory cleared.</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="evaluating-linkage-disequilibrium-ld-for-marker-design">Evaluating Linkage Disequilibrium (LD) for Marker Design<a class="anchor" aria-label="anchor" href="#evaluating-linkage-disequilibrium-ld-for-marker-design"></a>
+</h3>
+<p>After identifying the causal variants, the next critical step is to
+evaluate their genomic context. Variants rarely exist in isolation; they
+are often co-inherited with neighboring variants in segments of the
+genome known as <strong>haplotype blocks</strong>, which are regions of
+high Linkage Disequilibrium (LD).</p>
+<p>Analyzing LD is a vital decision-support tool that helps you:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Eliminate Redundancy:</strong> If multiple candidate
+variants fall within the same tightly linked haplotype block (i.e., they
+have a high
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>R</mi><mn>2</mn></msup><annotation encoding="application/x-tex">R^2</annotation></semantics></math>
+value), you only need to design a single KASP assay for one of them to
+effectively “tag” the entire block. This saves time and
+resources.</p></li>
+<li><p><strong>Assess Marker-Trait Association:</strong> Visualizing the
+LD landscape helps confirm that your target variants are strongly
+associated with the genomic region of your trait of interest, while also
+helping you avoid regions with high genomic complexity that might
+complicate marker design.</p></li>
+</ol>
+<p>The <code>panGenomeBreedr</code> package simplifies this analysis.
+First, we compute the pairwise LD metrics for our filtered variants
+across the target region:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Compute LD around our causal variants</span></span>
+<span><span class="va">ld_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_LD.html">compute_LD</a></span><span class="op">(</span></span>
+<span>  df <span class="op">=</span> <span class="va">gt_region</span>,</span>
+<span>  target_variant_ids <span class="op">=</span> <span class="va">geno_high_filtered</span><span class="op">$</span><span class="va">variant_id</span>,</span>
+<span>  genotype_start_col <span class="op">=</span> <span class="fl">11</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>
+Table 4: Pairwise Linkage Disequilibrium (LD) metrics for causal
+variants.
+</caption>
+<thead><tr>
+<th style="text-align:left;">
+variant_1
+</th>
+<th style="text-align:right;">
+position_1
+</th>
+<th style="text-align:left;">
+variant_type_1
+</th>
+<th style="text-align:left;">
+variant_2
+</th>
+<th style="text-align:right;">
+position_2
+</th>
+<th style="text-align:left;">
+variant_type_2
+</th>
+<th style="text-align:right;">
+distance_bp
+</th>
+<th style="text-align:right;">
+R2
+</th>
+<th style="text-align:right;">
+D_prime
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75104881
+</td>
+<td style="text-align:right;">
+75104881
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+INDEL_Chr05_75104541
+</td>
+<td style="text-align:right;">
+75104541
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:right;">
+340
+</td>
+<td style="text-align:right;">
+0.00006
+</td>
+<td style="text-align:right;">
+1.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75104881
+</td>
+<td style="text-align:right;">
+75104881
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+SNP_Chr05_75104557
+</td>
+<td style="text-align:right;">
+75104557
+</td>
+<td style="text-align:left;">
+SNP
+</td>
+<td style="text-align:right;">
+324
+</td>
+<td style="text-align:right;">
+0.33979
+</td>
+<td style="text-align:right;">
+0.88704
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75104881
+</td>
+<td style="text-align:right;">
+75104881
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+SNP_Chr05_75104560
+</td>
+<td style="text-align:right;">
+75104560
+</td>
+<td style="text-align:left;">
+SNP
+</td>
+<td style="text-align:right;">
+321
+</td>
+<td style="text-align:right;">
+0.33661
+</td>
+<td style="text-align:right;">
+0.88693
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75104881
+</td>
+<td style="text-align:right;">
+75104881
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+INDEL_Chr05_75104564
+</td>
+<td style="text-align:right;">
+75104564
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:right;">
+317
+</td>
+<td style="text-align:right;">
+0.39948
+</td>
+<td style="text-align:right;">
+0.98663
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75104881
+</td>
+<td style="text-align:right;">
+75104881
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+SNP_Chr05_75104568
+</td>
+<td style="text-align:right;">
+75104568
+</td>
+<td style="text-align:left;">
+SNP
+</td>
+<td style="text-align:right;">
+313
+</td>
+<td style="text-align:right;">
+0.00011
+</td>
+<td style="text-align:right;">
+1.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75104881
+</td>
+<td style="text-align:right;">
+75104881
+</td>
+<td style="text-align:left;">
+INDEL
+</td>
+<td style="text-align:left;">
+SNP_Chr05_75104569
+</td>
+<td style="text-align:right;">
+75104569
+</td>
+<td style="text-align:left;">
+SNP
+</td>
+<td style="text-align:right;">
+312
+</td>
+<td style="text-align:right;">
+0.00011
+</td>
+<td style="text-align:right;">
+1.00000
+</td>
+</tr>
+</tbody>
+</table>
+<p>With the LD statistics calculated, we can generate a
+<code>Geodesic Linkage Disequilibrium (LD) Landscape plot</code>. This
+function projects the pairwise
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>R</mi><mn>2</mn></msup><annotation encoding="application/x-tex">R^2</annotation></semantics></math>
+values as physical trajectories, making it highly intuitive to spot
+tightly linked variant clusters.</p>
+<p><em>Note:</em> We set <code>block_threshold = 0.95</code> below to
+group variants exhibiting very strong, but realistic, linkage into our
+output haploblock table.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Visualize the LD and extract haploblock tables</span></span>
+<span><span class="va">ld_haplo_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_ld_geodesic.html">plot_ld_geodesic</a></span><span class="op">(</span></span>
+<span>  ld_df <span class="op">=</span> <span class="va">ld_result</span>,</span>
+<span>  query_db_geno <span class="op">=</span> <span class="va">gt_region</span>,</span>
+<span>  query_db_annot <span class="op">=</span> <span class="va">annota_region</span>,</span>
+<span>  threshold <span class="op">=</span> <span class="fl">0.95</span>, <span class="co"># Minimum R² to draw an arc</span></span>
+<span>  block_threshold <span class="op">=</span> <span class="fl">0.95</span>, <span class="co"># Minimum R² to define a haploblock in the table</span></span>
+<span>  target_variant_ids <span class="op">=</span> <span class="va">geno_high_filtered</span><span class="op">$</span><span class="va">variant_id</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Render the plot</span></span>
+<span><span class="va">ld_haplo_plot</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
+<p><img src="figures/ld_plot-1.png" class="r-plt" alt="" width="100%"></p>
+<table class="table">
+<caption>
+Table 4: Haplotype Blocks Identified via LD Mapping
+</caption>
+<thead><tr>
+<th style="text-align:left;">
+Block_1
+</th>
+<th style="text-align:left;">
+Block_1_Impact_Level
+</th>
+<th style="text-align:left;">
+Block_2
+</th>
+<th style="text-align:left;">
+Block_2_Impact_Level
+</th>
+<th style="text-align:left;">
+Block_3
+</th>
+<th style="text-align:left;">
+Block_3_Impact_Level
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+INDEL_Chr05_75106156
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+INDEL_Chr05_75106156
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+INDEL_Chr05_75106156
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SNP_Chr05_75104743
+</td>
+<td style="text-align:left;">
+MODIFIER
+</td>
+<td style="text-align:left;">
+SNP_Chr05_75104779
+</td>
+<td style="text-align:left;">
+MODIFIER
+</td>
+<td style="text-align:left;">
+SNP_Chr05_75106033
+</td>
+<td style="text-align:left;">
+LOW
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="section level2">
@@ -1703,7 +2140,7 @@ REF and ALT alleles, as well as the genotype data for samples, as shown
 in Table 4:</p>
 <table class="table">
 <caption>
-Table 4: Filtered HIGH impact variants for marker development.
+Table 5: Filtered HIGH impact variants for marker development.
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -1812,7 +2249,7 @@ INDEL
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Example to design a KASP marker on a HIGH impact Deletion variant</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># (default directory for saving alignment outputs)</span></span>
@@ -1828,7 +2265,7 @@ INDEL
 <span>                           ref_al_col <span class="op">=</span> <span class="st">'ref'</span>,</span>
 <span>                           alt_al_col <span class="op">=</span> <span class="st">'alt'</span>,</span>
 <span>                           genome_file <span class="op">=</span> <span class="va">path1</span>,</span>
-<span>                           geno_start <span class="op">=</span> <span class="fl">7</span>,</span>
+<span>                           geno_start <span class="op">=</span> <span class="fl">11</span>,</span>
 <span>                           marker_ID <span class="op">=</span> <span class="st">"INDEL_Chr05_75106156"</span>,</span>
 <span>                           chr <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
 <span>                           save_alignment <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -1869,7 +2306,7 @@ sequences to the reference genome used for KASP marker design.
 KASP marker is shown in Table 5.</p>
 <table class="table">
 <caption>
-Table 5: Intertek required sequence for a KASP marker.
+Table 6: Intertek required sequence for a KASP marker.
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -1961,7 +2398,7 @@ row tags for genotyping data: <code>Statistics</code>, <code>DNA</code>,
 <p>The raw file is imported as a list object in R. Thus, all components
 in the imported data can be extracted using the row tag ID as shown in
 the code snippet below:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Import raw KASP genotyping file (.csv) using the read_kasp_csv() function</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
@@ -1986,7 +2423,7 @@ the code snippet below:</p>
 fluorescence colors to samples based on their observed genotype calls.
 This step is accomplished using the <code><a href="../reference/kasp_color.html">kasp_color()</a></code> function
 in <code>panGB</code> as shown in the code snippet below:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Assign KASP fluorescence colors using the kasp_color() function</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="co"># Create a subet variable called plates: masterplate x snpid</span></span>
@@ -2028,7 +2465,7 @@ discrimination), a cluster plot needs to be generated.</p>
 <code><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2()</a></code>functions in <code>panGB</code> can be
 used to make the cluster plots for each plate and KASP marker as shown
 below:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># KASP QC plot for Plate 05</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>,</span>
@@ -2046,7 +2483,7 @@ Fig. 3. Cluster plot for Plate 5 using FAM and HEX colors for grouping
 observed genotypes.
 </p>
 </div>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># KASP QC plot for Plate 05</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span> <span class="fu"><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>,</span>
@@ -2099,7 +2536,7 @@ above. If this information is not available, set the argument
 <p>The <code><a href="../reference/pred_summary.html">pred_summary()</a></code> function produces a summary of
 predicted genotypes for positive controls in each reaction plate after
 verification (Table 6), as shown in the code snippet below:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get prediction summary for all plates</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">my_sum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pred_summary.html">pred_summary</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span>,</span>
@@ -2110,7 +2547,7 @@ verification (Table 6), as shown in the code snippet below:</p>
 <span>                       rate_out <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <caption>
-Table 6: Summary of verified prediction status for samples in plates
+Table 7: Summary of verified prediction status for samples in plates
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -2271,7 +2708,7 @@ snpSB00805
 <p>The output of the <code><a href="../reference/pred_summary.html">pred_summary()</a></code> function can be
 visualized as bar plots using the <code><a href="../reference/pred_summary_plot.html">pred_summary_plot()</a></code>
 function as shown in the code snippet below:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get prediction summary for snp:snpSB00804</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">my_sum</span> <span class="op">&lt;-</span> <span class="va">my_sum</span><span class="op">$</span><span class="va">summ</span></span>
@@ -2299,7 +2736,7 @@ Fig. 5. Match/Mismatch rate of predictions for snp: snpSB00804.
 <p>Users can visualize the observed genotype calls in a plate design
 format using the <code><a href="../reference/plot_plate.html">plot_plate()</a></code> function as depicted in
 Figure 6, using the code snippet below:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_plate.html">plot_plate</a></span><span class="op">(</span><span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>, pdf <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $`SE-24-1088_P01_d1_snpSB00804`</span></span></code></pre></div>
 <div class="figure">
@@ -2348,7 +2785,7 @@ samples as rows. It comes with some meta data about the samples. Marker
 names are informative: chromosome number and position coordinates are
 embedded in the marker names
 (<code>Eg. S1_778962: chr = 1, pos = 779862</code>).</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Set path to the directory where your data is located</span></span>
 <span><span class="va">path1</span> <span class="op">&lt;-</span>  <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"agriplex_dat.csv"</span>,</span>
@@ -2615,7 +3052,7 @@ re-coding to numeric format is done as follows:</p>
 <li>Loci with at least one missing parental or any other genotype =
 -5.</li>
 </ul>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Parse snp ids to generate a map file</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
@@ -2765,7 +3202,7 @@ S1_1985365
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Process genotype data to re-order SNPs based on chromosome and positions</span></span>
 <span><span class="va">stg5</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/proc_kasp.html">proc_kasp</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">stg5</span>,</span>
 <span>                  kasp_map <span class="op">=</span> <span class="va">map_file</span>,</span>
@@ -3080,7 +3517,7 @@ Stg5-|-_3
 <p>All is now set to generate the heatmap (Figure 7) using the
 <code><a href="../reference/cross_qc_ggplot.html">cross_qc_ggplot()</a></code> function, as shown in the code snippet
 below:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Get prediction summary for snp:snpSB00804</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
@@ -3122,7 +3559,7 @@ PDF file in a directory outside R.</p>
 effective, we can use the <code><a href="../reference/cross_qc_annotate.html">cross_qc_annotate()</a></code> function to
 generate a heatmap (Figure 8) with an annotation of the position of the
 <em>stg5</em> locus on Chr 1, as shown below:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">###########################################################################</span></span>
 <span><span class="co"># Subset data for the first 30 markers on Chr 1</span></span>
@@ -3183,7 +3620,7 @@ defined RPP threshold on the bar plot.</p>
 <p>We can compute and visualize the observed RPP values for the
 <em>stg5</em> NILs across all polymorphic loci as shown in the code
 snippet below:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Calculate weighted RPP</span></span>
 <span><span class="va">rpp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_rpp_bc.html">calc_rpp_bc</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">num_geno</span>,</span>
@@ -3733,7 +4170,7 @@ presence of favorable alleles by converting raw marker genotype data
 into a binary matrix (1 = favorable allele present, 0 = absent) based on
 a set of trait-predictive markers. The <code><a href="../reference/foreground_select.html">foreground_select()</a></code>
 function is shown in the code snippet below:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Marker genotype data</span></span>
@@ -3911,7 +4348,7 @@ loci are involved in each combination.</p></li>
 <li><p><strong>Left bar plot:</strong> shows how many lines have the
 favorable allele for each individual target locus.</p></li>
 </ul>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Make an Upset plot and overlay with trait loci names</span></span>
 <span><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sets <span class="op">=</span> <span class="va">marker_info</span><span class="op">$</span><span class="va">qtl_markers</span>,</span>
 <span>                      locus <span class="op">=</span> <span class="va">marker_info</span><span class="op">$</span><span class="va">locus_name</span><span class="op">)</span></span>
@@ -3968,7 +4405,7 @@ desired allele presence/absence profile across loci. Using the binary
 matrix, users can extract line IDs corresponding to any intersection
 (i.e., specific combinations of favorable alleles revealed by the UpSet
 plot).</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Find lines with favorable alleles at all target loci</span></span>

@@ -1,10 +1,6 @@
-# Disconnect from the local database
+# Disconnect the local database session
 
-Safely closes the DuckDB connection and clears the virtual Parquet views
-from memory. This is the companion function to
-[`connect_local_db()`](https://awkena.github.io/panGenomeBreedr/reference/connect_local_db.md)
-and should be executed at the end of an analytical session to free up
-system resources.
+Disconnect the local database session
 
 ## Usage
 
@@ -34,10 +30,14 @@ if (FALSE) { # \dontrun{
 # Load the package
 library(panGenomeBreedr)
 
+# Define the path to the curated_sorghum_variant_resource folder
 my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
-con <- connect_local_db(folder_path = my_db_folder)
 
-# Safely close the connection when finished
+# Establish the connection
+con <- connect_local_db(folder_path = my_db_folder, max_memory = "8GB")
+
+# Disconnect at the end of your session
 disconnect_local_db(con)
+
 } # }
 ```

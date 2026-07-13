@@ -1,9 +1,6 @@
-# Retrieve sample metadata from the database (local)
+# Get samples metadata from the database (local)
 
-Retrieves accession-level passport data and descriptive population
-metadata from the 'metadata' table. It supports safe parameter-driven
-dynamic column filtering (e.g., country of origin, race, or cluster) to
-isolate targeted subpopulations.
+Get samples metadata from the database (local)
 
 ## Usage
 
@@ -33,7 +30,7 @@ get_sample_metadata(con, query_col = NULL, query_value = NULL)
 
 A data frame containing the sample metadata records, strictly sorted by
 their `array_index` field to ensure perfect structural alignment with
-downstream genotype matrices.
+downstream genotype matrix.
 
 ## Examples
 
@@ -42,15 +39,21 @@ if (FALSE) { # \dontrun{
 # Load the package
 library(panGenomeBreedr)
 
-# Connect to the database pipeline
-con <- connect_local_db(folder_path = "~/Desktop/curated_sorghum_variant_resource")
+# Define the path to the curated_sorghum_variant_resource folder
+my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
+
+# Establish the connection
+con <- connect_local_db(folder_path = my_db_folder)
 
 # Fetch metadata for all sorghum accessions originating from Ethiopia
-eth_samples <- get_sample_metadata(con = con,
+get_sample_metadata_result <- get_sample_metadata(con = con,
                                    query_col = "countryorigin",
                                    query_value = "Ethiopia")
 
-# Safely close out the database connection
+print(get_sample_metadata_result)
+
+# Disconnect at the end of your session
 disconnect_local_db(con)
+
 } # }
 ```

@@ -1,10 +1,6 @@
-# Interactive geographic exploration of sorghum accessions (local)
+# Interactive geographic exploration of the samples (local)
 
-Generates an interactive web map via `leaflet` displaying the geographic
-distribution of sorghum lines based on latitude and longitude
-coordinates. Points are dynamically colored by a user-specified metadata
-category and display scrollable, auto-formatted HTML tooltips containing
-all available metadata attributes.
+Interactive geographic exploration of the samples (local)
 
 ## Usage
 
@@ -31,19 +27,6 @@ query_map_accessions(metadata, color_by = "countryorigin")
 A `leaflet` map object (htmlwidget) displaying interactive geographic
 coordinate plots.
 
-## Details
-
-The function automatically strips out tracking lines containing missing
-spatial coordinates. Rather than hardcoding fixed tooltip categories, it
-dynamically extracts all non-coordinate metadata attributes present in
-the provided matrix, formatting them into clear, scrollable HTML popup
-panels for every marker.
-
-**Dependency Note:** To keep core package requirements lean, `leaflet`
-and `tools` are configured as suggested package attachments. If they are
-absent from the local execution workspace, the script will halt cleanly
-and prompt appropriate installation commands.
-
 ## Examples
 
 ``` r
@@ -51,17 +34,20 @@ if (FALSE) { # \dontrun{
 # Load the package
 library(panGenomeBreedr)
 
-# Connect to the database pipeline
-con <- connect_local_db(folder_path = "~/Desktop/curated_sorghum_variant_resource")
+# Define the path to the curated_sorghum_variant_resource folder
+my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
+
+# Establish the connection
+con <- connect_local_db(folder_path = my_db_folder)
 
 # Fetch passport metadata details for all accessions matching the resource
 sample_metadata <- get_sample_metadata(con = con)
 
-# Generate an interactive geographic distribution plot colored by
-# K-Means genetic cluster assignments
-query_map_accessions(sample_metadata, color_by = "kmeans_cluster")
+# Generate an interactive geographic distribution plot colored by countryorigin
+query_map_accessions_result <- query_map_accessions(sample_metadata, color_by = "countryorigin")
+print(query_map_accessions_result)
 
-# Safely close out the database connection
+# Disconnect at the end of your session
 disconnect_local_db(con)
 } # }
 ```

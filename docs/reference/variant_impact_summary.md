@@ -1,8 +1,6 @@
-# Summarize variant mutation impacts per chromosome (local)
+# Get summary of database variant impacts by chromosome (local)
 
-Dynamically cross-tabulates and pivots the counts of functional mutation
-impact categories (e.g., HIGH, MODERATE, LOW, MODIFIER) across all
-chromosomes in the database.
+Get summary of database variant impacts by chromosome (local)
 
 ## Usage
 
@@ -30,13 +28,17 @@ if (FALSE) { # \dontrun{
 # Load the package
 library(panGenomeBreedr)
 
-# Connect to the database
-con <- connect_local_db(folder_path = "~/Desktop/curated_sorghum_variant_resource")
+# Define the path to the curated_sorghum_variant_resource folder
+my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
+
+# Establish the connection
+con <- connect_local_db(folder_path = my_db_folder)
 
 # Generate the wide-format impact profile matrix
 impact_matrix <- variant_impact_summary(con)
 
-# Safely close the connection
+# Disconnect at the end of your session
 disconnect_local_db(con)
+
 } # }
 ```

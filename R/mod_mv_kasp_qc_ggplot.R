@@ -101,7 +101,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                     textInput(
                       inputId = ns("uncallable"),
                       label = "Uncallable Label",
-                      value = "uncallable",
+                      value = "Uncallable",
                       width = "100%"
                     ),
                     textInput(
@@ -172,7 +172,10 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
                       selectInput(
                         inputId = ns("pred_col_id"),
                         label = "Positive Control Colors",
-                        choices = grDevices::colors(),
+                        choices = c(
+                          "black", "firebrick", "cornflowerblue", "beige",
+                          setdiff(grDevices::colors(), c("black", "firebrick", "cornflowerblue", "beige"))
+                        ),
                         selected = c("black", "firebrick", "cornflowerblue", "beige"),
                         multiple = TRUE,
                         width = "100%"
@@ -422,7 +425,7 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
         req(
           input$snp_id %in% current_cols,
           input$fam_id %in% current_cols,
-          input$group_id %in% current_cols |input$group_id == "None",
+          input$group_id %in% current_cols | input$group_id == "None",
           input$geno_call %in% current_cols,
           input$Hex_id %in% current_cols
         )
@@ -449,7 +452,7 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
               alpha = input$alpha_id,
               text_size = input$textsize_id,
               legend.pos = input$legend_pos,
-              scale = input$scale,
+              scale = as.logical(input$scale),
               pred_cols = c(
                  Blank = input$pred_col_id[1],
                  False = input$pred_col_id[2],
@@ -584,7 +587,7 @@ output$plate_layout_plot <- shiny::renderPlot({
         plot_data <- plt$data
         
         # Find closest data point to the mouse coordinates
-        point <- nearPoints(plot_data, hover, xvar = "X", yvar = "Y", threshold = 10, maxpoints = 1)
+        point <- nearPoints(plot_data, hover, xvar = input$fam_id, yvar = input$Hex_id, threshold = 10, maxpoints = 1)
         if (nrow(point) == 0) return(NULL)
         
         # Calculate tooltip position relative to the plot container
@@ -598,9 +601,16 @@ output$plate_layout_plot <- shiny::renderPlot({
           "font-size: 13px; left: ", left_px, "px; top: ", top_px, "px;"
         )
         
+        # Fallback to standard columns if tooltip_text is not generated in the plot dataset
+        tooltip_str <- if ("tooltip_text" %in% colnames(point)) {
+          point$tooltip_text
+        } else {
+          paste0("Sample: ", point[[input$well_id]], "\nCall: ", point[[input$geno_call]])
+        }
+        
         div(
           style = style,
-          tags$span(style = "white-space: pre-wrap; font-weight: bold;", point$tooltip_text)
+          tags$span(style = "white-space: pre-wrap; font-weight: bold;", tooltip_str)
         )
       })
 
@@ -608,25 +618,31 @@ output$plate_layout_plot <- shiny::renderPlot({
       output$download_plot2 <- downloadHandler(
         filename = function() {
           clean_name <- gsub("[^[:alnum:]_-]", "_", input$file_name2)
-          paste0(clean_name, ".pdf") 
+          ext <- input$file_type2
+          paste0(clean_name, ".", ext) 
         },
         content = function(file) {
           req(result_plot()) 
 
           tryCatch(
             {
-              # Start multi-page PDF
-              grDevices::pdf(file,
-                width = input$width,
-                height = input$height,
-                onefile = TRUE
-              ) 
-              for (plot in result_plot()) {
-                print(plot)
+              ext <- input$file_type2
+              if (ext == "pdf") {
+                # Start multi-page PDF for all generated plate plots
+                grDevices::pdf(file,
+                  width = input$width,
+                  height = input$height,
+                  onefile = TRUE
+                ) 
+                for (plot in result_plot()) { print(plot) }
+                grDevices::dev.off()
+              } else {
+                # Single image formats (PNG, JPEG, TIFF) for the currently selected plate
+                req(input$plate_choice)
+                current_plot <- result_plot()[[input$plate_choice]]
+                ggplot2::ggsave(filename = file, plot = current_plot, device = ext,
+                                width = input$width, height = input$height)
               }
-  
-
-              grDevices::dev.off()
             },
             error = function(e) {
               shinyWidgets::show_toast(

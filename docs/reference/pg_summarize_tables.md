@@ -1,8 +1,6 @@
-# Name and row count for each table in the database (online)
+# Get table names and row counts from the database (online)
 
-This function connects to the public panGenomeBreedr API and returns a
-summary data frame containing the table names and their respective row
-counts.
+Get table names and row counts from the database (online)
 
 ## Usage
 
@@ -13,3 +11,16 @@ pg_summarize_tables()
 ## Value
 
 A data frame with two columns: `table` and `n_rows`.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# Load the package
+library(panGenomeBreedr)
+
+# Summarize all tables in the online database
+pg_summarize_tables_result <- pg_summarize_tables()
+print(pg_summarize_tables_result)
+} # }
+```

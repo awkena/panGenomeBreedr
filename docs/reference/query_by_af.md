@@ -1,9 +1,6 @@
-# Extract regional variants filtered by allele frequency (local)
+# Query variants by allele frequency (local)
 
-Queries a specific genomic coordinate region to extract genotype
-matrices, computes population-level alternate allele frequencies on the
-fly, and returns a subset of variants falling strictly within the
-specified minimum and maximum frequency thresholds.
+Query variants by allele frequency (local)
 
 ## Usage
 
@@ -42,11 +39,11 @@ query_by_af(
 
 - start:
 
-  Integer. Optional start coordinate for the target window region.
+  Integer. Start coordinate for the target window region.
 
 - end:
 
-  Integer. Optional end coordinate for the target window region.
+  Integer. End coordinate for the target window region.
 
 ## Value
 
@@ -61,18 +58,22 @@ if (FALSE) { # \dontrun{
 # Load the package
 library(panGenomeBreedr)
 
-# Connect to the database pipeline
-con <- connect_local_db(folder_path = "~/Desktop/curated_sorghum_variant_resource")
+# Define the path to the curated_sorghum_variant_resource folder
+my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
+
+# Establish the connection
+con <- connect_local_db(folder_path = my_db_folder)
 
 # Query a specific locus window and filter for common variants (MAF >= 5%)
-regional_af_vars <- query_by_af(con = con,
+query_by_af_result <- query_by_af(con = con,
                                 min_af = 0.05,
                                 max_af = 0.95,
                                 chrom = "Chr05",
                                 start = 75104537,
                                 end = 75106403)
+print(query_by_af_result)
 
-# Safely close out the database connection
+# Disconnect at the end of your session
 disconnect_local_db(con)
 } # }
 ```

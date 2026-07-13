@@ -5,13 +5,13 @@
 ### Connection & Configuration
 
 - [`connect_local_db()`](https://awkena.github.io/panGenomeBreedr/reference/connect_local_db.md)
-  : Connect to local offline database
+  : Connect to the local offline database
 - [`disconnect_local_db()`](https://awkena.github.io/panGenomeBreedr/reference/disconnect_local_db.md)
-  : Disconnect from the local database
+  : Disconnect the local database session
 - [`set_api_url()`](https://awkena.github.io/panGenomeBreedr/reference/set_api_url.md)
-  : Set the API endpoint URL for database
+  : Set the API endpoint URL for your private database
 - [`get_api_url()`](https://awkena.github.io/panGenomeBreedr/reference/get_api_url.md)
-  : Get the current API endpoint URL
+  : Get the current database API endpoint URL
 
 ### Database Schema & Metadata
 
@@ -20,39 +20,39 @@
 - [`pg_list_tables()`](https://awkena.github.io/panGenomeBreedr/reference/pg_list_tables.md)
   : List all tables in the database (online)
 - [`summarize_sqlite_tables()`](https://awkena.github.io/panGenomeBreedr/reference/summarize_sqlite_tables.md)
-  : Name and row count for each table in the database (local)
+  : Get table names and row counts from the database (local)
 - [`pg_summarize_tables()`](https://awkena.github.io/panGenomeBreedr/reference/pg_summarize_tables.md)
-  : Name and row count for each table in the database (online)
+  : Get table names and row counts from the database (online)
 - [`list_table_columns()`](https://awkena.github.io/panGenomeBreedr/reference/list_table_columns.md)
-  : List column names and types for a specified table (local)
+  : Get table schema details (local)
 - [`pg_list_table_columns()`](https://awkena.github.io/panGenomeBreedr/reference/pg_list_table_columns.md)
-  : List column names and types for a specified table (online)
+  : Get table schema details (online)
 
 ### Core Data Queries
 
 - [`query_db()`](https://awkena.github.io/panGenomeBreedr/reference/query_db.md)
-  : Query genomic data tables by coordinate range (local)
+  : Query database tables by genomic coordinates (local)
 - [`pg_query_db()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_db.md)
-  : Query genomic data tables by coordinate range (online)
+  : Query database tables by genomic coordinates (online)
 - [`query_genotypes()`](https://awkena.github.io/panGenomeBreedr/reference/query_genotypes.md)
-  : Query genotypes for specific variant IDs (local)
+  : Query genotypes table for specific variant IDs (local)
 - [`pg_query_genotypes()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_genotypes.md)
   : Query genotypes for specific variant IDs (online)
 - [`get_sample_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/get_sample_metadata.md)
-  : Retrieve sample metadata from the database (local)
+  : Get samples metadata from the database (local)
 - [`pg_get_sample_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/pg_get_sample_metadata.md)
-  : Retrieve sample metadata from the database (online)
-- [`query_by_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/query_by_metadata.md)
-  : Query genotypes filtered by sample metadata attributes (local)
-- [`pg_query_by_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_metadata.md)
-  : Query genotypes filtered by sample metadata attributes (online)
+  : Get sample metadata from the database (online)
+- [`query_geno_by_meta()`](https://awkena.github.io/panGenomeBreedr/reference/query_geno_by_meta.md)
+  : Filter genotypes by multiple sample metadata criteria (local)
+- [`pg_query_geno_by_meta()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_geno_by_meta.md)
+  : Filter genotypes by multiple sample metadata criteria
 
 ### Targeted Variant Filters
 
 - [`query_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/query_by_af.md)
-  : Extract regional variants filtered by allele frequency (local)
+  : Query variants by allele frequency (local)
 - [`pg_query_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_af.md)
-  : Extract regional variants filtered by allele frequency (online)
+  : Query variants by allele frequency (online)
 - [`query_by_impact()`](https://awkena.github.io/panGenomeBreedr/reference/query_by_impact.md)
   : Extract variants based on functional mutation impact (local)
 - [`pg_query_by_impact()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_impact.md)
@@ -65,16 +65,16 @@
 - [`pg_variant_stats()`](https://awkena.github.io/panGenomeBreedr/reference/pg_variant_stats.md)
   : Get variant statistics from the database (online)
 - [`variant_impact_summary()`](https://awkena.github.io/panGenomeBreedr/reference/variant_impact_summary.md)
-  : Summarize variant mutation impacts per chromosome (local)
+  : Get summary of database variant impacts by chromosome (local)
 - [`pg_variant_impact_summary()`](https://awkena.github.io/panGenomeBreedr/reference/pg_variant_impact_summary.md)
-  : Summarize variant mutation impacts per chromosome (online)
+  : Get summary of database variant impacts by chromosome (online)
 - [`count_variant_types()`](https://awkena.github.io/panGenomeBreedr/reference/count_variant_types.md)
   : Count the distribution of variant types in the database (local)
 - [`pg_count_variant_types()`](https://awkena.github.io/panGenomeBreedr/reference/pg_count_variant_types.md)
   : Count the distribution of variant types in the database (online)
 - [`query_ann_summary()`](https://awkena.github.io/panGenomeBreedr/reference/query_ann_summary.md)
-  : Summarize functional annotations and impacts for a genomic region
-  (local)
+  : Get summarized functional annotations, impacts and variant types for
+  a genomic region (local)
 - [`pg_query_ann_summary()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_ann_summary.md)
   : Summarize functional annotations and impacts for a genomic region
   (online)
@@ -86,20 +86,25 @@
 - [`pg_calc_af()`](https://awkena.github.io/panGenomeBreedr/reference/pg_calc_af.md)
   : Compute allele frequencies for a genotype matrix (online)
 - [`filter_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/filter_by_af.md)
-  : Filter extracted genotypes based on alternate allele frequency
-  (local)
+  : Filter genotypes by allele frequency (Local)
 - [`pg_filter_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/pg_filter_by_af.md)
-  : Filter extracted genotypes based on alternate allele frequency
-  (online)
+  : Filter genotypes by allele frequency (online)
+
+### Linkage Disequilibrium Analysis
+
+- [`compute_LD()`](https://awkena.github.io/panGenomeBreedr/reference/compute_LD.md)
+  : Compute Linkage Disequilibrium (LD) Metrics (R2 and D')
+- [`plot_ld_geodesic()`](https://awkena.github.io/panGenomeBreedr/reference/plot_ld_geodesic.md)
+  : Generate Geodesic Landscape Plot and Extract Haploblock Data
 
 ### Marker Design & Visualization
 
 - [`kasp_marker_design()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_marker_design.md)
   : Design KASP markers based on causal variants.
 - [`query_map_accessions()`](https://awkena.github.io/panGenomeBreedr/reference/query_map_accessions.md)
-  : Interactive geographic exploration of sorghum accessions (local)
+  : Interactive geographic exploration of the samples (local)
 - [`pg_map_accessions()`](https://awkena.github.io/panGenomeBreedr/reference/pg_map_accessions.md)
-  : Interactive geographic exploration of sorghum accessions (online)
+  : Interactive geographic exploration of the samples (online)
 
 ### Utilities
 

@@ -1,9 +1,6 @@
 # Extract variants based on functional mutation impact (local)
 
-Queries the database to extract variants filtered by their functional
-impact severity classification (HIGH, MODERATE, LOW, or MODIFIER)
-following snpEff conventions. Optional chromosome and coordinate range
-windows can be added to narrow down targets.
+Extract variants based on functional mutation impact (local)
 
 ## Usage
 
@@ -36,16 +33,16 @@ query_by_impact(
 
 - start:
 
-  Integer. Optional start coordinate for the genomic region.
+  Integer. Start coordinate for the genomic region.
 
 - end:
 
-  Integer. Optional end coordinate for the genomic region.
+  Integer. End coordinate for the genomic region.
 
 ## Value
 
-A data frame of variants showing their predicted functional impact
-details and positional coordinates.
+A data frame of variants showing their functional impact details and
+positional coordinates.
 
 ## Examples
 
@@ -54,8 +51,11 @@ if (FALSE) { # \dontrun{
 # Load the package
 library(panGenomeBreedr)
 
-# Connect to the database
-con <- connect_local_db(folder_path = "~/Desktop/curated_sorghum_variant_resource")
+# Define the path to the curated_sorghum_variant_resource folder
+my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
+
+# Establish the connection
+con <- connect_local_db(folder_path = my_db_folder)
 
 # Extract high-impact variant lines inside a targeted coordinates locus window
 high_impact_vars <- query_by_impact(con = con,
@@ -64,7 +64,7 @@ high_impact_vars <- query_by_impact(con = con,
                                     start = 75104537,
                                     end = 75106403)
 
-# Safely close out resources
+# Disconnect at the end of your session
 disconnect_local_db(con)
 } # }
 ```

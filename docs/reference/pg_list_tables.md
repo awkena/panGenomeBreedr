@@ -1,7 +1,6 @@
 # List all tables in the database (online)
 
-This function connects to the public panGenomeBreedr API and retrieves
-the names of all tables within the database.
+List all tables in the database (online)
 
 ## Usage
 
@@ -12,3 +11,17 @@ pg_list_tables()
 ## Value
 
 A character vector of table names.
+
+## Examples
+
+``` r
+# \donttest{
+# Load the package
+library(panGenomeBreedr)
+
+# List all tables in the online database
+pg_list_tables_result <- pg_list_tables()
+print(pg_list_tables_result)
+#> [1] "annotations" "genotypes"   "metadata"    "variants"   
+# }
+```

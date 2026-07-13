@@ -315,13 +315,24 @@ gene_cord_tab <- function(ns) {
 
     tags$hr(class = "my-4"),
 
-    uiOutput(outputId = ns("variant_hotspot_plot")),
+    # Use a navset to hold both the hotspot plot and the new LD analysis
+    bslib::navset_card_tab(
+      id = ns("analysis_tabs"),
+      title = tags$span(
+        class = "fw-bold",
+        "Decision Support: "
+      ),
+      full_screen = TRUE,
+      bslib::nav_panel(
+        "Variant Hotspots",
+        icon = icon("fire"),
+        uiOutput(outputId = ns("variant_hotspot_plot_ui"))
+      )
+    ),
 
-    tags$br(),
-
-    # Center the coordinate entry card
+    # Gff loading card
     bslib::layout_columns(
-      col_widths = c(-3, 6, -3), 
+      col_widths = c(-3, 6, -3),
       coordinate_entry_card(ns)
     )
   )
@@ -353,10 +364,52 @@ gene_cord_tab <- function(ns) {
       bslib::navset_card_tab(
         id = ns("pcv_nav_id"),
         selected = "PCVs for KASP Marker Design",
-        bslib::nav_panel(
-          "PCVs for KASP Marker Design",
-          uiOutput(ns("pcvs_kasp_marker_design_result"))
-        )
+          bslib::nav_panel(
+            "PCVs for KASP Marker Design",
+
+            # Accordion for Metadata Filtering
+            bslib::accordion(
+              id = ns("metadata_filter_accordion"),
+              open = FALSE, 
+              bslib::accordion_panel(
+                "Filter by Sample Metadata",
+                icon = icon("filter"),
+                # Allow selecting multiple metadata columns
+                selectizeInput(
+                  ns("meta_filter_col"),
+                  "Select Metadata Columns to Filter By:",
+                  choices = NULL,
+                  multiple = TRUE,
+                  width = "100%"
+                ),
+                # This UI will be dynamically generated
+                uiOutput(ns("meta_filter_values_ui")),
+                
+                # Put start column and buttons on the same row
+                fluidRow(
+                  column(6, 
+                         numericInput(ns("genotype_start_col_input"), "Genotype Start Column:", value = 11, min = 1, step = 1, width = "100%")
+                  ),
+                  column(3, 
+                         actionButton(ns("apply_meta_filter"), "Apply Filters", icon = icon("check"), class = "btn-primary w-100", style = "margin-top: 25px;")
+                  ),
+                  column(3, 
+                         actionButton(ns("clear_meta_filter"), "Clear Filters", icon = icon("xmark"), class = "btn-outline-secondary w-100", style = "margin-top: 25px;")
+                  )
+                ),
+                tags$hr(),
+                tags$small(textOutput(ns("filtered_sample_count")), class = "text-muted")
+              ),
+              class = "mb-3" # Add some margin below the accordion
+            ),
+            uiOutput(ns("pcvs_kasp_marker_design_result"))
+          ),
+
+          bslib::nav_panel(
+            "Linkage Disequilibrium",
+            icon = icon("link"),
+            uiOutput(ns("ld_analysis_ui"))
+          )
       )
     )
   }
@@ -365,21 +418,33 @@ gene_cord_tab <- function(ns) {
     bslib::card(
       class = "shadow p",
       bslib::card_header(
-        tags$strong("Extract Database Records"),
+        tags$strong("Query Genomic Data for Target Region"),
         class = 'text-center',
         style = "font-size:18px;"
       ),
-      radioButtons(
+      selectInput(
         width = "100%",
         inputId = ns("query_database"),
-        label = "Query Type:",
+        label = "Select genomic view to explore:",
         choices = c(
-          "Query by Coordinates" = "q_entire",
-          "Annotation Summary" = "q_annt"
+          "Genotypes" = "genotypes",
+          "Variants" = "variants",
+          "Annotations" = "annotations",
+          "Annotation Summary" = "annotation_summary"
         ),
-        selected = character(0)
+        selected = "annotations"
       ),
-      uiOutput(outputId = ns("display_qd_choice")),
+      # Conditionally show gene name input only when 'Annotations' is selected
+      conditionalPanel(
+        condition = paste0("input['", ns("query_database"), "'] === 'annotations'"),
+        textInput(
+          ns("query_gene_name"),
+          "Gene Name (Optional)",
+          value = NULL,
+          placeholder = "e.g. Sobic.005G213600",
+          width = "100%"
+        )
+      ),
       bslib::card_footer(
         div(
           style = "display: flex; justify-content: center;",
@@ -398,58 +463,63 @@ gene_cord_tab <- function(ns) {
   }
 
   query_action_card <- function(ns) {
-    bslib::navset_card_underline(
-      id = ns('impact_card'),
-      title = tags$span(
-      class = "fw-bold",
-      "Extract Putative Causal Variants: "
-    ),
-      
-      # ── Filtering by Impact levels ──
-      bslib::nav_panel(
-        "By Impact & AF",
-        icon = icon("filter"),
-        div(
-          class = "p-3",
-          selectInput(
-            ns("impact_level"),
-            "Impact Level",
-            choices = c("HIGH", "MODERATE", "LOW", "MODIFIER"),
-            width = "100%"
-          ),
-          numericInput(
-            ns("af_range"),
-            "Filter by Alternate Allele Frequency",
-            min = 0,
-            max = 1,
-            value = 0.05,
-            width = "100%"
-          ),
-          verbatimTextOutput(ns('alt_freq_range')),
-          div(
-            style = "display: flex; justify-content: center; margin-top: 15px;",
-            actionButton(ns("get_pcv_btn"), tags$b("Extract PCVs"), class = "btn-warning", width = "70%", icon = icon("filter"))
+    bslib::card(
+      class = "shadow p",
+      bslib::card_header(
+        tags$strong("Extract Putative Causal Variants"),
+        class = 'text-center',
+        style = "font-size:18px;"
+      ),
+      bslib::navset_card_underline(
+        id = ns('impact_card'),
+        bslib::nav_panel(
+          "By Impact & AF",
+          icon = icon("filter"),
+          bslib::card_body(
+            selectInput(
+              ns("impact_level"),
+              "Select Impact Level",
+              choices = c("HIGH", "MODERATE", "LOW", "MODIFIER"),
+              selected = "HIGH",
+              multiple = TRUE,
+              width = "100%"
+            ),
+            sliderInput(
+              ns("af_range"),
+              "Minimum Alternate Allele Frequency",
+              min = 0,
+              max = 1,
+              value = 0.05,
+              step = 0.01,
+              width = "100%"
+            )
+           # verbatimTextOutput(outputId = ns("alt_freq_range"))
+          )
+        ),
+        bslib::nav_panel(
+          title = "By Variant ID",
+          icon = icon("list-check"),
+          bslib::card_body(
+            selectizeInput(
+              ns("manual_variant_ids"),
+              "Select Variant IDs",
+              choices = NULL,
+              multiple = TRUE,
+              width = "100%",
+              options = list(placeholder = "Select variants from region...")
+            )
           )
         )
       ),
-      
-      # ── Manual ID search ──
-      bslib::nav_panel(
-        "Select by ID",
-        icon = icon("list-check"),
+      bslib::card_footer(
         div(
-          class = "p-3",
-          selectizeInput(
-            ns("manual_variant_ids"),
-            "Select Variant IDs",
-            choices = NULL,
-            multiple = TRUE,
+          class = "d-grid",
+          actionButton(
+            ns("get_pcv_btn"),
+            tags$b("Extract PCVs"),
+            class = "btn-warning",
             width = "100%",
-            options = list(placeholder = "Select variants from region...")
-          ),
-          div(
-            style = "display: flex; justify-content: center; margin-top: 15px;",
-            actionButton(ns("get_manual_pcv_btn"), tags$b("Extract Selected"), class = "btn-warning", width = "70%", icon = icon("check"))
+            icon = icon("filter")
           )
         )
       )
@@ -648,7 +718,15 @@ gene_cord_tab <- function(ns) {
                   max = 1,
                   step = 0.01,
                   width = "100%"
-                )
+                ),
+                numericInput(
+                  ns("modal_genotype_start_col"),
+                  "Index of First Genotype Column",
+                  value = 11,
+                  min = 1,
+                  step = 1,
+                  width = "100%"
+                ) 
               ),
               bslib::card_footer(
                 class = "bg-transparent border-0",
@@ -783,6 +861,9 @@ gene_cord_tab <- function(ns) {
   )
 }
 
+
+
+
 #' Variant Discovery Server Function
 #'
 #' @description Server logic for variant discovery module.
@@ -805,13 +886,12 @@ mod_variant_discovery_server <- function(id) {
       update_sidebar_buttons("get_db_info")
     })
 
-
     # Gene cordinates
     observeEvent(input$show_gene_cord_btn, {
       updateTabsetPanel(session, "param_header", selected = "gene_cord")
       update_sidebar_buttons("show_gene_cord_btn")
     })
-    
+
     # Query database
     observeEvent(input$show_query_actions_btn, {
       updateTabsetPanel(session, "param_header", selected = "query_tab")
@@ -820,10 +900,22 @@ mod_variant_discovery_server <- function(id) {
 
     # Design KASP Markers (from sidebar)
     observeEvent(input$design_kasp_sidebar_btn, {
-      req(values$query_geno_react)
+      # Evaluate target genotype matrix to isolate metadata-filtered accessions prior to UI rendering
+      active_data <- if (!is.null(values$filtered_pcvs_by_meta)) {
+        values$filtered_pcvs_by_meta
+      } else {
+        values$query_geno_react
+      }
+      req(active_data)
+
       bslib::toggle_sidebar(id = 'db_sidebar', open = 'closed')
       updateTabsetPanel(inputId = 'param_header', selected = "mark_design")
-      updateSelectizeInput(session, inputId = "modal_marker_ID", choices = values$query_geno_react$variant_id, server = TRUE)
+      updateSelectizeInput(
+        session,
+        inputId = "modal_marker_ID",
+        choices = active_data$variant_id,
+        server = TRUE
+      )
       update_sidebar_buttons("design_kasp_sidebar_btn")
     })
 
@@ -833,11 +925,11 @@ mod_variant_discovery_server <- function(id) {
     rv <- reactiveValues(
       conn = NULL,
       connected = FALSE,
-      conn_type = NULL, 
+      conn_type = NULL,
       tables = NULL,
       status_message = "Not connected",
       db_path = NULL,
-      sample_metadata = NULL, 
+      sample_metadata = NULL,
       # Data stores
       variant_impact = NULL,
       sqlite_summary = NULL,
@@ -864,7 +956,7 @@ mod_variant_discovery_server <- function(id) {
 
     observeEvent(input$connect_btn, {
       shinyjs::hide(id = 'impact_card')
-      
+
       # Check if a valid directory was selected
       if (!is.integer(input$connect_btn)) {
         db_path <- shinyFiles::parseDirPath(volumes, input$connect_btn)
@@ -900,7 +992,10 @@ mod_variant_discovery_server <- function(id) {
           error = function(e) {
             shinyWidgets::show_alert(
               title = "Connection Error!",
-              text = paste("Failed to connect or read from database:", e$message),
+              text = paste(
+                "Failed to connect or read from database:",
+                e$message
+              ),
               type = "danger",
               timer = 8000
             )
@@ -912,14 +1007,17 @@ mod_variant_discovery_server <- function(id) {
       }
     })
 
-    
     # Show Modal for PostgreSQL Connection
     observeEvent(input$btn_show_postgres_modal, {
       showModal(
         modalDialog(
           title = div(
             class = "d-flex align-items-center",
-            icon("cloud", class = "text-success me-2", style = "font-size: 1.5rem;"),
+            icon(
+              "cloud",
+              class = "text-success me-2",
+              style = "font-size: 1.5rem;"
+            ),
             tags$b("Connect to Cloud API")
           ),
           size = "m",
@@ -927,7 +1025,9 @@ mod_variant_discovery_server <- function(id) {
           fade = TRUE,
           div(
             class = "mb-4 text-muted",
-            "By default, panGB connects to the public ", tags$b("Curated Sorghum Variant Resource"), " database. ",
+            "By default, panGB connects to the public ",
+            tags$b("Curated Sorghum Variant Resource"),
+            " database. ",
             "If your institution hosts a custom database for another crop, you can specify the endpoint below."
           ),
           radioButtons(
@@ -962,7 +1062,7 @@ mod_variant_discovery_server <- function(id) {
     })
 
     observeEvent(input$btn_connect_postgres, {
-      removeModal() # Close the modal upon submission
+      removeModal()
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
         color = "#27AE60",
@@ -970,20 +1070,16 @@ mod_variant_discovery_server <- function(id) {
       )
       tryCatch(
         {
-          # Determine the target API URL based on user selection
           target_url <- if (input$api_choice == "custom") {
             trimws(input$api_url)
           } else {
-            "http://79.72.72.212:8000" # Using Oracle Cloud endpoint
+            "http://79.72.72.212:8000"
           }
-          
-          # Set endpoint API
-          set_api_url(target_url)
-          # Verify API is alive and get table list via wrapper
-          rv$tables <- pg_list_tables()
 
+          set_api_url(target_url)
+          rv$tables <- pg_list_tables()
           rv$connected <- TRUE
-          rv$sample_metadata <- pg_get_sample_metadata() # Fetch metadata
+          rv$sample_metadata <- pg_get_sample_metadata()
           rv$conn_type <- "postgres"
 
           shinyjs::hide("pre_connection_panel")
@@ -1009,7 +1105,7 @@ mod_variant_discovery_server <- function(id) {
       )
     })
 
-    # 3. Disconnect
+    # Disconnect
     observeEvent(input$disconnect_btn, {
       if (!is.null(rv$conn) && rv$conn_type == "sqlite") {
         disconnect_local_db(rv$conn)
@@ -1020,7 +1116,7 @@ mod_variant_discovery_server <- function(id) {
       rv$tables <- NULL
       rv$db_path <- NULL
       rv$sample_metadata <- NULL
-      
+
       rv$variant_impact <- NULL
       rv$sqlite_summary <- NULL
       rv$variant_count <- NULL
@@ -1057,74 +1153,117 @@ mod_variant_discovery_server <- function(id) {
       req(rv$sample_metadata)
 
       meta <- rv$sample_metadata
+      all_cols <- colnames(meta)
 
-      #! QC's to ensure that all columnames in metadata is not passed to selectinput
-      # Columns to always exclude
-      cols_to_always_exclude <- c("lat", "lon", "latitude", "lib", "sample", "plantname", "pinumber", "array_index", "accession_id", "sample_id")
+      preferred_cols <- c(
+        "countryorigin",
+        "population",
+        "region",
+        "germplasm",
+        "botanicaltype",
+        "kmeans_cluster"
+      )
 
-      candidate_cols <- setdiff(colnames(meta), cols_to_always_exclude)
+      cols_to_exclude <- c(
+        "lat",
+        "lon",
+        "latitude",
+        "lib",
+        "sample",
+        "plantname",
+        "pinumber",
+        "array_index",
+        "accession_id",
+        "sample_id",
+        "isnum",
+        "wasap",
+        "duplicatelibdecision",
+        "filtermissing"
+      )
 
-      # Filter columns to find good candidates for categorization
-      suitable_cols <- Filter(function(col_name) {
-        col_data <- meta[[col_name]]
-        valid_data <- na.omit(col_data)
-        if (length(valid_data) == 0) return(FALSE)
+      actual_preferred <- intersect(preferred_cols, all_cols)
+      candidate_cols <- setdiff(all_cols, c(actual_preferred, cols_to_exclude))
 
-        num_unique <- length(unique(valid_data))
+      heuristic_passed_cols <- Filter(
+        function(col_name) {
+          col_data <- meta[[col_name]]
 
-        # Exclude columns that are likely unique identifiers
-        if (num_unique > 0.9 * length(valid_data) && num_unique > 100) {
+          if (all(is.na(col_data))) {
+            return(FALSE)
+          }
+
+          valid_data <- na.omit(col_data)
+          if (length(valid_data) == 0) {
+            return(FALSE)
+          }
+
+          num_unique <- length(unique(valid_data))
+
+          if (num_unique <= 1) {
+            return(FALSE)
+          }
+
+          if (num_unique > 0.9 * length(valid_data) && num_unique > 100) {
+            return(FALSE)
+          }
+
+          if (is.numeric(col_data)) {
+            return(num_unique < 25)
+          }
+
+          if (is.character(col_data) || is.factor(col_data)) {
+            return(num_unique < 100)
+          }
+
           return(FALSE)
-        }
+        },
+        candidate_cols
+      )
 
-        # For numeric columns, only include if they have few unique values
-        if (is.numeric(col_data)) {
-          return(num_unique < 25)
-        }
-
-        #  For character/factor columns, include if they don't have too many unique values
-        if (is.character(col_data) || is.factor(col_data)) {
-          return(num_unique < 100) 
-        }
-
-        return(FALSE) 
-      }, candidate_cols)
+      suitable_cols <- c(actual_preferred, heuristic_passed_cols)
 
       updateSelectInput(
         session,
         "color_by_col",
         choices = suitable_cols,
-        selected = if ("countryorigin" %in% suitable_cols) "countryorigin" else suitable_cols[1]
+        selected = if ("countryorigin" %in% suitable_cols) {
+          "countryorigin"
+        } else {
+          suitable_cols[1]
+        }
       )
     })
 
-    # Display map output
     output$accession_map <- leaflet::renderLeaflet({
-       req(rv$sample_metadata, input$color_by_col, rv$conn_type)
-       
-       if (rv$conn_type == "sqlite") {
-         query_map_accessions(
-           metadata = rv$sample_metadata,
-           color_by = input$color_by_col
-         )
-       } else {
-         pg_map_accessions(
-           metadata = rv$sample_metadata,
-           color_by = input$color_by_col
-         )
-       }
+      req(rv$sample_metadata, input$color_by_col, rv$conn_type)
+
+      if (rv$conn_type == "sqlite") {
+        query_map_accessions(
+          metadata = rv$sample_metadata,
+          color_by = input$color_by_col
+        )
+      } else {
+        pg_map_accessions(
+          metadata = rv$sample_metadata,
+          color_by = input$color_by_col
+        )
+      }
     })
 
     # ------------------------------------------------------------------
-    # DATABASE INFO TAB 
+    # DATABASE INFO TAB
     # ------------------------------------------------------------------
 
-    # Helper function
-    fetch_data <- function(button_id, task_name, data_slot, sqlite_func_name, pg_func_name) {
+    fetch_data <- function(
+      button_id,
+      task_name,
+      data_slot,
+      sqlite_func_name,
+      pg_func_name
+    ) {
       observeEvent(input[[button_id]], {
         req(rv$connected)
-        
-        # Show a non-blocking toast message 
+
         shinyWidgets::show_toast(
           title = "Fetching Data",
           text = paste("Retrieving", task_name, "in the background..."),
@@ -1132,25 +1271,25 @@ mod_variant_discovery_server <- function(id) {
           timer = 3000,
           position = "bottom-end"
         )
-        
+
         c_type <- rv$conn_type
         d_path <- rv$db_path
-        
-        # Launch data extraction asynchronously
-        p <- future::future({
-          if (c_type == "sqlite") {
-            # DuckDB connections cannot be serialized to future workers
-            # We spin up a temporary connection inside the background worker
-            temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
-            res <- do.call(sqlite_func_name, list(con = temp_con))
-            disconnect_local_db(temp_con, quiet = TRUE)
-            res
-          } else {
-            do.call(pg_func_name, list())
-          }
-        }, seed = TRUE, packages = c("panGenomeBreedr"))
-        
-        # Handle the promise resolution
+
+        p <- future::future(
+          {
+            if (c_type == "sqlite") {
+              temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
+              res <- do.call(sqlite_func_name, list(con = temp_con))
+              disconnect_local_db(temp_con, quiet = TRUE)
+              res
+            } else {
+              do.call(pg_func_name, list())
+            }
+          },
+          seed = TRUE,
+          packages = c("panGenomeBreedr")
+        )
+
         promises::then(
           p,
           onFulfilled = function(res) {
@@ -1164,55 +1303,82 @@ mod_variant_discovery_server <- function(id) {
             )
           },
           onRejected = function(err) {
-            shinyWidgets::show_alert(title = "Failed!", text = err$message, type = "danger")
+            shinyWidgets::show_alert(
+              title = "Failed!",
+              text = err$message,
+              type = "danger"
+            )
           }
         )
       })
     }
 
-    # Fetch Variant Impact Summary
-    fetch_data("get_impact", "Variant Impact Summary", "variant_impact",
-               "variant_impact_summary", "pg_variant_impact_summary")
+    fetch_data(
+      "get_impact",
+      "Variant Impact Summary",
+      "variant_impact",
+      "variant_impact_summary",
+      "pg_variant_impact_summary"
+    )
 
-    # Fetch Variant Statistics
-    fetch_data("get_stats", "Variant Statistics", "variant_stats",
-               "variant_stats", "pg_variant_stats")
+    fetch_data(
+      "get_stats",
+      "Variant Statistics",
+      "variant_stats",
+      "variant_stats",
+      "pg_variant_stats"
+    )
 
-    # Fetch Table Summaries
-    fetch_data("get_summary", "Table Summaries", "sqlite_summary",
-               "summarize_sqlite_tables", "pg_summarize_tables")
+    fetch_data(
+      "get_summary",
+      "Table Summaries",
+      "sqlite_summary",
+      "summarize_sqlite_tables",
+      "pg_summarize_tables"
+    )
 
-    # Fetch Variant Type Counts
-    fetch_data("get_types", "Variant Type Counts", "variant_count",
-               "count_variant_types", "pg_count_variant_types")
+    fetch_data(
+      "get_types",
+      "Variant Type Counts",
+      "variant_count",
+      "count_variant_types",
+      "pg_count_variant_types"
+    )
 
-    # Fetch Table Schema
     observeEvent(input$get_schema, {
       req(rv$connected, input$table_name_lst)
-      
+
       shinyWidgets::show_toast(
         title = "Fetching Data",
-        text = paste("Retrieving schema for", input$table_name_lst, "in the background..."),
+        text = paste(
+          "Retrieving schema for",
+          input$table_name_lst,
+          "in the background..."
+        ),
         type = "info",
         timer = 3000,
         position = "bottom-end"
       )
-      
+
       c_type <- rv$conn_type
       d_path <- rv$db_path
       t_name <- input$table_name_lst
-      
-      p <- future::future({
-        if (c_type == "sqlite") {
-          temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
-          res <- list_table_columns(con = temp_con, table_name = t_name)
-          disconnect_local_db(temp_con, quiet = TRUE)
-          res
-        } else {
-          pg_list_table_columns(table_name = t_name)
-        }
-      }, seed = TRUE, packages = c("panGenomeBreedr"))
-      
+
+      p <- future::future(
+        {
+          if (c_type == "sqlite") {
+            temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
+            res <- list_table_columns(con = temp_con, table_name = t_name)
+            disconnect_local_db(temp_con, quiet = TRUE)
+            res
+          } else {
+            pg_list_table_columns(table_name = t_name)
+          }
+        },
+        seed = TRUE,
+        packages = c("panGenomeBreedr")
+      )
+
       promises::then(
         p,
         onFulfilled = function(res) {
@@ -1226,12 +1392,14 @@ mod_variant_discovery_server <- function(id) {
           )
         },
         onRejected = function(err) {
-          shinyWidgets::show_alert(title = "Failed!", text = err$message, type = "danger")
+          shinyWidgets::show_alert(
+            title = "Failed!",
+            text = err$message,
+            type = "danger"
+          )
         }
       )
     })
-
-   
 
     output$table_impact_id <- reactable::renderReactable({
       req(rv$variant_impact)
@@ -1255,14 +1423,20 @@ mod_variant_discovery_server <- function(id) {
     })
 
     # ------------------------------------------------------------------
-    # QUERY LOGIC 
+    # QUERY LOGIC
     # ------------------------------------------------------------------
     values <- reactiveValues(
       result = NULL,
       query_db_val = NULL,
       query_ann_react = NULL,
       query_geno_react = NULL,
-      last_action = NULL
+      last_action = NULL,
+      regional_variants = NULL,
+      regional_annotations = NULL,
+      regional_genotypes = NULL,
+      ld_results = NULL,
+      filtered_pcvs_by_meta = NULL,
+      geodesic_plot_obj = NULL
     )
 
     show_toast_success <- function(text, type = "success", timer = 3000) {
@@ -1300,9 +1474,311 @@ mod_variant_discovery_server <- function(id) {
       )
     }
 
-  
+    observeEvent(values$result, {
+      req(rv$connected, values$result)
 
-    # Widget for gff3 file setting.
+      values$regional_variants <- NULL
+      values$regional_annotations <- NULL
+      values$regional_genotypes <- NULL
+      values$ld_results <- NULL
+      values$geodesic_plot_obj <- NULL
+
+      shinybusy::show_modal_spinner(
+        spin = "fading-circle",
+        color = "#27AE60",
+        text = "Plotting variants hotspot..."
+      )
+
+      c_type <- rv$conn_type
+      d_path <- rv$db_path
+      chr <- values$result$chrom
+      st <- values$result$start
+      en <- values$result$end
+
+      p <- future::future(
+        {
+          fetch_func <- if (c_type == "sqlite") query_db else pg_query_db
+          con_arg <- if (c_type == "sqlite") {
+            list(con = connect_local_db(d_path, quiet = TRUE))
+          } else {
+            list()
+          }
+          on.exit(
+            if (c_type == "sqlite") {
+              disconnect_local_db(con_arg$con, quiet = TRUE)
+            }
+          )
+
+          list(
+            variants = do.call(
+              fetch_func,
+              c(
+                con_arg,
+                list(table_name = "variants", chrom = chr, start = st, end = en)
+              )
+            ),
+            annotations = do.call(
+              fetch_func,
+              c(
+                con_arg,
+                list(
+                  table_name = "annotations",
+                  chrom = chr,
+                  start = st,
+                  end = en
+                )
+              )
+            ),
+            genotypes = do.call(
+              fetch_func,
+              c(
+                con_arg,
+                list(
+                  table_name = "genotypes",
+                  chrom = chr,
+                  start = st,
+                  end = en
+                )
+              )
+            )
+          )
+        },
+        seed = TRUE,
+        packages = c("panGenomeBreedr")
+      )
+
+      promises::then(
+        p,
+        onFulfilled = function(data) {
+          values$regional_variants <- data$variants
+          values$regional_annotations <- data$annotations
+          values$regional_genotypes <- data$genotypes
+          shinybusy::remove_modal_spinner()
+          shinyWidgets::show_toast("Variant hotspots plotted.", type = "success")
+        },
+        onRejected = function(err) {
+          shinybusy::remove_modal_spinner()
+          shinyWidgets::show_alert(
+            title = "Data Fetch Error",
+            text = err$message,
+            type = "danger"
+          )
+        }
+      )
+    })
+
+    # ------------------------------------------------------------------
+    # METADATA FILTERING LOGIC FOR PCVs
+    # ------------------------------------------------------------------
+
+    observeEvent(values$query_geno_react, {
+      req(rv$sample_metadata)
+      meta_cols <- colnames(rv$sample_metadata)
+      filterable_cols <- setdiff(meta_cols, c("lib", "array_index"))
+      updateSelectizeInput(
+        session,
+        "meta_filter_col",
+        choices = filterable_cols,
+        selected = ""
+      )
+    })
+
+    output$meta_filter_values_ui <- renderUI({
+      req(input$meta_filter_col)
+
+      lapply(input$meta_filter_col, function(col) {
+        unique_values <- sort(unique(na.omit(rv$sample_metadata[[col]])))
+        selectizeInput(
+          ns(paste0("meta_vals_", col)),
+          label = paste("Select values for:", col),
+          choices = unique_values,
+          multiple = TRUE,
+          width = "100%"
+        )
+      })
+    })
+
+    observeEvent(input$apply_meta_filter, {
+      req(values$query_geno_react, rv$sample_metadata, input$meta_filter_col)
+
+      filters_list <- lapply(input$meta_filter_col, function(col) {
+        input[[paste0("meta_vals_", col)]]
+      })
+      names(filters_list) <- input$meta_filter_col
+
+      filters_list <- filters_list[sapply(filters_list, function(x) {
+        !is.null(x) && length(x) > 0
+      })]
+
+      if (length(filters_list) == 0) {
+        shinyWidgets::show_alert(
+          title = "No Filter Values",
+          text = "Please select at least one value to filter by.",
+          type = "warning"
+        )
+        return()
+      }
+
+      shinybusy::show_modal_spinner(
+        spin = "fading-circle",
+        color = "#27AE60",
+        text = "Applying metadata filters..."
+      )
+
+      tryCatch(
+        {
+          genotype_start_col_val <- input$genotype_start_col_input
+
+          result_df <- if (rv$conn_type == "sqlite") {
+            query_geno_by_meta(
+              con = rv$conn,
+              genotype_matrix = values$query_geno_react,
+              genotype_start_col = genotype_start_col_val,
+              filters = filters_list
+            )
+          } else {
+            pg_query_geno_by_meta(
+              genotype_matrix = values$query_geno_react,
+              genotype_start_col = genotype_start_col_val,
+              filters = filters_list
+            )
+          }
+
+          values$filtered_pcvs_by_meta <- result_df
+
+          shinybusy::remove_modal_spinner()
+          show_toast_success(text = paste("Filtered PCVs by metadata."))
+        },
+        error = function(e) {
+          shinybusy::remove_modal_spinner()
+          shinyWidgets::show_alert(
+            title = "Filter Error",
+            text = e$message,
+            type = "danger"
+          )
+          values$filtered_pcvs_by_meta <- NULL
+        }
+      )
+    })
+
+    observeEvent(input$clear_meta_filter, {
+      updateSelectizeInput(session, "meta_filter_col", selected = "")
+      values$filtered_pcvs_by_meta <- NULL
+      show_toast_success(text = "Metadata filters cleared.", type = "info")
+    })
+
+    output$genotype_results_tbl <- reactable::renderReactable({
+      if (!is.null(values$filtered_pcvs_by_meta)) {
+        req(values$filtered_pcvs_by_meta)
+        render_reactable(values$filtered_pcvs_by_meta)
+      } else {
+        req(values$query_geno_react)
+        render_reactable(values$query_geno_react)
+      }
+    })
+
+    output$pcvs_kasp_marker_design_result <- renderUI({
+      req(values$query_geno_react)
+      genotype_results_ui(ns)
+    })
+
+    output$filtered_sample_count <- renderText({
+      if (!is.null(values$filtered_pcvs_by_meta)) {
+        original_samples <- ncol(values$query_geno_react) -
+          length(c(
+            "variant_id",
+            "chrom",
+            "pos",
+            "ref",
+            "alt",
+            "variant_type",
+            "major_allele",
+            "minor_allele",
+            "major_allele_freq",
+            "minor_allele_freq"
+          ))
+        filtered_samples <- ncol(values$filtered_pcvs_by_meta) -
+          length(c(
+            "variant_id",
+            "chrom",
+            "pos",
+            "ref",
+            "alt",
+            "variant_type",
+            "major_allele",
+            "minor_allele",
+            "major_allele_freq",
+            "minor_allele_freq"
+          ))
+        paste0(
+          "Showing ",
+          filtered_samples,
+          " samples (out of ",
+          original_samples,
+          " original samples) after filtering."
+        )
+      } else if (!is.null(values$query_geno_react)) {
+        original_samples <- ncol(values$query_geno_react) -
+          length(c(
+            "variant_id",
+            "chrom",
+            "pos",
+            "ref",
+            "alt",
+            "variant_type",
+            "major_allele",
+            "minor_allele",
+            "major_allele_freq",
+            "minor_allele_freq"
+          ))
+        paste0(
+          "Showing all ",
+          original_samples,
+          " samples. No metadata filters applied."
+        )
+      } else {
+        "No samples to display."
+      }
+    })
+
+    observeEvent(input$pcv_nav_id, {
+      if (input$pcv_nav_id == "Linkage Disequilibrium") {
+        req(values$regional_genotypes)
+        #req(values$query_geno_react)
+
+        if (
+          nrow(values$regional_genotypes) > 0 &&
+            "variant_id" %in% names(values$regional_genotypes)
+        ) {
+          variant_choices <- values$regional_genotypes$variant_id
+
+            pre_selected_variants <- if (
+              !is.null(values$query_geno_react) &&
+                nrow(values$query_geno_react) > 0
+            ) {
+              intersect(values$query_geno_react$variant_id, variant_choices)
+            } else {
+              NULL
+            }
+
+          updateSelectizeInput(
+            session,
+            "target_ids",
+            selected = pre_selected_variants,
+            choices = variant_choices,
+            server = TRUE
+          )
+        } else {
+          updateSelectizeInput(
+            session,
+            "target_ids",
+            choices = character(0),
+            server = TRUE
+          )
+        }
+      }
+    })
+
     observeEvent(input$submit, {
       removeModal()
       req(input$gene_name)
@@ -1348,16 +1824,13 @@ mod_variant_discovery_server <- function(id) {
       )
     })
 
-
-
-    # Widget for manual cordinate setting
     observeEvent(input$set_genocod_btn, {
       req(input$chrom, input$start, input$end, rv$connected)
-      
+
       chr_val <- sprintf("Chr%02d", input$chrom)
       st_val <- input$start
       en_val <- input$end
-      
+
       if (st_val >= en_val) {
         shinyWidgets::show_alert(
           title = "Invalid Range",
@@ -1372,17 +1845,16 @@ mod_variant_discovery_server <- function(id) {
         color = "#27AE60",
         text = "Validating coordinates... Please wait."
       )
-      
+
       c_type <- rv$conn_type
       d_path <- rv$db_path
-      
-      # Use cached stats if available, otherwise fetch
+
       if (!is.null(rv$variant_stats)) {
         v_stats <- rv$variant_stats
         chr_stats <- v_stats[v_stats$chrom == chr_val, ]
-        
+
         shinybusy::remove_modal_spinner()
-        
+
         if (nrow(chr_stats) == 0) {
           shinyWidgets::show_alert(
             title = "Invalid Chromosome",
@@ -1391,19 +1863,21 @@ mod_variant_discovery_server <- function(id) {
           )
           return()
         }
-        
+
         if (en_val < chr_stats$min_pos || st_val > chr_stats$max_pos) {
           shinyWidgets::show_alert(
             title = "Coordinates Out of Bounds",
-            text = sprintf("The specified range is outside the available data for %s (Min: %s, Max: %s).", 
-                           chr_val, 
-                           format(chr_stats$min_pos, big.mark = ","), 
-                           format(chr_stats$max_pos, big.mark = ",")),
+            text = sprintf(
+              "The specified range is outside the available data for %s (Min: %s, Max: %s).",
+              chr_val,
+              format(chr_stats$min_pos, big.mark = ","),
+              format(chr_stats$max_pos, big.mark = ",")
+            ),
             type = "warning"
           )
           return()
         }
-        
+
         values$result <- list(
           chrom = chr_val,
           start = st_val,
@@ -1413,54 +1887,64 @@ mod_variant_discovery_server <- function(id) {
           title = "Gene Coordinates Set",
           text = sprintf(
             "Chromosome: %s | Start: %d | End: %d",
-            chr_val, st_val, en_val
+            chr_val,
+            st_val,
+            en_val
           ),
           type = "success",
           timer = 5000
         )
         shinyjs::show(id = 'impact_card')
-        
       } else {
-        # Fetch stats asynchronously
-        p <- future::future({
-          if (c_type == "sqlite") {
-            temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
-            res <- variant_stats(con = temp_con, include_annotations = FALSE)
-            disconnect_local_db(temp_con, quiet = TRUE)
-            res
-          } else {
-            pg_variant_stats(include_annotations = FALSE)
-          }
-        }, seed = TRUE, packages = c("panGenomeBreedr"))
-        
+        p <- future::future(
+          {
+            if (c_type == "sqlite") {
+              temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
+              res <- variant_stats(con = temp_con, include_annotations = FALSE)
+              disconnect_local_db(temp_con, quiet = TRUE)
+              res
+            } else {
+              pg_variant_stats(include_annotations = FALSE)
+            }
+          },
+          seed = TRUE,
+          packages = c("panGenomeBreedr")
+        )
+
         promises::then(
           p,
           onFulfilled = function(v_stats) {
             shinybusy::remove_modal_spinner()
-            
+
             chr_stats <- v_stats[v_stats$chrom == chr_val, ]
-            
+
             if (nrow(chr_stats) == 0) {
               shinyWidgets::show_alert(
                 title = "Invalid Chromosome",
-                text = paste("Chromosome", chr_val, "not found in the database."),
+                text = paste(
+                  "Chromosome",
+                  chr_val,
+                  "not found in the database."
+                ),
                 type = "warning"
               )
               return()
             }
-            
+
             if (en_val < chr_stats$min_pos || st_val > chr_stats$max_pos) {
               shinyWidgets::show_alert(
                 title = "Coordinates Out of Bounds",
-                text = sprintf("The specified range is outside the available data for %s (Min: %s, Max: %s).", 
-                               chr_val, 
-                               format(chr_stats$min_pos, big.mark = ","), 
-                               format(chr_stats$max_pos, big.mark = ",")),
+                text = sprintf(
+                  "The specified range is outside the available data for %s (Min: %s, Max: %s).",
+                  chr_val,
+                  format(chr_stats$min_pos, big.mark = ","),
+                  format(chr_stats$max_pos, big.mark = ",")
+                ),
                 type = "warning"
               )
               return()
             }
-            
+
             values$result <- list(
               chrom = chr_val,
               start = st_val,
@@ -1470,7 +1954,9 @@ mod_variant_discovery_server <- function(id) {
               title = "Gene Coordinates Set",
               text = sprintf(
                 "Chromosome: %s | Start: %d | End: %d",
-                chr_val, st_val, en_val
+                chr_val,
+                st_val,
+                en_val
               ),
               type = "success",
               timer = 5000
@@ -1489,9 +1975,6 @@ mod_variant_discovery_server <- function(id) {
       }
     })
 
-
-
-    # VALUE BOXES UI
     output$genomic_range_vboxes <- renderUI({
       if (is.null(values$result)) {
         chrom <- "Not Set"
@@ -1502,8 +1985,7 @@ mod_variant_discovery_server <- function(id) {
         chrom <- values$result$chrom
         start_pos <- format(values$result$start, big.mark = ",")
         end_pos <- format(values$result$end, big.mark = ",")
-        
-        # Calculate and format the length of the genomic region
+
         l <- values$result$end - values$result$start + 1
         if (l < 1000) {
           region_len <- paste0(l, " bp")
@@ -1513,12 +1995,11 @@ mod_variant_discovery_server <- function(id) {
           region_len <- paste0(round(l / 1e6, 2), " Mb")
         }
       }
-      
-      # Visual format for value box elements
+
       vbox_title_style <- "font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;"
       vbox_value_style <- "font-size: 1.2rem; font-weight: 700;"
       vbox_icon_style <- "font-size: 1.8rem; opacity: 0.5;"
-      
+
       bslib::layout_columns(
         col_widths = c(3, 3, 3, 3),
         bslib::value_box(
@@ -1556,88 +2037,355 @@ mod_variant_discovery_server <- function(id) {
       )
     })
 
-
-    # Variant Hotspot plot.
-    hotspot_result <- reactive({
-      req(rv$connected, values$result$chrom, values$result$start, values$result$end)
-      
-      # Extract reactive variables to local scope to safely pass to the future
-      c_type <- rv$conn_type
-      d_path <- rv$db_path
-      chr <- values$result$chrom
-      st <- values$result$start
-      en <- values$result$end
-      
-      # Launch data extraction and plotting asynchronously
-      future::future({
-        if (c_type == "sqlite") {
-          temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
-          v_table <- query_db(
-            con = temp_con,
-            table_name = "variants",
-            chrom = chr,
-            start = st,
-            end = en
-          )
-          a_table <- query_db(
-            con = temp_con,
-            table_name = "annotations",
-            chrom = chr,
-            start = st,
-            end = en
-          )
-          disconnect_local_db(temp_con, quiet = TRUE)
-        } else {
-          v_table <- pg_query_db(
-            table_name = "variants",
-            chrom = chr,
-            start = st,
-            end = en
-          )
-          a_table <- pg_query_db(
-            table_name = "annotations",
-            chrom = chr,
-            start = st,
-            end = en
-          )
-        }
-        
-        plot_variant_hotspots(
-          variant_table = v_table,
-          annotation_table = a_table,
-          region_start = st,
-          region_end = en
-        )
-      }, seed = TRUE, packages = c("ggplot2", "scales"))
-    })
-    
-    output$variant_hotspot_plot <- renderUI({
-      req(values$result) # Only depend on coordinates being set so the UI renders instantly
+    output$variant_hotspot_plot_ui <- renderUI({
+      req(values$result)
       bslib::card(
         class = "shadow-sm border-0",
         bslib::card_header(
-          class = "bg-light d-flex align-items-center",
-          icon("chart-line", class = "me-2 text-primary"),
-          tags$strong("Variant Hotspot Plot")
+          class = "d-flex justify-content-between align-items-center",
+          "",
+          downloadButton(
+            ns("download_hotspot_plot"),
+            "Download Plot",
+            class = "btn-sm btn-outline-primary"
+          )
         ),
         bslib::card_body(
-          # Show a spinner while the promise from the future resolves
           shinycssloaders::withSpinner(
-            plotOutput(outputId = ns('hotspot_plot')),
-            type = 4, color = "#27AE60",
-            caption = "Plotting Variant Hotspots..."
+            plotOutput(ns('hotspot_plot'), height = "600px"),
+            type = 4,
+            color = "#27AE60"
           )
         )
       )
     })
 
-    output$hotspot_plot <- renderPlot({
-      req(hotspot_result())
-      # Return the promise directly
-      hotspot_result()
+    hotspot_plot_obj <- reactive({
+      req(values$regional_variants, values$result)
+      plot_variant_hotspots(
+        variant_table = values$regional_variants,
+        annotation_table = values$regional_annotations,
+        region_start = values$result$start,
+        region_end = values$result$end
+      )
     })
-    
-    
+
+    output$hotspot_plot <- renderPlot({
+      hotspot_plot_obj()
+    })
+
+    output$download_hotspot_plot <- downloadHandler(
+      filename = function() {
+        paste0(
+          "hotspot_plot_",
+          values$result$chrom,
+          "_",
+          values$result$start,
+          "-",
+          values$result$end,
+          ".pdf"
+        )
+      },
+      content = function(file) {
+        req(hotspot_plot_obj())
+        ggplot2::ggsave(
+          file,
+          plot = hotspot_plot_obj(),
+          width = 12,
+          height = 8,
+          device = "pdf"
+        )
+      }
+    )
+
+    output$ld_analysis_ui <- renderUI({
+      req(values$result)
+      tagList(
+        bslib::card(
+          class = "shadow-sm",
+          bslib::card_header("LD Analysis Controls"),
+          bslib::card_body(
+            bslib::layout_columns(
+              col_widths = c(3, 3, 3, 3),
+              selectInput(
+                ns("ld_metric"),
+                label = "LD Metric",
+                choices = c("R2", "D_prime"),
+                selected = "R2"
+              ),
+              numericInput(
+                ns("ld_r2_threshold"),
+                label = "Minimum LD Threshold",
+                value = 0.2,
+                min = 0,
+                max = 1,
+                step = 0.1
+              ),
+              numericInput(
+                ns("ld_block_threshold"),
+                label = "Haploblock Threshold",
+                value = 0.8,
+                min = 0,
+                max = 1,
+                step = 0.1
+              ),
+              selectInput(
+                ns("ld_plot_type"),
+                label = "Plot Style",
+                choices = c("Lines" = FALSE, "Filled Area" = TRUE),
+                selected = FALSE
+              )
+            ),
+            bslib::layout_columns(
+              col_widths = c(9, 3),
+              selectizeInput(
+                ns("target_ids"),
+                label = "Target Variants (optional)",
+                choices = NULL,
+                multiple = TRUE,
+                width = "100%"
+              ),
+              selectInput(
+                ns("palette_option"),
+                label = "Color Palette",
+                choices = c(
+                  "magma",
+                  "plasma",
+                  "inferno",
+                  "viridis",
+                  "mako",
+                  "cividis",
+                  "rocket",
+                  "turbo"
+                ),
+                selected = "magma"
+              )
+            )
+          ),
+          bslib::card_footer(
+            actionButton(
+              ns("run_ld_analysis"),
+              "Run LD Analysis & Plot",
+              icon = icon("play"),
+              class = "btn-primary w-100"
+            )
+          )
+        ),
+        uiOutput(ns("ld_results_output_ui"))
+      )
+    })
+
+    ld_analysis_results <- eventReactive(input$run_ld_analysis, {
+      req(values$regional_genotypes)
+      if (nrow(values$regional_genotypes) < 2) {
+        shinyWidgets::show_alert(
+          title = "Not enough variants",
+          text = "LD analysis requires at least two variants in the region.",
+          type = "warning"
+        )
+        return(NULL)
+      }
+      shinybusy::show_modal_spinner(
+        spin = "fading-circle",
+        color = "#27AE60",
+        text = "Computing LD and generating plot..."
+      )
+
+      tryCatch(
+        {
+          target_variants <- if (
+            is.null(input$target_ids) || length(input$target_ids) == 0
+          ) {
+            NULL
+          } else {
+            input$target_ids
+          }
+
+          ld_res <- compute_LD(
+            df = values$regional_genotypes,
+            target_variant_ids = target_variants
+          )
+
+          plot_pkg <- plot_ld_geodesic(
+            ld_df = ld_res,
+            query_db_geno = values$regional_genotypes,
+            query_db_annot = values$regional_annotations,
+            metric = input$ld_metric,
+            target_variant_ids = target_variants,
+            threshold = input$ld_r2_threshold,
+            block_threshold = input$ld_block_threshold,
+            show_variant_labels = TRUE,
+            filled = as.logical(input$ld_plot_type),
+            palette_option = input$palette_option
+          )
+
+          shinybusy::remove_modal_spinner()
+          shinyWidgets::show_toast("LD analysis complete.", type = "success")
+          plot_pkg$ld_res <- ld_res
+          return(plot_pkg)
+        },
+        error = function(e) {
+          shinybusy::remove_modal_spinner()
+          shinyWidgets::show_alert(
+            title = "Analysis Error",
+            text = e$message,
+            type = "error"
+          )
+          return(NULL)
+        }
+      )
+    })
+
+    output$ld_results_output_ui <- renderUI({
+      req(ld_analysis_results())
+      bslib::navset_card_pill(
+        id = ns("ld_output_tabs"),
+        bslib::nav_panel(
+          "Geodesic Plot",
+          downloadButton(
+            ns("download_geodesic_plot"),
+            "Download Plot",
+            class = "btn-sm btn-outline-primary mb-2"
+          ),
+          shinycssloaders::withSpinner(plotOutput(
+            ns("geodesic_plot_output"),
+            height = "600px"
+          ))
+        ),
+        bslib::nav_panel(
+          "Haploblock Table",
+          downloadButton(
+            ns("download_haploblock_table"),
+            "Download as Excel",
+            class = "btn-sm btn-outline-primary mb-2"
+          ),
+          shinycssloaders::withSpinner(reactable::reactableOutput(ns(
+            "haploblock_table_output"
+          )))
+        ),
+        bslib::nav_panel(
+          "LD Results Table",
+          downloadButton(
+            ns("download_ld_table"),
+            "Download as Excel",
+            class = "btn-sm btn-outline-primary mb-2"
+          ),
+          shinycssloaders::withSpinner(reactable::reactableOutput(ns(
+            "ld_table_output"
+          )))
+        )
+      )
+    })
+
+    output$geodesic_plot_output <- renderPlot({
+      results <- ld_analysis_results()
+      req(results, results$plot)
+      results$plot
+    })
+
+    output$haploblock_table_output <- reactable::renderReactable({
+      results <- ld_analysis_results()
+      req(results)
+
+      tbl <- results$table
+      if (!is.null(tbl) && is.data.frame(tbl) && nrow(tbl) > 0) {
+        render_reactable(tbl)
+      } else {
+        reactable::reactable(
+          data.frame(Message = character(0)),
+          language = reactable::reactableLang(
+            noData = "No haploblocks found with the current thresholds."
+          )
+        )
+      }
+    })
+
+    output$ld_table_output <- reactable::renderReactable({
+      results <- ld_analysis_results()
+      req(results, results$ld_res)
+      if (
+        !is.null(results$ld_res) &&
+          is.data.frame(results$ld_res) &&
+          nrow(results$ld_res) > 0
+      ) {
+        render_reactable(results$ld_res)
+      } else {
+        reactable::reactable(
+          data.frame(Message = character(0)),
+          language = reactable::reactableLang(
+            noData = "No LD results to display."
+          )
+        )
+      }
+    })
+
+    output$download_geodesic_plot <- downloadHandler(
+      filename = function() {
+        paste0(
+          "geodesic_plot_",
+          values$result$chrom,
+          "_",
+          values$result$start,
+          "-",
+          values$result$end,
+          ".pdf"
+        )
+      },
+      content = function(file) {
+        req(ld_analysis_results()$plot)
+        ggplot2::ggsave(
+          file,
+          plot = ld_analysis_results()$plot,
+          width = 14,
+          height = 9,
+          device = "pdf"
+        )
+      }
+    )
+
+    output$download_haploblock_table <- downloadHandler(
+      filename = function() {
+        paste0(
+          "haploblock_table_",
+          values$result$chrom,
+          "_",
+          values$result$start,
+          "-",
+          values$result$end,
+          ".xlsx"
+        )
+      },
+      content = function(file) {
+        if (!requireNamespace("writexl", quietly = TRUE)) {
+          shinyWidgets::show_alert(
+            title = "Package Missing",
+            text = "Please install the 'writexl' package to download Excel files.",
+            type = "warning"
+          )
+          return(NULL)
+        }
+        req(ld_analysis_results()$table)
+        writexl::write_xlsx(ld_analysis_results()$table, file)
+      }
+    )
+
+    output$download_ld_table <- downloadHandler(
+      filename = function() {
+        paste0(
+          "ld_results_",
+          values$result$chrom,
+          "_",
+          values$result$start,
+          "-",
+          values$result$end,
+          ".xlsx"
+        )
+      },
+      content = function(file) {
+        req(ld_analysis_results()$ld_res)
+        writexl::write_xlsx(ld_analysis_results()$ld_res, file)
+      }
+    )
 
     observe({
       if (
@@ -1715,53 +2463,62 @@ mod_variant_discovery_server <- function(id) {
 
       tryCatch(
         {
-          if (!is.null(input$table_name) && input$table_name != "") {
-            # Branching Based on DB Type
+          query_type <- input$query_database
+
+          if (query_type %in% c("genotypes", "variants", "annotations")) {
+            values$query_ann_react <- NULL
+            table_to_query <- query_type
+
             if (rv$conn_type == "sqlite") {
               values$query_db_val <- query_db(
                 con = rv$conn,
-                table_name = input$table_name,
+                table_name = table_to_query,
                 chrom = values$result$chrom,
                 start = values$result$start,
                 end = values$result$end,
-                gene_name = if (input$query_gene_name == "") {
-                  NULL
-                } else {
+                gene_name = if (
+                  table_to_query == "annotations" &&
+                    !is.null(input$query_gene_name) &&
+                    input$query_gene_name != ""
+                ) {
                   input$query_gene_name
+                } else {
+                  NULL
                 }
               )
             } else if (rv$conn_type == "postgres") {
               values$query_db_val <- pg_query_db(
-                table_name = input$table_name,
+                table_name = table_to_query,
                 chrom = values$result$chrom,
                 start = values$result$start,
                 end = values$result$end,
-                gene_name = if (input$query_gene_name == "") {
-                  NULL
-                } else {
+                gene_name = if (
+                  table_to_query == "annotations" &&
+                    !is.null(input$query_gene_name) &&
+                    input$query_gene_name != ""
+                ) {
                   input$query_gene_name
+                } else {
+                  NULL
                 }
               )
             }
             values$last_action <- "main_db"
-          }
-
-          if (!is.null(input$table_name_v) && !is.null(input$table_name_a)) {
-            # Branching Based on DB Type
+          } else if (query_type == "annotation_summary") {
+            values$query_db_val <- NULL
             if (rv$conn_type == "sqlite") {
               values$query_ann_react <- query_ann_summary(
                 con = rv$conn,
-                variants_table = input$table_name_v,
-                annotations_table = input$table_name_a,
+                variants_table = "variants",
+                annotations_table = "annotations",
                 chrom = values$result$chrom,
                 start = values$result$start,
                 end = values$result$end
               )
             } else if (rv$conn_type == "postgres") {
-              # Assumes API takes the same params. Adjust if pg_ requires different arguments.
               values$query_ann_react <- pg_query_ann_summary(
-                annotations_table = input$table_name_a,
-                variants_table = input$table_name_v,
+                annotations_table = "annotations",
+                variants_table = "variants",
                 chrom = values$result$chrom,
                 start = values$result$start,
                 end = values$result$end
@@ -1783,9 +2540,14 @@ mod_variant_discovery_server <- function(id) {
             shinybusy::remove_modal_spinner()
             if (!is.null(values$last_action)) {
               if (values$last_action == "annotation_summ") {
-                show_toast_success("Variant Filtered By Annotation Summary")
+                show_toast_success("Annotation Summary Retrieved")
               } else if (values$last_action == "main_db") {
-                show_toast_success(text = paste("Queried by", input$table_name))
+                show_toast_success(
+                  text = paste(
+                    "Queried",
+                    tools::toTitleCase(input$query_database)
+                  )
+                )
               }
             }
           })
@@ -1806,32 +2568,22 @@ mod_variant_discovery_server <- function(id) {
       render_reactable(values$query_ann_react$variant_type_totals)
     })
 
-    observe({
-      req(input$query_database)
-      if (
-        !is.null(input$query_database) && input$query_database == "q_entire"
-      ) {
-        output$query_db_display <- renderUI({
-          reactable::renderReactable({
-            req(values$query_db_val)
-            render_reactable(values$query_db_val)
-          })
-        })
-      } else if (
-        !is.null(input$query_database) && input$query_database == "q_annt"
-      ) {
-        output$query_db_display <- renderUI({
-          annotation_summary_results_ui(ns)
-        })
+    output$query_db_display <- renderUI({
+      req(values$last_action)
+
+      if (values$last_action == "main_db") {
+        req(values$query_db_val)
+        reactable::renderReactable(render_reactable(values$query_db_val))
+      } else if (values$last_action == "annotation_summ") {
+        req(values$query_ann_react)
+        annotation_summary_results_ui(ns)
       }
     })
 
-    # New observer for the sidebar button to get PCVs
     observeEvent(input$get_pcv_sidebar_btn, {
       updateTabsetPanel(session, "param_header", selected = "pcv_tab")
       update_sidebar_buttons("get_pcv_sidebar_btn")
     })
-
 
     # ==========================================================================
     # CAUSAL VARIANTS (PCVs) EXTRACTION
@@ -1859,20 +2611,11 @@ mod_variant_discovery_server <- function(id) {
               outputId = ns("download_excel"),
               label = "Export Genotype Matrix as .xlsx"
             )
-            # ,
-            # shinyWidgets::actionBttn(
-            #   style = "unite",
-            #   color = "success",
-            #   inputId = ns("push_1"),
-            #   label = "Design KASP Markers for PCVs",
-            #   icon = icon("dna")
-            # )
           )
         )
       )
     }
 
-       # Background fetching of available variants for the manual dropdown
     observe({
       req(
         rv$connected,
@@ -1937,241 +2680,210 @@ mod_variant_discovery_server <- function(id) {
       )
     })
 
-    # Execute query for manually selected variant IDs
-    observeEvent(input$get_manual_pcv_btn, {
-      req(input$manual_variant_ids, rv$connected)
-
-      values$query_geno_react <- NULL
-      updateTabsetPanel(session, "param_header", selected = "pcv_tab")
-      updateTabsetPanel(
-        session,
-        "pcv_nav_id",
-        selected = "PCVs for KASP Marker Design"
-      )
-
-      shinybusy::show_modal_spinner(
-        spin = "fading-circle",
-        color = "#27AE60",
-        text = "Extracting Selected Variants... Please wait."
-      )
-
-      tryCatch(
-        {
-          if (rv$conn_type == "sqlite") {
-            values$query_geno_react <- query_genotypes(
-              con = rv$conn,
-              variant_ids = input$manual_variant_ids,
-              meta_data = c("chrom", "pos", "ref", "alt", "variant_type")
-            )
-          } else {
-            values$query_geno_react <- pg_query_genotypes(
-              variant_ids = input$manual_variant_ids,
-              meta_data = c("chrom", "pos", "ref", "alt", "variant_type")
-            )
-          }
-
-          if (
-            !is.null(values$query_geno_react) &&
-              nrow(values$query_geno_react) > 0
-          ) {
-            show_toast_success(
-              text = paste(
-                "Extracted",
-                nrow(values$query_geno_react),
-                "Selected Variants"
-              )
-            )
-          } else {
-            shinyWidgets::show_alert(
-              title = "No Variants Found",
-              text = "Could not extract genotypes for the selected IDs.",
-              type = "warning"
-            )
-          }
-        },
-        error = function(e) {
-          shinyWidgets::show_alert(
-            title = "Error",
-            text = e$message,
-            type = "error"
-          )
-        },
-        finally = {
-          shinybusy::remove_modal_spinner()
-        }
-      )
-
-      output$pcvs_kasp_marker_design_result <- renderUI({
-        genotype_results_ui(ns)
-      })
-    })
-
-    # Branching Based on DB Type
-    query_by_impact_result <- reactive({
-      req(rv$connected, input$impact_level, values$result)
-      if (rv$conn_type == "sqlite") {
-        query_by_impact(
-          con = rv$conn,
-          impact_level = input$impact_level,
-          chrom = values$result$chrom,
-          start = values$result$start,
-          end = values$result$end
-        )
-      } else {
-         pg_query_by_impact(
-          impact_level = input$impact_level,
-          chrom = values$result$chrom,
-          start = values$result$start,
-          end = values$result$end
-        )
-      }
-    })
-
-    # Branching Based on DB Type
-    hold_genotypes_impact <- reactive({
-      req(query_by_impact_result(), rv$connected)
-      if (rv$conn_type == "sqlite") {
-        query_genotypes(
-          con = rv$conn,
-          variant_ids = query_by_impact_result()$variant_id,
-          meta_data = c("chrom", "pos", "ref", "alt", "variant_type")
-        )
-      } else {
-         pg_query_genotypes(
-          variant_ids = query_by_impact_result()$variant_id,
-          meta_data = c("chrom", "pos", "ref", "alt", "variant_type")
-        )
-      }
-    })
-
-
-    calc_af_result <- reactive({
-      # Require the genotype matrix (cached from either SQLite or PG)
-      gt_data <- hold_genotypes_impact()
-      req(gt_data)
-      # Calc aternate allele frequency
-      tryCatch({
-        if (rv$conn_type == "sqlite") {
-          alt_af_df <- calc_af(
-            gt = gt_data,
-            variant_id_col = 'variant_id',
-            chrom_col = 'chrom',
-            pos_col = 'pos'
-          )
-        } else {
-          alt_af_df <- pg_calc_af(
-            gt = gt_data,
-            variant_id_col = 'variant_id',
-            chrom_col = 'chrom',
-            pos_col = 'pos'
-          )
-        }
-        
-        # Extract the range for the UI summary
-        alt_af_range <- range(alt_af_df$alt_af, na.rm = TRUE)
-
-        if (all(!is.finite(alt_af_range))) {
-          return(NULL)
-        }
-        
-        return(alt_af_range)
-        
-      }, error = function(e) {
-        message("Error in AF calculation: ", e$message)
-        return(NULL)
-      })
-    })
-
-
-    output$alt_freq_range <- renderPrint({
-      req(calc_af_result())
-      alt_af_range <- calc_af_result()
-      if (is.null(alt_af_range) || length(alt_af_range) != 2) {
-        cat(
-          "Note: Alternate allele frequency for this impact level is unavailable."
-        )
-      } else {
-        cat(
-          "Alternate allele frequency range:",
-          alt_af_range[1],
-          "-",
-          alt_af_range[2]
-        )
-      }
-    })
-
-    # Filter Logic - Assuming local computation is fine once fetched, or pg_filter
-    query_by_alf_result <- reactive({
-      req(input$af_range, hold_genotypes_impact())
-      if (rv$conn_type == "sqlite") {
-        filter_by_af(gt = hold_genotypes_impact(), min_af = input$af_range)
-      } else {
-        # Assuming you pipe the genotypes into the pg wrapper as done in your test script
-         pg_filter_by_af(
-          gt = hold_genotypes_impact(),
-          min_af = input$af_range
-        )
-      }
-    })
-
     observeEvent(input$get_pcv_btn, {
+      req(rv$connected)
       values$query_geno_react <- NULL
-      req(query_by_alf_result(), rv$connected)
-      
+      values$filtered_pcvs_by_meta <- NULL
+
       updateTabsetPanel(session, "param_header", selected = "pcv_tab")
-      
       updateTabsetPanel(
         session,
         inputId = "pcv_nav_id",
         selected = "PCVs for KASP Marker Design"
       )
 
-      tryCatch(
-        {
-          # Eliminate the redundant database query by simply subsetting the data already in memory
-          full_gt <- hold_genotypes_impact()
-          filtered_ids <- query_by_alf_result()$variant_id
-          values$query_geno_react <- full_gt[full_gt$variant_id %in% filtered_ids, ]
-          
-          if (!is.null(values$query_geno_react) && nrow(values$query_geno_react) > 0) {
-            show_toast_success(
-              text = paste(
-                "Found",
-                nrow(values$query_geno_react),
-                "Putative Causal Variants"
+      if (input$impact_card == "By Impact & AF") {
+        shinybusy::show_modal_spinner(
+          spin = "fading-circle",
+          color = "#27AE60",
+          text = "Filtering by Impact and AF..."
+        )
+        tryCatch(
+          {
+            req(input$impact_level, values$result, input$af_range)
+
+            impact_result <- if (rv$conn_type == "sqlite") {
+              query_by_impact(
+                con = rv$conn,
+                impact_level = input$impact_level,
+                chrom = values$result$chrom,
+                start = values$result$start,
+                end = values$result$end
               )
-            )
-          } else {
+            } else {
+              pg_query_by_impact(
+                impact_level = input$impact_level,
+                chrom = values$result$chrom,
+                start = values$result$start,
+                end = values$result$end
+              )
+            }
+            req(impact_result)
+
+            full_gt <- if (rv$conn_type == "sqlite") {
+              query_genotypes(
+                con = rv$conn,
+                variant_ids = impact_result$variant_id,
+                meta_data = c(
+                  "chrom",
+                  "pos",
+                  "ref",
+                  "alt",
+                  "variant_type",
+                  'major_allele',
+                  "minor_allele",
+                  "major_allele_freq",
+                  "minor_allele_freq"
+                )
+              )
+            } else {
+              pg_query_genotypes(
+                variant_ids = impact_result$variant_id,
+                meta_data = c(
+                  "chrom",
+                  "pos",
+                  "ref",
+                  "alt",
+                  "variant_type",
+                  'major_allele',
+                  "minor_allele",
+                  "major_allele_freq",
+                  "minor_allele_freq"
+                )
+              )
+            }
+            req(full_gt)
+
+            filtered_af_result <- if (rv$conn_type == "sqlite") {
+              filter_by_af(gt = full_gt, min_af = input$af_range)
+            } else {
+              pg_filter_by_af(
+                gt = full_gt,
+                min_af = input$af_range
+              )
+            }
+            req(filtered_af_result)
+
+            filtered_ids <- filtered_af_result$variant_id
+            values$query_geno_react <- full_gt[
+              full_gt$variant_id %in% filtered_ids,
+            ]
+
+            if (
+              !is.null(values$query_geno_react) &&
+                nrow(values$query_geno_react) > 0
+            ) {
+              show_toast_success(
+                text = paste(
+                  "Found",
+                  nrow(values$query_geno_react),
+                  "Putative Causal Variants"
+                )
+              )
+            } else {
+              shinyWidgets::show_alert(
+                title = "No Variants Found",
+                text = paste(
+                  "No variants found with MAF >=",
+                  input$af_range,
+                  ". Try a lower threshold."
+                ),
+                type = "warning",
+                timer = 5000
+              )
+            }
+          },
+          error = function(e) {
             shinyWidgets::show_alert(
-              title = "No Variants Found",
-              text = paste(
-                "No putative causal variants found at MAF threshold of",
-                input$af_range,
-                ". Try lowering the MAF threshold."
-              ),
-              type = "warning",
-              timer = 5000
+              title = "Error",
+              text = e$message,
+              type = "error"
             )
+          },
+          finally = {
+            shinybusy::remove_modal_spinner()
           }
-        },
-        error = function(e) {
-          shinyWidgets::show_alert(
-            title = "Error",
-            text = e$message,
-            type = "error"
-          )
-        }
-      )
+        )
+      } else if (input$impact_card == "By Variant ID") {
+        req(input$manual_variant_ids)
+        shinybusy::show_modal_spinner(
+          spin = "fading-circle",
+          color = "#27AE60",
+          text = "Extracting Selected Variants..."
+        )
+        tryCatch(
+          {
+            if (rv$conn_type == "sqlite") {
+              values$query_geno_react <- query_genotypes(
+                con = rv$conn,
+                variant_ids = input$manual_variant_ids,
+                meta_data = c(
+                  "chrom",
+                  "pos",
+                  "ref",
+                  "alt",
+                  "variant_type",
+                  "major_allele",
+                  "minor_allele",
+                  "major_allele_freq",
+                  "minor_allele_freq"
+                )
+              )
+            } else {
+              values$query_geno_react <- pg_query_genotypes(
+                variant_ids = input$manual_variant_ids,
+                meta_data = c(
+                  "chrom",
+                  "pos",
+                  "ref",
+                  "alt",
+                  "variant_type",
+                  "major_allele",
+                  "minor_allele",
+                  "major_allele_freq",
+                  "minor_allele_freq"
+                )
+              )
+            }
+
+            if (
+              !is.null(values$query_geno_react) &&
+                nrow(values$query_geno_react) > 0
+            ) {
+              show_toast_success(
+                text = paste(
+                  "Extracted",
+                  nrow(values$query_geno_react),
+                  "Selected Variants"
+                )
+              )
+            } else {
+              shinyWidgets::show_alert(
+                title = "No Variants Found",
+                text = "Could not extract genotypes for the selected IDs.",
+                type = "warning"
+              )
+            }
+          },
+          error = function(e) {
+            shinyWidgets::show_alert(
+              title = "Error",
+              text = e$message,
+              type = "error"
+            )
+          },
+          finally = {
+            shinybusy::remove_modal_spinner()
+          }
+        )
+      }
+
       output$pcvs_kasp_marker_design_result <- renderUI({
         genotype_results_ui(ns)
       })
     })
 
-    output$genotype_results_tbl <- reactable::renderReactable({
-      req(values$query_geno_react)
-      render_reactable(values$query_geno_react)
-    })
-
+    # Evaluate target genotype matrix to compile final output matrix
     output$download_excel <- downloadHandler(
       filename = function() {
         paste0(
@@ -2181,10 +2893,14 @@ mod_variant_discovery_server <- function(id) {
         )
       },
       content = function(file) {
-        writexl::write_xlsx(values$query_geno_react, path = file)
+        active_data <- if (!is.null(values$filtered_pcvs_by_meta)) {
+          values$filtered_pcvs_by_meta
+        } else {
+          values$query_geno_react
+        }
+        writexl::write_xlsx(active_data, path = file)
       }
     )
-
 
     observeEvent(input$go_back, {
       updateTabsetPanel(session, inputId = 'param_header', selected = 'pcv_tab')
@@ -2193,15 +2909,22 @@ mod_variant_discovery_server <- function(id) {
     })
 
     # ==========================================================================
-    # KASP MARKER DESIGN LOGIC 
+    # KASP MARKER DESIGN LOGIC
     # ==========================================================================
 
     kasp_des.result <- reactiveVal(NULL)
     kasp_des.plot <- reactiveVal(NULL)
 
     observeEvent(input$modal_run_but, {
+      # Isolate target alleles for locus assay development
+      active_data <- if (!is.null(values$filtered_pcvs_by_meta)) {
+        values$filtered_pcvs_by_meta
+      } else {
+        values$query_geno_react
+      }
+
       req(
-        values$query_geno_react,
+        active_data,
         input$modal_genome_file$datapath,
         input$modal_maf,
         input$modal_marker_ID
@@ -2215,25 +2938,25 @@ mod_variant_discovery_server <- function(id) {
       list_plots <- list()
       tryCatch(
         {
-          gt_cols <- colnames(values$query_geno_react)
+          gt_cols <- colnames(active_data)
           id_col <- gt_cols[grep("id", gt_cols, ignore.case = TRUE)[1]]
           chrom_col <- gt_cols[grep("chro", gt_cols, ignore.case = TRUE)[1]]
           pos_col <- gt_cols[grep("pos", gt_cols, ignore.case = TRUE)[1]]
           ref_col <- gt_cols[grep("ref", gt_cols, ignore.case = TRUE)[1]]
           alt_col <- gt_cols[grep("alt", gt_cols, ignore.case = TRUE)[1]]
-          geno_start <- 7
-          unique_chr <- unique(values$query_geno_react[[chrom_col]])
+          geno_start <- 11
+          unique_chr <- unique(active_data[[chrom_col]])
 
           for (marker in input$modal_marker_ID) {
             result_data <- kasp_marker_design(
               vcf_file = NULL,
-              gt_df = values$query_geno_react,
+              gt_df = active_data,
               variant_id_col = id_col,
               chrom_col = chrom_col,
               pos_col = pos_col,
               ref_al_col = ref_col,
               alt_al_col = alt_col,
-              geno_start = geno_start,
+              geno_start = input$modal_genotype_start_col,
               marker_ID = marker,
               chr = unique_chr,
               genome_file = input$modal_genome_file$datapath,

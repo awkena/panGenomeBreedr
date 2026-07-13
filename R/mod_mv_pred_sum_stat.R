@@ -83,7 +83,10 @@ mod_mv_pred_sum_stat_ui <- function(id) {
                 selectInput(
                   inputId = ns("pred_col_id"),
                   label = "Positive Control Colors",
-                  choices = grDevices::colors(),
+                  choices = c(
+                          "firebrick3", "cornflowerblue", "beige",
+                          setdiff(grDevices::colors(), c("firebrick3", "cornflowerblue", "beige"))
+                        ),
                   selected = c("firebrick3", "cornflowerblue", "beige"),
                   multiple = TRUE
                 ),

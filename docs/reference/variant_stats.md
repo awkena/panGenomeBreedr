@@ -1,8 +1,6 @@
 # Get variant statistics from the database (local)
 
-Computes summary statistics for variants across chromosomes, including
-total counts, genomic ranges (minimum and maximum positions), and
-optionally distinct annotated variant counts.
+Get variant statistics from the database (local)
 
 ## Usage
 
@@ -33,13 +31,17 @@ if (FALSE) { # \dontrun{
 # Load the package
 library(panGenomeBreedr)
 
-# Connect to the database
+# Define the path to the curated_sorghum_variant_resource folder
+my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
+
+# Establish the connection
 con <- connect_local_db(folder_path = "~/Desktop/curated_sorghum_variant_resource")
 
 # Get variant statistics across all chromosomes
 stats_df <- variant_stats(con, include_annotations = TRUE)
 
-# Safely close the connection
+# Disconnect at the end of your session
 disconnect_local_db(con)
+
 } # }
 ```

@@ -1,8 +1,6 @@
-# Filter extracted genotypes based on alternate allele frequency (online)
+# Filter genotypes by allele frequency (online)
 
-Calculates allele frequencies for a genotype matrix and filters variants
-based on a user-defined range locally on your machine. Useful for
-removing monomorphic or rare variants from pangenome queries.
+Filter genotypes by allele frequency (online)
 
 ## Usage
 
@@ -21,29 +19,33 @@ pg_filter_by_af(
 
 - gt:
 
-  A data frame or matrix of variants x samples, typically the output
-  from
-  [`pg_query_db`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_db.md).
+  A data frame containing genotype calls queried from the genotypes
+  table.
 
 - variant_id_col:
 
-  Character. Column name for variant IDs. Default is 'variant_id'.
+  Character. The column name in `gt` matching unique variant
+  identifiers. Defaults to `"variant_id"`.
 
 - chrom_col:
 
-  Character. Optional column name for chromosome.
+  Character. The column name in `gt` matching chromosome names. Defaults
+  to `"chrom"`.
 
 - pos_col:
 
-  Character. Optional column name for genomic position.
+  Character. The column name in `gt` matching genomic positions.
+  Defaults to `"pos"`.
 
 - min_af:
 
-  Numeric. Minimum alternate allele frequency threshold (0-1).
+  Numeric. Minimum alternate allele frequency threshold for filtering.
+  Must fall between 0 and 1. Defaults to `0`.
 
 - max_af:
 
-  Numeric. Maximum alternate allele frequency threshold (0-1).
+  Numeric. Maximum alternate allele frequency threshold for filtering.
+  Must fall between 0 and 1. Defaults to `1`.
 
 ## Value
 
@@ -56,8 +58,7 @@ variants that passed the filter.
 if (FALSE) { # \dontrun{
 library(panGenomeBreedr)
 
-# Query region via the API and pipe into filter to remove rare variants (MAF < 0.05)
-# Notice: No database connection needed!
+# Query genotypes table and filter to remove rare variants (MAF < 0.05)
 filtered_vars <- pg_query_db(
   table_name = "genotypes",
   chrom = "Chr05",

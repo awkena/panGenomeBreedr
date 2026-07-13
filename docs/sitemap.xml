@@ -8,6 +8,7 @@
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/calc_af.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/calc_rpp_bc.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/calc_rpp_exp.html</loc></url>
+<url><loc>https://awkena.github.io/panGenomeBreedr/reference/compute_LD.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/connect_local_db.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/count_variant_types.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/cross_qc_annotate.html</loc></url>
@@ -55,16 +56,16 @@
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_list_table_columns.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_list_tables.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_map_accessions.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_plot_trait_association.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_query_ann_summary.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_af.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_impact.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_metadata.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_query_db.html</loc></url>
+<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_query_geno_by_meta.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_query_genotypes.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_summarize_tables.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_variant_impact_summary.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_variant_stats.html</loc></url>
+<url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_ld_geodesic.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_plate.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pred_status.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pred_summary.html</loc></url>
@@ -73,8 +74,8 @@
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/query_ann_summary.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/query_by_af.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/query_by_impact.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/query_by_metadata.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/query_db.html</loc></url>
+<url><loc>https://awkena.github.io/panGenomeBreedr/reference/query_geno_by_meta.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/query_genotypes.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/query_map_accessions.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/read_kasp_csv.html</loc></url>

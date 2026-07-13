@@ -1,4 +1,4 @@
-# Name and row count for each table in the database (local)
+# Get table names and row counts from the database (local)
 
 Queries the active local database to instantly retrieve a list of all
 mounted tables along with their respective total row counts.
@@ -28,14 +28,16 @@ if (FALSE) { # \dontrun{
 # Load the package
 library(panGenomeBreedr)
 
-# Connect to the local database
+# Define the path to the curated_sorghum_variant_resource folder
 my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
+
+# Establish the connection
 con <- connect_local_db(folder_path = my_db_folder)
 
 # Get row counts for all mounted Parquet views
 database_summary <- summarize_sqlite_tables(con)
 
-# Safely close the connection
+# Disconnect at the end of your session
 disconnect_local_db(con)
 } # }
 ```

@@ -1,8 +1,6 @@
 # Extract variants based on functional mutation impact (online)
 
-This function connects to the public panGenomeBreedr API to retrieve
-variants filtered by snpEff impact levels (HIGH, MODERATE, etc.) and
-optional genomic coordinates.
+Extract variants based on functional mutation impact (online)
 
 ## Usage
 
@@ -19,18 +17,42 @@ pg_query_by_impact(
 
 - impact_level:
 
-  Character vector. One or more of "HIGH", "MODERATE", "LOW",
-  "MODIFIER". Defaults to all four.
+  A character vector specifying the variant impact types to retain.
+  Allowed classifications are `"HIGH"`, `"MODERATE"`, `"LOW"`, and
+  `"MODIFIER"`.
 
 - chrom:
 
-  Character. Optional chromosome name (e.g., "Chr05").
+  A character value specifying the chromosome name (e.g., `"Chr05"`).
 
-- start, end:
+- start:
 
-  Numeric. Optional genomic start and end positions.
+  Integer. Start coordinate for the genomic region.
+
+- end:
+
+  Integer. End coordinate for the genomic region.
 
 ## Value
 
 A data frame containing variant information and associated functional
 annotations.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# Load the package
+library(panGenomeBreedr)
+
+# Query for high-impact variants in a specific genomic region
+high_impact_vars <- pg_query_by_impact(
+  impact_level = "HIGH",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403
+)
+print(high_impact_vars)
+
+} # }
+```

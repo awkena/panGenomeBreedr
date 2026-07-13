@@ -1,8 +1,6 @@
 # Count the distribution of variant types in the database (online)
 
-This function connects to the public panGenomeBreedr API to perform a
-server-side aggregation, counting the occurrences of different variant
-types (e.g., SNP, INDEL) stored in the database.
+Count the distribution of variant types in the database (online)
 
 ## Usage
 
@@ -20,3 +18,17 @@ pg_count_variant_types(variants_table = "variants")
 ## Value
 
 A data frame with two columns: `variant_type` and `n`.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# Load the package
+library(panGenomeBreedr)
+
+# Count the distribution of variant types in the online database
+pg_count_variant_types_result <- pg_count_variant_types()
+print(pg_count_variant_types_result)
+} # }
+
+```
