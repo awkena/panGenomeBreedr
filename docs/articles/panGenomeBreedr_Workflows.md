@@ -176,7 +176,7 @@ mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource",
 # Establish a virtual connection to the offline database engine
 con_demo <- connect_local_db(folder_path = mini_folder)
 #> duckdb is keeping downloaded extensions in a temporary directory:
-#> ℹ /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//RtmpMqMRrK/duckdb/extensions
+#> ℹ /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//Rtmpsp2ygH/duckdb/extensions
 #> This is removed when the R session ends, so extensions are re-downloaded each session.
 #> ℹ To keep them, point `options(duckdb.extension_directory =)` or the `DUCKDB_EXTENSION_DIRECTORY` environment variable at a permanent path.
 #> Successfully connected to the local offline database! Virtual views mounted safely.
