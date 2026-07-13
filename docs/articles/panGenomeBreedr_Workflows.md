@@ -175,6 +175,10 @@ mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource",
 
 # Establish a virtual connection to the offline database engine
 con_demo <- connect_local_db(folder_path = mini_folder)
+#> duckdb is keeping downloaded extensions in a temporary directory:
+#> ℹ /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//Rtmpsp2ygH/duckdb/extensions
+#> This is removed when the R session ends, so extensions are re-downloaded each session.
+#> ℹ To keep them, point `options(duckdb.extension_directory =)` or the `DUCKDB_EXTENSION_DIRECTORY` environment variable at a permanent path.
 #> Successfully connected to the local offline database! Virtual views mounted safely.
 
 # Query VCF genotypes within the genomic range: Chr05:75,104,537 - 75,106,403
@@ -1451,21 +1455,21 @@ UpSetR::upset(foreground_matrix,
 #> ℹ Please use tidy evaluation idioms with `aes()`.
 #> ℹ See also `vignette("ggplot2-in-packages")` for more information.
 #> ℹ The deprecated feature was likely used in the UpSetR package.
-#>   Please report the issue to the authors.
+#>   Please report the issue at <https://github.com/hms-dbmi/UpSetR/issues>.
 #> This warning is displayed once per session.
 #> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
 #> generated.
 #> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
 #> ℹ Please use `linewidth` instead.
 #> ℹ The deprecated feature was likely used in the UpSetR package.
-#>   Please report the issue to the authors.
+#>   Please report the issue at <https://github.com/hms-dbmi/UpSetR/issues>.
 #> This warning is displayed once per session.
 #> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
 #> generated.
 #> Warning: The `size` argument of `element_line()` is deprecated as of ggplot2 3.4.0.
 #> ℹ Please use the `linewidth` argument instead.
 #> ℹ The deprecated feature was likely used in the UpSetR package.
-#>   Please report the issue to the authors.
+#>   Please report the issue at <https://github.com/hms-dbmi/UpSetR/issues>.
 #> This warning is displayed once per session.
 #> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
 #> generated.

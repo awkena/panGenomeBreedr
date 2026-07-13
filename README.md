@@ -108,7 +108,7 @@ if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 
 # Define required Bioconductor packages
 bioc_packages <- c("rtracklayer", "Rsamtools", "msa", "IRanges",
-                   "GenomicRanges", "BSgenome", "Biostrings")
+                   "GenomicRanges", "BSgenome", "Biostrings", "GenomeInfoDb")
 
 # Install any missing Bioconductor packages
 for (pkg in bioc_packages) {
