@@ -1073,7 +1073,7 @@ mod_variant_discovery_server <- function(id) {
           target_url <- if (input$api_choice == "custom") {
             trimws(input$api_url)
           } else {
-            "http://79.72.72.212:8000"
+            "http://132.145.48.5:8000"
           }
 
           set_api_url(target_url)
