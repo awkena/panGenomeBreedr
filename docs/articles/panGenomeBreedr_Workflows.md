@@ -175,10 +175,11 @@ mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource",
 
 # Establish a virtual connection to the offline database engine
 con_demo <- connect_local_db(folder_path = mini_folder)
-#> duckdb is keeping downloaded extensions in a temporary directory:
-#> ℹ /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//Rtmpsp2ygH/duckdb/extensions
-#> This is removed when the R session ends, so extensions are re-downloaded each session.
-#> ℹ To keep them, point `options(duckdb.extension_directory =)` or the `DUCKDB_EXTENSION_DIRECTORY` environment variable at a permanent path.
+#> duckdb is storing downloaded extensions and secrets under ~/.duckdb:
+#> ℹ /Users/israeltawiahtetteh/.duckdb
+#> This persists across sessions and is shared with the DuckDB CLI and other clients.
+#> ℹ Run duckdb(shared_home = FALSE) to use a temporary directory instead.
+#> ℹ See ?duckdb_storage for details and alternatives.
 #> Successfully connected to the local offline database! Virtual views mounted safely.
 
 # Query VCF genotypes within the genomic range: Chr05:75,104,537 - 75,106,403
@@ -310,6 +311,11 @@ mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource",
 
 # Establish a virtual connection to the offline database engine
 con_demo <- connect_local_db(folder_path = mini_folder)
+#> duckdb is storing downloaded extensions and secrets under ~/.duckdb:
+#> ℹ /Users/israeltawiahtetteh/.duckdb
+#> This persists across sessions and is shared with the DuckDB CLI and other clients.
+#> ℹ Run duckdb(shared_home = FALSE) to use a temporary directory instead.
+#> ℹ See ?duckdb_storage for details and alternatives.
 #> Successfully connected to the local offline database! Virtual views mounted safely.
 
 # Run functional annotation summary for region Chr05:75,104,537 - 75,106,403
@@ -377,6 +383,11 @@ mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource",
 
 # Establish a virtual connection to the offline database engine
 con_demo <- connect_local_db(folder_path = mini_folder)
+#> duckdb is storing downloaded extensions and secrets under ~/.duckdb:
+#> ℹ /Users/israeltawiahtetteh/.duckdb
+#> This persists across sessions and is shared with the DuckDB CLI and other clients.
+#> ℹ Run duckdb(shared_home = FALSE) to use a temporary directory instead.
+#> ℹ See ?duckdb_storage for details and alternatives.
 #> Successfully connected to the local offline database! Virtual views mounted safely.
 
 # Extract HIGH impact functional variants within the target Chr05 window
@@ -430,6 +441,11 @@ mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource",
 
 # Establish a virtual connection to the offline database engine
 con_demo <- connect_local_db(folder_path = mini_folder)
+#> duckdb is storing downloaded extensions and secrets under ~/.duckdb:
+#> ℹ /Users/israeltawiahtetteh/.duckdb
+#> This persists across sessions and is shared with the DuckDB CLI and other clients.
+#> ℹ Run duckdb(shared_home = FALSE) to use a temporary directory instead.
+#> ℹ See ?duckdb_storage for details and alternatives.
 #> Successfully connected to the local offline database! Virtual views mounted safely.
 
 # Extract genotype data for all HIGH impact variants and filter by alternate allele frequency
@@ -462,6 +478,11 @@ mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource",
                            
 # Establish a virtual connection to the offline database engine
 con_demo <- connect_local_db(folder_path = mini_folder)
+#> duckdb is storing downloaded extensions and secrets under ~/.duckdb:
+#> ℹ /Users/israeltawiahtetteh/.duckdb
+#> This persists across sessions and is shared with the DuckDB CLI and other clients.
+#> ℹ Run duckdb(shared_home = FALSE) to use a temporary directory instead.
+#> ℹ See ?duckdb_storage for details and alternatives.
 #> Successfully connected to the local offline database! Virtual views mounted safely.
 
 # Get genotype data for HIGH impact variants that passed allele filter
@@ -654,7 +675,7 @@ KASP marker QC and validation.
 
 `panGB` offers customizable functions for KASP marker validation through
 hypothesis testing. These functions allow users to easily perform the
-following tasks:  
+following tasks:\
 - Import raw or polished KASP genotyping results files (.csv) into R.
 
 - Process imported data and assign FAM and HEX fluorescence colors for
@@ -1012,7 +1033,7 @@ function can be used to filter out all monomorphic loci from the data.
 
 Since our imported Agriplex data has informative SNP IDs, we can use the
 [`parse_marker_ns()`](https://awkena.github.io/panGenomeBreedr/reference/parse_marker_ns.md)
-function to generate a map file (Table 8) for the markers.  
+function to generate a map file (Table 8) for the markers.\
 The generated map file is then passed to the
 [`proc_kasp()`](https://awkena.github.io/panGenomeBreedr/reference/proc_kasp.md)
 function to order the SNP markers according to their chromosome numbers
@@ -1191,7 +1212,7 @@ argument.
 
 The `snp_ids, chr, and chr_pos` arguments can be used to specify the
 column names for marker IDs, chromosome number and positions in the
-attached map file.  
+attached map file.\
 The `trait_pos` argument was used to specify the position of the target
 locus (*stg5*) on chromosome one. Users can specify the positions of
 multiple target loci as components of a list object for annotation.

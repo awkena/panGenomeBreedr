@@ -141,19 +141,19 @@ This will open the panGB application in your default web browser.
 
 `panGB` currently provides functionality for the following key tasks:
 
-1.  **Variant discovery**  
+1.  **Variant discovery**\
     Identify variants within candidate genes or any user-defined genomic
     interval using *snpEff*-annotated VCF files.
 
-2.  **KASP marker design**  
+2.  **KASP marker design**\
     Generate allele-specific markers targeting either causal variants or
     any variant of interest.
 
-3.  **Marker validation and QC visualization**  
+3.  **Marker validation and QC visualization**\
     Produce quality control plots and perform hypothesis-driven
     evaluations to assess marker reliability.
 
-4.  **Decision-support for trait introgression**  
+4.  **Decision-support for trait introgression**\
     Guide marker-assisted backcrossing by profiling foreground,
     background, and precision-introgression markers to support selection
     decisions.
