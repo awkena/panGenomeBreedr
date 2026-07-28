@@ -55,9 +55,9 @@ get_api_url <- function() {
     url <- Sys.getenv("PANGENOME_API_URL")
   }
 
-  # If nothing is set, use the sorghum AWS Server
+  # If nothing is set, use the sorghum Oracle Server
   if (is.null(url) || url == "") {
-    url <- "http://132.145.48.5:8000"
+    url <- "http://132.145.61.28:8000"
   }
 
   return(url)

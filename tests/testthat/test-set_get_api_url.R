@@ -55,7 +55,7 @@ test_that("set_api_url() automatically strips trailing slashes", {
 test_that("get_api_url() retrieves the URL based on the correct hierarchy", {
   # Test Case 1: Should return the default URL when nothing is set.
   with_clean_api_state({
-    expect_equal(get_api_url(), "http://132.145.48.5:8000")
+    expect_equal(get_api_url(), "http://132.145.61.28:8000")
   })
 
   # Test Case 2: Should read from the environment variable if the option is not set.
