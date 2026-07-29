@@ -27,12 +27,7 @@ set_api_url <- function(url) {
 
 
 
-
-
 #' Get the current database API endpoint URL
-#'
-#' Retrieves the active API endpoint. If no custom endpoint has been set
-#' by the user, it safely defaults to the official Sorghum database API.
 #'
 #' @examples
 #' \dontrun{
@@ -47,17 +42,33 @@ set_api_url <- function(url) {
 #' @returns The character string of the active API URL.
 #' @export
 get_api_url <- function() {
-  # check if the user set a temporary custom URL in this session
+  # Check if the user set a temporary custom URL in this session
   url <- getOption("panGenomeBreedr.api_url")
 
-  # check if they set a permanent custom URL in their .Renviron
+  # Check if user set a permanent custom URL in their .Renviron
   if (is.null(url) || url == "") {
     url <- Sys.getenv("PANGENOME_API_URL")
   }
 
-  # If nothing is set, use the sorghum Oracle Server
   if (is.null(url) || url == "") {
-    url <- "http://132.145.61.28:8000"
+    tryCatch(
+      {
+        # Fetch the active endpoint from GitHub 
+        github_pointer <- "https://raw.githubusercontent.com/Israel-Tetteh/panGB_Endpoint/main/api_endpoint.txt"
+
+        resp <- httr::GET(github_pointer, httr::timeout(10))
+        httr::stop_for_status(resp) 
+
+        txt <- httr::content(resp, as = "text", encoding = "UTF-8")
+        url <- trimws(strsplit(txt, "\n", fixed = TRUE)[[1]][1])
+
+        if (is.na(url) || !nzchar(url)) stop("Empty endpoint value")
+      },
+      error = function(e) {
+       # If the github raw file's link fails
+        url <- "http://132.145.61.28:8000"
+      }
+    )
   }
 
   return(url)
@@ -524,6 +535,8 @@ pg_query_genotypes <- function(
   }
 
   # Convert R vector to a comma-separated string for the API query
+  variant_ids <- unique(trimws(variant_ids))
+  variant_ids <- variant_ids[!is.na(variant_ids) & nzchar(variant_ids)]
   ids_str <- paste(variant_ids, collapse = ",")
 
   query_params <- list(
@@ -1111,7 +1124,7 @@ pg_filter_by_af <- function(
 ) {
   # QC checks
   if (is.null(gt) || nrow(gt) == 0) {
-    stop("The genotype matrix is empty or NULL.")
+    stop("genotype matrix is NULL or has zero rows. Please provide a valid genotype matrix.")
   }
 
   # compute allele frequencies (Using your local function)

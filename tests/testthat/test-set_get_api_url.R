@@ -53,25 +53,32 @@ test_that("set_api_url() automatically strips trailing slashes", {
 
 
 test_that("get_api_url() retrieves the URL based on the correct hierarchy", {
-  # Test Case 1: Should return the default URL when nothing is set.
   with_clean_api_state({
-    expect_equal(get_api_url(), "http://132.145.61.28:8000")
+    testthat::skip_if_offline()
+
+    fetched_url <- get_api_url()
+
+    # Assert it is a single, non-empty character string
+    expect_type(fetched_url, "character")
+    expect_length(fetched_url, 1)
+    expect_false(is.na(fetched_url))
+    expect_true(nzchar(fetched_url))
+
+    # Assert it starts with either http:// or https://
+    expect_match(fetched_url, "^https?://")
   })
 
-  # Test Case 2: Should read from the environment variable if the option is not set.
   with_clean_api_state({
     Sys.setenv(PANGENOME_API_URL = "http://env-var-url.com")
     expect_equal(get_api_url(), "http://env-var-url.com")
   })
 
-  # Test Case 3: Should prioritize the R option over the environment variable.
   with_clean_api_state({
     options(panGenomeBreedr.api_url = "http://option-url.com")
     Sys.setenv(PANGENOME_API_URL = "http://env-var-url.com")
     expect_equal(get_api_url(), "http://option-url.com")
   })
 
-  # Test Case 4: Should correctly retrieve the URL set by set_api_url().
   with_clean_api_state({
     set_api_url("http://integration-test.com")
     expect_equal(get_api_url(), "http://integration-test.com")

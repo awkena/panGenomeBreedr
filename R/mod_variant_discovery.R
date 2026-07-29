@@ -476,14 +476,7 @@ gene_cord_tab <- function(ns) {
           "By Impact & AF",
           icon = icon("filter"),
           bslib::card_body(
-            selectInput(
-              ns("impact_level"),
-              "Select Impact Level",
-              choices = c("HIGH", "MODERATE", "LOW", "MODIFIER"),
-              selected = "HIGH",
-              multiple = TRUE,
-              width = "100%"
-            ),
+            uiOutput(ns("impact_level_ui")),
             sliderInput(
               ns("af_range"),
               "Minimum Alternate Allele Frequency",
@@ -684,6 +677,18 @@ gene_cord_tab <- function(ns) {
       bslib::nav_panel_hidden(
         value = "mark_design",
 
+        # Page header with a modern back button
+        div(
+          class = "d-flex align-items-center mb-4",
+          actionButton(
+            ns("go_back"),
+            "Back to Causal Variants",
+            icon = icon("arrow-left"),
+            class = "btn btn-light btn-lg me-3" # A more modern, subtle button
+          ),
+          tags$h4("KASP Marker Design", class = "m-0 fw-bold text-primary")
+        ),
+
         fluidRow(
           column(
             width = 4,
@@ -740,13 +745,6 @@ gene_cord_tab <- function(ns) {
                   )
                 )
               )
-            ),
-
-            actionButton(
-              ns("go_back"),
-              "Back to Get PCVs",
-              icon = icon("arrow-left", class = "me-2"),
-              class = "btn-outline-secondary w-100 py-2 fw-bold shadow-sm"
             )
           ),
 
@@ -1073,7 +1071,7 @@ mod_variant_discovery_server <- function(id) {
           target_url <- if (input$api_choice == "custom") {
             trimws(input$api_url)
           } else {
-            "http://132.145.61.28:8000"
+            get_api_url()
           }
 
           set_api_url(target_url)
@@ -2447,13 +2445,10 @@ mod_variant_discovery_server <- function(id) {
     # ==========================================================================
 
     observeEvent(input$query_dbase_btn, {
-      updateTabsetPanel(
-        session,
-        inputId = "query_db_nav_id",
-        selected = "Main Database Results"
-      )
       values$last_action <- NULL
       req(rv$connected, values$result, input$query_database)
+
+      updateTabsetPanel(session, inputId = "query_db_nav_id", selected = "Main Database Results")
 
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
@@ -2461,96 +2456,83 @@ mod_variant_discovery_server <- function(id) {
         text = "Querying Database... Please wait."
       )
 
-      tryCatch(
-        {
-          query_type <- input$query_database
+      # Capture reactive inputs for the future
+      c_type <- rv$conn_type
+      d_path <- rv$db_path
+      query_type <- input$query_database
+      res_chrom <- values$result$chrom
+      res_start <- values$result$start
+      res_end <- values$result$end
+      q_gene_name <- if (query_type == "annotations" && !is.null(input$query_gene_name) && input$query_gene_name != "") {
+        input$query_gene_name
+      } else {
+        NULL
+      }
 
-          if (query_type %in% c("genotypes", "variants", "annotations")) {
-            values$query_ann_react <- NULL
-            table_to_query <- query_type
+      p <- future::future({
+        # This code runs in a separate process
+        if (c_type == "sqlite") {
+          temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
+          on.exit(disconnect_local_db(temp_con, quiet = TRUE))
+        }
 
-            if (rv$conn_type == "sqlite") {
-              values$query_db_val <- query_db(
-                con = rv$conn,
-                table_name = table_to_query,
-                chrom = values$result$chrom,
-                start = values$result$start,
-                end = values$result$end,
-                gene_name = if (
-                  table_to_query == "annotations" &&
-                    !is.null(input$query_gene_name) &&
-                    input$query_gene_name != ""
-                ) {
-                  input$query_gene_name
-                } else {
-                  NULL
-                }
-              )
-            } else if (rv$conn_type == "postgres") {
-              values$query_db_val <- pg_query_db(
-                table_name = table_to_query,
-                chrom = values$result$chrom,
-                start = values$result$start,
-                end = values$result$end,
-                gene_name = if (
-                  table_to_query == "annotations" &&
-                    !is.null(input$query_gene_name) &&
-                    input$query_gene_name != ""
-                ) {
-                  input$query_gene_name
-                } else {
-                  NULL
-                }
-              )
-            }
-            values$last_action <- "main_db"
-          } else if (query_type == "annotation_summary") {
-            values$query_db_val <- NULL
-            if (rv$conn_type == "sqlite") {
-              values$query_ann_react <- query_ann_summary(
-                con = rv$conn,
-                variants_table = "variants",
-                annotations_table = "annotations",
-                chrom = values$result$chrom,
-                start = values$result$start,
-                end = values$result$end
-              )
-            } else if (rv$conn_type == "postgres") {
-              values$query_ann_react <- pg_query_ann_summary(
-                annotations_table = "annotations",
-                variants_table = "variants",
-                chrom = values$result$chrom,
-                start = values$result$start,
-                end = values$result$end
-              )
-            }
-            values$last_action <- "annotation_summ"
+        if (query_type %in% c("genotypes", "variants", "annotations")) {
+          if (c_type == "sqlite") {
+            result <- query_db(
+              con = temp_con, table_name = query_type,
+              chrom = res_chrom, start = res_start, end = res_end,
+              gene_name = q_gene_name
+            )
+          } else { # postgres
+            result <- pg_query_db(
+              table_name = query_type,
+              chrom = res_chrom, start = res_start, end = res_end,
+              gene_name = q_gene_name
+            )
           }
+          return(list(type = "main_db", data = result))
+
+        } else if (query_type == "annotation_summary") {
+          if (c_type == "sqlite") {
+            result <- query_ann_summary(
+              con = temp_con, variants_table = "variants",
+              annotations_table = "annotations", chrom = res_chrom,
+              start = res_start, end = res_end
+            )
+          } else { # postgres
+            result <- pg_query_ann_summary(
+              annotations_table = "annotations", variants_table = "variants",
+              chrom = res_chrom, start = res_start, end = res_end
+            )
+          }
+          return(list(type = "annotation_summ", data = result))
+        }
+      }, seed = TRUE, packages = c("panGenomeBreedr"))
+
+      promises::then(
+        p,
+        onFulfilled = function(result) {
+          if (result$type == "main_db") {
+            values$query_db_val <- result$data
+            values$query_ann_react <- NULL
+            values$last_action <- "main_db"
+            show_toast_success(text = paste("Queried", tools::toTitleCase(query_type)))
+          } else if (result$type == "annotation_summ") {
+            values$query_ann_react <- result$data
+            values$query_db_val <- NULL
+            values$last_action <- "annotation_summ"
+            show_toast_success("Annotation Summary Retrieved")
+          }
+          shinybusy::remove_modal_spinner()
         },
-        error = function(e) {
+        onRejected = function(e) {
+          shinybusy::remove_modal_spinner()
           shinyWidgets::show_alert(
             title = "Failed!",
             text = e$message,
             type = "danger",
             timer = 5000
           )
-        },
-        finally = {
-          shinyjs::delay(ms = 1000, {
-            shinybusy::remove_modal_spinner()
-            if (!is.null(values$last_action)) {
-              if (values$last_action == "annotation_summ") {
-                show_toast_success("Annotation Summary Retrieved")
-              } else if (values$last_action == "main_db") {
-                show_toast_success(
-                  text = paste(
-                    "Queried",
-                    tools::toTitleCase(input$query_database)
-                  )
-                )
-              }
-            }
-          })
         }
       )
     })
@@ -2588,6 +2570,44 @@ mod_variant_discovery_server <- function(id) {
     # ==========================================================================
     # CAUSAL VARIANTS (PCVs) EXTRACTION
     # ==========================================================================
+    output$impact_level_ui <- renderUI({
+      ns <- session$ns
+
+      impact_order <- c("HIGH", "MODERATE", "LOW", "MODIFIER")
+      choices <- character(0)
+      selected_choice <- NULL
+      placeholder_text <- "First, select a genomic region"
+
+      # Check if regional annotations are available from the hotspot plot data
+      if (!is.null(values$regional_annotations) && "impact" %in% names(values$regional_annotations) && nrow(values$regional_annotations) > 0) {
+        available_impacts <- unique(na.omit(as.character(values$regional_annotations$impact)))
+
+        if (length(available_impacts) > 0) {
+          # Filter and order the available impacts according to our preferred order
+          choices <- intersect(impact_order, available_impacts)
+          selected_choice <- if (length(choices) > 0) {
+            choices[1]
+          } else {
+            NULL
+          } # Default to the highest available impact
+          placeholder_text <- "Select impact level(s)..."
+        } else {
+          placeholder_text <- "No impact data in region"
+        }
+      }
+
+      # Use selectizeInput to get the placeholder feature
+      selectizeInput(
+        ns("impact_level"),
+        "Select Impact Level",
+        choices = choices,
+        selected = selected_choice,
+        multiple = TRUE,
+        width = "100%",
+        options = list(placeholder = placeholder_text)
+      )
+    })
+
     genotype_results_ui <- function(ns) {
       bslib::card(
         div(
@@ -2681,9 +2701,9 @@ mod_variant_discovery_server <- function(id) {
     })
 
     observeEvent(input$get_pcv_btn, {
-      req(rv$connected)
       values$query_geno_react <- NULL
       values$filtered_pcvs_by_meta <- NULL
+      req(rv$connected)
 
       updateTabsetPanel(session, "param_header", selected = "pcv_tab")
       updateTabsetPanel(
@@ -2692,170 +2712,92 @@ mod_variant_discovery_server <- function(id) {
         selected = "PCVs for KASP Marker Design"
       )
 
+      # Determine spinner text and check requirements upfront
       if (input$impact_card == "By Impact & AF") {
-        shinybusy::show_modal_spinner(
-          spin = "fading-circle",
-          color = "#27AE60",
-          text = "Filtering by Impact and AF..."
-        )
-        tryCatch(
-          {
-            req(input$impact_level, values$result, input$af_range)
-
-            impact_result <- if (rv$conn_type == "sqlite") {
-              query_by_impact(
-                con = rv$conn,
-                impact_level = input$impact_level,
-                chrom = values$result$chrom,
-                start = values$result$start,
-                end = values$result$end
-              )
-            } else {
-              pg_query_by_impact(
-                impact_level = input$impact_level,
-                chrom = values$result$chrom,
-                start = values$result$start,
-                end = values$result$end
-              )
-            }
-            req(impact_result)
-
-            full_gt <- if (rv$conn_type == "sqlite") {
-              query_genotypes(
-                con = rv$conn,
-                variant_ids = impact_result$variant_id,
-                meta_data = c(
-                  "chrom",
-                  "pos",
-                  "ref",
-                  "alt",
-                  "variant_type",
-                  'major_allele',
-                  "minor_allele",
-                  "major_allele_freq",
-                  "minor_allele_freq"
-                )
-              )
-            } else {
-              pg_query_genotypes(
-                variant_ids = impact_result$variant_id,
-                meta_data = c(
-                  "chrom",
-                  "pos",
-                  "ref",
-                  "alt",
-                  "variant_type",
-                  'major_allele',
-                  "minor_allele",
-                  "major_allele_freq",
-                  "minor_allele_freq"
-                )
-              )
-            }
-            req(full_gt)
-
-            filtered_af_result <- if (rv$conn_type == "sqlite") {
-              filter_by_af(gt = full_gt, min_af = input$af_range)
-            } else {
-              pg_filter_by_af(
-                gt = full_gt,
-                min_af = input$af_range
-              )
-            }
-            req(filtered_af_result)
-
-            filtered_ids <- filtered_af_result$variant_id
-            values$query_geno_react <- full_gt[
-              full_gt$variant_id %in% filtered_ids,
-            ]
-
-            if (
-              !is.null(values$query_geno_react) &&
-                nrow(values$query_geno_react) > 0
-            ) {
-              show_toast_success(
-                text = paste(
-                  "Found",
-                  nrow(values$query_geno_react),
-                  "Putative Causal Variants"
-                )
-              )
-            } else {
-              shinyWidgets::show_alert(
-                title = "No Variants Found",
-                text = paste(
-                  "No variants found with MAF >=",
-                  input$af_range,
-                  ". Try a lower threshold."
-                ),
-                type = "warning",
-                timer = 5000
-              )
-            }
-          },
-          error = function(e) {
-            shinyWidgets::show_alert(
-              title = "Error",
-              text = e$message,
-              type = "error"
-            )
-          },
-          finally = {
-            shinybusy::remove_modal_spinner()
-          }
-        )
+        req(input$impact_level, values$result, input$af_range)
+        spinner_text <- "Filtering by Impact and AF..."
       } else if (input$impact_card == "By Variant ID") {
         req(input$manual_variant_ids)
-        shinybusy::show_modal_spinner(
-          spin = "fading-circle",
-          color = "#27AE60",
-          text = "Extracting Selected Variants..."
-        )
-        tryCatch(
-          {
-            if (rv$conn_type == "sqlite") {
-              values$query_geno_react <- query_genotypes(
-                con = rv$conn,
-                variant_ids = input$manual_variant_ids,
-                meta_data = c(
-                  "chrom",
-                  "pos",
-                  "ref",
-                  "alt",
-                  "variant_type",
-                  "major_allele",
-                  "minor_allele",
-                  "major_allele_freq",
-                  "minor_allele_freq"
-                )
-              )
-            } else {
-              values$query_geno_react <- pg_query_genotypes(
-                variant_ids = input$manual_variant_ids,
-                meta_data = c(
-                  "chrom",
-                  "pos",
-                  "ref",
-                  "alt",
-                  "variant_type",
-                  "major_allele",
-                  "minor_allele",
-                  "major_allele_freq",
-                  "minor_allele_freq"
-                )
-              )
-            }
+        spinner_text <- "Extracting Selected Variants..."
+      } else {
+        return() # Should not happen
+      }
 
-            if (
-              !is.null(values$query_geno_react) &&
-                nrow(values$query_geno_react) > 0
-            ) {
-              show_toast_success(
-                text = paste(
-                  "Extracted",
-                  nrow(values$query_geno_react),
-                  "Selected Variants"
-                )
+      shinybusy::show_modal_spinner(
+        spin = "fading-circle",
+        color = "#27AE60",
+        text = spinner_text
+      )
+
+      # Capture reactive inputs for the future
+      c_type <- rv$conn_type
+      d_path <- rv$db_path
+      impact_card_val <- input$impact_card
+      impact_lvl <- input$impact_level
+      res <- values$result
+      af_val <- input$af_range
+      manual_ids <- input$manual_variant_ids
+      meta_cols <- c("chrom", "pos", "ref", "alt", "variant_type", 'major_allele', "minor_allele", "major_allele_freq", "minor_allele_freq")
+
+      p <- future::future({
+        # This code runs in a separate process
+        if (c_type == "sqlite") {
+          temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
+          on.exit(disconnect_local_db(temp_con, quiet = TRUE))
+        }
+
+        if (impact_card_val == "By Impact & AF") {
+          impact_result <- if (c_type == "sqlite") {
+            query_by_impact(con = temp_con, impact_level = impact_lvl, chrom = res$chrom, start = res$start, end = res$end)
+          } else {
+            pg_query_by_impact(impact_level = impact_lvl, chrom = res$chrom, start = res$start, end = res$end)
+          }
+          if (is.null(impact_result) || nrow(impact_result) == 0) return(list(data = NULL, type = "impact"))
+
+          full_gt <- if (c_type == "sqlite") {
+            query_genotypes(con = temp_con, variant_ids = impact_result$variant_id, meta_data = meta_cols)
+          } else {
+            pg_query_genotypes(variant_ids = impact_result$variant_id, meta_data = meta_cols)
+          }
+          if (is.null(full_gt) || nrow(full_gt) == 0) return(list(data = NULL, type = "impact"))
+
+          filtered_af_result <- if (c_type == "sqlite") {
+            filter_by_af(gt = full_gt, min_af = af_val)
+          } else {
+            pg_filter_by_af(gt = full_gt, min_af = af_val)
+          }
+          if (is.null(filtered_af_result) || nrow(filtered_af_result) == 0) return(list(data = NULL, type = "impact"))
+
+          filtered_ids <- filtered_af_result$variant_id
+          query_result <- full_gt[full_gt$variant_id %in% filtered_ids, ]
+          return(list(data = query_result, type = "impact"))
+
+        } else if (impact_card_val == "By Variant ID") {
+          query_result <- if (c_type == "sqlite") {
+            query_genotypes(con = temp_con, variant_ids = manual_ids, meta_data = meta_cols)
+          } else {
+            pg_query_genotypes(variant_ids = manual_ids, meta_data = meta_cols)
+          }
+          return(list(data = query_result, type = "id"))
+        }
+      }, seed = TRUE, packages = c("panGenomeBreedr"))
+
+      promises::then(
+        p,
+        onFulfilled = function(result) {
+          values$query_geno_react <- result$data
+          if (!is.null(result$data) && nrow(result$data) > 0) {
+            if (result$type == "impact") {
+              show_toast_success(text = paste("Found", nrow(result$data), "Putative Causal Variants"))
+            } else {
+              show_toast_success(text = paste("Extracted", nrow(result$data), "Selected Variants"))
+            }
+          } else {
+            if (result$type == "impact") {
+              shinyWidgets::show_alert(
+                title = "No Variants Found",
+                text = paste("No variants found with MAF >=", af_val, ". Try a lower threshold."),
+                type = "warning", timer = 5000
               )
             } else {
               shinyWidgets::show_alert(
@@ -2864,19 +2806,14 @@ mod_variant_discovery_server <- function(id) {
                 type = "warning"
               )
             }
-          },
-          error = function(e) {
-            shinyWidgets::show_alert(
-              title = "Error",
-              text = e$message,
-              type = "error"
-            )
-          },
-          finally = {
-            shinybusy::remove_modal_spinner()
           }
-        )
-      }
+          shinybusy::remove_modal_spinner()
+        },
+        onRejected = function(e) {
+          shinybusy::remove_modal_spinner()
+          shinyWidgets::show_alert(title = "Error", text = e$message, type = "error")
+        }
+      )
 
       output$pcvs_kasp_marker_design_result <- renderUI({
         genotype_results_ui(ns)
