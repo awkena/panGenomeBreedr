@@ -55,9 +55,20 @@ get_api_url <- function() {
     url <- Sys.getenv("PANGENOME_API_URL")
   }
 
-  # If nothing is set, use the sorghum AWS Server
   if (is.null(url) || url == "") {
-    url <- "http://132.145.61.28:8000"
+    tryCatch(
+      {
+        # Fetch the active IP address 
+        github_pointer <- "https://raw.githubusercontent.com/Israel-Tetteh/panGB_Endpoint/refs/heads/main/api_endpoint.txt"
+
+        # Read the text file 
+        url <- trimws(readLines(github_pointer, warn = FALSE)[1])
+      },
+      error = function(e) {
+        # Fallback 
+        url <- "http://132.145.61.28:8000"
+      }
+    )
   }
 
   return(url)
@@ -524,6 +535,7 @@ pg_query_genotypes <- function(
   }
 
   # Convert R vector to a comma-separated string for the API query
+  variant_ids <- unique(trimws(variant_ids))
   ids_str <- paste(variant_ids, collapse = ",")
 
   query_params <- list(
@@ -1111,7 +1123,7 @@ pg_filter_by_af <- function(
 ) {
   # QC checks
   if (is.null(gt) || nrow(gt) == 0) {
-    stop("The genotype matrix is empty or NULL.")
+    stop("No variants found!")
   }
 
   # compute allele frequencies (Using your local function)

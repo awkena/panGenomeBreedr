@@ -1503,10 +1503,10 @@ plot_variant_hotspots <- function(
     ) +
     ggplot2::geom_point(
       ggplot2::aes(fill = impact, shape = variant_type),
-      size = 3.5,
+      size = 5,
       color = "black",
       stroke = 0.5,
-      alpha = 0.5
+      alpha = 0.7
     ) +
     # Manual setting of legends and mapping values
     ggplot2::scale_fill_manual(values = impact_colors, name = "Max Impact") +
