@@ -10,8 +10,7 @@ get_api_url()
 The character string of the active API URL.
 }
 \description{
-Retrieves the active API endpoint. If no custom endpoint has been set
-by the user, it safely defaults to the official Sorghum database API.
+Get the current database API endpoint URL
 }
 \examples{
 \dontrun{
