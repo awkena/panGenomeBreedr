@@ -536,6 +536,7 @@ pg_query_genotypes <- function(
 
   # Convert R vector to a comma-separated string for the API query
   variant_ids <- unique(trimws(variant_ids))
+  variant_ids <- variant_ids[!is.na(variant_ids) & nzchar(variant_ids)]
   ids_str <- paste(variant_ids, collapse = ",")
 
   query_params <- list(
@@ -1123,7 +1124,7 @@ pg_filter_by_af <- function(
 ) {
   # QC checks
   if (is.null(gt) || nrow(gt) == 0) {
-    stop("No variants found!")
+    stop("genotype matrix is NULL or has zero rows. Please provide a valid genotype matrix.")
   }
 
   # compute allele frequencies (Using your local function)
