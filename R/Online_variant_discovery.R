@@ -55,6 +55,7 @@ get_api_url <- function() {
     url <- Sys.getenv("PANGENOME_API_URL")
   }
 
+  # If nothing is set, use the sorghum Oracle Server
   if (is.null(url) || url == "") {
     tryCatch(
       {
