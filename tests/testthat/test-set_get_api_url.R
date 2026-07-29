@@ -58,7 +58,14 @@ test_that("get_api_url() retrieves the URL based on the correct hierarchy", {
 
     fetched_url <- get_api_url()
 
-    expect_true(grepl("^http://", fetched_url))
+    # Assert it is a single, non-empty character string
+    expect_type(fetched_url, "character")
+    expect_length(fetched_url, 1)
+    expect_false(is.na(fetched_url))
+    expect_true(nzchar(fetched_url))
+
+    # Assert it starts with either http:// or https://
+    expect_match(fetched_url, "^https?://")
   })
 
   with_clean_api_state({
