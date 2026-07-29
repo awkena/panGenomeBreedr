@@ -22,6 +22,6 @@ library(panGenomeBreedr)
 # List all tables in the online database
 pg_list_tables_result <- pg_list_tables()
 print(pg_list_tables_result)
-#> [1] "annotations" "genotypes"   "metadata"    "variants"   
+#> [1] "genotypes"   "variants"    "annotations" "metadata"   
 # }
 ```

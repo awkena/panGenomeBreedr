@@ -1,7 +1,6 @@
 # Get the current database API endpoint URL
 
-Retrieves the active API endpoint. If no custom endpoint has been set by
-the user, it safely defaults to the official Sorghum database API.
+Get the current database API endpoint URL
 
 ## Usage
 
