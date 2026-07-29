@@ -27,12 +27,7 @@ set_api_url <- function(url) {
 
 
 
-
-
 #' Get the current database API endpoint URL
-#'
-#' Retrieves the active API endpoint. If no custom endpoint has been set
-#' by the user, it safely defaults to the official Sorghum database API.
 #'
 #' @examples
 #' \dontrun{
@@ -47,26 +42,30 @@ set_api_url <- function(url) {
 #' @returns The character string of the active API URL.
 #' @export
 get_api_url <- function() {
-  # check if the user set a temporary custom URL in this session
+  # Check if the user set a temporary custom URL in this session
   url <- getOption("panGenomeBreedr.api_url")
 
-  # check if they set a permanent custom URL in their .Renviron
+  # Check if user set a permanent custom URL in their .Renviron
   if (is.null(url) || url == "") {
     url <- Sys.getenv("PANGENOME_API_URL")
   }
 
-  # If nothing is set, use the sorghum Oracle Server
   if (is.null(url) || url == "") {
     tryCatch(
       {
-        # Fetch the active IP address 
-        github_pointer <- "https://raw.githubusercontent.com/Israel-Tetteh/panGB_Endpoint/refs/heads/main/api_endpoint.txt"
+        # Fetch the active endpoint from GitHub 
+        github_pointer <- "https://raw.githubusercontent.com/Israel-Tetteh/panGB_Endpoint/main/api_endpoint.txt"
 
-        # Read the text file 
-        url <- trimws(readLines(github_pointer, warn = FALSE)[1])
+        resp <- httr::GET(github_pointer, httr::timeout(10))
+        httr::stop_for_status(resp) 
+
+        txt <- httr::content(resp, as = "text", encoding = "UTF-8")
+        url <- trimws(strsplit(txt, "\n", fixed = TRUE)[[1]][1])
+
+        if (is.na(url) || !nzchar(url)) stop("Empty endpoint value")
       },
       error = function(e) {
-        # Fallback 
+       # If the github raw file's link fails
         url <- "http://132.145.61.28:8000"
       }
     )
