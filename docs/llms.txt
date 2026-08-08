@@ -310,8 +310,16 @@ Kena, PhD** at <alex.kena24@gmail.com>
 ### Utilities
 
 - [`gene_coord_gff()`](https://awkena.github.io/panGenomeBreedr/reference/gene_coord_gff.md)
-  : Get the genomic range of a candidate gene using the Sobic ID from a
-  GFF file (local)
+  : Get the genomic range of a candidate gene and its features using the
+  Sobic ID from a GFF file (local)
+- [`plot_gene_model()`](https://awkena.github.io/panGenomeBreedr/reference/plot_gene_model.md)
+  : Plot the gene model using genomic coordinates (local)
+- [`plot_variant_hotspot()`](https://awkena.github.io/panGenomeBreedr/reference/plot_variant_hotspot.md)
+  : Plot genomic variant hotspots (SNPs and INDELs) extracted from the
+  database (local)
+- [`hotspot_overlay_plot()`](https://awkena.github.io/panGenomeBreedr/reference/hotspot_overlay_plot.md)
+  : Generate a combined gene model and variant hotspot overlay plot
+  (local)
 - [`pg_gene_coords()`](https://awkena.github.io/panGenomeBreedr/reference/pg_gene_coords.md)
   : Get the genomic range of a candidate gene using the Sobic ID from a
   GFF file (online)

@@ -18,24 +18,24 @@ query_genotypes(
 
 \item{variant_ids}{A character vector of unique variant identifiers to look up (e.g., \code{c("SNP_Chr05_75104557")}).}
 
-\item{variant_id_col}{A character value specifying the primary key column name for variant IDs. 
+\item{variant_id_col}{A character value specifying the primary key column name for variant IDs.
 Defaults to \code{"variant_id"}.}
 
-\item{variants_table}{A character value specifying the name of the variants reference table view. 
+\item{variants_table}{A character value specifying the name of the variants reference table view.
 Defaults to \code{"variants"}.}
 
-\item{genotypes_table}{A character value specifying the name of the genotype call data table view. 
+\item{genotypes_table}{A character value specifying the name of the genotype call data table view.
 Defaults to \code{"genotypes"}.}
 
-\item{meta_data}{A character vector of metadata columns to return alongside 
-the genotype matrix. This can include any field from the `variants` table 
-(e.g., `"chrom"`, `"pos"`, `"ref"`, `"alt"`, `"variant_type"`) as well as 
-dynamically calculated metrics: `"major_allele"`, `"minor_allele"`, 
-`"major_allele_freq"`, and `"minor_allele_freq"`. If `NULL` (default), 
+\item{meta_data}{A character vector of metadata columns to return alongside
+the genotype matrix. This can include any field from the `variants` table
+(e.g., `"chrom"`, `"pos"`, `"ref"`, `"alt"`, `"variant_type"`) as well as
+dynamically calculated metrics: `"major_allele"`, `"minor_allele"`,
+`"major_allele_freq"`, and `"minor_allele_freq"`. If `NULL` (default),
 all available database fields and all calculated metrics are returned.}
 }
 \value{
-A data frame containing mapped metadata tracking columns alongside individual sample genotype 
+A data frame containing mapped metadata tracking columns alongside individual sample genotype
   calls formatted in a structured variants-by-samples matrix.
 }
 \description{
@@ -55,7 +55,7 @@ con <- connect_local_db(folder_path = my_db_folder)
 # Extract all sample genotypes for an explicit list of target marker strings
 target_markers <- c("INDEL_Chr05_75104541", "SNP_Chr05_75104557")
 
-query_genotypes_result <- query_genotypes(con = con, 
+query_genotypes_result <- query_genotypes(con = con,
                                  variant_ids = target_markers,
                                  meta_data = c('chrom','minor_allele_freq'))
 print(query_genotypes_result)

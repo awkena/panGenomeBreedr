@@ -366,10 +366,11 @@ data frame containing the filtered records from the selected table.</p>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; duckdb is keeping downloaded extensions in a temporary directory:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /var/folders/n_/swy48fpx1w76xyqp3qx2prz00000gn/T//RtmpW7hbx8/duckdb/extensions</span></span>
-<span><span class="co">#&gt; This is removed when the R session ends, so extensions are re-downloaded each session.</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> To keep them, point `options(duckdb.extension_directory =)` or the `DUCKDB_EXTENSION_DIRECTORY` environment variable at a permanent path.</span></span>
+<span><span class="co">#&gt; duckdb is storing downloaded extensions and secrets under ~/.duckdb:</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /Users/awkena/.duckdb</span></span>
+<span><span class="co">#&gt; This persists across sessions and is shared with the DuckDB CLI and other clients.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to use a temporary directory instead.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
 <span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Query VCF genotypes within the genomic range: Chr05:75,104,537 - 75,106,403</span></span>
@@ -1008,6 +1009,11 @@ genomic intervals of interest.</p>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
+<span><span class="co">#&gt; duckdb is storing downloaded extensions and secrets under ~/.duckdb:</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /Users/awkena/.duckdb</span></span>
+<span><span class="co">#&gt; This persists across sessions and is shared with the DuckDB CLI and other clients.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to use a temporary directory instead.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
 <span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Run functional annotation summary for region Chr05:75,104,537 - 75,106,403</span></span>
@@ -1213,6 +1219,11 @@ shown below:</p>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
+<span><span class="co">#&gt; duckdb is storing downloaded extensions and secrets under ~/.duckdb:</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /Users/awkena/.duckdb</span></span>
+<span><span class="co">#&gt; This persists across sessions and is shared with the DuckDB CLI and other clients.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to use a temporary directory instead.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
 <span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Extract HIGH impact functional variants within the target Chr05 window</span></span>
@@ -1669,6 +1680,11 @@ shown in the code snippet below:</p>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
+<span><span class="co">#&gt; duckdb is storing downloaded extensions and secrets under ~/.duckdb:</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /Users/awkena/.duckdb</span></span>
+<span><span class="co">#&gt; This persists across sessions and is shared with the DuckDB CLI and other clients.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to use a temporary directory instead.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
 <span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Extract genotype data for all HIGH impact variants and filter by alternate allele frequency</span></span>
@@ -1776,6 +1792,11 @@ Chr05
 <span>                           </span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
+<span><span class="co">#&gt; duckdb is storing downloaded extensions and secrets under ~/.duckdb:</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /Users/awkena/.duckdb</span></span>
+<span><span class="co">#&gt; This persists across sessions and is shared with the DuckDB CLI and other clients.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to use a temporary directory instead.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
 <span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Get genotype data for HIGH impact variants that passed allele filter</span></span>

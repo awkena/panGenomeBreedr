@@ -7,11 +7,11 @@
 connect_local_db(folder_path, max_memory = "8GB", quiet = FALSE)
 }
 \arguments{
-\item{folder_path}{Character. The absolute or relative path to the directory 
-containing the core Parquet files (`genotypes.parquet`, `variants.parquet`, 
+\item{folder_path}{Character. The absolute or relative path to the directory
+containing the core Parquet files (`genotypes.parquet`, `variants.parquet`,
 `metadata.parquet`, `annotations.parquet`).}
 
-\item{max_memory}{Character. Maximum RAM DuckDB is allowed to utilize. 
+\item{max_memory}{Character. Maximum RAM DuckDB is allowed to utilize.
 Defaults to '"8GB"'. Adjust based on system constraints.}
 
 \item{quiet}{Logical. If \code{TRUE}, suppresses console messages. Defaults to \code{FALSE}.}

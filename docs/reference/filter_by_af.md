@@ -66,13 +66,13 @@ my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
 # Establish the connection
 con <- connect_local_db(folder_path = my_db_folder)
 
-# Query genotypes 
-gt_region <- query_db(con = con, chrom = "Chr05", start = 75104537, 
+# Query genotypes
+gt_region <- query_db(con = con, chrom = "Chr05", start = 75104537,
                       end = 75106403, table_name = "genotypes")
 
 # Filter out rare variants or monomorphic lines by restricting the alternate allele frequency window
-filtered_vars <- filter_by_af(gt_region, variant_id_col = "variant_id", 
-                              chrom_col = "chrom", pos_col = "pos", 
+filtered_vars <- filter_by_af(gt_region, variant_id_col = "variant_id",
+                              chrom_col = "chrom", pos_col = "pos",
                               min_af = 0.05, max_af = 0.95)
 
 # Disconnect at the end of your session

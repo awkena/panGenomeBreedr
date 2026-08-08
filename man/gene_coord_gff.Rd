@@ -2,7 +2,7 @@
 % Please edit documentation in R/Offline_variant_discovery.R
 \name{gene_coord_gff}
 \alias{gene_coord_gff}
-\title{Get the genomic range of a candidate gene using the Sobic ID from a GFF file (local)}
+\title{Get the genomic range of a candidate gene and its features using the Sobic ID from a GFF file (local)}
 \usage{
 gene_coord_gff(gene_name, gff_path)
 }
@@ -13,20 +13,20 @@ gene_coord_gff(gene_name, gff_path)
 files and URL file paths are acceptable.}
 }
 \value{
-A list object of three components indicating the chromosome, start
-and end coordinates of candidate gene.
+A data frame containing the genomic coordinates (chromosome, start, end, strand)
+of the gene, transcripts, 5'-UTR, CDS, and 3'-UTR.
 }
 \description{
-Get the genomic range of a candidate gene using the Sobic ID from a GFF file (local)
+Get the genomic range of a candidate gene and its features using the Sobic ID from a GFF file (local)
 }
 \examples{
 \donttest{
 # example code
-
+library(panGenomeBreedr)
 # Path to GFF3 file
 gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
-gene_coord_gff(gene_name = "Sobic.005G213600",
-               gff_path = gff_path)
-
+gene_features <- gene_coord_gff(gene_name = "Sobic.005G213600",
+                                gff_path = gff_path)
+head(gene_features)
 }
 }

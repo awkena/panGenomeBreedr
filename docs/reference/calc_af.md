@@ -51,11 +51,11 @@ my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
 con <- connect_local_db(folder_path = my_db_folder)
 
 # Pull wide genotype records for a locus window range
-gt_region <- query_db(con = con, chrom = "Chr05", start = 75104537, 
+gt_region <- query_db(con = con, chrom = "Chr05", start = 75104537,
                       end = 75106403, table_name = "genotypes")
 
 # Compute allele frequencies across all samples in the dataset
-af_metrics <- calc_af(gt_region, variant_id_col = "variant_id", 
+af_metrics <- calc_af(gt_region, variant_id_col = "variant_id",
                       chrom_col = "chrom", pos_col = "pos")
 
 # Disconnect at the end of your session

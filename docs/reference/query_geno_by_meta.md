@@ -51,7 +51,7 @@ my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
 # Establish the connection
 con <- connect_local_db(folder_path = my_db_folder)
 
-# Define filtering criteria 
+# Define filtering criteria
 my_filters <- list(
   population = "Gates",
   countryorigin = c("Ethiopia", "Ghana", "Togo")
@@ -66,7 +66,7 @@ query_db_result <- query_db(
   end = 75106403
 )
 
-# Get filtered genotypes matrix 
+# Get filtered genotypes matrix
 query_geno_by_meta_result <- query_geno_by_meta(
   con = con,
   genotype_matrix = query_db_result,

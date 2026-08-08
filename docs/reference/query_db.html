@@ -95,14 +95,14 @@ Utilized explicitly when subsetting the <code>"annotations"</code> layout.</p></
 <span class="r-in"><span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu"><a href="connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">my_db_folder</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Extract functional functional annotations inside a candidate locus region</span></span></span>
-<span class="r-in"><span><span class="va">annota_region</span> <span class="op">&lt;-</span> <span class="fu">query_db</span><span class="op">(</span>con <span class="op">=</span> <span class="va">con</span>, chrom <span class="op">=</span> <span class="st">"Chr05"</span>, start <span class="op">=</span> <span class="fl">75104537</span>, </span></span>
-<span class="r-in"><span>                          end <span class="op">=</span> <span class="fl">75106403</span>, table_name <span class="op">=</span> <span class="st">"annotations"</span>, </span></span>
+<span class="r-in"><span><span class="va">annota_region</span> <span class="op">&lt;-</span> <span class="fu">query_db</span><span class="op">(</span>con <span class="op">=</span> <span class="va">con</span>, chrom <span class="op">=</span> <span class="st">"Chr05"</span>, start <span class="op">=</span> <span class="fl">75104537</span>,</span></span>
+<span class="r-in"><span>                          end <span class="op">=</span> <span class="fl">75106403</span>, table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span></span>
 <span class="r-in"><span>                          gene_name <span class="op">=</span> <span class="st">"Sobic.005G213600"</span><span class="op">)</span></span></span>
-<span class="r-in"><span>                          </span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Extract matrix genotypes within the exact same coordinates window</span></span></span>
-<span class="r-in"><span><span class="va">gt_region</span> <span class="op">&lt;-</span> <span class="fu">query_db</span><span class="op">(</span>con <span class="op">=</span> <span class="va">con</span>, chrom <span class="op">=</span> <span class="st">"Chr05"</span>, start <span class="op">=</span> <span class="fl">75104537</span>, </span></span>
+<span class="r-in"><span><span class="va">gt_region</span> <span class="op">&lt;-</span> <span class="fu">query_db</span><span class="op">(</span>con <span class="op">=</span> <span class="va">con</span>, chrom <span class="op">=</span> <span class="st">"Chr05"</span>, start <span class="op">=</span> <span class="fl">75104537</span>,</span></span>
 <span class="r-in"><span>                      end <span class="op">=</span> <span class="fl">75106403</span>, table_name <span class="op">=</span> <span class="st">"genotypes"</span><span class="op">)</span></span></span>
-<span class="r-in"><span>                      </span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Disconnect at the end of your session</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>

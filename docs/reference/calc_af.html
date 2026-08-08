@@ -82,11 +82,11 @@ Defaults to <code>NULL</code>.</p></dd>
 <span class="r-in"><span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu"><a href="connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">my_db_folder</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Pull wide genotype records for a locus window range</span></span></span>
-<span class="r-in"><span><span class="va">gt_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="query_db.html">query_db</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con</span>, chrom <span class="op">=</span> <span class="st">"Chr05"</span>, start <span class="op">=</span> <span class="fl">75104537</span>, </span></span>
+<span class="r-in"><span><span class="va">gt_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="query_db.html">query_db</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con</span>, chrom <span class="op">=</span> <span class="st">"Chr05"</span>, start <span class="op">=</span> <span class="fl">75104537</span>,</span></span>
 <span class="r-in"><span>                      end <span class="op">=</span> <span class="fl">75106403</span>, table_name <span class="op">=</span> <span class="st">"genotypes"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Compute allele frequencies across all samples in the dataset</span></span></span>
-<span class="r-in"><span><span class="va">af_metrics</span> <span class="op">&lt;-</span> <span class="fu">calc_af</span><span class="op">(</span><span class="va">gt_region</span>, variant_id_col <span class="op">=</span> <span class="st">"variant_id"</span>, </span></span>
+<span class="r-in"><span><span class="va">af_metrics</span> <span class="op">&lt;-</span> <span class="fu">calc_af</span><span class="op">(</span><span class="va">gt_region</span>, variant_id_col <span class="op">=</span> <span class="st">"variant_id"</span>,</span></span>
 <span class="r-in"><span>                      chrom_col <span class="op">=</span> <span class="st">"chrom"</span>, pos_col <span class="op">=</span> <span class="st">"pos"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Disconnect at the end of your session</span></span></span>

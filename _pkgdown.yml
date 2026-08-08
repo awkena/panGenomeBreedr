@@ -56,7 +56,7 @@ reference:
       - disconnect_local_db
       - set_api_url
       - get_api_url
-      
+
   - subtitle: "Database Schema & Metadata"
     contents:
       - list_sqlite_tables
@@ -65,7 +65,7 @@ reference:
       - pg_summarize_tables
       - list_table_columns
       - pg_list_table_columns
-      
+
   - subtitle: "Core Data Queries"
     contents:
       - query_db
@@ -76,14 +76,14 @@ reference:
       - pg_get_sample_metadata
       - query_geno_by_meta
       - pg_query_geno_by_meta
-      
+
   - subtitle: "Targeted Variant Filters"
     contents:
       - query_by_af
       - pg_query_by_af
       - query_by_impact
       - pg_query_by_impact
-      
+
   - subtitle: "Summaries & Statistics"
     contents:
       - variant_stats
@@ -94,7 +94,7 @@ reference:
       - pg_count_variant_types
       - query_ann_summary
       - pg_query_ann_summary
-      
+
   - subtitle: "Allele Frequency Handlers"
     contents:
       - calc_af
@@ -106,16 +106,19 @@ reference:
     contents:
       - compute_LD
       - plot_ld_geodesic
-      
+
   - subtitle: "Marker Design & Visualization"
     contents:
       - kasp_marker_design
       - query_map_accessions
       - pg_map_accessions
-      
+
   - subtitle: "Utilities"
     contents:
       - gene_coord_gff
+      - plot_gene_model
+      - plot_variant_hotspot
+      - hotspot_overlay_plot
       - pg_gene_coords
       - extract_variant
       - get_google_id

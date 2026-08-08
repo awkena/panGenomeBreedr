@@ -31,6 +31,7 @@
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/get_sample_metadata.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/gg_dat.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/hapmap_ns_fmt.html</loc></url>
+<url><loc>https://awkena.github.io/panGenomeBreedr/reference/hotspot_overlay_plot.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/index.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/kasp_color.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/kasp_dat.html</loc></url>
@@ -65,8 +66,10 @@
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_summarize_tables.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_variant_impact_summary.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_variant_stats.html</loc></url>
+<url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_gene_model.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_ld_geodesic.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_plate.html</loc></url>
+<url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_variant_hotspot.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pred_status.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pred_summary.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pred_summary_plot.html</loc></url>

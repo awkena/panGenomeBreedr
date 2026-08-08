@@ -7,20 +7,20 @@
 calc_af(gt, variant_id_col = "variant_id", chrom_col = NULL, pos_col = NULL)
 }
 \arguments{
-\item{gt}{A matrix or data frame containing variants (rows) across samples (columns), 
+\item{gt}{A matrix or data frame containing variants (rows) across samples (columns),
 including required variant identification and optional genomic coordinate metadata columns.}
 
-\item{variant_id_col}{Character. The column name in \code{gt} matching unique variant identifiers. 
+\item{variant_id_col}{Character. The column name in \code{gt} matching unique variant identifiers.
 Defaults to \code{"variant_id"}.}
 
-\item{chrom_col}{Character. Optional column name in \code{gt} matching chromosome names. 
+\item{chrom_col}{Character. Optional column name in \code{gt} matching chromosome names.
 Defaults to \code{NULL}.}
 
-\item{pos_col}{Character. Optional column name in \code{gt} matching genomic positions. 
+\item{pos_col}{Character. Optional column name in \code{gt} matching genomic positions.
 Defaults to \code{NULL}.}
 }
 \value{
-A data frame containing unique variant identifiers, optional coordinate tracking columns, 
+A data frame containing unique variant identifiers, optional coordinate tracking columns,
   calculated reference allele frequencies (\code{ref_af}), and alternate allele frequencies (\code{alt_af}).
 }
 \description{
@@ -38,11 +38,11 @@ my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
 con <- connect_local_db(folder_path = my_db_folder)
 
 # Pull wide genotype records for a locus window range
-gt_region <- query_db(con = con, chrom = "Chr05", start = 75104537, 
+gt_region <- query_db(con = con, chrom = "Chr05", start = 75104537,
                       end = 75106403, table_name = "genotypes")
 
 # Compute allele frequencies across all samples in the dataset
-af_metrics <- calc_af(gt_region, variant_id_col = "variant_id", 
+af_metrics <- calc_af(gt_region, variant_id_col = "variant_id",
                       chrom_col = "chrom", pos_col = "pos")
 
 # Disconnect at the end of your session

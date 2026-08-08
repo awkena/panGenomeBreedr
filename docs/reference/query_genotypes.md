@@ -74,7 +74,7 @@ con <- connect_local_db(folder_path = my_db_folder)
 # Extract all sample genotypes for an explicit list of target marker strings
 target_markers <- c("INDEL_Chr05_75104541", "SNP_Chr05_75104557")
 
-query_genotypes_result <- query_genotypes(con = con, 
+query_genotypes_result <- query_genotypes(con = con,
                                  variant_ids = target_markers,
                                  meta_data = c('chrom','minor_allele_freq'))
 print(query_genotypes_result)

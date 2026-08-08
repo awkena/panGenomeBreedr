@@ -26,7 +26,7 @@ my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
 # Establish the connection
 con <- connect_local_db(folder_path = my_db_folder)
 
-# List tables 
+# List tables
 list_sqlite_tables_result <- list_sqlite_tables(con)
 print(list_sqlite_tables_result)
 

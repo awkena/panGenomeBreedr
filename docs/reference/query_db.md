@@ -65,14 +65,14 @@ my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
 con <- connect_local_db(folder_path = my_db_folder)
 
 # Extract functional functional annotations inside a candidate locus region
-annota_region <- query_db(con = con, chrom = "Chr05", start = 75104537, 
-                          end = 75106403, table_name = "annotations", 
+annota_region <- query_db(con = con, chrom = "Chr05", start = 75104537,
+                          end = 75106403, table_name = "annotations",
                           gene_name = "Sobic.005G213600")
-                          
+
 # Extract matrix genotypes within the exact same coordinates window
-gt_region <- query_db(con = con, chrom = "Chr05", start = 75104537, 
+gt_region <- query_db(con = con, chrom = "Chr05", start = 75104537,
                       end = 75106403, table_name = "genotypes")
-                      
+
 # Disconnect at the end of your session
 disconnect_local_db(con)
 

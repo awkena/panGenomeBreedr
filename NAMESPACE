@@ -25,6 +25,7 @@ export(get_api_url)
 export(get_sample_metadata)
 export(gg_dat)
 export(hapmap_ns_fmt)
+export(hotspot_overlay_plot)
 export(kasp_color)
 export(kasp_marker_design)
 export(kasp_numeric)
@@ -57,8 +58,10 @@ export(pg_query_genotypes)
 export(pg_summarize_tables)
 export(pg_variant_impact_summary)
 export(pg_variant_stats)
+export(plot_gene_model)
 export(plot_ld_geodesic)
 export(plot_plate)
+export(plot_variant_hotspot)
 export(pred_status)
 export(pred_summary)
 export(pred_summary_plot)
@@ -84,93 +87,133 @@ import(DBI)
 import(ggplot2)
 import(shiny)
 import(utils)
-importFrom(R.utils,gunzip)
-importFrom(R.utils,isGzipped)
-importFrom(R.utils,isUrl)
-importFrom(bslib,accordion)
-importFrom(bslib,accordion_panel)
-importFrom(bslib,bs_theme)
-importFrom(bslib,card)
-importFrom(bslib,card_body)
-importFrom(bslib,card_footer)
-importFrom(bslib,card_header)
-importFrom(bslib,input_switch)
-importFrom(bslib,layout_column_wrap)
-importFrom(bslib,layout_columns)
-importFrom(bslib,layout_sidebar)
-importFrom(bslib,nav_item)
-importFrom(bslib,nav_panel)
-importFrom(bslib,nav_panel_hidden)
-importFrom(bslib,navset_card_pill)
-importFrom(bslib,navset_card_tab)
-importFrom(bslib,navset_card_underline)
-importFrom(bslib,sidebar)
-importFrom(ggplot2,ggsave)
-importFrom(golem,activate_js)
-importFrom(golem,add_resource_path)
-importFrom(golem,bundle_resources)
-importFrom(golem,favicon)
-importFrom(golem,with_golem_options)
+importFrom(R.utils,
+  gunzip,
+  isGzipped,
+  isUrl
+)
+importFrom(bslib,
+  accordion,
+  accordion_panel,
+  bs_theme,
+  card,
+  card_body,
+  card_footer,
+  card_header,
+  input_switch,
+  layout_column_wrap,
+  layout_columns,
+  layout_sidebar,
+  nav_item,
+  nav_panel,
+  nav_panel_hidden,
+  navset_card_pill,
+  navset_card_tab,
+  navset_card_underline,
+  sidebar
+)
+importFrom(ggplot2,
+  aes,
+  arrow,
+  coord_cartesian,
+  element_blank,
+  element_line,
+  element_text,
+  geom_hline,
+  geom_point,
+  geom_rect,
+  geom_segment,
+  geom_vline,
+  ggplot,
+  ggsave,
+  guide_legend,
+  guides,
+  labs,
+  margin,
+  scale_fill_manual,
+  scale_shape_manual,
+  scale_x_continuous,
+  scale_y_continuous,
+  theme,
+  theme_minimal
+)
+importFrom(ggrepel,geom_text_repel)
+importFrom(golem,
+  activate_js,
+  add_resource_path,
+  bundle_resources,
+  favicon,
+  with_golem_options
+)
+importFrom(grid,unit)
 importFrom(gridExtra,marrangeGrob)
-importFrom(httr,GET)
-importFrom(httr,content)
-importFrom(httr,http_error)
+importFrom(httr,
+  GET,
+  content,
+  http_error
+)
 importFrom(jsonlite,fromJSON)
+importFrom(patchwork,plot_layout)
 importFrom(reshape2,melt)
-importFrom(shiny,HTML)
-importFrom(shiny,NS)
-importFrom(shiny,actionButton)
-importFrom(shiny,br)
-importFrom(shiny,column)
-importFrom(shiny,conditionalPanel)
-importFrom(shiny,div)
-importFrom(shiny,downloadButton)
-importFrom(shiny,downloadHandler)
-importFrom(shiny,fileInput)
-importFrom(shiny,fluidRow)
-importFrom(shiny,h4)
-importFrom(shiny,helpText)
-importFrom(shiny,icon)
-importFrom(shiny,insertUI)
-importFrom(shiny,invalidateLater)
-importFrom(shiny,mainPanel)
-importFrom(shiny,modalButton)
-importFrom(shiny,modalDialog)
-importFrom(shiny,moduleServer)
-importFrom(shiny,need)
-importFrom(shiny,numericInput)
-importFrom(shiny,observe)
-importFrom(shiny,observeEvent)
-importFrom(shiny,plotOutput)
-importFrom(shiny,radioButtons)
-importFrom(shiny,reactive)
-importFrom(shiny,reactiveVal)
-importFrom(shiny,removeModal)
-importFrom(shiny,removeUI)
-importFrom(shiny,renderPlot)
-importFrom(shiny,renderUI)
-importFrom(shiny,req)
-importFrom(shiny,selectInput)
-importFrom(shiny,shinyApp)
-importFrom(shiny,showModal)
-importFrom(shiny,sidebarLayout)
-importFrom(shiny,sidebarPanel)
-importFrom(shiny,span)
-importFrom(shiny,strong)
-importFrom(shiny,tableOutput)
-importFrom(shiny,tagAppendAttributes)
-importFrom(shiny,tagList)
-importFrom(shiny,tags)
-importFrom(shiny,textInput)
-importFrom(shiny,uiOutput)
-importFrom(shiny,updateSelectInput)
-importFrom(shiny,validate)
-importFrom(shiny,verbatimTextOutput)
-importFrom(stats,na.omit)
-importFrom(stats,quantile)
-importFrom(stats,reshape)
-importFrom(stats,rnorm)
-importFrom(stats,runif)
-importFrom(stats,setNames)
-importFrom(stats,weighted.mean)
+importFrom(scales,comma)
+importFrom(shiny,
+  HTML,
+  NS,
+  actionButton,
+  br,
+  column,
+  conditionalPanel,
+  div,
+  downloadButton,
+  downloadHandler,
+  fileInput,
+  fluidRow,
+  h4,
+  helpText,
+  icon,
+  insertUI,
+  invalidateLater,
+  mainPanel,
+  modalButton,
+  modalDialog,
+  moduleServer,
+  need,
+  numericInput,
+  observe,
+  observeEvent,
+  plotOutput,
+  radioButtons,
+  reactive,
+  reactiveVal,
+  removeModal,
+  removeUI,
+  renderPlot,
+  renderUI,
+  req,
+  selectInput,
+  shinyApp,
+  showModal,
+  sidebarLayout,
+  sidebarPanel,
+  span,
+  strong,
+  tableOutput,
+  tagAppendAttributes,
+  tagList,
+  tags,
+  textInput,
+  uiOutput,
+  updateSelectInput,
+  validate,
+  verbatimTextOutput
+)
+importFrom(stats,
+  na.omit,
+  quantile,
+  reshape,
+  rnorm,
+  runif,
+  setNames,
+  weighted.mean
+)
 importFrom(utils,read.csv)

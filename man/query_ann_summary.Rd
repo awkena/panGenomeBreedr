@@ -22,10 +22,10 @@ query_ann_summary(
 
 \item{end}{Integer. End coordinate for the target window region.}
 
-\item{annotations_table}{A character value specifying the name of the annotations reference table. 
+\item{annotations_table}{A character value specifying the name of the annotations reference table.
 Defaults to \code{"annotations"}.}
 
-\item{variants_table}{A character value specifying the name of the variants reference table. 
+\item{variants_table}{A character value specifying the name of the variants reference table.
 Defaults to \code{"variants"}.}
 }
 \value{

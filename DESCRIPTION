@@ -44,7 +44,10 @@ Imports:
     shiny,
     stats,
     utils,
-    httr
+    httr,
+    ggrepel,
+    patchwork,
+    scales
 Depends: 
     R (>= 4.1)
 Suggests: 
@@ -72,21 +75,18 @@ Suggests:
     shinybusy,
     shinyFiles,
     dittodb,
-    scales,
     leaflet,
     tools,
     shinyjs,
     shinyWidgets,
     testthat (>= 3.0.0),
     UpSetR,
-    mgcv ,
-    ggrepel,
+    mgcv,
     vcfR,
     writexl,
     httptest,
     GenomeInfoDb,
-    GenomicAlignments
+    GenomicAlignments,
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-Config/roxygen2/version: 8.0.0
-RoxygenNote: 8.0.0
+Config/roxygen2/version: 8.1.0
