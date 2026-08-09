@@ -107,12 +107,12 @@ genotype_start_col = 11
 
 # Generate the plot and table package
 result <- plot_ld_geodesic(
-  ld_df = ld_results, 
-  query_db_geno = query_geno, 
+  ld_df = ld_results,
+  query_db_geno = query_geno,
   query_db_annot = query_annot,
   metric = "R2",
   target_variant_ids = c("INDEL_Chr03_79037889", "SNP_Chr03_79037855","SNP_Chr03_79037944"),
-  threshold = 0.2, 
+  threshold = 0.2,
   block_threshold = 0.8
 )
 

@@ -2304,7 +2304,7 @@ cross_qc_annotate <- function(x,
 #' @examples
 #' \dontrun{
 #' # Mode 1: Compute full pairwise matrix landscape
-#' 
+#'
 #' # Get genotype matrix
 #' query_geno <- panGenomeBreedr::pg_query_db(
 #' table_name = "genotypes",
@@ -2313,15 +2313,15 @@ cross_qc_annotate <- function(x,
 #' start = 79037682,
 #' end = 79039091
 #' )
-#' 
+#'
 #' full_ld <- compute_LD(df = query_geno, target_variant_ids = NULL)
 #' print(head(full_ld))
-#' 
+#'
 #' # Mode 2: Targeted calculation panel for KASP marker vetting
 #' target_variants <- c("INDEL_Chr03_79037682", "INDEL_Chr03_79037750", "SNP_Chr03_79039022")
 #' targeted_panel <- compute_LD(
-#'   df = query_geno, 
-#'   target_variant_ids = target_variants, 
+#'   df = query_geno,
+#'   target_variant_ids = target_variants,
 #'   genotype_start_col = 11
 #' )
 #' }
@@ -2362,7 +2362,7 @@ compute_LD <- function(
     "SNP"
   )
 
-  # Haplotypes Matrix Conversion 
+  # Haplotypes Matrix Conversion
   gt_data <- df[, genotype_start_col:ncol(df), drop = FALSE]
   haplotypes <- do.call(
     cbind,
@@ -2416,7 +2416,7 @@ compute_LD <- function(
         target_pos <- variant_positions[j]
         target_type <- variant_types[j]
 
-    
+
         # Append results for the pair to the master list.
         master_results_list[[pair_counter]] <- data.frame(
           variant_1 = anchor_id,
@@ -2491,7 +2491,7 @@ compute_LD <- function(
           stringsAsFactors = FALSE
         )
       }
-      
+
       master_results_list[[anchor_id]] <- do.call(rbind, anchor_results)
     }
   }
@@ -2513,7 +2513,7 @@ compute_LD <- function(
 
 #' Generate Geodesic Landscape Plot and Extract Haploblock Data
 #'
-#' @param ld_df A long-format data frame of pairwise LD statistics containing 
+#' @param ld_df A long-format data frame of pairwise LD statistics containing
 #'   columns \code{variant_1}, \code{variant_2}, and the column matching \code{metric}.
 #' @param query_db_geno A data frame with variant genotype metadata. Must include a
 #'   \code{variant_id} column and a genomic position column (e.g., 'pos').
@@ -2521,7 +2521,7 @@ compute_LD <- function(
 #'   \code{variant_id} and a functional \code{impact} column.
 #' @param metric Character string. The linkage metric to visualize ("R2" or "D_prime").
 #' @param target_variant_ids A character vector of variant IDs to highlight on the plot.
-#' @param threshold Numeric. The minimum LD value to display. Pairs below this 
+#' @param threshold Numeric. The minimum LD value to display. Pairs below this
 #'   value fade to white background spaces. Defaults to 0.2.
 #' @param block_threshold Numeric. The threshold at which to group and isolate block variants. Defaults to 0.8.
 #' @param show_variant_labels Logical. If TRUE (default), displays variant IDs above the spine.
@@ -2535,10 +2535,10 @@ compute_LD <- function(
 #'   \item \code{plot}: A ggplot object showing the geodesic LD landscape.
 #'   \item \code{table}: A data frame where columns represent haploblocks, listing their constituent variants and impacts.
 #' }
-#' 
+#'
 #' @param target_variant_ids A character vector of variant IDs to highlight on the plot.
 #' @import ggplot2
-#' 
+#'
 #' @export
 #' @examples
 #' \dontrun{
@@ -2549,7 +2549,7 @@ compute_LD <- function(
 #' start = 79037682,
 #' end = 79039091
 #' )
-#' 
+#'
 #' query_geno <- panGenomeBreedr::pg_query_db(
 #' table_name = "genotypes",
 #' chrom = "Chr03",
@@ -2557,22 +2557,22 @@ compute_LD <- function(
 #' start = 79037682,
 #' end = 79039091
 #' )
-#' 
+#'
 #' # Compute your updated wide data containing distance tracking columns
 #' ld_results <- compute_LD(
 #' df = query_geno,
 #' target_variant_ids = NULL,
 #' genotype_start_col = 11
 #' )
-#' 
+#'
 #' # Generate the plot and table package
 #' result <- plot_ld_geodesic(
-#'   ld_df = ld_results, 
-#'   query_db_geno = query_geno, 
+#'   ld_df = ld_results,
+#'   query_db_geno = query_geno,
 #'   query_db_annot = query_annot,
 #'   metric = "R2",
 #'   target_variant_ids = c("INDEL_Chr03_79037889", "SNP_Chr03_79037855","SNP_Chr03_79037944"),
-#'   threshold = 0.2, 
+#'   threshold = 0.2,
 #'   block_threshold = 0.8
 #' )
 #'
@@ -2923,31 +2923,30 @@ plot_ld_geodesic <- function(
 
 
 
-
-
 #' Append Locus Allele Metrics to Germplasm Genotype Matrix
 #'
-#' Computes major and minor allele states along with their respective gametic frequencies 
-#' for a targeted genomic window, appending these diversity metrics directly into the 
+#' Computes major and minor allele states along with their respective gametic frequencies
+#' for a targeted genomic window, appending these diversity metrics directly into the
 #' matrix schema immediately following the variant metadata and preceding the accession columns.
 #'
 #' @param region_matrix A dataframe from the genotype table with calls.
-#' @param ref_col A character string specifying the column name for the reference allele. 
+#' @param ref_col A character string specifying the column name for the reference allele.
 #'   Defaults to `"ref"`.
-#' @param alt_col A character string specifying the column name for the alternative allele. 
+#' @param alt_col A character string specifying the column name for the alternative allele.
 #'   Defaults to `"alt"`.
-#' @param meta_data A character vector defining the baseline variant descriptor columns 
+#' @param meta_data A character vector defining the baseline variant descriptor columns
 #'   to anchor on the left flank of the matrix. Defaults to standard genomic coordinates.
 #'
 #' @return A modified genotype matrix data frame with allele frequencies and allele type
-#' 
+#'
 #' @noRd
 append_locus_allele_metrics <- function(
-  region_matrix,
-  ref_col = "ref",
-  alt_col = "alt",
-  meta_data = c("variant_id", "chrom", "pos", "ref", "alt", "variant_type")
+    region_matrix,
+    ref_col = "ref",
+    alt_col = "alt",
+    meta_data = c("variant_id", "chrom", "pos", "ref", "alt", "variant_type")
 ) {
+
   meta_cols <- meta_data
 
   # Remove metadata columns
@@ -2956,33 +2955,35 @@ append_locus_allele_metrics <- function(
   # Extract genotype calls
   mat <- as.matrix(region_matrix[, sample_cols])
 
-  # Count reference and alternative alleles
-  count_0 <- rowSums(mat == "0|0") * 2 + rowSums(mat == "0|1" | mat == "1|0")
-  count_1 <- rowSums(mat == "1|1") * 2 + rowSums(mat == "0|1" | mat == "1|0")
+  # OPTIMIZATION 1: Memory-efficient counting.
+  # Avoid the logical OR operator (`|`) on large matrices to prevent massive intermediate memory allocations.
+  het_01 <- rowSums(mat == "0|1", na.rm = TRUE)
+  het_10 <- rowSums(mat == "1|0", na.rm = TRUE)
+  het_total <- het_01 + het_10
 
-  # Isolate the major allele variant
-  major_allele <- ifelse(
-    count_0 >= count_1,
-    region_matrix[[ref_col]],
-    region_matrix[[alt_col]]
-  )
+  count_0 <- (rowSums(mat == "0|0", na.rm = TRUE) * 2) + het_total
+  count_1 <- (rowSums(mat == "1|1", na.rm = TRUE) * 2) + het_total
 
-  # Isolate the major allele variant
-  minor_allele <- ifelse(
-    count_0 < count_1,
-    region_matrix[[ref_col]],
-    region_matrix[[alt_col]]
-  )
+  # OPTIMIZATION 2: Replace `ifelse` with vectorized boolean subsetting for string assignment.
+  is_ref_major <- count_0 >= count_1
 
-  # Derive gametic allele frequencies based on total non-missing observed calls
-  total_alleles <- (count_0 + count_1)
+  # Pre-allocate with the alternative allele, then overwrite with the reference where true
+  major_allele <- region_matrix[[alt_col]]
+  major_allele[is_ref_major] <- region_matrix[[ref_col]][is_ref_major]
 
-  minor_allele_freq <- (pmin(count_0, count_1) /
-    ifelse(total_alleles == 0, 1, total_alleles)) |> round(digits = 5)
+  minor_allele <- region_matrix[[ref_col]]
+  minor_allele[is_ref_major] <- region_matrix[[alt_col]][is_ref_major]
 
-  major_allele_freq <- (pmax(count_0, count_1) /
-    ifelse(total_alleles == 0, 1, total_alleles)) |> round(digits = 5)
+  # OPTIMIZATION 3: Replace `ifelse` in math operations.
+  # Modifying the divisor directly avoids evaluating multiple conditions across large vectors.
+  total_alleles <- count_0 + count_1
+  safe_total <- total_alleles
+  safe_total[safe_total == 0] <- 1
 
+  minor_allele_freq <- round(pmin(count_0, count_1) / safe_total, 5)
+  major_allele_freq <- round(pmax(count_0, count_1) / safe_total, 5)
+
+  # Fast column assignment
   region_matrix$major_allele <- major_allele
   region_matrix$minor_allele <- minor_allele
   region_matrix$major_allele_freq <- major_allele_freq
@@ -2996,9 +2997,10 @@ append_locus_allele_metrics <- function(
     "minor_allele_freq"
   )
 
+  # Combine columns and explicitly subset to return the final matrix
   sample_cols_n <- setdiff(names(region_matrix), c(meta_cols, new_metrics))
   optimized_column_order <- c(meta_cols, new_metrics, sample_cols_n)
-  region_matrix <- region_matrix[, optimized_column_order]
 
-  return(region_matrix)
+  return(region_matrix[, optimized_column_order])
 }
+

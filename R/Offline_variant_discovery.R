@@ -583,12 +583,14 @@ plot_gene_model <- function(gene_df) {
 #'
 #' @description Visualizes variant distributions across a genomic region.
 #' Variants are mapped by position, with impact levels determining their
-#' vertical placement (lollipop style) and variant types mapped to shapes.
+#' vertical placement (lollipop style), variant types mapped to shapes, and
+#' minor allele frequencies (MAF) mapped to point size.
 #' @param var_df A data frame containing variant data. Required columns:
 #' \code{variant_type} (character: "SNP", "INDEL"), \code{variant_id},
-#' and \code{impact} (character: "MODIFIER", "LOW", "MODERATE", "HIGH").
+#' \code{impact} (character: "MODIFIER", "LOW", "MODERATE", "HIGH"), and a numeric MAF column.
 #' @param chrom_col A character string specifying the chromosome column.
 #' @param pos_col A character string specifying the variant position column.
+#' @param maf_col A character string specifying the minor allele frequency column.
 #' @param start_pos A numeric integer for the region start. Default is the minimum
 #' position in var_df.
 #' @param end_pos A numeric integer for the region end. Default is the maximum
@@ -598,7 +600,7 @@ plot_gene_model <- function(gene_df) {
 #' \donttest{
 #' library(panGenomeBreedr)
 #' # Extract variants within the candidate gene: Sobic.005G213600
-#' pg_gt_region <- pg_query_db(table_name = "variants",
+#' pg_gt_region <- pg_query_db(table_name = "genotypes",
 #'                             chrom = "Chr05",
 #'                             start = 75104537,
 #'                             end = 75106403
@@ -612,21 +614,22 @@ plot_gene_model <- function(gene_df) {
 #'                                 gene_name = "Sobic.005G213600"
 #'                                 )
 #'
-#' var_df <- merge(pg_annota_region, pg_gt_region, by = "variant_id")
+#' var_df <- merge(pg_annota_region, pg_gt_region, by = "variant_id")[,1:23]
 #'
 #' plot_variant_hotspot(var_df)
 #' }
 #' @export
-#' @importFrom ggplot2 ggplot aes geom_hline geom_segment geom_point scale_fill_manual scale_shape_manual scale_x_continuous scale_y_continuous theme_minimal labs theme element_blank element_text element_line guides guide_legend margin
+#' @importFrom ggplot2 ggplot aes geom_hline geom_segment geom_point scale_fill_manual scale_shape_manual scale_size_continuous scale_x_continuous scale_y_continuous theme_minimal labs theme element_blank element_text element_line guides guide_legend margin
 #' @importFrom scales comma
 #' @importFrom stats runif
 plot_variant_hotspot <- function(var_df,
                                  chrom_col = "chrom.x",
                                  pos_col = "pos.x",
+                                 maf_col = "minor_allele_freq",
                                  start_pos = NULL,
                                  end_pos = NULL) {
 
-  plot_y <- bae_y <- impact <- variant_type <- NULL
+  plot_y <- base_y <- impact <- variant_type <- NULL
 
   # 1. Handle missing boundaries dynamically
   if (is.null(start_pos)) start_pos <- min(var_df[[pos_col]], na.rm = TRUE)
@@ -639,21 +642,21 @@ plot_variant_hotspot <- function(var_df,
 
   # Add deterministic jitter so the stem drop-lines align perfectly with the points
   set.seed(123)
-  var_df$plot_y <- var_df$base_y + stats::runif(nrow(var_df), min = -0.3,
-                                                max = 0.3)
+  var_df$plot_y <- var_df$base_y + stats::runif(nrow(var_df), min = -0.3, max = 0.3)
 
-  # 3. Calculate summary statistics for the dynamic caption (Fixed typo new_df -> var_df)
+  # 3. Calculate summary statistics for the dynamic caption
   total_vars <- length(unique(var_df$variant_id))
   n_snps <- length(unique(var_df$variant_id[var_df$variant_type == "SNP"]))
   n_indels <- length(unique(var_df$variant_id[var_df$variant_type == "INDEL"]))
   caption_text <- paste0("Total Unique Variants: ", total_vars,
                          " | SNPs: ", n_snps,
                          " | INDELS: ", n_indels)
+
   # Get chromosome number
   chr <- var_df[[chrom_col]][1]
 
   # 4. Define specific palettes mapped directly to the requested visual style
-  impact_colors <- c("MODIFIER" = "#9A9DA9", # Greyish purple
+  impact_colors <- c("MODIFIER" = "#CDBAAB", # Greyish purple
                      "LOW"      = "#7198EC", # Blue
                      "MODERATE" = "#C98FD9", # Magenta/Purple
                      "HIGH"     = "#F70909") # Red
@@ -662,10 +665,9 @@ plot_variant_hotspot <- function(var_df,
                    "INDEL" = 24) # Filled triangle up
 
   # Ensure factor levels so legends are ordered from least to most impact
-  var_df$impact <- factor(var_df$impact, levels = c("MODIFIER", "LOW", "MODERATE",
-                                                    "HIGH"))
+  var_df$impact <- factor(var_df$impact, levels = c("MODIFIER", "LOW", "MODERATE", "HIGH"))
 
-  # 5. Build the plot (Using .data[[]] for tidy evaluation of dynamic column strings)
+  # 5. Build the plot
   plt <- ggplot2::ggplot(var_df, ggplot2::aes(x = .data[[pos_col]])) +
 
     # Add the thick baseline representing the chromosome track
@@ -676,13 +678,20 @@ plot_variant_hotspot <- function(var_df,
                                        y = 0, yend = plot_y),
                           color = "#E0E0E0", linewidth = 0.3, alpha = 0.6) +
 
-    # Add the variant points with fill mapped to impact, and shape mapped to type
-    ggplot2::geom_point(ggplot2::aes(y = plot_y, fill = impact, shape = variant_type),
-                        size = 3.5, color = "black", stroke = 0.4, alpha = 0.8) +
+    # Add the variant points: mapped to y, fill, shape, AND size (MAF)
+    ggplot2::geom_point(ggplot2::aes(y = plot_y, fill = impact, shape = variant_type,
+                                     size = .data[[maf_col]]),
+                        color = "black", stroke = 0.4, alpha = 0.8) +
 
     # Map aesthetics explicitly
     ggplot2::scale_fill_manual(values = impact_colors, name = "Max Impact") +
     ggplot2::scale_shape_manual(values = type_shapes, name = "Variant Type") +
+
+    # Scale point sizes for MAF so they remain visible but don't overwhelm the plot
+    # New line
+    ggplot2::scale_size_continuous(name = "MAF",
+                                   range = c(1.5, 6),
+                                   breaks = c(0.05, 0.1, 0.2, 0.3, 0.4, 0.5)) +
 
     # Apply labels and format x-axis limits with commas
     ggplot2::labs(title = caption_text,
@@ -696,7 +705,6 @@ plot_variant_hotspot <- function(var_df,
     ggplot2::scale_x_continuous(labels = scales::comma, limits = c(start_pos, end_pos)) +
 
     # Hardcode y-axis limits so the baseline rests cleanly near the bottom
-    # Expanded up to 4.8 to accommodate the new HIGH impact jitter
     ggplot2::scale_y_continuous(limits = c(-0.2, 4.8)) +
 
     # Apply clean structural theme
@@ -709,7 +717,7 @@ plot_variant_hotspot <- function(var_df,
       plot.caption = ggplot2::element_text(hjust = 0, size = 10, face = "bold",
                                            margin = ggplot2::margin(t = 15)),
 
-      # Handle gridlines (vertical dashed only, mimicking standard genome browsers)
+      # Handle gridlines
       panel.grid.major.x = ggplot2::element_line(color = "#E5E5E5", linetype = "dashed"),
       panel.grid.minor.x = ggplot2::element_blank(),
       panel.grid.major.y = ggplot2::element_blank(),
@@ -729,12 +737,16 @@ plot_variant_hotspot <- function(var_df,
       legend.text = ggplot2::element_text(size = 8)
     ) +
 
-    # Ensure legends correctly preview shapes (size and border)
-    ggplot2::guides(fill = ggplot2::guide_legend(override.aes = list(shape = 21, size = 4)),
-                    shape = ggplot2::guide_legend(override.aes = list(size = 4, fill = "darkgrey")))
+    # Ensure legends correctly preview shapes and don't visually clash
+    ggplot2::guides(
+      fill = ggplot2::guide_legend(override.aes = list(shape = 21, size = 4)),
+      shape = ggplot2::guide_legend(override.aes = list(size = 4, fill = "darkgrey")),
+      size = ggplot2::guide_legend(override.aes = list(shape = 21, fill = "darkgrey"))
+    )
 
   return(plt)
 }
+
 
 
 #' Generate a combined gene model and variant hotspot overlay plot (local)
@@ -805,7 +817,7 @@ hotspot_overlay_plot <- function(gene_name,
   if (connect_db_mode == "online") {
 
     pg_gt_region <- pg_query_db(
-      table_name = "variants",
+      table_name = "genotypes",
       chrom = chr,
       start = start_pos,
       end = end_pos
@@ -820,7 +832,7 @@ hotspot_overlay_plot <- function(gene_name,
       gene_name = gene_name
     )
 
-    var_df <- merge(pg_annota_region, pg_gt_region, by = "variant_id")
+    var_df <- merge(pg_annota_region, pg_gt_region, by = "variant_id")[,1:23]
 
   } else {
 
@@ -829,7 +841,7 @@ hotspot_overlay_plot <- function(gene_name,
 
     # Extract variants within the genomic range of the gene
     gt_region <- query_db(con = con_demo,
-                          table_name = "variants",
+                          table_name = "genotypes",
                           chrom = chr,
                           start = start_pos,
                           end = end_pos)
@@ -843,7 +855,7 @@ hotspot_overlay_plot <- function(gene_name,
                               gene_name = gene_name)
 
     # Merge gt_region and annota_region data frames
-    var_df <- merge(annota_region, gt_region, by = "variant_id")
+    var_df <- merge(annota_region, gt_region, by = "variant_id")[,1:23]
   }
 
   # Generate the base hotspot plot

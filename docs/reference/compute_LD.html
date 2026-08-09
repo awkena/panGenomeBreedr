@@ -111,8 +111,8 @@ genotype calls (e.g., "0|0", "1|0") begin. Defaults to 7.</p></dd>
 <span class="r-in"><span><span class="co"># Mode 2: Targeted calculation panel for KASP marker vetting</span></span></span>
 <span class="r-in"><span><span class="va">target_variants</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"INDEL_Chr03_79037682"</span>, <span class="st">"INDEL_Chr03_79037750"</span>, <span class="st">"SNP_Chr03_79039022"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">targeted_panel</span> <span class="op">&lt;-</span> <span class="fu">compute_LD</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  df <span class="op">=</span> <span class="va">query_geno</span>, </span></span>
-<span class="r-in"><span>  target_variant_ids <span class="op">=</span> <span class="va">target_variants</span>, </span></span>
+<span class="r-in"><span>  df <span class="op">=</span> <span class="va">query_geno</span>,</span></span>
+<span class="r-in"><span>  target_variant_ids <span class="op">=</span> <span class="va">target_variants</span>,</span></span>
 <span class="r-in"><span>  genotype_start_col <span class="op">=</span> <span class="fl">11</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
