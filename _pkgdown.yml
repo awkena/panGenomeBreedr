@@ -59,67 +59,51 @@ reference:
       
   - subtitle: "Database Schema & Metadata"
     contents:
-      - list_sqlite_tables
-      - pg_list_tables
-      - summarize_sqlite_tables
-      - pg_summarize_tables
-      - list_table_columns
-      - pg_list_table_columns
+      - list_tables
+      - list_columns
+      - summarize_database
+      - fetch_accession_metadata
       
   - subtitle: "Core Data Queries"
     contents:
-      - query_db
-      - pg_query_db
-      - query_genotypes
-      - pg_query_genotypes
-      - get_sample_metadata
-      - pg_get_sample_metadata
-      - query_geno_by_meta
-      - pg_query_geno_by_meta
+      - fetch_table_region
+      - fetch_genotypes_by_id
+      - filter_genotypes_by_metadata
       
   - subtitle: "Targeted Variant Filters"
     contents:
-      - query_by_af
-      - pg_query_by_af
-      - query_by_impact
-      - pg_query_by_impact
+      - fetch_variants_by_impact
+      - fetch_variants_by_allele_frequency
       
   - subtitle: "Summaries & Statistics"
     contents:
-      - variant_stats
-      - pg_variant_stats
-      - variant_impact_summary
-      - pg_variant_impact_summary
+      - summarize_variants
+      - summarize_variant_impacts
       - count_variant_types
-      - pg_count_variant_types
-      - query_ann_summary
-      - pg_query_ann_summary
+      - summarize_annotations
       
   - subtitle: "Allele Frequency Handlers"
     contents:
-      - calc_af
-      - pg_calc_af
-      - filter_by_af
-      - pg_filter_by_af
+      - calculate_allele_frequencies
+      - filter_by_allele_frequency
 
   - subtitle: "Linkage Disequilibrium Analysis"
     contents:
-      - compute_LD
+      - calculate_LD
       - plot_ld_geodesic
       
-  - subtitle: "Marker Design & Visualization"
+  - subtitle: "Visualization"
+    contents:
+      - plot_accession_map
+      - plot_variant_hotspots
+      
+  - subtitle: "Marker Design & Utilities"
     contents:
       - kasp_marker_design
-      - query_map_accessions
-      - pg_map_accessions
-      
-  - subtitle: "Utilities"
-    contents:
       - gene_coord_gff
-      - pg_gene_coords
       - extract_variant
-      - get_google_id
       - folder_download_gd
+      - get_google_id
 
   - title: "KASP Marker Validation"
     contents:

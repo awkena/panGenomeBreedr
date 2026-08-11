@@ -974,8 +974,8 @@ mod_variant_discovery_server <- function(id) {
             rv$conn <- connect_local_db(folder_path = db_path)
             rv$connected <- TRUE
             rv$conn_type <- "sqlite"
-            rv$tables <- list_sqlite_tables(con = rv$conn)
-            rv$sample_metadata <- get_sample_metadata(con = rv$conn)
+            rv$tables <- list_tables(con = rv$conn)
+            rv$sample_metadata <- fetch_accession_metadata(con = rv$conn)
             rv$db_path <- db_path
 
             shinyjs::hide("pre_connection_panel")
@@ -1075,9 +1075,9 @@ mod_variant_discovery_server <- function(id) {
           }
 
           set_api_url(target_url)
-          rv$tables <- pg_list_tables()
+          rv$tables <- list_tables(connect_db_mode = 'online')
           rv$connected <- TRUE
-          rv$sample_metadata <- pg_get_sample_metadata()
+          rv$sample_metadata <- fetch_accession_metadata(connect_db_mode = 'online')
           rv$conn_type <- "postgres"
 
           shinyjs::hide("pre_connection_panel")
@@ -1233,32 +1233,19 @@ mod_variant_discovery_server <- function(id) {
     })
 
     output$accession_map <- leaflet::renderLeaflet({
-      req(rv$sample_metadata, input$color_by_col, rv$conn_type)
-
-      if (rv$conn_type == "sqlite") {
-        query_map_accessions(
-          metadata = rv$sample_metadata,
-          color_by = input$color_by_col
-        )
-      } else {
-        pg_map_accessions(
-          metadata = rv$sample_metadata,
-          color_by = input$color_by_col
-        )
-      }
+      req(rv$sample_metadata, input$color_by_col)
+      plot_accession_map(
+        metadata = rv$sample_metadata, color_by = input$color_by_col
+      )
     })
 
     # ------------------------------------------------------------------
     # DATABASE INFO TAB
     # ------------------------------------------------------------------
 
-    fetch_data <- function(
-      button_id,
-      task_name,
-      data_slot,
-      sqlite_func_name,
-      pg_func_name
-    ) {
+    # Refactored fetch_data to work with unified functions that handle both
+    # local and online modes, reducing code duplication.
+    fetch_data <- function(button_id, task_name, data_slot, unified_func, ...) {
       observeEvent(input[[button_id]], {
         req(rv$connected)
 
@@ -1272,21 +1259,22 @@ mod_variant_discovery_server <- function(id) {
 
         c_type <- rv$conn_type
         d_path <- rv$db_path
+        # Capture additional arguments for the function call
+        extra_args <- list(...)
 
-        p <- future::future(
-          {
-            if (c_type == "sqlite") {
-              temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
-              res <- do.call(sqlite_func_name, list(con = temp_con))
-              disconnect_local_db(temp_con, quiet = TRUE)
-              res
-            } else {
-              do.call(pg_func_name, list())
-            }
-          },
-          seed = TRUE,
-          packages = c("panGenomeBreedr")
-        )
+        p <- future::future({
+          # Prepare arguments based on connection type
+          args <- if (c_type == "sqlite") {
+            temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
+            on.exit(disconnect_local_db(temp_con, quiet = TRUE))
+            c(list(con = temp_con), extra_args)
+          } else { # postgres
+            c(list(connect_db_mode = 'online'), extra_args)
+          }
+          
+          # Call the unified function with the correct arguments
+          do.call(unified_func, args)
+        }, seed = TRUE, packages = c("panGenomeBreedr"))
 
         promises::then(
           p,
@@ -1315,32 +1303,29 @@ mod_variant_discovery_server <- function(id) {
       "get_impact",
       "Variant Impact Summary",
       "variant_impact",
-      "variant_impact_summary",
-      "pg_variant_impact_summary"
+      summarize_variant_impacts
     )
 
     fetch_data(
       "get_stats",
       "Variant Statistics",
       "variant_stats",
-      "variant_stats",
-      "pg_variant_stats"
+      summarize_variants,
+      include_annotations = FALSE # Explicitly set to FALSE as in original logic
     )
 
     fetch_data(
       "get_summary",
       "Table Summaries",
       "sqlite_summary",
-      "summarize_sqlite_tables",
-      "pg_summarize_tables"
+      summarize_database
     )
 
     fetch_data(
       "get_types",
       "Variant Type Counts",
       "variant_count",
-      "count_variant_types",
-      "pg_count_variant_types"
+      count_variant_types
     )
 
     observeEvent(input$get_schema, {
@@ -1366,11 +1351,11 @@ mod_variant_discovery_server <- function(id) {
         {
           if (c_type == "sqlite") {
             temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
-            res <- list_table_columns(con = temp_con, table_name = t_name)
+            res <- list_columns(con = temp_con, table_name = t_name)
             disconnect_local_db(temp_con, quiet = TRUE)
             res
           } else {
-            pg_list_table_columns(table_name = t_name)
+            list_columns(table_name = t_name, connect_db_mode = 'online')
           }
         },
         seed = TRUE,
@@ -1495,50 +1480,21 @@ mod_variant_discovery_server <- function(id) {
 
       p <- future::future(
         {
-          fetch_func <- if (c_type == "sqlite") query_db else pg_query_db
-          con_arg <- if (c_type == "sqlite") {
-            list(con = connect_local_db(d_path, quiet = TRUE))
+          if (c_type == "sqlite") {
+            temp_con <- connect_local_db(d_path, quiet = TRUE)
+            on.exit(disconnect_local_db(temp_con, quiet = TRUE))
+            variants_data <- fetch_table_region(con = temp_con, table_name = "variants", chrom = chr, start = st, end = en)
+            annotations_data <- fetch_table_region(con = temp_con, table_name = "annotations", chrom = chr, start = st, end = en)
+            genotypes_data <- fetch_table_region(con = temp_con, table_name = "genotypes", chrom = chr, start = st, end = en)
           } else {
-            list()
+            variants_data <- fetch_table_region(connect_db_mode = 'online', table_name = "variants", chrom = chr, start = st, end = en)
+            annotations_data <- fetch_table_region(connect_db_mode = 'online', table_name = "annotations", chrom = chr, start = st, end = en)
+            genotypes_data <- fetch_table_region(connect_db_mode = 'online', table_name = "genotypes", chrom = chr, start = st, end = en)
           }
-          on.exit(
-            if (c_type == "sqlite") {
-              disconnect_local_db(con_arg$con, quiet = TRUE)
-            }
-          )
-
           list(
-            variants = do.call(
-              fetch_func,
-              c(
-                con_arg,
-                list(table_name = "variants", chrom = chr, start = st, end = en)
-              )
-            ),
-            annotations = do.call(
-              fetch_func,
-              c(
-                con_arg,
-                list(
-                  table_name = "annotations",
-                  chrom = chr,
-                  start = st,
-                  end = en
-                )
-              )
-            ),
-            genotypes = do.call(
-              fetch_func,
-              c(
-                con_arg,
-                list(
-                  table_name = "genotypes",
-                  chrom = chr,
-                  start = st,
-                  end = en
-                )
-              )
-            )
+            variants = variants_data,
+            annotations = annotations_data,
+            genotypes = genotypes_data
           )
         },
         seed = TRUE,
@@ -1628,14 +1584,15 @@ mod_variant_discovery_server <- function(id) {
           genotype_start_col_val <- input$genotype_start_col_input
 
           result_df <- if (rv$conn_type == "sqlite") {
-            query_geno_by_meta(
+            filter_genotypes_by_metadata(
               con = rv$conn,
               genotype_matrix = values$query_geno_react,
               genotype_start_col = genotype_start_col_val,
               filters = filters_list
             )
           } else {
-            pg_query_geno_by_meta(
+            filter_genotypes_by_metadata(
+              connect_db_mode = 'online',
               genotype_matrix = values$query_geno_react,
               genotype_start_col = genotype_start_col_val,
               filters = filters_list
@@ -1898,11 +1855,11 @@ mod_variant_discovery_server <- function(id) {
           {
             if (c_type == "sqlite") {
               temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
-              res <- variant_stats(con = temp_con, include_annotations = FALSE)
+              res <- summarize_variants(con = temp_con, include_annotations = FALSE)
               disconnect_local_db(temp_con, quiet = TRUE)
               res
             } else {
-              pg_variant_stats(include_annotations = FALSE)
+              summarize_variants(connect_db_mode = 'online', include_annotations = FALSE)
             }
           },
           seed = TRUE,
@@ -2199,7 +2156,7 @@ mod_variant_discovery_server <- function(id) {
             input$target_ids
           }
 
-          ld_res <- compute_LD(
+          ld_res <- calculate_LD(
             df = values$regional_genotypes,
             target_variant_ids = target_variants
           )
@@ -2478,13 +2435,14 @@ mod_variant_discovery_server <- function(id) {
 
         if (query_type %in% c("genotypes", "variants", "annotations")) {
           if (c_type == "sqlite") {
-            result <- query_db(
+            result <- fetch_table_region(
               con = temp_con, table_name = query_type,
               chrom = res_chrom, start = res_start, end = res_end,
               gene_name = q_gene_name
             )
           } else { # postgres
-            result <- pg_query_db(
+            result <- fetch_table_region(
+              connect_db_mode = 'online',
               table_name = query_type,
               chrom = res_chrom, start = res_start, end = res_end,
               gene_name = q_gene_name
@@ -2494,13 +2452,14 @@ mod_variant_discovery_server <- function(id) {
 
         } else if (query_type == "annotation_summary") {
           if (c_type == "sqlite") {
-            result <- query_ann_summary(
+            result <- summarize_annotations(
               con = temp_con, variants_table = "variants",
               annotations_table = "annotations", chrom = res_chrom,
               start = res_start, end = res_end
             )
           } else { # postgres
-            result <- pg_query_ann_summary(
+            result <- summarize_annotations(
+              connect_db_mode = 'online',
               annotations_table = "annotations", variants_table = "variants",
               chrom = res_chrom, start = res_start, end = res_end
             )
@@ -2654,7 +2613,7 @@ mod_variant_discovery_server <- function(id) {
         {
           if (c_type == "sqlite") {
             temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
-            res <- query_db(
+            res <- fetch_table_region(
               con = temp_con,
               table_name = "variants",
               chrom = chr,
@@ -2663,7 +2622,8 @@ mod_variant_discovery_server <- function(id) {
             )
             disconnect_local_db(temp_con, quiet = TRUE)
           } else {
-            res <- pg_query_db(
+            res <- fetch_table_region(
+              connect_db_mode = 'online',
               table_name = "variants",
               chrom = chr,
               start = st,
@@ -2748,24 +2708,21 @@ mod_variant_discovery_server <- function(id) {
 
         if (impact_card_val == "By Impact & AF") {
           impact_result <- if (c_type == "sqlite") {
-            query_by_impact(con = temp_con, impact_level = impact_lvl, chrom = res$chrom, start = res$start, end = res$end)
+            fetch_variants_by_impact(con = temp_con, impact_level = impact_lvl, chrom = res$chrom, start = res$start, end = res$end)
           } else {
-            pg_query_by_impact(impact_level = impact_lvl, chrom = res$chrom, start = res$start, end = res$end)
+            fetch_variants_by_impact(connect_db_mode = 'online', impact_level = impact_lvl, chrom = res$chrom, start = res$start, end = res$end)
           }
           if (is.null(impact_result) || nrow(impact_result) == 0) return(list(data = NULL, type = "impact"))
 
           full_gt <- if (c_type == "sqlite") {
-            query_genotypes(con = temp_con, variant_ids = impact_result$variant_id, meta_data = meta_cols)
+            fetch_genotypes_by_id(con = temp_con, variant_ids = impact_result$variant_id, meta_data = meta_cols)
           } else {
-            pg_query_genotypes(variant_ids = impact_result$variant_id, meta_data = meta_cols)
+            fetch_genotypes_by_id(connect_db_mode = 'online', variant_ids = impact_result$variant_id, meta_data = meta_cols)
           }
           if (is.null(full_gt) || nrow(full_gt) == 0) return(list(data = NULL, type = "impact"))
 
-          filtered_af_result <- if (c_type == "sqlite") {
-            filter_by_af(gt = full_gt, min_af = af_val)
-          } else {
-            pg_filter_by_af(gt = full_gt, min_af = af_val)
-          }
+          filtered_af_result <- filter_by_allele_frequency(gt = full_gt, min_af = af_val)
+
           if (is.null(filtered_af_result) || nrow(filtered_af_result) == 0) return(list(data = NULL, type = "impact"))
 
           filtered_ids <- filtered_af_result$variant_id
@@ -2774,9 +2731,13 @@ mod_variant_discovery_server <- function(id) {
 
         } else if (impact_card_val == "By Variant ID") {
           query_result <- if (c_type == "sqlite") {
-            query_genotypes(con = temp_con, variant_ids = manual_ids, meta_data = meta_cols)
+            fetch_genotypes_by_id(con = temp_con, variant_ids = manual_ids, meta_data = meta_cols)
           } else {
-            pg_query_genotypes(variant_ids = manual_ids, meta_data = meta_cols)
+            fetch_genotypes_by_id(
+              connect_db_mode = 'online',
+              variant_ids = manual_ids,
+              meta_data = meta_cols
+            )
           }
           return(list(data = query_result, type = "id"))
         }

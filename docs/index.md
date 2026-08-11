@@ -77,13 +77,7 @@ First, ensure all existing packages are up to date.
 You can install the development version of `panGenomeBreedr` from
 [GitHub](https://github.com/awkena/panGenomeBreedr) with:
 
-``` r
-
-# Install panGenomeBreedr
-if (!require("devtools")) install.packages("devtools")
-
-devtools::install_github("awkena/panGenomeBreedr")
-```
+`# Install panGenomeBreedr`` ``if`` ``(``!`[`require`](https://rdrr.io/r/base/library.html)`(`[`"devtools"`](https://devtools.r-lib.org/)`)``)`` `[`install.packages`](https://rdrr.io/r/utils/install.packages.html)`(``"devtools"``)`` `` ``devtools``::`[`install_github`](https://devtools.r-lib.org/reference/install-deprecated.html)`(``"awkena/panGenomeBreedr"``)`
 
 ### Installing Bioconductor dependency packages
 
@@ -91,25 +85,7 @@ devtools::install_github("awkena/panGenomeBreedr")
 installed automatically alongside `panGB`. To manually install these
 packages, use the code snippet below:
 
-``` r
-
-# Install and load required Bioconductor packages if not already installed
-if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-
-# Define required Bioconductor packages
-bioc_packages <- c("rtracklayer", "Rsamtools", "msa", "IRanges",
-                   "GenomicRanges", "BSgenome", "Biostrings", "GenomeInfoDb")
-
-# Install any missing Bioconductor packages
-for (pkg in bioc_packages) {
-
-  if (!requireNamespace(pkg, quietly = TRUE)) {
-
-    BiocManager::install(pkg, ask = FALSE, update = FALSE)
-
-  }
-}
-```
+`# Install and load required Bioconductor packages if not already installed`` ``if`` ``(``!`[`require`](https://rdrr.io/r/base/library.html)`(`[`"BiocManager"`](https://bioconductor.github.io/BiocManager/)`, quietly ``=`` ``TRUE``)``)`` `[`install.packages`](https://rdrr.io/r/utils/install.packages.html)`(``"BiocManager"``)`` `` ``# Define required Bioconductor packages`` ``bioc_packages`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(``"rtracklayer"``, ``"Rsamtools"``, ``"msa"``, ``"IRanges"``,`` `` ``"GenomicRanges"``, ``"BSgenome"``, ``"Biostrings"``, ``"GenomeInfoDb"``)`` `` ``# Install any missing Bioconductor packages`` ``for`` ``(``pkg`` ``in`` ``bioc_packages``)`` ``{`` `` `` ``if`` ``(``!`[`requireNamespace`](https://rdrr.io/r/base/ns-load.html)`(``pkg``, quietly ``=`` ``TRUE``)``)`` ``{`` `` `` ``BiocManager``::`[`install`](https://bioconductor.github.io/BiocManager/reference/install.html)`(``pkg``, ask ``=`` ``FALSE``, update ``=`` ``FALSE``)`` `` `` ``}`` ``}`
 
 ### Launching the Interactive Web Application
 
@@ -120,11 +96,7 @@ point-and-click access to the package’s core features.
 
 To launch the app, simply run the following command in your R console:
 
-``` r
-
-# Launch the interactive Shiny application
-panGenomeBreedr::run_app()
-```
+`# Launch the interactive Shiny application`` ``panGenomeBreedr``::`[`run_app`](https://awkena.github.io/panGenomeBreedr/reference/run_app.md)`(``)`
 
 This will open the panGB application in your default web browser.
 

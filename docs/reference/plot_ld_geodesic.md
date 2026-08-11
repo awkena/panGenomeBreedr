@@ -81,25 +81,26 @@ A structured `list` containing two named assets:
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
-query_annot <- panGenomeBreedr::pg_query_db(
+# \donttest{ 
+query_annot <- panGenomeBreedr::fetch_table_region(
 table_name = "annotations",
 chrom = "Chr03",
 gene_name = "Sobic.003G421300",
 start = 79037682,
-end = 79039091
+end = 79039091,
+connect_db_mode = 'online'
 )
 
-query_geno <- panGenomeBreedr::pg_query_db(
+query_geno <- panGenomeBreedr::fetch_table_region(
 table_name = "genotypes",
 chrom = "Chr03",
-gene_name = "Sobic.003G421300",
 start = 79037682,
-end = 79039091
+end = 79039091,
+connect_db_mode = 'online'
 )
 
 # Compute your updated wide data containing distance tracking columns
-ld_results <- compute_LD(
+ld_results <- calculate_LD(
 df = query_geno,
 target_variant_ids = NULL,
 genotype_start_col = 11
@@ -112,14 +113,23 @@ result <- plot_ld_geodesic(
   query_db_annot = query_annot,
   metric = "R2",
   target_variant_ids = c("INDEL_Chr03_79037889", "SNP_Chr03_79037855","SNP_Chr03_79037944"),
-  threshold = 0.2, 
+  threshold = 0.8, 
   block_threshold = 0.8
 )
 
 # Access the plot
 result$plot
 
+
 # Access the haploblock table
 print(result$table)
-} # }
+#>              Block_1 Block_1_Impact_Level            Block_2
+#> 1 SNP_Chr03_79037855  MODIFIER | MODERATE SNP_Chr03_79038788
+#> 2 SNP_Chr03_79037944                  LOW SNP_Chr03_79038796
+#> 3               <NA>                 <NA> SNP_Chr03_79038799
+#>   Block_2_Impact_Level
+#> 1             MODIFIER
+#> 2             MODIFIER
+#> 3             MODIFIER
+# }
 ```

@@ -1,7 +1,6 @@
 # Get the current database API endpoint URL
 
-Retrieves the active API endpoint. If no custom endpoint has been set by
-the user, it safely defaults to the official Sorghum database API.
+Get the current database API endpoint URL
 
 ## Usage
 
@@ -16,12 +15,13 @@ The character string of the active API URL.
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
+# \donttest{
 # Load the package
 library(panGenomeBreedr)
 
 # Get the current API endpoint URL
 get_api_url()
+#> [1] "http://132.145.61.28:8000"
 
-} # }
+# }
 ```

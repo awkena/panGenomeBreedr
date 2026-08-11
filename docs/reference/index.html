@@ -82,45 +82,31 @@
 
       <dl><dt>
 
-          <code><a href="list_sqlite_tables.html">list_sqlite_tables()</a></code>
+          <code><a href="list_tables.html">list_tables()</a></code>
 
         </dt>
-        <dd>List all tables in the database (local)</dd>
+        <dd>List all tables in the database</dd>
 
         <dt>
 
-          <code><a href="pg_list_tables.html">pg_list_tables()</a></code>
+          <code><a href="list_columns.html">list_columns()</a></code>
 
         </dt>
-        <dd>List all tables in the database (online)</dd>
+        <dd>Get table schema details</dd>
 
         <dt>
 
-          <code><a href="summarize_sqlite_tables.html">summarize_sqlite_tables()</a></code>
+          <code><a href="summarize_database.html">summarize_database()</a></code>
 
         </dt>
-        <dd>Get table names and row counts from the database (local)</dd>
+        <dd>Get table names and row counts from the database</dd>
 
         <dt>
 
-          <code><a href="pg_summarize_tables.html">pg_summarize_tables()</a></code>
+          <code><a href="fetch_accession_metadata.html">fetch_accession_metadata()</a></code>
 
         </dt>
-        <dd>Get table names and row counts from the database (online)</dd>
-
-        <dt>
-
-          <code><a href="list_table_columns.html">list_table_columns()</a></code>
-
-        </dt>
-        <dd>Get table schema details (local)</dd>
-
-        <dt>
-
-          <code><a href="pg_list_table_columns.html">pg_list_table_columns()</a></code>
-
-        </dt>
-        <dd>Get table schema details (online)</dd>
+        <dd>Get sample metadata from the database</dd>
       </dl></div><div class="section level2">
 
       <h3 id="core-data-queries">Core Data Queries<a class="anchor" aria-label="anchor" href="#core-data-queries"></a></h3>
@@ -133,59 +119,24 @@
 
       <dl><dt>
 
-          <code><a href="query_db.html">query_db()</a></code>
+          <code><a href="fetch_table_region.html">fetch_table_region()</a></code>
 
         </dt>
-        <dd>Query database tables by genomic coordinates (local)</dd>
+        <dd>Fetch data from database tables by genomic coordinates</dd>
 
         <dt>
 
-          <code><a href="pg_query_db.html">pg_query_db()</a></code>
+          <code><a href="fetch_genotypes_by_id.html">fetch_genotypes_by_id()</a></code>
 
         </dt>
-        <dd>Query database tables by genomic coordinates (online)</dd>
+        <dd>Fetch genotypes for specific variant IDs</dd>
 
         <dt>
 
-          <code><a href="query_genotypes.html">query_genotypes()</a></code>
+          <code><a href="filter_genotypes_by_metadata.html">filter_genotypes_by_metadata()</a></code>
 
         </dt>
-        <dd>Query genotypes table for specific variant IDs (local)</dd>
-
-        <dt>
-
-          <code><a href="pg_query_genotypes.html">pg_query_genotypes()</a></code>
-
-        </dt>
-        <dd>Query genotypes for specific variant IDs (online)</dd>
-
-        <dt>
-
-          <code><a href="get_sample_metadata.html">get_sample_metadata()</a></code>
-
-        </dt>
-        <dd>Get samples metadata from the database (local)</dd>
-
-        <dt>
-
-          <code><a href="pg_get_sample_metadata.html">pg_get_sample_metadata()</a></code>
-
-        </dt>
-        <dd>Get sample metadata from the database (online)</dd>
-
-        <dt>
-
-          <code><a href="query_geno_by_meta.html">query_geno_by_meta()</a></code>
-
-        </dt>
-        <dd>Filter genotypes by multiple sample metadata criteria (local)</dd>
-
-        <dt>
-
-          <code><a href="pg_query_geno_by_meta.html">pg_query_geno_by_meta()</a></code>
-
-        </dt>
-        <dd>Filter genotypes by multiple sample metadata criteria</dd>
+        <dd>Filter a genotype matrix by sample metadata</dd>
       </dl></div><div class="section level2">
 
       <h3 id="targeted-variant-filters">Targeted Variant Filters<a class="anchor" aria-label="anchor" href="#targeted-variant-filters"></a></h3>
@@ -198,31 +149,17 @@
 
       <dl><dt>
 
-          <code><a href="query_by_af.html">query_by_af()</a></code>
+          <code><a href="fetch_variants_by_impact.html">fetch_variants_by_impact()</a></code>
 
         </dt>
-        <dd>Query variants by allele frequency (local)</dd>
+        <dd>Extract variants based on functional mutation impact</dd>
 
         <dt>
 
-          <code><a href="pg_query_by_af.html">pg_query_by_af()</a></code>
+          <code><a href="fetch_variants_by_allele_frequency.html">fetch_variants_by_allele_frequency()</a></code>
 
         </dt>
-        <dd>Query variants by allele frequency (online)</dd>
-
-        <dt>
-
-          <code><a href="query_by_impact.html">query_by_impact()</a></code>
-
-        </dt>
-        <dd>Extract variants based on functional mutation impact (local)</dd>
-
-        <dt>
-
-          <code><a href="pg_query_by_impact.html">pg_query_by_impact()</a></code>
-
-        </dt>
-        <dd>Extract variants based on functional mutation impact (online)</dd>
+        <dd>Fetch variants by allele frequency</dd>
       </dl></div><div class="section level2">
 
       <h3 id="summaries-statistics">Summaries &amp; Statistics<a class="anchor" aria-label="anchor" href="#summaries-statistics"></a></h3>
@@ -235,59 +172,31 @@
 
       <dl><dt>
 
-          <code><a href="variant_stats.html">variant_stats()</a></code>
+          <code><a href="summarize_variants.html">summarize_variants()</a></code>
 
         </dt>
-        <dd>Get variant statistics from the database (local)</dd>
+        <dd>Get variant statistics from the database</dd>
 
         <dt>
 
-          <code><a href="pg_variant_stats.html">pg_variant_stats()</a></code>
+          <code><a href="summarize_variant_impacts.html">summarize_variant_impacts()</a></code>
 
         </dt>
-        <dd>Get variant statistics from the database (online)</dd>
-
-        <dt>
-
-          <code><a href="variant_impact_summary.html">variant_impact_summary()</a></code>
-
-        </dt>
-        <dd>Get summary of database variant impacts by chromosome (local)</dd>
-
-        <dt>
-
-          <code><a href="pg_variant_impact_summary.html">pg_variant_impact_summary()</a></code>
-
-        </dt>
-        <dd>Get summary of database variant impacts by chromosome (online)</dd>
+        <dd>Get summary of database variant impacts by chromosome</dd>
 
         <dt>
 
           <code><a href="count_variant_types.html">count_variant_types()</a></code>
 
         </dt>
-        <dd>Count the distribution of variant types in the database (local)</dd>
+        <dd>Count the distribution of variant types in the database</dd>
 
         <dt>
 
-          <code><a href="pg_count_variant_types.html">pg_count_variant_types()</a></code>
+          <code><a href="summarize_annotations.html">summarize_annotations()</a></code>
 
         </dt>
-        <dd>Count the distribution of variant types in the database (online)</dd>
-
-        <dt>
-
-          <code><a href="query_ann_summary.html">query_ann_summary()</a></code>
-
-        </dt>
-        <dd>Get summarized functional annotations, impacts and variant types for a genomic region (local)</dd>
-
-        <dt>
-
-          <code><a href="pg_query_ann_summary.html">pg_query_ann_summary()</a></code>
-
-        </dt>
-        <dd>Summarize functional annotations and impacts for a genomic region (online)</dd>
+        <dd>Summarize functional annotations and impacts for a genomic region</dd>
       </dl></div><div class="section level2">
 
       <h3 id="allele-frequency-handlers">Allele Frequency Handlers<a class="anchor" aria-label="anchor" href="#allele-frequency-handlers"></a></h3>
@@ -300,31 +209,17 @@
 
       <dl><dt>
 
-          <code><a href="calc_af.html">calc_af()</a></code>
+          <code><a href="calculate_allele_frequencies.html">calculate_allele_frequencies()</a></code>
 
         </dt>
-        <dd>Compute allele frequencies for a genotype matrix (local)</dd>
+        <dd>Compute allele frequencies for a genotype matrix</dd>
 
         <dt>
 
-          <code><a href="pg_calc_af.html">pg_calc_af()</a></code>
+          <code><a href="filter_by_allele_frequency.html">filter_by_allele_frequency()</a></code>
 
         </dt>
-        <dd>Compute allele frequencies for a genotype matrix (online)</dd>
-
-        <dt>
-
-          <code><a href="filter_by_af.html">filter_by_af()</a></code>
-
-        </dt>
-        <dd>Filter genotypes by allele frequency (Local)</dd>
-
-        <dt>
-
-          <code><a href="pg_filter_by_af.html">pg_filter_by_af()</a></code>
-
-        </dt>
-        <dd>Filter genotypes by allele frequency (online)</dd>
+        <dd>Filter genotypes by allele frequency</dd>
       </dl></div><div class="section level2">
 
       <h3 id="linkage-disequilibrium-analysis">Linkage Disequilibrium Analysis<a class="anchor" aria-label="anchor" href="#linkage-disequilibrium-analysis"></a></h3>
@@ -337,7 +232,7 @@
 
       <dl><dt>
 
-          <code><a href="compute_LD.html">compute_LD()</a></code>
+          <code><a href="calculate_LD.html">calculate_LD()</a></code>
 
         </dt>
         <dd>Compute Linkage Disequilibrium (LD) Metrics (R2 and D')</dd>
@@ -350,7 +245,30 @@
         <dd>Generate Geodesic Landscape Plot and Extract Haploblock Data</dd>
       </dl></div><div class="section level2">
 
-      <h3 id="marker-design-visualization">Marker Design &amp; Visualization<a class="anchor" aria-label="anchor" href="#marker-design-visualization"></a></h3>
+      <h3 id="visualization">Visualization<a class="anchor" aria-label="anchor" href="#visualization"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="plot_accession_map.html">plot_accession_map()</a></code>
+
+        </dt>
+        <dd>Interactive geographic exploration of the samples</dd>
+
+        <dt>
+
+          <code><a href="plot_variant_hotspots.html">plot_variant_hotspots()</a></code>
+
+        </dt>
+        <dd>Plot variant hotspots</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="marker-design-utilities">Marker Design &amp; Utilities<a class="anchor" aria-label="anchor" href="#marker-design-utilities"></a></h3>
 
 
       <dl></dl></div><div class="section level2">
@@ -367,40 +285,10 @@
 
         <dt>
 
-          <code><a href="query_map_accessions.html">query_map_accessions()</a></code>
-
-        </dt>
-        <dd>Interactive geographic exploration of the samples (local)</dd>
-
-        <dt>
-
-          <code><a href="pg_map_accessions.html">pg_map_accessions()</a></code>
-
-        </dt>
-        <dd>Interactive geographic exploration of the samples (online)</dd>
-      </dl></div><div class="section level2">
-
-      <h3 id="utilities">Utilities<a class="anchor" aria-label="anchor" href="#utilities"></a></h3>
-
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
           <code><a href="gene_coord_gff.html">gene_coord_gff()</a></code>
 
         </dt>
-        <dd>Get the genomic range of a candidate gene using the Sobic ID from a GFF file (local)</dd>
-
-        <dt>
-
-          <code><a href="pg_gene_coords.html">pg_gene_coords()</a></code>
-
-        </dt>
-        <dd>Get the genomic range of a candidate gene using the Sobic ID from a GFF file (online)</dd>
+        <dd>Get the genomic range of a candidate gene from a GFF file</dd>
 
         <dt>
 
@@ -411,17 +299,17 @@
 
         <dt>
 
-          <code><a href="get_google_id.html">get_google_id()</a></code>
-
-        </dt>
-        <dd>Get the folder or file ID from a Google Drive shareable link.</dd>
-
-        <dt>
-
           <code><a href="folder_download_gd.html">folder_download_gd()</a></code>
 
         </dt>
         <dd>Download files in a shared Google Drive folder without restrictions.</dd>
+
+        <dt>
+
+          <code><a href="get_google_id.html">get_google_id()</a></code>
+
+        </dt>
+        <dd>Get the folder or file ID from a Google Drive shareable link.</dd>
       </dl></div><div class="section level2">
       <h2 id="kasp-marker-validation">KASP Marker Validation<a class="anchor" aria-label="anchor" href="#kasp-marker-validation"></a></h2>
 

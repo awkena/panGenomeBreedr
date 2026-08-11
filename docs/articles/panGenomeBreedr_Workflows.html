@@ -334,10 +334,10 @@ tree (<code>variants.parquet</code>, <code>annotations.parquet</code>,
 <div class="section level3">
 <h3 id="query-variant-tables">Query Variant Tables<a class="anchor" aria-label="anchor" href="#query-variant-tables"></a>
 </h3>
-<p>The <code><a href="../reference/query_db.html">query_db()</a></code> function allows users to query specific
-tables within a panGenomeBreedr-formatted DuckDB database for variants,
-annotations, or genotypes based on chromosome coordinates or candidate
-gene IDs.</p>
+<p>The <code><a href="../reference/fetch_table_region.html">fetch_table_region()</a></code> function allows users to query
+specific tables within a panGenomeBreedr-formatted DuckDB database for
+variants, annotations, or genotypes based on chromosome coordinates or
+candidate gene IDs.</p>
 <p>This function retrieves records from one of the following tables in
 the database:</p>
 <ul>
@@ -354,34 +354,30 @@ metadata of the variants.</li>
 <p>Users can specify genomic coordinates (<code>chrom</code>,
 <code>start</code>, <code>end</code>) or a candidate gene name
 (<code>gene_name</code>) to extract relevant entries.</p>
-<p>If used correctly, the <code><a href="../reference/query_db.html">query_db()</a></code> function returns a
-data frame containing the filtered records from the selected table.</p>
+<p>If used correctly, the <code><a href="../reference/fetch_table_region.html">fetch_table_region()</a></code> function
+returns a data frame containing the filtered records from the selected
+table.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Locate the package example database folder</span></span>
-<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_curated_sorghum_variant_resource"</span>, </span>
+<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pangenome_scale_db"</span>, </span>
 <span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, </span>
 <span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; duckdb is storing downloaded extensions and secrets under ~/.duckdb:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /Users/israeltawiahtetteh/.duckdb</span></span>
-<span><span class="co">#&gt; This persists across sessions and is shared with the DuckDB CLI and other clients.</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to use a temporary directory instead.</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
-<span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span></span>
 <span></span>
 <span><span class="co"># Query VCF genotypes within the genomic range: Chr05:75,104,537 - 75,106,403</span></span>
-<span><span class="va">gt_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_db.html">query_db</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
+<span><span class="va">gt_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
 <span>                      table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span>
 <span>                      chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
 <span>                      start <span class="op">=</span> <span class="fl">75104537</span>,</span>
 <span>                      end <span class="op">=</span> <span class="fl">75106403</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">#  Query snpEff annotations within a candidate locus gene region</span></span>
-<span><span class="va">annota_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_db.html">query_db</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
+<span><span class="va">annota_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
 <span>                          table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span>
 <span>                          chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
 <span>                          start <span class="op">=</span> <span class="fl">75104537</span>,</span>
@@ -929,62 +925,69 @@ Chr05
 </tbody>
 </table>
 <div class="section level4">
-<h4 id="query-online-database-pg_-functions">Query Online Database (pg_ Functions)<a class="anchor" aria-label="anchor" href="#query-online-database-pg_-functions"></a>
+<h4 id="query-online-database">Query Online Database<a class="anchor" aria-label="anchor" href="#query-online-database"></a>
 </h4>
-<p><code>panGenomeBreedr</code> connects directly to online databases,
-allowing you to seamlessly query massive datasets without downloading
-heavy files to your local computer. Depending on your breeding program’s
-needs, you can easily use the default public database or connect to your
-own private server.</p>
+<p><code>panGenomeBreedr</code> offers the flexibility to connect
+directly to online databases, allowing you to seamlessly query massive
+datasets without downloading large files to your local machine. This is
+ideal for collaborative projects or for users without high-performance
+computing resources. You can use the default public database or connect
+to your own private server.</p>
 <div class="section level5">
 <h5 id="scenario-a-using-the-default-public-database">Scenario A: Using the Default Public Database<a class="anchor" aria-label="anchor" href="#scenario-a-using-the-default-public-database"></a>
 </h5>
-<p>By default, the package connects automatically to the public
-<strong>Curated Sorghum Variant Resource</strong>. If you want to use
-this public database, you do not need to configure any URLs, you can
-start querying immediately using the functions with prefix
-<code>pg_</code></p>
+<p>The package is configured to automatically connect to the public
+<strong>Curated Sorghum Variant Resource</strong> out of the box. No
+special URL configuration is needed. To query this online resource,
+simply set the <code>connect_db_mode = 'online'</code> argument in any
+of the data-fetching functions (e.g., <code><a href="../reference/fetch_table_region.html">fetch_table_region()</a></code>,
+<code><a href="../reference/summarize_variants.html">summarize_variants()</a></code>).</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Extract genotypes within a genomic range from the default public database</span></span>
-<span><span class="va">pg_gt_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pg_query_db.html">pg_query_db</a></span><span class="op">(</span></span>
+<span><span class="va">test_gt_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span>
 <span>  table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span>
 <span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
 <span>  start <span class="op">=</span> <span class="fl">75104537</span>,</span>
-<span>  end <span class="op">=</span> <span class="fl">75106403</span></span>
+<span>  end <span class="op">=</span> <span class="fl">75106403</span>,</span>
+<span>  connect_db_mode <span class="op">=</span><span class="st">'online'</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Extract annotations for a specific candidate gene</span></span>
-<span><span class="va">pg_annota_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pg_query_db.html">pg_query_db</a></span><span class="op">(</span></span>
+<span><span class="va">test_annota_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span>
 <span>  table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span>
 <span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
-<span>  gene_name <span class="op">=</span> <span class="st">"Sobic.005G213600"</span></span>
+<span>  gene_name <span class="op">=</span> <span class="st">"Sobic.005G213600"</span>,</span>
+<span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level5">
-<h5 id="scenario-b-using-a-custom-or-private-api-endpoint">Scenario B: Using a Custom or Private API Endpoint<a class="anchor" aria-label="anchor" href="#scenario-b-using-a-custom-or-private-api-endpoint"></a>
+<h5 id="scenario-b-connecting-to-a-custom-or-private-api-endpoint">Scenario B: Connecting to a Custom or Private API Endpoint<a class="anchor" aria-label="anchor" href="#scenario-b-connecting-to-a-custom-or-private-api-endpoint"></a>
 </h5>
-<p>If your institution hosts its own database, you must point the
-package to your specific server before running any queries. You can do
-this using the <code><a href="../reference/set_api_url.html">set_api_url()</a></code> function.</p>
-<p><em>Note:</em> To ensure compatibility, your private database schema
-must match the structure of the <strong>Curated Sorghum Variant
-Resource</strong>.</p>
+<p>For collaborative projects or institutions that host their own
+genomic data, panGenomeBreedr can be configured to connect to a custom
+API endpoint. Before running any queries, you must direct the package to
+your private server using the <code><a href="../reference/set_api_url.html">set_api_url()</a></code> function.</p>
+<p><em>Note:</em> To ensure full compatibility, your private database
+must follow the same schema as the public <strong>Curated Sorghum
+Variant Resource</strong>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 1. Point the package to your custom API endpoint</span></span>
-<span><span class="fu"><a href="../reference/set_api_url.html">set_api_url</a></span><span class="op">(</span><span class="st">"http://16.171.142.87:8000"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; panGenomeBreedr API endpoint successfully set to: http://16.171.142.87:8000</span></span>
-<span><span class="co">#&gt; panGenomeBreedr API endpoint successfully set to: http://16.171.142.87:8000</span></span>
+<span><span class="fu"><a href="../reference/set_api_url.html">set_api_url</a></span><span class="op">(</span><span class="st">"http://132.145.61.28:8000"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; panGenomeBreedr API endpoint successfully set to: http://132.145.61.28:8000</span></span>
+<span><span class="co">#&gt; panGenomeBreedr API endpoint successfully set to: http://132.145.61.28:8000</span></span>
 <span></span>
 <span><span class="co"># 2. Query your private database exactly as you normally would</span></span>
-<span><span class="va">pg_gt_private</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pg_query_db.html">pg_query_db</a></span><span class="op">(</span></span>
+<span><span class="va">test_gt_private</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span>
 <span>  table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span>
 <span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
 <span>  start <span class="op">=</span> <span class="fl">75104537</span>,</span>
-<span>  end <span class="op">=</span> <span class="fl">75106403</span></span>
+<span>  end <span class="op">=</span> <span class="fl">75106403</span>,</span>
+<span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span>
+<span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
@@ -992,10 +995,10 @@ Resource</strong>.</p>
 <div class="section level3">
 <h3 id="summarize-snpeff-annotation-and-impact">Summarize SnpEff Annotation and Impact<a class="anchor" aria-label="anchor" href="#summarize-snpeff-annotation-and-impact"></a>
 </h3>
-<p>The <code><a href="../reference/query_ann_summary.html">query_ann_summary()</a></code> function provides a convenient
-way to summarize the distribution of <strong>SnpEff annotations</strong>
-and <strong>impact categories</strong> across variant types (e.g., SNPs,
-indels) within a defined genomic region.</p>
+<p>The <code><a href="../reference/summarize_annotations.html">summarize_annotations()</a></code> function provides a
+convenient way to summarize the distribution of <strong>SnpEff
+annotations</strong> and <strong>impact categories</strong> across
+variant types (e.g., SNPs, indels) within a defined genomic region.</p>
 <p>This function enables users to quickly assess the types and
 functional implications of variants located within candidate genes or
 genomic intervals of interest.</p>
@@ -1003,21 +1006,16 @@ genomic intervals of interest.</p>
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Locate the package example database folder</span></span>
-<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_curated_sorghum_variant_resource"</span>, </span>
+<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pangenome_scale_db"</span>, </span>
 <span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, </span>
 <span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; duckdb is storing downloaded extensions and secrets under ~/.duckdb:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /Users/israeltawiahtetteh/.duckdb</span></span>
-<span><span class="co">#&gt; This persists across sessions and is shared with the DuckDB CLI and other clients.</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to use a temporary directory instead.</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
-<span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span></span>
 <span></span>
 <span><span class="co"># Run functional annotation summary for region Chr05:75,104,537 - 75,106,403</span></span>
-<span><span class="va">ann_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_ann_summary.html">query_ann_summary</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
+<span><span class="va">ann_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_annotations.html">summarize_annotations</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
 <span>                                 chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
 <span>                                 start <span class="op">=</span> <span class="fl">75104537</span>,</span>
 <span>                                 end <span class="op">=</span> <span class="fl">75106403</span><span class="op">)</span></span>
@@ -1193,7 +1191,7 @@ INDEL
 </tr>
 </tbody>
 </table>
-<p>The <code><a href="../reference/query_ann_summary.html">query_ann_summary()</a></code> function returns a
+<p>The <code><a href="../reference/summarize_annotations.html">summarize_annotations()</a></code> function returns a
 <code>list</code> with the following elements:</p>
 <ul>
 <li><p><code>annotation_summary</code>: Data frame summarizing the count
@@ -1206,28 +1204,23 @@ region grouped by variant type.</p></li>
 </ul>
 <p><strong>The annotation summary shows that there are six (6) INDEL
 variants with a HIGH impact on protein function.</strong> To see these
-variants, we need to use the <code><a href="../reference/query_by_impact.html">query_by_impact()</a></code> function, as
+variants, we need to use the <code>query_by_impact()</code> function, as
 shown below:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Locate the package example database folder</span></span>
-<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_curated_sorghum_variant_resource"</span>, </span>
+<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pangenome_scale_db"</span>, </span>
 <span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, </span>
 <span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; duckdb is storing downloaded extensions and secrets under ~/.duckdb:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /Users/israeltawiahtetteh/.duckdb</span></span>
-<span><span class="co">#&gt; This persists across sessions and is shared with the DuckDB CLI and other clients.</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to use a temporary directory instead.</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
-<span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span></span>
 <span></span>
 <span><span class="co"># Extract HIGH impact functional variants within the target Chr05 window</span></span>
-<span><span class="va">high_variants</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_by_impact.html">query_by_impact</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
+<span><span class="va">high_variants</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_variants_by_impact.html">fetch_variants_by_impact</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
 <span>                                 impact_level <span class="op">=</span> <span class="st">"HIGH"</span>,</span>
 <span>                                 chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
 <span>                                 start <span class="op">=</span> <span class="fl">75104537</span>,</span>
@@ -1660,38 +1653,35 @@ p.Gln4fs
 <div class="section level3">
 <h3 id="filter-variants-by-allele-frequency">Filter Variants by Allele Frequency<a class="anchor" aria-label="anchor" href="#filter-variants-by-allele-frequency"></a>
 </h3>
-<p>The <code><a href="../reference/query_by_af.html">query_by_af()</a></code> and <code><a href="../reference/filter_by_af.html">filter_by_af()</a></code>
-functions allow users to filter queried variants based on
-<strong>alternate allele frequency thresholds</strong> within a
-specified genomic region.</p>
+<p>The <code><a href="../reference/fetch_variants_by_allele_frequency.html">fetch_variants_by_allele_frequency()</a></code> and
+<code><a href="../reference/filter_by_allele_frequency.html">filter_by_allele_frequency()</a></code> functions allow users to
+filter queried variants based on <strong>alternate allele frequency
+thresholds</strong> within a specified genomic region.</p>
 <p>This is particularly useful for identifying <strong>polymorphic
 sites</strong> within candidate gene regions or windows of interest that
 meet desired minor allele frequency (MAF) thresholds for marker
 development.</p>
-<p>An example usage for the <code><a href="../reference/filter_by_af.html">filter_by_af()</a></code> function is
-shown in the code snippet below:</p>
+<p>An example usage for the <code><a href="../reference/filter_by_allele_frequency.html">filter_by_allele_frequency()</a></code>
+function is shown in the code snippet below:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Locate the package example database folder</span></span>
-<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_curated_sorghum_variant_resource"</span>, </span>
+<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pangenome_scale_db"</span>, </span>
 <span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, </span>
 <span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; duckdb is storing downloaded extensions and secrets under ~/.duckdb:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /Users/israeltawiahtetteh/.duckdb</span></span>
-<span><span class="co">#&gt; This persists across sessions and is shared with the DuckDB CLI and other clients.</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to use a temporary directory instead.</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
-<span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span></span>
 <span></span>
 <span><span class="co"># Extract genotype data for all HIGH impact variants and filter by alternate allele frequency</span></span>
-<span><span class="va">geno_high_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_genotypes.html">query_genotypes</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
-<span>                                      variant_ids <span class="op">=</span> <span class="va">high_variants</span><span class="op">$</span><span class="va">variant_id</span>,</span>
-<span>                                      meta_data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chrom"</span>, <span class="st">"pos"</span>, <span class="st">"ref"</span>, <span class="st">"alt"</span>, <span class="st">"variant_type"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/filter_by_af.html">filter_by_af</a></span><span class="op">(</span>min_af <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span>
+<span><span class="va">geno_high_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_genotypes_by_id.html">fetch_genotypes_by_id</a></span><span class="op">(</span></span>
+<span>  con <span class="op">=</span> <span class="va">con_demo</span>,</span>
+<span>  variant_ids <span class="op">=</span> <span class="va">high_variants</span><span class="op">$</span><span class="va">variant_id</span>,</span>
+<span>  meta_data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chrom"</span>, <span class="st">"pos"</span>, <span class="st">"ref"</span>, <span class="st">"alt"</span>, <span class="st">"variant_type"</span><span class="op">)</span></span>
+<span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/filter_by_allele_frequency.html">filter_by_allele_frequency</a></span><span class="op">(</span>min_af <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Cleanly close the connection and release memory allocations</span></span>
 <span><span class="fu"><a href="../reference/disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_demo</span><span class="op">)</span></span>
@@ -1786,21 +1776,16 @@ Chr05
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Locate the package example database folder</span></span>
-<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mini_curated_sorghum_variant_resource"</span>, </span>
+<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pangenome_scale_db"</span>, </span>
 <span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>, </span>
 <span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span>                           </span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; duckdb is storing downloaded extensions and secrets under ~/.duckdb:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /Users/israeltawiahtetteh/.duckdb</span></span>
-<span><span class="co">#&gt; This persists across sessions and is shared with the DuckDB CLI and other clients.</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to use a temporary directory instead.</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
-<span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span></span>
 <span></span>
 <span><span class="co"># Get genotype data for HIGH impact variants that passed allele filter</span></span>
-<span><span class="va">geno_high_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/query_genotypes.html">query_genotypes</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
+<span><span class="va">geno_high_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_genotypes_by_id.html">fetch_genotypes_by_id</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
 <span>                                      variant_ids <span class="op">=</span> <span class="va">geno_high_filtered</span><span class="op">$</span><span class="va">variant_id</span>,</span>
 <span>                                      meta_data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chrom"</span>, <span class="st">"pos"</span>, <span class="st">"ref"</span>, <span class="st">"alt"</span>, <span class="st">"variant_type"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -1836,7 +1821,7 @@ First, we compute the pairwise LD metrics for our filtered variants
 across the target region:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Compute LD around our causal variants</span></span>
-<span><span class="va">ld_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_LD.html">compute_LD</a></span><span class="op">(</span></span>
+<span><span class="va">ld_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_LD.html">calculate_LD</a></span><span class="op">(</span></span>
 <span>  df <span class="op">=</span> <span class="va">gt_region</span>,</span>
 <span>  target_variant_ids <span class="op">=</span> <span class="va">geno_high_filtered</span><span class="op">$</span><span class="va">variant_id</span>,</span>
 <span>  genotype_start_col <span class="op">=</span> <span class="fl">11</span></span>
