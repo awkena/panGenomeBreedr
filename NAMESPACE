@@ -30,6 +30,7 @@ export(get_alleles)
 export(get_api_url)
 export(gg_dat)
 export(hapmap_ns_fmt)
+export(hotspot_overlay_plot)
 export(kasp_color)
 export(kasp_marker_design)
 export(kasp_numeric)
@@ -93,7 +94,32 @@ importFrom(bslib,
   navset_card_underline,
   sidebar
 )
-importFrom(ggplot2,ggsave)
+importFrom(ggplot2,
+  aes,
+  arrow,
+  coord_cartesian,
+  element_blank,
+  element_line,
+  element_text,
+  geom_hline,
+  geom_point,
+  geom_rect,
+  geom_segment,
+  geom_vline,
+  ggplot,
+  ggsave,
+  guide_legend,
+  guides,
+  labs,
+  margin,
+  scale_fill_manual,
+  scale_shape_manual,
+  scale_x_continuous,
+  scale_y_continuous,
+  theme,
+  theme_minimal
+)
+importFrom(ggrepel,geom_text_repel)
 importFrom(golem,
   activate_js,
   add_resource_path,
@@ -101,6 +127,7 @@ importFrom(golem,
   favicon,
   with_golem_options
 )
+importFrom(grid,unit)
 importFrom(gridExtra,marrangeGrob)
 importFrom(httr,
   GET,
@@ -108,7 +135,9 @@ importFrom(httr,
   http_error
 )
 importFrom(jsonlite,fromJSON)
+importFrom(patchwork,plot_layout)
 importFrom(reshape2,melt)
+importFrom(scales,comma)
 importFrom(shiny,
   HTML,
   NS,

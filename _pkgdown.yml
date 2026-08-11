@@ -56,25 +56,34 @@ reference:
       - disconnect_local_db
       - set_api_url
       - get_api_url
-      
+
   - subtitle: "Database Schema & Metadata"
     contents:
-      - list_tables
-      - list_columns
-      - summarize_database
-      - fetch_accession_metadata
-      
+      - list_sqlite_tables
+      - pg_list_tables
+      - summarize_sqlite_tables
+      - pg_summarize_tables
+      - list_table_columns
+      - pg_list_table_columns
+
   - subtitle: "Core Data Queries"
     contents:
-      - fetch_table_region
-      - fetch_genotypes_by_id
-      - filter_genotypes_by_metadata
-      
+      - query_db
+      - pg_query_db
+      - query_genotypes
+      - pg_query_genotypes
+      - get_sample_metadata
+      - pg_get_sample_metadata
+      - query_geno_by_meta
+      - pg_query_geno_by_meta
+
   - subtitle: "Targeted Variant Filters"
     contents:
-      - fetch_variants_by_impact
-      - fetch_variants_by_allele_frequency
-      
+      - query_by_af
+      - pg_query_by_af
+      - query_by_impact
+      - pg_query_by_impact
+
   - subtitle: "Summaries & Statistics"
     contents:
       - summarize_variants

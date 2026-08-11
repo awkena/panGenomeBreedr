@@ -7,10 +7,10 @@
 plot_accession_map(metadata, color_by = "countryorigin")
 }
 \arguments{
-\item{metadata}{A data frame containing sample metadata tracking information. Must include explicit 
+\item{metadata}{A data frame containing sample metadata tracking information. Must include explicit
 numeric \code{"lat"} and \code{"lon"} columns alongside the column specified in \code{color_by}.}
 
-\item{color_by}{Character. The specific metadata column name used to group and assign discrete 
+\item{color_by}{Character. The specific metadata column name used to group and assign discrete
 color palette attributes to markers. Defaults to \code{"countryorigin"}.}
 }
 \value{
