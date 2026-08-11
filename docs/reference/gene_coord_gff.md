@@ -22,8 +22,8 @@ gene_coord_gff(gene_name, gff_path)
 
 ## Value
 
-A list object of three components indicating the chromosome, start and
-end coordinates of candidate gene.
+A data frame containing the genomic coordinates (chromosome, start, end,
+strand) of the gene, transcripts, 5'-UTR, CDS, and 3'-UTR.
 
 ## Examples
 

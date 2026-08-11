@@ -367,7 +367,12 @@ table.</p>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span></span>
+<span><span class="co">#&gt; duckdb is storing downloaded extensions and secrets under ~/.duckdb:</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /Users/israeltawiahtetteh/.duckdb</span></span>
+<span><span class="co">#&gt; This persists across sessions and is shared with the DuckDB CLI and other clients.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to use a temporary directory instead.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Query VCF genotypes within the genomic range: Chr05:75,104,537 - 75,106,403</span></span>
 <span><span class="va">gt_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
@@ -1012,7 +1017,12 @@ genomic intervals of interest.</p>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span></span>
+<span><span class="co">#&gt; duckdb is storing downloaded extensions and secrets under ~/.duckdb:</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /Users/israeltawiahtetteh/.duckdb</span></span>
+<span><span class="co">#&gt; This persists across sessions and is shared with the DuckDB CLI and other clients.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to use a temporary directory instead.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Run functional annotation summary for region Chr05:75,104,537 - 75,106,403</span></span>
 <span><span class="va">ann_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_annotations.html">summarize_annotations</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
@@ -1217,7 +1227,12 @@ shown below:</p>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span></span>
+<span><span class="co">#&gt; duckdb is storing downloaded extensions and secrets under ~/.duckdb:</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /Users/israeltawiahtetteh/.duckdb</span></span>
+<span><span class="co">#&gt; This persists across sessions and is shared with the DuckDB CLI and other clients.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to use a temporary directory instead.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Extract HIGH impact functional variants within the target Chr05 window</span></span>
 <span><span class="va">high_variants</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_variants_by_impact.html">fetch_variants_by_impact</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
@@ -1673,7 +1688,12 @@ function is shown in the code snippet below:</p>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span></span>
+<span><span class="co">#&gt; duckdb is storing downloaded extensions and secrets under ~/.duckdb:</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /Users/israeltawiahtetteh/.duckdb</span></span>
+<span><span class="co">#&gt; This persists across sessions and is shared with the DuckDB CLI and other clients.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to use a temporary directory instead.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Extract genotype data for all HIGH impact variants and filter by alternate allele frequency</span></span>
 <span><span class="va">geno_high_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_genotypes_by_id.html">fetch_genotypes_by_id</a></span><span class="op">(</span></span>
@@ -1782,7 +1802,12 @@ Chr05
 <span>                           </span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span></span>
+<span><span class="co">#&gt; duckdb is storing downloaded extensions and secrets under ~/.duckdb:</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /Users/israeltawiahtetteh/.duckdb</span></span>
+<span><span class="co">#&gt; This persists across sessions and is shared with the DuckDB CLI and other clients.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to use a temporary directory instead.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Virtual views mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Get genotype data for HIGH impact variants that passed allele filter</span></span>
 <span><span class="va">geno_high_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_genotypes_by_id.html">fetch_genotypes_by_id</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>

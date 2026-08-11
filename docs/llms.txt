@@ -104,19 +104,19 @@ This will open the panGB application in your default web browser.
 
 `panGB` currently provides functionality for the following key tasks:
 
-1.  **Variant discovery**\
+1.  **Variant discovery**  
     Identify variants within candidate genes or any user-defined genomic
     interval using *snpEff*-annotated VCF files.
 
-2.  **KASP marker design**\
+2.  **KASP marker design**  
     Generate allele-specific markers targeting either causal variants or
     any variant of interest.
 
-3.  **Marker validation and QC visualization**\
+3.  **Marker validation and QC visualization**  
     Produce quality control plots and perform hypothesis-driven
     evaluations to assess marker reliability.
 
-4.  **Decision-support for trait introgression**\
+4.  **Decision-support for trait introgression**  
     Guide marker-assisted backcrossing by profiling foreground,
     background, and precision-introgression markers to support selection
     decisions.
@@ -250,7 +250,23 @@ Kena, PhD** at <alex.kena24@gmail.com>
 - [`kasp_marker_design()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_marker_design.md)
   : Design KASP markers based on causal variants.
 - [`gene_coord_gff()`](https://awkena.github.io/panGenomeBreedr/reference/gene_coord_gff.md)
+<<<<<<< HEAD
   : Get the genomic range of a candidate gene from a GFF file
+=======
+  : Get the genomic range of a candidate gene and its features using the
+  Sobic ID from a GFF file (local)
+- [`plot_gene_model()`](https://awkena.github.io/panGenomeBreedr/reference/plot_gene_model.md)
+  : Plot the gene model using genomic coordinates (local)
+- [`plot_variant_hotspot()`](https://awkena.github.io/panGenomeBreedr/reference/plot_variant_hotspot.md)
+  : Plot genomic variant hotspots (SNPs and INDELs) extracted from the
+  database (local)
+- [`hotspot_overlay_plot()`](https://awkena.github.io/panGenomeBreedr/reference/hotspot_overlay_plot.md)
+  : Generate a combined gene model and variant hotspot overlay plot
+  (local)
+- [`pg_gene_coords()`](https://awkena.github.io/panGenomeBreedr/reference/pg_gene_coords.md)
+  : Get the genomic range of a candidate gene using the Sobic ID from a
+  GFF file (online)
+>>>>>>> main
 - [`extract_variant()`](https://awkena.github.io/panGenomeBreedr/reference/extract_variant.md)
   : Extract putative causal variants within a candidate gene from a
   tabix-indexed snpEff annotated VCF file.

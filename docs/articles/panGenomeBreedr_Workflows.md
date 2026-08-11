@@ -164,7 +164,47 @@ If used correctly, the
 function returns a data frame containing the filtered records from the
 selected table.
 
+<<<<<<< HEAD
 [`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`` `` ``# Locate the package example database folder`` ``mini_folder`` ``<-`` `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata"``, ``"pangenome_scale_db"``, `` `` package ``=`` ``"panGenomeBreedr"``, `` `` mustWork ``=`` ``TRUE``)`` `` ``# Establish a virtual connection to the offline database engine`` ``con_demo`` ``<-`` `[`connect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/connect_local_db.md)`(``folder_path ``=`` ``mini_folder``)`` ``#> Successfully connected to the local offline database! Pangenome-scale database mounted safely. No folder named pcil.`` `` ``# Query VCF genotypes within the genomic range: Chr05:75,104,537 - 75,106,403`` ``gt_region`` ``<-`` `[`fetch_table_region`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)`(``con ``=`` ``con_demo``,`` `` table_name ``=`` ``"genotypes"``,`` `` chrom ``=`` ``"Chr05"``,`` `` start ``=`` ``75104537``,`` `` end ``=`` ``75106403``)`` `` ``# Query snpEff annotations within a candidate locus gene region`` ``annota_region`` ``<-`` `[`fetch_table_region`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)`(``con ``=`` ``con_demo``,`` `` table_name ``=`` ``"annotations"``,`` `` chrom ``=`` ``"Chr05"``,`` `` start ``=`` ``75104537``,`` `` end ``=`` ``75106403``,`` `` gene_name ``=`` ``"Sobic.005G213600"``)`` `` ``# Cleanly close the connection and release memory allocations`` `[`disconnect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/disconnect_local_db.md)`(``con_demo``)`` ``#> Successfully disconnected from the local database. Memory cleared.`
+=======
+``` r
+
+library(panGenomeBreedr)
+
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
+
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> duckdb is storing downloaded extensions and secrets under ~/.duckdb:
+#> ℹ /Users/awkena/.duckdb
+#> This persists across sessions and is shared with the DuckDB CLI and other clients.
+#> ℹ Run duckdb(shared_home = FALSE) to use a temporary directory instead.
+#> ℹ See ?duckdb_storage for details and alternatives.
+#> Successfully connected to the local offline database! Virtual views mounted safely.
+
+# Query VCF genotypes within the genomic range: Chr05:75,104,537 - 75,106,403
+gt_region <- query_db(con = con_demo,
+                      table_name = "genotypes",
+                      chrom = "Chr05",
+                      start = 75104537,
+                      end = 75106403)
+
+#  Query snpEff annotations within a candidate locus gene region
+annota_region <- query_db(con = con_demo,
+                          table_name = "annotations",
+                          chrom = "Chr05",
+                          start = 75104537,
+                          end = 75106403,
+                          gene_name = "Sobic.005G213600")
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
+```
+>>>>>>> main
 
 | variant_id | chrom | pos | ref | alt | variant_type | major_allele | minor_allele | major_allele_freq | minor_allele_freq | IDMM | ISGC | ISGK | ISHC |
 |:---|:---|---:|:---|:---|:---|:---|:---|---:|---:|:---|:---|:---|:---|
@@ -235,7 +275,38 @@ This function enables users to quickly assess the types and functional
 implications of variants located within candidate genes or genomic
 intervals of interest.
 
+<<<<<<< HEAD
 [`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`` `` ``# Locate the package example database folder`` ``mini_folder`` ``<-`` `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata"``, ``"pangenome_scale_db"``, `` `` package ``=`` ``"panGenomeBreedr"``, `` `` mustWork ``=`` ``TRUE``)`` `` ``# Establish a virtual connection to the offline database engine`` ``con_demo`` ``<-`` `[`connect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/connect_local_db.md)`(``folder_path ``=`` ``mini_folder``)`` ``#> Successfully connected to the local offline database! Pangenome-scale database mounted safely. No folder named pcil.`` `` ``# Run functional annotation summary for region Chr05:75,104,537 - 75,106,403`` ``ann_summary`` ``<-`` `[`summarize_annotations`](https://awkena.github.io/panGenomeBreedr/reference/summarize_annotations.md)`(``con ``=`` ``con_demo``,`` `` chrom ``=`` ``"Chr05"``,`` `` start ``=`` ``75104537``,`` `` end ``=`` ``75106403``)`` `` ``# Cleanly close the connection and release memory allocations`` `[`disconnect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/disconnect_local_db.md)`(``con_demo``)`` ``#> Successfully disconnected from the local database. Memory cleared.`
+=======
+``` r
+
+library(panGenomeBreedr)
+
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
+
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> duckdb is storing downloaded extensions and secrets under ~/.duckdb:
+#> ℹ /Users/awkena/.duckdb
+#> This persists across sessions and is shared with the DuckDB CLI and other clients.
+#> ℹ Run duckdb(shared_home = FALSE) to use a temporary directory instead.
+#> ℹ See ?duckdb_storage for details and alternatives.
+#> Successfully connected to the local offline database! Virtual views mounted safely.
+
+# Run functional annotation summary for region Chr05:75,104,537 - 75,106,403
+ann_summary <- query_ann_summary(con = con_demo,
+                                 chrom = "Chr05",
+                                 start = 75104537,
+                                 end = 75106403)
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
+```
+>>>>>>> main
 
 | annotation              | variant_type | count |
 |:------------------------|:-------------|------:|
@@ -277,7 +348,40 @@ function returns a `list` with the following elements:
 with a HIGH impact on protein function.** To see these variants, we need
 to use the `query_by_impact()` function, as shown below:
 
+<<<<<<< HEAD
 ` `[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`` `` ``# Locate the package example database folder`` ``mini_folder`` ``<-`` `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata"``, ``"pangenome_scale_db"``, `` `` package ``=`` ``"panGenomeBreedr"``, `` `` mustWork ``=`` ``TRUE``)`` `` ``# Establish a virtual connection to the offline database engine`` ``con_demo`` ``<-`` `[`connect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/connect_local_db.md)`(``folder_path ``=`` ``mini_folder``)`` ``#> Successfully connected to the local offline database! Pangenome-scale database mounted safely. No folder named pcil.`` `` ``# Extract HIGH impact functional variants within the target Chr05 window`` ``high_variants`` ``<-`` `[`fetch_variants_by_impact`](https://awkena.github.io/panGenomeBreedr/reference/fetch_variants_by_impact.md)`(``con ``=`` ``con_demo``,`` `` impact_level ``=`` ``"HIGH"``,`` `` chrom ``=`` ``"Chr05"``,`` `` start ``=`` ``75104537``,`` `` end ``=`` ``75106403``)`` `` ``# Cleanly close the connection and release memory allocations`` `[`disconnect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/disconnect_local_db.md)`(``con_demo``)`` ``#> Successfully disconnected from the local database. Memory cleared.`
+=======
+``` r
+
+
+library(panGenomeBreedr)
+
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
+
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> duckdb is storing downloaded extensions and secrets under ~/.duckdb:
+#> ℹ /Users/awkena/.duckdb
+#> This persists across sessions and is shared with the DuckDB CLI and other clients.
+#> ℹ Run duckdb(shared_home = FALSE) to use a temporary directory instead.
+#> ℹ See ?duckdb_storage for details and alternatives.
+#> Successfully connected to the local offline database! Virtual views mounted safely.
+
+# Extract HIGH impact functional variants within the target Chr05 window
+high_variants <- query_by_impact(con = con_demo,
+                                 impact_level = "HIGH",
+                                 chrom = "Chr05",
+                                 start = 75104537,
+                                 end = 75106403)
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
+```
+>>>>>>> main
 
 | variant_id | chrom | pos | ref | alt | qual | filter | variant_type | allele | annotation | impact | gene_name | gene_id | feature_type | feature_id | transcript_biotype | rank | hgvs_c | hgvs_p |
 |:---|:---|---:|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|
@@ -307,7 +411,38 @@ An example usage for the
 [`filter_by_allele_frequency()`](https://awkena.github.io/panGenomeBreedr/reference/filter_by_allele_frequency.md)
 function is shown in the code snippet below:
 
+<<<<<<< HEAD
 [`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`` `` ``# Locate the package example database folder`` ``mini_folder`` ``<-`` `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata"``, ``"pangenome_scale_db"``, `` `` package ``=`` ``"panGenomeBreedr"``, `` `` mustWork ``=`` ``TRUE``)`` `` ``# Establish a virtual connection to the offline database engine`` ``con_demo`` ``<-`` `[`connect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/connect_local_db.md)`(``folder_path ``=`` ``mini_folder``)`` ``#> Successfully connected to the local offline database! Pangenome-scale database mounted safely. No folder named pcil.`` `` ``# Extract genotype data for all HIGH impact variants and filter by alternate allele frequency`` ``geno_high_filtered`` ``<-`` `[`fetch_genotypes_by_id`](https://awkena.github.io/panGenomeBreedr/reference/fetch_genotypes_by_id.md)`(`` `` con ``=`` ``con_demo``,`` `` variant_ids ``=`` ``high_variants``$``variant_id``,`` `` meta_data ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"chrom"``, ``"pos"``, ``"ref"``, ``"alt"``, ``"variant_type"``)`` ``)`` ``|>`` `` `[`filter_by_allele_frequency`](https://awkena.github.io/panGenomeBreedr/reference/filter_by_allele_frequency.md)`(``min_af ``=`` ``0.05``)`` `` ``# Cleanly close the connection and release memory allocations`` `[`disconnect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/disconnect_local_db.md)`(``con_demo``)`` ``#> Successfully disconnected from the local database. Memory cleared.`
+=======
+``` r
+
+library(panGenomeBreedr)
+
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
+
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> duckdb is storing downloaded extensions and secrets under ~/.duckdb:
+#> ℹ /Users/awkena/.duckdb
+#> This persists across sessions and is shared with the DuckDB CLI and other clients.
+#> ℹ Run duckdb(shared_home = FALSE) to use a temporary directory instead.
+#> ℹ See ?duckdb_storage for details and alternatives.
+#> Successfully connected to the local offline database! Virtual views mounted safely.
+
+# Extract genotype data for all HIGH impact variants and filter by alternate allele frequency
+geno_high_filtered <- query_genotypes(con = con_demo,
+                                      variant_ids = high_variants$variant_id,
+                                      meta_data = c("chrom", "pos", "ref", "alt", "variant_type")) |>
+  filter_by_af(min_af = 0.05)
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
+```
+>>>>>>> main
 
 |     | variant_id           | chrom |      pos |    ref_af |    alt_af |
 |:----|:---------------------|:------|---------:|----------:|----------:|
@@ -317,7 +452,37 @@ function is shown in the code snippet below:
 
 Table 3: Filtered variants from the local database. {.table}
 
+<<<<<<< HEAD
 [`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`` `` ``# Locate the package example database folder`` ``mini_folder`` ``<-`` `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata"``, ``"pangenome_scale_db"``, `` `` package ``=`` ``"panGenomeBreedr"``, `` `` mustWork ``=`` ``TRUE``)`` `` `` ``# Establish a virtual connection to the offline database engine`` ``con_demo`` ``<-`` `[`connect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/connect_local_db.md)`(``folder_path ``=`` ``mini_folder``)`` ``#> Successfully connected to the local offline database! Pangenome-scale database mounted safely. No folder named pcil.`` `` ``# Get genotype data for HIGH impact variants that passed allele filter`` ``geno_high_filtered`` ``<-`` `[`fetch_genotypes_by_id`](https://awkena.github.io/panGenomeBreedr/reference/fetch_genotypes_by_id.md)`(``con ``=`` ``con_demo``,`` `` variant_ids ``=`` ``geno_high_filtered``$``variant_id``,`` `` meta_data ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"chrom"``, ``"pos"``, ``"ref"``, ``"alt"``, ``"variant_type"``)``)`` `` ``# Cleanly close the connection and release memory allocations`` `[`disconnect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/disconnect_local_db.md)`(``con_demo``)`` ``#> Successfully disconnected from the local database. Memory cleared.`
+=======
+``` r
+
+library(panGenomeBreedr)
+
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
+                           
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> duckdb is storing downloaded extensions and secrets under ~/.duckdb:
+#> ℹ /Users/awkena/.duckdb
+#> This persists across sessions and is shared with the DuckDB CLI and other clients.
+#> ℹ Run duckdb(shared_home = FALSE) to use a temporary directory instead.
+#> ℹ See ?duckdb_storage for details and alternatives.
+#> Successfully connected to the local offline database! Virtual views mounted safely.
+
+# Get genotype data for HIGH impact variants that passed allele filter
+geno_high_filtered <- query_genotypes(con = con_demo,
+                                      variant_ids = geno_high_filtered$variant_id,
+                                      meta_data = c("chrom", "pos", "ref", "alt", "variant_type"))
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
+```
+>>>>>>> main
 
 ### Evaluating Linkage Disequilibrium (LD) for Marker Design
 
@@ -447,7 +612,7 @@ KASP marker QC and validation.
 
 `panGB` offers customizable functions for KASP marker validation through
 hypothesis testing. These functions allow users to easily perform the
-following tasks:\
+following tasks:  
 - Import raw or polished KASP genotyping results files (.csv) into R.
 
 - Process imported data and assign FAM and HEX fluorescence colors for
@@ -698,7 +863,7 @@ function can be used to filter out all monomorphic loci from the data.
 
 Since our imported Agriplex data has informative SNP IDs, we can use the
 [`parse_marker_ns()`](https://awkena.github.io/panGenomeBreedr/reference/parse_marker_ns.md)
-function to generate a map file (Table 8) for the markers.\
+function to generate a map file (Table 8) for the markers.  
 The generated map file is then passed to the
 [`proc_kasp()`](https://awkena.github.io/panGenomeBreedr/reference/proc_kasp.md)
 function to order the SNP markers according to their chromosome numbers
@@ -798,7 +963,7 @@ argument.
 
 The `snp_ids, chr, and chr_pos` arguments can be used to specify the
 column names for marker IDs, chromosome number and positions in the
-attached map file.\
+attached map file.  
 The `trait_pos` argument was used to specify the position of the target
 locus (*stg5*) on chromosome one. Users can specify the positions of
 multiple target loci as components of a list object for annotation.
