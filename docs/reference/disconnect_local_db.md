@@ -26,18 +26,22 @@ None. Prints a message confirming the disconnection status.
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
+# \donttest{
 # Load the package
 library(panGenomeBreedr)
 
-# Define the path to the curated_sorghum_variant_resource folder
-my_db_folder <- "~/Desktop/curated_sorghum_variant_resource"
+# Locate the package example database folder
+my_db_folder <- system.file("extdata", "pangenome_scale_db", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
 
-# Establish the connection
+# Establish a virtual connection to the offline database engine
 con <- connect_local_db(folder_path = my_db_folder, max_memory = "8GB")
+#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
 
 # Disconnect at the end of your session
 disconnect_local_db(con)
+#> Successfully disconnected from the local database. Memory cleared.
 
-} # }
+# }
 ```

@@ -2278,6 +2278,8 @@ cross_qc_annotate <- function(x,
   }
 }
 
+<<<<<<< HEAD
+=======
 
 #' Compute Linkage Disequilibrium (LD) Metrics (R2 and D')
 #'
@@ -3004,3 +3006,4 @@ append_locus_allele_metrics <- function(
   return(region_matrix[, optimized_column_order])
 }
 
+>>>>>>> upstream/main

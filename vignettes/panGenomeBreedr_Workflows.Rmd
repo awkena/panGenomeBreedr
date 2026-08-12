@@ -25,6 +25,9 @@ knitr::opts_chunk$set(
 
 
 
+
+
+
 <!-- badges: start -->
 <!-- badges: end -->
 
@@ -58,7 +61,7 @@ Direct querying of raw **snpEff-annotated VCF files** from R is computationally 
 
 **We strongly recommend adopting these structured database formats for other crop systems.** Organizing your data this way standardizes and accelerates the path from raw variant annotated files to precision marker development and targeted crop improvement.
 
-A zipped archive containing the **Curated Sorghum Variant Resource** can be downloaded [here](https://drive.google.com/file/d/1yoW8MSr45vlJvqj5hYvGMHW6feBsQQa4/view?usp=drive_link).
+A zipped archive containing the **Curated Sorghum Variant Resource** can be downloaded [here](https://drive.google.com/file/d/1L97pKk2RZt3CiUkl-8IRwpEIT1rN7YsS/view?usp=sharing).
 
 ## Recommended Schema for the Parquet / DuckDB Database
 The database contains the following four key tables:
@@ -125,7 +128,7 @@ A prebuilt mini example database directory (`mini_curated_sorghum_variant_resour
 
 ## Query Variant Tables
 
-The `query_db()` function allows users to query specific tables within a panGenomeBreedr-formatted DuckDB database for variants, annotations, or genotypes based on chromosome coordinates or candidate gene IDs.  
+The `fetch_table_region()` function allows users to query specific tables within a panGenomeBreedr-formatted DuckDB database for variants, annotations, or genotypes based on chromosome coordinates or candidate gene IDs.  
 
 This function retrieves records from one of the following tables in the database:
 
@@ -135,13 +138,13 @@ This function retrieves records from one of the following tables in the database
 
 Users can specify genomic coordinates (`chrom`, `start`, `end`) or a candidate gene name (`gene_name`) to extract relevant entries.
 
-If used correctly, the `query_db()` function returns a data frame containing the filtered records from the selected table.
+If used correctly, the `fetch_table_region()` function returns a data frame containing the filtered records from the selected table.
 
 ```{r, echo = TRUE}
 library(panGenomeBreedr)
 
 # Locate the package example database folder
-mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+mini_folder <- system.file("extdata", "pangenome_scale_db", 
                            package = "panGenomeBreedr", 
                            mustWork = TRUE)
 
@@ -149,14 +152,14 @@ mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource",
 con_demo <- connect_local_db(folder_path = mini_folder)
 
 # Query VCF genotypes within the genomic range: Chr05:75,104,537 - 75,106,403
-gt_region <- query_db(con = con_demo,
+gt_region <- fetch_table_region(con = con_demo,
                       table_name = "genotypes",
                       chrom = "Chr05",
                       start = 75104537,
                       end = 75106403)
 
 #  Query snpEff annotations within a candidate locus gene region
-annota_region <- query_db(con = con_demo,
+annota_region <- fetch_table_region(con = con_demo,
                           table_name = "annotations",
                           chrom = "Chr05",
                           start = 75104537,
@@ -185,56 +188,69 @@ knitr::kable(annota_region[1:5,],
 
 
 
-### Query Online Database (pg_ Functions)
 
-`panGenomeBreedr` connects directly to online databases, allowing you to seamlessly query massive datasets without downloading heavy files to your local computer. Depending on your breeding program's needs, you can easily use the default public database or connect to your own private server.
+
+
+### Query Online Database 
+
+`panGenomeBreedr` offers the flexibility to connect directly to online databases, allowing you to seamlessly query massive datasets without downloading large files to your local machine. This is ideal for collaborative projects or for users without high-performance computing resources. You can use the default public database or connect to your own private server.
 
 #### Scenario A: Using the Default Public Database
 
-By default, the package connects automatically to the public **Curated Sorghum Variant Resource**. If you want to use this public database, you do not need to configure any URLs, you can start querying immediately using the functions with prefix `pg_`
+The package is configured to automatically connect to the public **Curated Sorghum Variant Resource** out of the box. No special URL configuration is needed. To query this online resource, simply set the `connect_db_mode = 'online'` argument in any of the data-fetching functions (e.g., `fetch_table_region()`, `summarize_variants()`).
 
 ```{r}
 library(panGenomeBreedr)
 
 # Extract genotypes within a genomic range from the default public database
-pg_gt_region <- pg_query_db(
+test_gt_region <- fetch_table_region(
   table_name = "genotypes",
   chrom = "Chr05",
   start = 75104537,
-  end = 75106403
+  end = 75106403,
+  connect_db_mode ='online'
 )
 
 # Extract annotations for a specific candidate gene
-pg_annota_region <- pg_query_db(
+test_annota_region <- fetch_table_region(
   table_name = "annotations",
   chrom = "Chr05",
-  gene_name = "Sobic.005G213600"
+  gene_name = "Sobic.005G213600",
+  connect_db_mode = 'online'
 )
 ```
 
 
 
-#### Scenario B: Using a Custom or Private API Endpoint
 
-If your institution hosts its own database, you must point the package to your specific server before running any queries. You can do this using the `set_api_url()` function.
 
-*Note:* To ensure compatibility, your private database schema must match the structure of the **Curated Sorghum Variant Resource**.
+
+#### Scenario B: Connecting to a Custom or Private API Endpoint
+
+For collaborative projects or institutions that host their own genomic data, panGenomeBreedr can be configured to connect to a custom API endpoint. Before running any queries, you must direct the package to your private server using the  `set_api_url()` function.
+
+*Note:* To ensure full compatibility, your private database must follow the same schema as the public **Curated Sorghum Variant Resource**.
 
 ```{r}
 library(panGenomeBreedr)
 
 # 1. Point the package to your custom API endpoint
-set_api_url("http://16.171.142.87:8000")
-#> panGenomeBreedr API endpoint successfully set to: http://16.171.142.87:8000
+set_api_url("http://132.145.61.28:8000")
+#> panGenomeBreedr API endpoint successfully set to: http://132.145.61.28:8000
 
 # 2. Query your private database exactly as you normally would
-pg_gt_private <- pg_query_db(
+test_gt_private <- fetch_table_region(
   table_name = "genotypes",
   chrom = "Chr05",
   start = 75104537,
-  end = 75106403
+  end = 75106403,
+  connect_db_mode = 'online'
+
 )
 ```
+
+
+
 
 
 
@@ -244,7 +260,7 @@ pg_gt_private <- pg_query_db(
 
 ## Summarize SnpEff Annotation and Impact 
 
-The `query_ann_summary()` function provides a convenient way to summarize the distribution of **SnpEff annotations** and **impact categories** across variant types (e.g., SNPs, indels) within a defined genomic region.
+The `summarize_annotations()` function provides a convenient way to summarize the distribution of **SnpEff annotations** and **impact categories** across variant types (e.g., SNPs, indels) within a defined genomic region.
 
 This function enables users to quickly assess the types and functional implications of variants located within candidate genes or genomic intervals of interest.
 
@@ -252,7 +268,7 @@ This function enables users to quickly assess the types and functional implicati
 library(panGenomeBreedr)
 
 # Locate the package example database folder
-mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+mini_folder <- system.file("extdata", "pangenome_scale_db", 
                            package = "panGenomeBreedr", 
                            mustWork = TRUE)
 
@@ -260,7 +276,7 @@ mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource",
 con_demo <- connect_local_db(folder_path = mini_folder)
 
 # Run functional annotation summary for region Chr05:75,104,537 - 75,106,403
-ann_summary <- query_ann_summary(con = con_demo,
+ann_summary <- summarize_annotations(con = con_demo,
                                  chrom = "Chr05",
                                  start = 75104537,
                                  end = 75106403)
@@ -291,7 +307,10 @@ knitr::kable(head(ann_summary$impact_summary),
 
 
 
-The `query_ann_summary()` function returns a `list` with the following elements:  
+
+
+
+The `summarize_annotations()` function returns a `list` with the following elements:  
 
 - `annotation_summary`: Data frame summarizing the count of each SnpEff annotation grouped by variant type.  
 
@@ -299,14 +318,14 @@ The `query_ann_summary()` function returns a `list` with the following elements:
 
 - `variant_type_totals`: Total count of variants in the region grouped by variant type.
 
-**The annotation summary shows that there are six (6) INDEL variants with a HIGH impact on protein function.** To see these variants, we need to use the `query_by_impact()` function, as shown below:
+**The annotation summary shows that there are six (6) INDEL variants with a HIGH impact on protein function.** To see these variants, we need to use the `fetch_variants_by_impact()` function, as shown below:
 
 ```{r, echo = TRUE}
 
 library(panGenomeBreedr)
 
 # Locate the package example database folder
-mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+mini_folder <- system.file("extdata", "pangenome_scale_db", 
                            package = "panGenomeBreedr", 
                            mustWork = TRUE)
 
@@ -314,7 +333,7 @@ mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource",
 con_demo <- connect_local_db(folder_path = mini_folder)
 
 # Extract HIGH impact functional variants within the target Chr05 window
-high_variants <- query_by_impact(con = con_demo,
+high_variants <- fetch_variants_by_impact(con = con_demo,
                                  impact_level = "HIGH",
                                  chrom = "Chr05",
                                  start = 75104537,
@@ -335,19 +354,22 @@ knitr::kable(head(high_variants),
 ```
 
 
+
+
+
 ## Filter Variants by Allele Frequency
 
-The `query_by_af()` and `filter_by_af()` functions allow users to filter queried variants based on **alternate allele frequency thresholds** within a specified genomic region.
+The `fetch_variants_by_allele_frequency()` and `filter_by_allele_frequency()` functions allow users to filter queried variants based on **alternate allele frequency thresholds** within a specified genomic region.
 
 This is particularly useful for identifying **polymorphic sites** within candidate gene regions or windows of interest that meet desired minor allele frequency (MAF) thresholds for marker development.
 
-An example usage for the `filter_by_af()` function is shown in the code snippet below:
+An example usage for the `filter_by_allele_frequency()` function is shown in the code snippet below:
 
 ```{r, echo = TRUE}
 library(panGenomeBreedr)
 
 # Locate the package example database folder
-mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+mini_folder <- system.file("extdata", "pangenome_scale_db", 
                            package = "panGenomeBreedr", 
                            mustWork = TRUE)
 
@@ -355,10 +377,12 @@ mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource",
 con_demo <- connect_local_db(folder_path = mini_folder)
 
 # Extract genotype data for all HIGH impact variants and filter by alternate allele frequency
-geno_high_filtered <- query_genotypes(con = con_demo,
-                                      variant_ids = high_variants$variant_id,
-                                      meta_data = c("chrom", "pos", "ref", "alt", "variant_type")) |>
-  filter_by_af(min_af = 0.05)
+geno_high_filtered <- fetch_genotypes_by_id(
+  con = con_demo,
+  variant_ids = high_variants$variant_id,
+  meta_data = c("chrom", "pos", "ref", "alt", "variant_type")
+) |>
+  filter_by_allele_frequency(min_af = 0.05)
 
 # Cleanly close the connection and release memory allocations
 disconnect_local_db(con_demo)
@@ -377,7 +401,7 @@ knitr::kable(geno_high_filtered,
 library(panGenomeBreedr)
 
 # Locate the package example database folder
-mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource", 
+mini_folder <- system.file("extdata", "pangenome_scale_db", 
                            package = "panGenomeBreedr", 
                            mustWork = TRUE)
                            
@@ -385,14 +409,16 @@ mini_folder <- system.file("extdata", "mini_curated_sorghum_variant_resource",
 con_demo <- connect_local_db(folder_path = mini_folder)
 
 # Get genotype data for HIGH impact variants that passed allele filter
-geno_high_filtered <- query_genotypes(con = con_demo,
+geno_high_filtered <- fetch_genotypes_by_id(con = con_demo,
                                       variant_ids = geno_high_filtered$variant_id,
                                       meta_data = c("chrom", "pos", "ref", "alt", "variant_type"))
 
 # Cleanly close the connection and release memory allocations
 disconnect_local_db(con_demo)
-
 ```
+
+
+
 
 
 
@@ -410,12 +436,13 @@ The `panGenomeBreedr` package simplifies this analysis. First, we compute the pa
 
 ```{r}
 # Compute LD around our causal variants
-ld_result <- compute_LD(
+ld_result <- calculate_LD(
   df = gt_region,
   target_variant_ids = geno_high_filtered$variant_id,
   genotype_start_col = 11
 )
 ```
+
 ```{r, echo = FALSE}
 knitr::kable(
   head(ld_result),
@@ -426,6 +453,9 @@ knitr::kable(
   escape = FALSE
 )
 ```
+
+
+
 
 
 With the LD statistics calculated, we can generate a `Geodesic Linkage Disequilibrium (LD) Landscape plot`. This function projects the pairwise $R^2$ values as physical trajectories, making it highly intuitive to spot tightly linked variant clusters.
@@ -457,6 +487,9 @@ knitr::kable(
   escape = FALSE
 )
 ```
+
+
+
 
 
 
@@ -520,6 +553,9 @@ on.exit(unlink(path)) # Clear the temp directory on exit
 
 
 
+
+
+
 The `kasp_marker_design()` function returns a list object including a `data.frame` with marker design metadata:
 
 - `SNP_Name`: Variant ID
@@ -551,6 +587,9 @@ knitr::kable(lgs1$marker_data,
              escape = FALSE)
  
 ```
+
+
+
 
 
 
@@ -608,6 +647,9 @@ kasp_dat <- file1$Data
 
 
 
+
+
+
 ## Assigning colors and PCH symbols for KASP cluster plotting
 The next step after importing data is to assign FAM and HEX fluorescence colors to samples based on their observed genotype calls. This step is accomplished using the `kasp_color()` function in `panGB` as shown in the code snippet below:  
 
@@ -627,6 +669,9 @@ dat1 <- kasp_color(x = kasp_dat,
                    assign_cols = c(FAM = "blue", HEX = "gold" , 
                                    het = "forestgreen"))
 ```
+
+
+
 
 
 
@@ -681,6 +726,9 @@ library(panGenomeBreedr)
 
 
 
+
+
+
 Color-blind-friendly color combinations are used to visualize verified genotype predictions (Figure 3).
 
 In Figure 4, the three genotype classes are grouped based on plot PCH symbols using the FAM and HEX scores for observed genotype calls.
@@ -722,6 +770,9 @@ knitr::kable(my_sum$summ, caption = 'Table 7: Summary of verified prediction sta
 
 
 
+
+
+
 The output of the `pred_summary()` function can be visualized as bar plots using the `pred_summary_plot()` function as shown in the code snippet below:
 
 ```{r barplot, fig.cap = "Fig. 5. Match/Mismatch rate of predictions for snp: snpSB00804.", eval=TRUE}
@@ -746,12 +797,18 @@ my_sum <- my_sum[my_sum$snp_id == 'snpSB00804',]
 
 
 
+
+
+
 ## Plot Plate Design
 Users can visualize the observed genotype calls in a plate design format using the `plot_plate()` function as depicted in Figure 6, using the code snippet below:  
 
 ```{r plate_05_design, fig.cap = "Fig. 6. Observed genotype calls for samples in Plate 5 in a plate design format.", eval=TRUE}
 plot_plate(dat1[5], pdf = FALSE)
 ```
+
+
+
 
 
 
@@ -790,6 +847,9 @@ geno <- read.csv(file = path1, header = TRUE, colClasses = c("character")) # gen
 library(knitr)
 knitr::kable(geno[1:6, 1:10], caption = 'Table 7: Agriplex data format', format = 'html', booktabs = TRUE)
 ```
+
+
+
 
 
 
@@ -865,6 +925,9 @@ knitr::kable(num_geno[, 1:8], caption = 'Table 9: Agriplex data converted to a n
 
 
 
+
+
+
 All is now set to generate the heatmap (Figure 7) using the `cross_qc_ggplot()` function, as shown in the code snippet below:  
 
 ```{r heatmap1, fig.cap = "Fig. 7. A heatmap that compares the genetic background of parents and stg5 NIL progenies across all markers.", fig.width=12.5, fig.height=8.5, eval=TRUE}
@@ -884,6 +947,9 @@ cross_qc_heatmap(x = num_geno,
                 alpha = 0.9,
                 text_size = 15)
 ```
+
+
+
 
 
 
@@ -927,6 +993,9 @@ cross_qc_heatmap(x = stg5_ch1,
                   alpha = 0.9,
                   text_size = 15)
 ```
+
+
+
 
 
 
@@ -985,6 +1054,9 @@ knitr::kable(rpp, caption = 'Table 10: RPP computation across and for each chrom
              format = 'html', 
              booktabs = TRUE)
 ```
+
+
+
 
 
 
@@ -1083,6 +1155,9 @@ knitr::kable(foreground_matrix,
 
 
 
+
+
+
 The `foreground_select()` function has the following input parameters:
 
 | Argument            | Type         | Description |
@@ -1138,6 +1213,9 @@ UpSetR::upset(foreground_matrix,
 
 
 
+
+
+
 ###  Query Lines by Intersection Category: `find_lines()` function
 The `find_lines()` function identifies lines based on target loci profile by filtering the binary output of `foreground_select()` to return line names that match a desired allele presence/absence profile across loci. Using the binary matrix, users can extract line IDs corresponding to any intersection (i.e., specific combinations of favorable alleles revealed by the UpSet plot).
 
@@ -1150,6 +1228,9 @@ selected_lines <- find_lines(mat = foreground_matrix,
 
 print(selected_lines)
 ```
+
+
+
 
 
 

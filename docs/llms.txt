@@ -77,13 +77,7 @@ First, ensure all existing packages are up to date.
 You can install the development version of `panGenomeBreedr` from
 [GitHub](https://github.com/awkena/panGenomeBreedr) with:
 
-``` r
-
-# Install panGenomeBreedr
-if (!require("devtools")) install.packages("devtools")
-
-devtools::install_github("awkena/panGenomeBreedr")
-```
+`# Install panGenomeBreedr`` ``if`` ``(``!`[`require`](https://rdrr.io/r/base/library.html)`(`[`"devtools"`](https://devtools.r-lib.org/)`)``)`` `[`install.packages`](https://rdrr.io/r/utils/install.packages.html)`(``"devtools"``)`` `` ``devtools``::`[`install_github`](https://devtools.r-lib.org/reference/install-deprecated.html)`(``"awkena/panGenomeBreedr"``)`
 
 ### Installing Bioconductor dependency packages
 
@@ -91,25 +85,7 @@ devtools::install_github("awkena/panGenomeBreedr")
 installed automatically alongside `panGB`. To manually install these
 packages, use the code snippet below:
 
-``` r
-
-# Install and load required Bioconductor packages if not already installed
-if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-
-# Define required Bioconductor packages
-bioc_packages <- c("rtracklayer", "Rsamtools", "msa", "IRanges",
-                   "GenomicRanges", "BSgenome", "Biostrings", "GenomeInfoDb")
-
-# Install any missing Bioconductor packages
-for (pkg in bioc_packages) {
-
-  if (!requireNamespace(pkg, quietly = TRUE)) {
-
-    BiocManager::install(pkg, ask = FALSE, update = FALSE)
-
-  }
-}
-```
+`# Install and load required Bioconductor packages if not already installed`` ``if`` ``(``!`[`require`](https://rdrr.io/r/base/library.html)`(`[`"BiocManager"`](https://bioconductor.github.io/BiocManager/)`, quietly ``=`` ``TRUE``)``)`` `[`install.packages`](https://rdrr.io/r/utils/install.packages.html)`(``"BiocManager"``)`` `` ``# Define required Bioconductor packages`` ``bioc_packages`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(``"rtracklayer"``, ``"Rsamtools"``, ``"msa"``, ``"IRanges"``,`` `` ``"GenomicRanges"``, ``"BSgenome"``, ``"Biostrings"``, ``"GenomeInfoDb"``)`` `` ``# Install any missing Bioconductor packages`` ``for`` ``(``pkg`` ``in`` ``bioc_packages``)`` ``{`` `` `` ``if`` ``(``!`[`requireNamespace`](https://rdrr.io/r/base/ns-load.html)`(``pkg``, quietly ``=`` ``TRUE``)``)`` ``{`` `` `` ``BiocManager``::`[`install`](https://bioconductor.github.io/BiocManager/reference/install.html)`(``pkg``, ask ``=`` ``FALSE``, update ``=`` ``FALSE``)`` `` `` ``}`` ``}`
 
 ### Launching the Interactive Web Application
 
@@ -120,11 +96,7 @@ point-and-click access to the package’s core features.
 
 To launch the app, simply run the following command in your R console:
 
-``` r
-
-# Launch the interactive Shiny application
-panGenomeBreedr::run_app()
-```
+`# Launch the interactive Shiny application`` ``panGenomeBreedr``::`[`run_app`](https://awkena.github.io/panGenomeBreedr/reference/run_app.md)`(``)`
 
 This will open the panGB application in your default web browser.
 
@@ -132,19 +104,19 @@ This will open the panGB application in your default web browser.
 
 `panGB` currently provides functionality for the following key tasks:
 
-1.  **Variant discovery**  
+1.  **Variant discovery**\
     Identify variants within candidate genes or any user-defined genomic
     interval using *snpEff*-annotated VCF files.
 
-2.  **KASP marker design**  
+2.  **KASP marker design**\
     Generate allele-specific markers targeting either causal variants or
     any variant of interest.
 
-3.  **Marker validation and QC visualization**  
+3.  **Marker validation and QC visualization**\
     Produce quality control plots and perform hypothesis-driven
     evaluations to assess marker reliability.
 
-4.  **Decision-support for trait introgression**  
+4.  **Decision-support for trait introgression**\
     Guide marker-assisted backcrossing by profiling foreground,
     background, and precision-introgression markers to support selection
     decisions.
@@ -216,120 +188,83 @@ Kena, PhD** at <alex.kena24@gmail.com>
 
 ### Database Schema & Metadata
 
-- [`list_sqlite_tables()`](https://awkena.github.io/panGenomeBreedr/reference/list_sqlite_tables.md)
-  : List all tables in the database (local)
-- [`pg_list_tables()`](https://awkena.github.io/panGenomeBreedr/reference/pg_list_tables.md)
-  : List all tables in the database (online)
-- [`summarize_sqlite_tables()`](https://awkena.github.io/panGenomeBreedr/reference/summarize_sqlite_tables.md)
-  : Get table names and row counts from the database (local)
-- [`pg_summarize_tables()`](https://awkena.github.io/panGenomeBreedr/reference/pg_summarize_tables.md)
-  : Get table names and row counts from the database (online)
-- [`list_table_columns()`](https://awkena.github.io/panGenomeBreedr/reference/list_table_columns.md)
-  : Get table schema details (local)
-- [`pg_list_table_columns()`](https://awkena.github.io/panGenomeBreedr/reference/pg_list_table_columns.md)
-  : Get table schema details (online)
+- [`list_tables()`](https://awkena.github.io/panGenomeBreedr/reference/list_tables.md)
+  : List all tables in the database
+- [`summarize_database()`](https://awkena.github.io/panGenomeBreedr/reference/summarize_database.md)
+  : Get table names and row counts from the database
+- [`list_columns()`](https://awkena.github.io/panGenomeBreedr/reference/list_columns.md)
+  : Get table schema details
 
 ### Core Data Queries
 
-- [`query_db()`](https://awkena.github.io/panGenomeBreedr/reference/query_db.md)
-  : Query database tables by genomic coordinates (local)
-- [`pg_query_db()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_db.md)
-  : Query database tables by genomic coordinates (online)
-- [`query_genotypes()`](https://awkena.github.io/panGenomeBreedr/reference/query_genotypes.md)
-  : Query genotypes table for specific variant IDs (local)
-- [`pg_query_genotypes()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_genotypes.md)
-  : Query genotypes for specific variant IDs (online)
-- [`get_sample_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/get_sample_metadata.md)
-  : Get samples metadata from the database (local)
-- [`pg_get_sample_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/pg_get_sample_metadata.md)
-  : Get sample metadata from the database (online)
-- [`query_geno_by_meta()`](https://awkena.github.io/panGenomeBreedr/reference/query_geno_by_meta.md)
-  : Filter genotypes by multiple sample metadata criteria (local)
-- [`pg_query_geno_by_meta()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_geno_by_meta.md)
-  : Filter genotypes by multiple sample metadata criteria
+- [`fetch_table_region()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)
+  : Fetch data from database tables by genomic coordinates
+- [`fetch_genotypes_by_id()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_genotypes_by_id.md)
+  : Fetch genotypes for specific variant IDs
+- [`fetch_accession_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_accession_metadata.md)
+  : Get sample metadata from the database
+- [`filter_genotypes_by_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/filter_genotypes_by_metadata.md)
+  : Filter a genotype matrix by sample metadata
 
 ### Targeted Variant Filters
 
-- [`query_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/query_by_af.md)
-  : Query variants by allele frequency (local)
-- [`pg_query_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_af.md)
-  : Query variants by allele frequency (online)
-- [`query_by_impact()`](https://awkena.github.io/panGenomeBreedr/reference/query_by_impact.md)
-  : Extract variants based on functional mutation impact (local)
-- [`pg_query_by_impact()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_impact.md)
-  : Extract variants based on functional mutation impact (online)
+- [`fetch_variants_by_allele_frequency()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_variants_by_allele_frequency.md)
+  : Fetch variants by allele frequency
+- [`fetch_variants_by_impact()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_variants_by_impact.md)
+  : Extract variants based on functional mutation impact
 
 ### Summaries & Statistics
 
-- [`variant_stats()`](https://awkena.github.io/panGenomeBreedr/reference/variant_stats.md)
-  : Get variant statistics from the database (local)
-- [`pg_variant_stats()`](https://awkena.github.io/panGenomeBreedr/reference/pg_variant_stats.md)
-  : Get variant statistics from the database (online)
-- [`variant_impact_summary()`](https://awkena.github.io/panGenomeBreedr/reference/variant_impact_summary.md)
-  : Get summary of database variant impacts by chromosome (local)
-- [`pg_variant_impact_summary()`](https://awkena.github.io/panGenomeBreedr/reference/pg_variant_impact_summary.md)
-  : Get summary of database variant impacts by chromosome (online)
+- [`summarize_variants()`](https://awkena.github.io/panGenomeBreedr/reference/summarize_variants.md)
+  : Get variant statistics from the database
+- [`summarize_variant_impacts()`](https://awkena.github.io/panGenomeBreedr/reference/summarize_variant_impacts.md)
+  : Get summary of database variant impacts by chromosome
 - [`count_variant_types()`](https://awkena.github.io/panGenomeBreedr/reference/count_variant_types.md)
-  : Count the distribution of variant types in the database (local)
-- [`pg_count_variant_types()`](https://awkena.github.io/panGenomeBreedr/reference/pg_count_variant_types.md)
-  : Count the distribution of variant types in the database (online)
-- [`query_ann_summary()`](https://awkena.github.io/panGenomeBreedr/reference/query_ann_summary.md)
-  : Get summarized functional annotations, impacts and variant types for
-  a genomic region (local)
-- [`pg_query_ann_summary()`](https://awkena.github.io/panGenomeBreedr/reference/pg_query_ann_summary.md)
+  : Count the distribution of variant types in the database
+- [`summarize_annotations()`](https://awkena.github.io/panGenomeBreedr/reference/summarize_annotations.md)
   : Summarize functional annotations and impacts for a genomic region
-  (online)
 
 ### Allele Frequency Handlers
 
-- [`calc_af()`](https://awkena.github.io/panGenomeBreedr/reference/calc_af.md)
-  : Compute allele frequencies for a genotype matrix (local)
-- [`pg_calc_af()`](https://awkena.github.io/panGenomeBreedr/reference/pg_calc_af.md)
-  : Compute allele frequencies for a genotype matrix (online)
-- [`filter_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/filter_by_af.md)
-  : Filter genotypes by allele frequency (Local)
-- [`pg_filter_by_af()`](https://awkena.github.io/panGenomeBreedr/reference/pg_filter_by_af.md)
-  : Filter genotypes by allele frequency (online)
+- [`calculate_allele_frequencies()`](https://awkena.github.io/panGenomeBreedr/reference/calculate_allele_frequencies.md)
+  : Compute allele frequencies for a genotype matrix
+- [`filter_by_allele_frequency()`](https://awkena.github.io/panGenomeBreedr/reference/filter_by_allele_frequency.md)
+  : Filter genotypes by allele frequency
 
 ### Linkage Disequilibrium Analysis
 
-- [`compute_LD()`](https://awkena.github.io/panGenomeBreedr/reference/compute_LD.md)
+- [`calculate_LD()`](https://awkena.github.io/panGenomeBreedr/reference/calculate_LD.md)
   : Compute Linkage Disequilibrium (LD) Metrics (R2 and D')
 - [`plot_ld_geodesic()`](https://awkena.github.io/panGenomeBreedr/reference/plot_ld_geodesic.md)
   : Generate Geodesic Landscape Plot and Extract Haploblock Data
 
-### Marker Design & Visualization
+### Visualization
 
-- [`kasp_marker_design()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_marker_design.md)
-  : Design KASP markers based on causal variants.
-- [`query_map_accessions()`](https://awkena.github.io/panGenomeBreedr/reference/query_map_accessions.md)
-  : Interactive geographic exploration of the samples (local)
-- [`pg_map_accessions()`](https://awkena.github.io/panGenomeBreedr/reference/pg_map_accessions.md)
-  : Interactive geographic exploration of the samples (online)
-
-### Utilities
-
-- [`gene_coord_gff()`](https://awkena.github.io/panGenomeBreedr/reference/gene_coord_gff.md)
-  : Get the genomic range of a candidate gene and its features using the
-  Sobic ID from a GFF file (local)
-- [`plot_gene_model()`](https://awkena.github.io/panGenomeBreedr/reference/plot_gene_model.md)
-  : Plot the gene model using genomic coordinates (local)
+- [`plot_accession_map()`](https://awkena.github.io/panGenomeBreedr/reference/plot_accession_map.md)
+  : Interactive geographic exploration of the samples
 - [`plot_variant_hotspot()`](https://awkena.github.io/panGenomeBreedr/reference/plot_variant_hotspot.md)
   : Plot genomic variant hotspots (SNPs and INDELs) extracted from the
   database (local)
+- [`plot_gene_model()`](https://awkena.github.io/panGenomeBreedr/reference/plot_gene_model.md)
+  : Plot the gene model using genomic coordinates (local)
 - [`hotspot_overlay_plot()`](https://awkena.github.io/panGenomeBreedr/reference/hotspot_overlay_plot.md)
   : Generate a combined gene model and variant hotspot overlay plot
   (local)
-- [`pg_gene_coords()`](https://awkena.github.io/panGenomeBreedr/reference/pg_gene_coords.md)
-  : Get the genomic range of a candidate gene using the Sobic ID from a
-  GFF file (online)
+
+### Marker Design & Utilities
+
+- [`kasp_marker_design()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_marker_design.md)
+  : Design KASP markers based on causal variants.
+- [`gene_coord_gff()`](https://awkena.github.io/panGenomeBreedr/reference/gene_coord_gff.md)
+  : Get the genomic range of a candidate gene and its features using the
+  Sobic ID from a GFF file (local)
 - [`extract_variant()`](https://awkena.github.io/panGenomeBreedr/reference/extract_variant.md)
   : Extract putative causal variants within a candidate gene from a
   tabix-indexed snpEff annotated VCF file.
-- [`get_google_id()`](https://awkena.github.io/panGenomeBreedr/reference/get_google_id.md)
-  : Get the folder or file ID from a Google Drive shareable link.
 - [`folder_download_gd()`](https://awkena.github.io/panGenomeBreedr/reference/folder_download_gd.md)
   : Download files in a shared Google Drive folder without restrictions.
+- [`get_google_id()`](https://awkena.github.io/panGenomeBreedr/reference/get_google_id.md)
+  : Get the folder or file ID from a Google Drive shareable link.
 
 ## KASP Marker Validation
 

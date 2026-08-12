@@ -169,7 +169,7 @@ kasp_marker_design <- function(vcf_file = NULL,
                        gt_df[, geno_start:ncol(gt_df)])
 
     # calculating alt frequencies
-    variant_table$MAF <- round(calc_af(gt = geno)$alt_af, 3)
+    variant_table$MAF <- round(calculate_allele_frequencies(gt = geno)$alt_af, 3)
   }
 
   # # Reading genome by chromosome subset or whole genome

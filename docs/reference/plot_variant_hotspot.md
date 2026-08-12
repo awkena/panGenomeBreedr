@@ -57,6 +57,10 @@ A `ggplot` object representing the variant hotspots.
 ``` r
 # \donttest{
 library(panGenomeBreedr)
+<<<<<<< HEAD
+# Extract genotypes within the candidate gene: Sobic.005G213600
+gt_region <- fetch_table_region(table_name = "genotypes",
+=======
 # Extract variants within the candidate gene: Sobic.005G213600
 pg_gt_region <- pg_query_db(table_name = "genotypes",
                             chrom = "Chr05",
@@ -66,13 +70,27 @@ pg_gt_region <- pg_query_db(table_name = "genotypes",
 
 #' # Extract annotations for the candidate gene
 pg_annota_region <- pg_query_db(table_name = "annotations",
+>>>>>>> upstream/main
                                 chrom = "Chr05",
                                 start = 75104537,
                                 end = 75106403,
-                                gene_name = "Sobic.005G213600"
+                                connect_db_mode = "online"
                                 )
 
+<<<<<<< HEAD
+# Extract annotations for the candidate gene
+annota_region <- fetch_table_region(table_name = "annotations",
+                                    chrom = "Chr05",
+                                    start = 75104537,
+                                    end = 75106403,
+                                    gene_name = "Sobic.005G213600",
+                                    connect_db_mode = "online"
+                                    )
+
+var_df <- merge(annota_region, gt_region, by = "variant_id")
+=======
 var_df <- merge(pg_annota_region, pg_gt_region, by = "variant_id")[,1:23]
+>>>>>>> upstream/main
 
 plot_variant_hotspot(var_df)
 
