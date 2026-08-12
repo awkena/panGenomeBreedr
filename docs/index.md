@@ -77,7 +77,13 @@ First, ensure all existing packages are up to date.
 You can install the development version of `panGenomeBreedr` from
 [GitHub](https://github.com/awkena/panGenomeBreedr) with:
 
-`# Install panGenomeBreedr`` ``if`` ``(``!`[`require`](https://rdrr.io/r/base/library.html)`(`[`"devtools"`](https://devtools.r-lib.org/)`)``)`` `[`install.packages`](https://rdrr.io/r/utils/install.packages.html)`(``"devtools"``)`` `` ``devtools``::`[`install_github`](https://devtools.r-lib.org/reference/install-deprecated.html)`(``"awkena/panGenomeBreedr"``)`
+``` r
+
+# Install panGenomeBreedr
+if (!require("devtools")) install.packages("devtools")
+
+devtools::install_github("awkena/panGenomeBreedr")
+```
 
 ### Installing Bioconductor dependency packages
 
@@ -85,7 +91,25 @@ You can install the development version of `panGenomeBreedr` from
 installed automatically alongside `panGB`. To manually install these
 packages, use the code snippet below:
 
-`# Install and load required Bioconductor packages if not already installed`` ``if`` ``(``!`[`require`](https://rdrr.io/r/base/library.html)`(`[`"BiocManager"`](https://bioconductor.github.io/BiocManager/)`, quietly ``=`` ``TRUE``)``)`` `[`install.packages`](https://rdrr.io/r/utils/install.packages.html)`(``"BiocManager"``)`` `` ``# Define required Bioconductor packages`` ``bioc_packages`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(``"rtracklayer"``, ``"Rsamtools"``, ``"msa"``, ``"IRanges"``,`` `` ``"GenomicRanges"``, ``"BSgenome"``, ``"Biostrings"``, ``"GenomeInfoDb"``)`` `` ``# Install any missing Bioconductor packages`` ``for`` ``(``pkg`` ``in`` ``bioc_packages``)`` ``{`` `` `` ``if`` ``(``!`[`requireNamespace`](https://rdrr.io/r/base/ns-load.html)`(``pkg``, quietly ``=`` ``TRUE``)``)`` ``{`` `` `` ``BiocManager``::`[`install`](https://bioconductor.github.io/BiocManager/reference/install.html)`(``pkg``, ask ``=`` ``FALSE``, update ``=`` ``FALSE``)`` `` `` ``}`` ``}`
+``` r
+
+# Install and load required Bioconductor packages if not already installed
+if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+
+# Define required Bioconductor packages
+bioc_packages <- c("rtracklayer", "Rsamtools", "msa", "IRanges",
+                   "GenomicRanges", "BSgenome", "Biostrings", "GenomeInfoDb")
+
+# Install any missing Bioconductor packages
+for (pkg in bioc_packages) {
+
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+
+    BiocManager::install(pkg, ask = FALSE, update = FALSE)
+
+  }
+}
+```
 
 ### Launching the Interactive Web Application
 
@@ -96,7 +120,11 @@ point-and-click access to the package’s core features.
 
 To launch the app, simply run the following command in your R console:
 
-`# Launch the interactive Shiny application`` ``panGenomeBreedr``::`[`run_app`](https://awkena.github.io/panGenomeBreedr/reference/run_app.md)`(``)`
+``` r
+
+# Launch the interactive Shiny application
+panGenomeBreedr::run_app()
+```
 
 This will open the panGB application in your default web browser.
 
@@ -104,19 +132,19 @@ This will open the panGB application in your default web browser.
 
 `panGB` currently provides functionality for the following key tasks:
 
-1.  **Variant discovery**\
+1.  **Variant discovery**  
     Identify variants within candidate genes or any user-defined genomic
     interval using *snpEff*-annotated VCF files.
 
-2.  **KASP marker design**\
+2.  **KASP marker design**  
     Generate allele-specific markers targeting either causal variants or
     any variant of interest.
 
-3.  **Marker validation and QC visualization**\
+3.  **Marker validation and QC visualization**  
     Produce quality control plots and perform hypothesis-driven
     evaluations to assess marker reliability.
 
-4.  **Decision-support for trait introgression**\
+4.  **Decision-support for trait introgression**  
     Guide marker-assisted backcrossing by profiling foreground,
     background, and precision-introgression markers to support selection
     decisions.

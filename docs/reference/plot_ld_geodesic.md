@@ -2,9 +2,24 @@
 
 Generate Geodesic Landscape Plot and Extract Haploblock Data
 
+Generate Geodesic Landscape Plot and Extract Haploblock Data
+
 ## Usage
 
 ``` r
+plot_ld_geodesic(
+  ld_df,
+  query_db_geno,
+  query_db_annot,
+  metric = "R2",
+  threshold = 0.2,
+  block_threshold = 0.8,
+  show_variant_labels = TRUE,
+  target_variant_ids = NULL,
+  filled = FALSE,
+  palette_option = "magma"
+)
+
 plot_ld_geodesic(
   ld_df,
   query_db_geno,
@@ -78,9 +93,57 @@ A structured `list` containing two named assets:
 - `table`: A data frame where columns represent haploblocks, listing
   their constituent variants and impacts.
 
+A structured `list` containing two named assets:
+
+- `plot`: A ggplot object showing the geodesic LD landscape.
+
+- `table`: A data frame where columns represent haploblocks, listing
+  their constituent variants and impacts.
+
 ## Examples
 
 ``` r
+if (FALSE) { # \dontrun{
+query_annot <- panGenomeBreedr::pg_query_db(
+table_name = "annotations",
+chrom = "Chr03",
+gene_name = "Sobic.003G421300",
+start = 79037682,
+end = 79039091
+)
+
+query_geno <- panGenomeBreedr::pg_query_db(
+table_name = "genotypes",
+chrom = "Chr03",
+gene_name = "Sobic.003G421300",
+start = 79037682,
+end = 79039091
+)
+
+# Compute your updated wide data containing distance tracking columns
+ld_results <- compute_LD(
+df = query_geno,
+target_variant_ids = NULL,
+genotype_start_col = 11
+)
+
+# Generate the plot and table package
+result <- plot_ld_geodesic(
+  ld_df = ld_results,
+  query_db_geno = query_geno,
+  query_db_annot = query_annot,
+  metric = "R2",
+  target_variant_ids = c("INDEL_Chr03_79037889", "SNP_Chr03_79037855","SNP_Chr03_79037944"),
+  threshold = 0.2,
+  block_threshold = 0.8
+)
+
+# Access the plot
+result$plot
+
+# Access the haploblock table
+print(result$table)
+} # }
 # \donttest{ 
 query_annot <- panGenomeBreedr::fetch_table_region(
 table_name = "annotations",
@@ -108,16 +171,12 @@ genotype_start_col = 11
 
 # Generate the plot and table package
 result <- plot_ld_geodesic(
-  ld_df = ld_results,
-  query_db_geno = query_geno,
+  ld_df = ld_results, 
+  query_db_geno = query_geno, 
   query_db_annot = query_annot,
   metric = "R2",
   target_variant_ids = c("INDEL_Chr03_79037889", "SNP_Chr03_79037855","SNP_Chr03_79037944"),
-<<<<<<< HEAD
   threshold = 0.8, 
-=======
-  threshold = 0.2,
->>>>>>> upstream/main
   block_threshold = 0.8
 )
 

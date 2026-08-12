@@ -38,9 +38,12 @@ knitr::opts_chunk$set(
     - [Recommended Schema for the Parquet / DuckDB Database](#recommended-schema-for-the-parquet-duckdb-database)
     - [Database Creation](#database-creation)
     - [Query Variant Tables](#query-variant-tables)
-    - [Query Online Pangenome Databases](#query-online-pangenome-databases)
+    - [Query Online Database ](#query-online-database)
     - [Filter Variants by Allele Frequency](#filter-variants-by-allele-frequency)
     - [Summarize SnpEff Annotation and Impact](#summarize-snpeff-annotation-and-impact)
+    - [Filter Variants by Allele Frequency](#filter-variants-by-allele-frequency)
+    - [Visualizing Variant Hotspots and Gene Models with panGB](#visualizing-variant-hotspots-and-gene-models-with-pangb)
+    - [Evaluating Linkage Disequilibrium for Marker Design](#evaluating-linkage-disequilibrium-for-marker-design)
 - [KASP Marker Design](#kasp-marker-design)
 - [KASP Marker Validation](#kasp-marker-validation)
 - [Decision Support for Trait Introgression and MABC](#decision-support-for-trait-introgression-and-mabc)
@@ -191,7 +194,7 @@ knitr::kable(annota_region[1:5,],
 
 
 
-### Query Online Database 
+### Query Online Database for Sorghum
 
 `panGenomeBreedr` offers the flexibility to connect directly to online databases, allowing you to seamlessly query massive datasets without downloading large files to your local machine. This is ideal for collaborative projects or for users without high-performance computing resources. You can use the default public database or connect to your own private server.
 
@@ -417,12 +420,75 @@ geno_high_filtered <- fetch_genotypes_by_id(con = con_demo,
 disconnect_local_db(con_demo)
 ```
 
+## Visualizing Variant Hotspots and Gene Models with panGB
+panGB allows users to mine the sorghum parquet-backed large-scale variant database to identify causal mutations for candidate genes annotated in the a GFF3 file for sorghum (V5.1). panGB streamlines this process by providing seamless integration between genomic annotations in the GFF3 file, the remote pangenome-scale variant database, and dynamic visualizations.
+
+For this example, we will interrogate a specific *Sorghum bicolor* candidate gene (`Sobic.005G213600`).
+
+First, load the package and define the essential inputs. We require a GFF3 file for the reference genome to map structural features (exons, introns, UTRs) and the specific candidate gene ID we wish to investigate.
+
+Before we can query the variant database, we need the exact genomic bounds of our candidate gene. The `gene_coord_gff()` function parses the remote GFF3 file and returns the spatial coordinates for the specified gene.
+
+With the physical boundaries defined, we can now fetch the underlying genomic data. panGB interacts directly with remote variant databases. Using the `connect_db_mode = 'online'` argument allows us to pull slices of big data into our local R environment without downloading the entire pangenome dataset.
+
+
+The final step is to align the queried genetic variation directly against the physical gene model.
+
+The `hotspot_overlay_plot()` function constructs a layered visualization. It maps the gene structure (drawn directly from the GFF3) and overlays the variant density and annotations, allowing you to rapidly visually pinpoint regions of high functional variation within the candidate gene.
+
+```{r}
+library(panGenomeBreedr)
+
+# 1. Define the path to the reference GFF3 file
+gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+
+# Define the candidate gene of interest
+cand_gene <- "Sobic.005G213600"
+
+# 2. Extract the candidate gene coordinates from the GFF3 file
+gene_coord <- gene_coord_gff(gene_name = cand_gene, gff_path = gff_path)
+
+# View the extracted boundaries
+head(gene_coord)
+
+# 3. Fetch variant annotation data for the candidate gene region
+ann_df <- fetch_table_region(
+  table_name = "annotations",
+  chrom = gene_coord$Chromosome[1],
+  start = min(gene_coord$Start),
+  end = max(gene_coord$End),
+  connect_db_mode = 'online'
+)
+
+# 4. Fetch the genotype calls for the identified variants
+geno_df <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = gene_coord$Chromosome[1],
+  start = min(gene_coord$Start),
+  end = max(gene_coord$End),
+  connect_db_mode = 'online'
+)
+
+# 5. Generate and display a variant hotspot aligned to the gene model
+if (nrow(ann_df) > 0 && nrow(geno_df) > 0) {
+  hotspot_overlay_plot(
+    gene_name = cand_gene, 
+    gff_path = gff_path,
+    annotations_df = ann_df, 
+    genotypes_df = geno_df
+  )
+} else {
+  message("Insufficient data retrieved to generate the hotspot plot.")
+}
+```
 
 
 
 
 
-## Evaluating Linkage Disequilibrium (LD) for Marker Design
+
+
+## Evaluating Linkage Disequilibrium for Marker Design
 
 After identifying the causal variants, the next critical step is to evaluate their genomic context. Variants rarely exist in isolation; they are often co-inherited with neighboring variants in segments of the genome known as **haplotype blocks**, which are regions of high Linkage Disequilibrium (LD).
 
