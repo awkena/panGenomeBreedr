@@ -2278,9 +2278,6 @@ cross_qc_annotate <- function(x,
   }
 }
 
-<<<<<<< HEAD
-=======
-
 #' Compute Linkage Disequilibrium (LD) Metrics (R2 and D')
 #'
 #' @param df A data frame containing the genotype matrix. Must include a `variant_id`
@@ -3006,4 +3003,3 @@ append_locus_allele_metrics <- function(
   return(region_matrix[, optimized_column_order])
 }
 
->>>>>>> upstream/main
