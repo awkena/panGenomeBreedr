@@ -50,8 +50,8 @@ library(panGenomeBreedr)
 online_counts <- count_variant_types(connect_db_mode = 'online')
 print(online_counts)
 #>   variant_type        n
-#> 1          SNP 35877217
-#> 2        INDEL  2353694
+#> 1        INDEL  2353694
+#> 2          SNP 35877217
 
 # --- Offline Mode ---
 # Locate the package example database folder

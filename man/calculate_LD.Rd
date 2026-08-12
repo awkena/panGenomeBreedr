@@ -50,15 +50,9 @@ print(head(full_ld))
 
 # Mode 2: Targeted calculation panel for KASP marker vetting
 target_variants <- c("INDEL_Chr03_79037682", "INDEL_Chr03_79037750", "SNP_Chr03_79039022")
-<<<<<<< HEAD:man/calculate_LD.Rd
 targeted_panel <- calculate_LD(
   df = query_geno, 
   target_variant_ids = target_variants, 
-=======
-targeted_panel <- compute_LD(
-  df = query_geno,
-  target_variant_ids = target_variants,
->>>>>>> upstream/main:man/compute_LD.Rd
   genotype_start_col = 11
 )
 print(head(targeted_panel))

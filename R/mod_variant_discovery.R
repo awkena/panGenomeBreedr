@@ -522,11 +522,6 @@ gene_cord_tab <- function(ns) {
                 value = "table_tab",
                 bslib::card(
                   class = "shadow-sm border-0",
-                  bslib::card_header(
-                    class = "bg-light d-flex align-items-center",
-                    icon("table", class = "me-2 text-primary"),
-                  strong("KASP Design KASP Markers Results")
-                  ),
                   bslib::card_body(
                     class = "p-0",
                     DT::DTOutput(ns("kasp_table"), height = "500px")
@@ -567,11 +562,6 @@ gene_cord_tab <- function(ns) {
                 value = "plot_tab",
                 bslib::card(
                   class = "shadow-sm border-0",
-                  bslib::card_header(
-                    class = "bg-light d-flex align-items-center",
-                    icon("chart-line", class = "me-2 text-primary"),
-                    strong("Sequence Alignment Visualization")
-                  ),
                   bslib::card_body(
                     tagList(
                       selectizeInput(
