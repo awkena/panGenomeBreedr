@@ -18,7 +18,7 @@ plot_ld_geodesic(
 )
 }
 \arguments{
-\item{ld_df}{A long-format data frame of pairwise LD statistics containing 
+\item{ld_df}{A long-format data frame of pairwise LD statistics containing
 columns \code{variant_1}, \code{variant_2}, and the column matching \code{metric}.}
 
 \item{query_db_geno}{A data frame with variant genotype metadata. Must include a
@@ -29,7 +29,7 @@ columns \code{variant_1}, \code{variant_2}, and the column matching \code{metric
 
 \item{metric}{Character string. The linkage metric to visualize ("R2" or "D_prime").}
 
-\item{threshold}{Numeric. The minimum LD value to display. Pairs below this 
+\item{threshold}{Numeric. The minimum LD value to display. Pairs below this
 value fade to white background spaces. Defaults to 0.2.}
 
 \item{block_threshold}{Numeric. The threshold at which to group and isolate block variants. Defaults to 0.8.}
@@ -82,12 +82,16 @@ genotype_start_col = 11
 
 # Generate the plot and table package
 result <- plot_ld_geodesic(
-  ld_df = ld_results, 
-  query_db_geno = query_geno, 
+  ld_df = ld_results,
+  query_db_geno = query_geno,
   query_db_annot = query_annot,
   metric = "R2",
   target_variant_ids = c("INDEL_Chr03_79037889", "SNP_Chr03_79037855","SNP_Chr03_79037944"),
+<<<<<<< HEAD
   threshold = 0.8, 
+=======
+  threshold = 0.2,
+>>>>>>> upstream/main
   block_threshold = 0.8
 )
 
