@@ -54,34 +54,11 @@
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/parent_missing.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/parent_poly.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/parse_marker_ns.html</loc></url>
-<<<<<<< HEAD
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_accession_map.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_ld_geodesic.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_plate.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_variant_hotspots.html</loc></url>
-=======
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_calc_af.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_count_variant_types.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_filter_by_af.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_gene_coords.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_get_sample_metadata.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_list_table_columns.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_list_tables.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_map_accessions.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_query_ann_summary.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_af.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_query_by_impact.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_query_db.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_query_geno_by_meta.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_query_genotypes.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_summarize_tables.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_variant_impact_summary.html</loc></url>
-<url><loc>https://awkena.github.io/panGenomeBreedr/reference/pg_variant_stats.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_gene_model.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_ld_geodesic.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_plate.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_variant_hotspot.html</loc></url>
->>>>>>> main
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pred_status.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pred_summary.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pred_summary_plot.html</loc></url>

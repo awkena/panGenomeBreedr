@@ -28,7 +28,7 @@ gene model with its corresponding regional variant hotspots."><meta property="og
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Generate a combined gene model and variant hotspot overlay plot (local)</h1>
-      <small class="dont-index">Source: <a href="https://github.com/awkena/panGenomeBreedr/blob/HEAD/R/Offline_variant_discovery.R" class="external-link"><code>R/Offline_variant_discovery.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/awkena/panGenomeBreedr/blob/HEAD/R/variant_discovery.R" class="external-link"><code>R/variant_discovery.R</code></a></small>
       <div class="d-none name"><code>hotspot_overlay_plot.Rd</code></div>
     </div>
 
@@ -42,8 +42,8 @@ gene model with its corresponding regional variant hotspots.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">hotspot_overlay_plot</span><span class="op">(</span></span>
 <span>  <span class="va">gene_name</span>,</span>
 <span>  <span class="va">gff_path</span>,</span>
-<span>  connect_db_mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"online"</span>, <span class="st">"local"</span><span class="op">)</span>,</span>
-<span>  local_db_path <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">annotations_df</span>,</span>
+<span>  <span class="va">genotypes_df</span>,</span>
 <span>  selected_variants <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  text_sz <span class="op">=</span> <span class="fl">2.5</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -61,14 +61,12 @@ gene model with its corresponding regional variant hotspots.</p>
 <dd><p>A character string specifying the path to the GFF3 file.</p></dd>
 
 
-<dt id="arg-connect-db-mode">connect_db_mode<a class="anchor" aria-label="anchor" href="#arg-connect-db-mode"></a></dt>
-<dd><p>A character string specifying the database connection mode:
-either "online" or "local".</p></dd>
+<dt id="arg-annotations-df">annotations_df<a class="anchor" aria-label="anchor" href="#arg-annotations-df"></a></dt>
+<dd><p>A data frame containing variant annotations for the region.</p></dd>
 
 
-<dt id="arg-local-db-path">local_db_path<a class="anchor" aria-label="anchor" href="#arg-local-db-path"></a></dt>
-<dd><p>A character string specifying the local folder path to the database
-if running in "local" mode.</p></dd>
+<dt id="arg-genotypes-df">genotypes_df<a class="anchor" aria-label="anchor" href="#arg-genotypes-df"></a></dt>
+<dd><p>A data frame containing variant genotypes for the region.</p></dd>
 
 
 <dt id="arg-selected-variants">selected_variants<a class="anchor" aria-label="anchor" href="#arg-selected-variants"></a></dt>
@@ -86,22 +84,37 @@ highlight on the plot with vertical lines, enlarged points, and labels.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>This wrapper function integrates genomic annotations and variant genotypes.
-It natively queries the pangenome-scale variant relational database. Whether operating
-in 'online' mode or 'local' mode, it leverages the underlying Parquet and DuckDB
-architectures optimized for sorghum to efficiently retrieve variants
-and their snpEff annotations before plotting.</p>
+    <p>This wrapper function integrates genomic annotations and variant genotypes.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># 1. Define parameters</span></span></span>
 <span class="r-in"><span><span class="va">gff_path</span> <span class="op">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"</span></span></span>
-<span class="r-in"><span><span class="fu">hotspot_overlay_plot</span><span class="op">(</span>gene_name <span class="op">=</span> <span class="st">"Sobic.005G213600"</span>,</span></span>
-<span class="r-in"><span>                     gff_path <span class="op">=</span> <span class="va">gff_path</span>,</span></span>
-<span class="r-in"><span>                     connect_db_mode <span class="op">=</span> <span class="st">"online"</span>,</span></span>
-<span class="r-in"><span>                     selected_variants <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"INDEL_Chr05_75104881"</span>, <span class="st">"INDEL_Chr05_75105587"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">gene</span> <span class="op">&lt;-</span> <span class="st">"Sobic.005G213600"</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Fetch data for the gene region</span></span></span>
+<span class="r-in"><span><span class="va">ann_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span></span>
+<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>, start <span class="op">=</span> <span class="fl">75104537</span>, end <span class="op">=</span> <span class="fl">75106403</span>,</span></span>
+<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">geno_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span></span>
+<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>, start <span class="op">=</span> <span class="fl">75104537</span>, end <span class="op">=</span> <span class="fl">75106403</span>,</span></span>
+<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#  Generate and display the plot</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">ann_df</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">geno_df</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu">hotspot_overlay_plot</span><span class="op">(</span></span></span>
+<span class="r-in"><span>    gene_name <span class="op">=</span> <span class="va">gene</span>, gff_path <span class="op">=</span> <span class="va">gff_path</span>,</span></span>
+<span class="r-in"><span>    annotations_df <span class="op">=</span> <span class="va">ann_df</span>, genotypes_df <span class="op">=</span> <span class="va">geno_df</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-plt img"><img src="hotspot_overlay_plot-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>

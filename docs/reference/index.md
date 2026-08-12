@@ -17,12 +17,10 @@
 
 - [`list_tables()`](https://awkena.github.io/panGenomeBreedr/reference/list_tables.md)
   : List all tables in the database
-- [`list_columns()`](https://awkena.github.io/panGenomeBreedr/reference/list_columns.md)
-  : Get table schema details
 - [`summarize_database()`](https://awkena.github.io/panGenomeBreedr/reference/summarize_database.md)
   : Get table names and row counts from the database
-- [`fetch_accession_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_accession_metadata.md)
-  : Get sample metadata from the database
+- [`list_columns()`](https://awkena.github.io/panGenomeBreedr/reference/list_columns.md)
+  : Get table schema details
 
 ### Core Data Queries
 
@@ -30,15 +28,17 @@
   : Fetch data from database tables by genomic coordinates
 - [`fetch_genotypes_by_id()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_genotypes_by_id.md)
   : Fetch genotypes for specific variant IDs
+- [`fetch_accession_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_accession_metadata.md)
+  : Get sample metadata from the database
 - [`filter_genotypes_by_metadata()`](https://awkena.github.io/panGenomeBreedr/reference/filter_genotypes_by_metadata.md)
   : Filter a genotype matrix by sample metadata
 
 ### Targeted Variant Filters
 
-- [`fetch_variants_by_impact()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_variants_by_impact.md)
-  : Extract variants based on functional mutation impact
 - [`fetch_variants_by_allele_frequency()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_variants_by_allele_frequency.md)
   : Fetch variants by allele frequency
+- [`fetch_variants_by_impact()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_variants_by_impact.md)
+  : Extract variants based on functional mutation impact
 
 ### Summaries & Statistics
 
@@ -69,15 +69,22 @@
 
 - [`plot_accession_map()`](https://awkena.github.io/panGenomeBreedr/reference/plot_accession_map.md)
   : Interactive geographic exploration of the samples
-- [`plot_variant_hotspots()`](https://awkena.github.io/panGenomeBreedr/reference/plot_variant_hotspots.md)
-  : Plot variant hotspots
+- [`plot_variant_hotspot()`](https://awkena.github.io/panGenomeBreedr/reference/plot_variant_hotspot.md)
+  : Plot genomic variant hotspots (SNPs and INDELs) extracted from the
+  database (local)
+- [`plot_gene_model()`](https://awkena.github.io/panGenomeBreedr/reference/plot_gene_model.md)
+  : Plot the gene model using genomic coordinates (local)
+- [`hotspot_overlay_plot()`](https://awkena.github.io/panGenomeBreedr/reference/hotspot_overlay_plot.md)
+  : Generate a combined gene model and variant hotspot overlay plot
+  (local)
 
 ### Marker Design & Utilities
 
 - [`kasp_marker_design()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_marker_design.md)
   : Design KASP markers based on causal variants.
 - [`gene_coord_gff()`](https://awkena.github.io/panGenomeBreedr/reference/gene_coord_gff.md)
-  : Get the genomic range of a candidate gene from a GFF file
+  : Get the genomic range of a candidate gene and its features using the
+  Sobic ID from a GFF file (local)
 - [`extract_variant()`](https://awkena.github.io/panGenomeBreedr/reference/extract_variant.md)
   : Extract putative causal variants within a candidate gene from a
   tabix-indexed snpEff annotated VCF file.

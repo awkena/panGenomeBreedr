@@ -30,7 +30,7 @@ mod_variant_discovery_ui <- function(id) {
         class = "shadow-sm mb-3",
         bslib::card_header(
           icon("map-marked-alt", class = "me-1 text-primary"),
-          "Geographic Distribution of 1676 Sorghum Accessions"
+          "Geographic Distribution of Accessions"
         ),
         bslib::card_body(
           leaflet::leafletOutput(ns("accession_map"), height = "500px")
@@ -98,7 +98,7 @@ mod_variant_discovery_ui <- function(id) {
             class = "d-flex justify-content-between align-items-center",
             tagList(
               icon("table", class = "me-1 text-primary"),
-              "Summarised Tables"
+              "Database Summary"
             ),
             shinyWidgets::actionBttn(
               ns("get_summary"),
@@ -142,7 +142,7 @@ mod_variant_discovery_ui <- function(id) {
             class = "d-flex justify-content-between align-items-center",
             tagList(
               icon("list-ul", class = "me-1 text-primary"),
-              "Available Data Fields"
+              "Table Schema"
             ),
             shinyWidgets::actionBttn(
               ns("get_schema"),
@@ -156,7 +156,7 @@ mod_variant_discovery_ui <- function(id) {
           bslib::card_body(
             selectInput(
               ns("table_name_lst"),
-              "Select Data Category",
+              "Select Table",
               choices = c("variants", "annotations", "genotypes"),
               selected = "genotypes",
               width = "50%"
@@ -172,20 +172,23 @@ mod_variant_discovery_ui <- function(id) {
 # Cmbined Coordinate Entry Card
 # ------------------------------------------------------------------
 coordinate_entry_card <- function(ns) {
-  bslib::navset_card_underline(
-    id = ns("coord_entry_tabs"),
-    title = tags$span(
-      class = "fw-bold",
-     # icon("location-crosshairs", class = "me-2 text-primary"),
-      "Set Genomic Coordinates: "
+  bslib::card(
+    class = "shadow-sm",
+    bslib::card_header(
+      tags$h5("Step 1: Define Genomic Region", class = "fw-bold m-0")
     ),
-
-    # ── GFF3 IMPORT ──
-    bslib::nav_panel(
-      "Import GFF3",
-      icon = icon("file-code"),
-      div(
-        class = "p-2",
+    bslib::card_body(
+      radioButtons(
+        ns("define_region_method"),
+        label = "Method:",
+        choices = c("By Gene ID" = "gene", "By Coordinates" = "coords"),
+        selected = "gene",
+        inline = TRUE
+      ),
+      tags$hr(),
+      # Conditional Panel for Gene ID
+      conditionalPanel(
+        condition = paste0("input['", ns("define_region_method"), "'] === 'gene'"),
         textInput(
           ns("gene_name"),
           tags$span(
@@ -196,46 +199,34 @@ coordinate_entry_card <- function(ns) {
           placeholder = "e.g. Sobic.005G213600",
           width = "100%"
         ),
-
-        # Inline radio buttons save vertical space
         radioButtons(
           ns("input_method"),
           tags$span(
             class = "text-muted small text-uppercase fw-bold",
-            "GFF File Source"
+            "GFF3 File Source"
           ),
           choices = c("Remote URL" = "url", "Local Upload" = "file"),
           selected = "url",
           inline = TRUE
         ),
-
         conditionalPanel(
           condition = paste0("input['", ns("input_method"), "'] === 'url'"),
           textInput(
             ns("gff_url"),
-            NULL, # Label omitted because the radio button provides context
+            NULL,
             width = "100%",
             value = "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
           )
         ),
-
         conditionalPanel(
           condition = paste0("input['", ns("input_method"), "'] === 'file'"),
           fileInput(
             ns("gff_file"),
             NULL,
-            accept = c(
-              ".gff3",
-              ".gff",
-              ".gff3.gz",
-              ".gff.gz",
-              "application/gzip",
-              "application/x-gzip"
-            ),
+            accept = c(".gff3", ".gff", ".gff3.gz", ".gff.gz", "application/gzip", "application/x-gzip"),
             width = "100%"
           )
         ),
-
         div(
           class = "d-grid mt-3",
           actionButton(
@@ -245,27 +236,21 @@ coordinate_entry_card <- function(ns) {
             icon = icon("search")
           )
         )
-      )
-    ),
-
-    # ── TAB 2: MANUAL ENTRY ──
-    bslib::nav_panel(
-      "Manual Entry",
-      icon = icon("keyboard"),
-      div(
-        class = "p-2",
+      ),
+      # Conditional Panel for Coordinates
+      conditionalPanel(
+        condition = paste0("input['", ns("define_region_method"), "'] === 'coords'"),
         numericInput(
           ns("chrom"),
           tags$span(
             class = "text-muted small text-uppercase fw-bold",
-            "Chromosome Number"
+            "Chromosome"
           ),
           value = NULL,
           min = 1,
           step = 1,
           width = "100%"
         ),
-
         bslib::layout_columns(
           col_widths = c(6, 6),
           numericInput(
@@ -291,12 +276,11 @@ coordinate_entry_card <- function(ns) {
             width = "100%"
           )
         ),
-
         div(
           class = "d-grid mt-3",
           actionButton(
             ns("set_genocod_btn"),
-            "Submit Coordinates",
+            "Set Region",
             class = "btn-success fw-bold py-2",
             icon = icon("check")
           )
@@ -311,213 +295,19 @@ coordinate_entry_card <- function(ns) {
 # ------------------------------------------------------------------
 gene_cord_tab <- function(ns) {
   tagList(
-    uiOutput(ns("genomic_range_vboxes")),
-
-    tags$hr(class = "my-4"),
-
-    # Use a navset to hold both the hotspot plot and the new LD analysis
-    bslib::navset_card_tab(
-      id = ns("analysis_tabs"),
-      title = tags$span(
-        class = "fw-bold",
-        "Decision Support: "
-      ),
-      full_screen = TRUE,
-      bslib::nav_panel(
-        "Variant Hotspots",
-        icon = icon("fire"),
-        uiOutput(outputId = ns("variant_hotspot_plot_ui"))
-      )
+    # Step 1: Define Region
+    bslib::layout_columns(
+      col_widths = c(-2, 8, -2),
+      coordinate_entry_card(ns)
     ),
 
-    # Gff loading card
-    bslib::layout_columns(
-      col_widths = c(-3, 6, -3),
-      coordinate_entry_card(ns)
-    )
+    # Display the selected genomic range
+    uiOutput(ns("genomic_range_vboxes")),
+
+    # Step 2: Explore Variants (UI is rendered from server)
+    uiOutput(ns("step2_explore_ui"))
   )
 }
-
-  query_actions_tab <- function(ns) {
-    tagList(
-      bslib::layout_columns(
-        col_widths = c(-3,6,-3),
-        query_database_card(ns)
-      ),
-      bslib::navset_card_tab(
-        id = ns("query_db_nav_id"),
-        selected = "Main Database Results",
-        bslib::nav_panel(
-          "Main Database Results",
-          uiOutput(ns("query_db_display"))
-        )
-      )
-    )
-  }
-
-  get_pcv_card <- function(ns) {
-    tagList(
-      bslib::layout_columns(
-        col_widths = c(-2, 8, -2),
-        query_action_card(ns)
-      ),
-      bslib::navset_card_tab(
-        id = ns("pcv_nav_id"),
-        selected = "PCVs for KASP Marker Design",
-          bslib::nav_panel(
-            "PCVs for KASP Marker Design",
-
-            # Accordion for Metadata Filtering
-            bslib::accordion(
-              id = ns("metadata_filter_accordion"),
-              open = FALSE, 
-              bslib::accordion_panel(
-                "Filter by Sample Metadata",
-                icon = icon("filter"),
-                # Allow selecting multiple metadata columns
-                selectizeInput(
-                  ns("meta_filter_col"),
-                  "Select Metadata Columns to Filter By:",
-                  choices = NULL,
-                  multiple = TRUE,
-                  width = "100%"
-                ),
-                # This UI will be dynamically generated
-                uiOutput(ns("meta_filter_values_ui")),
-                
-                # Put start column and buttons on the same row
-                fluidRow(
-                  column(6, 
-                         numericInput(ns("genotype_start_col_input"), "Genotype Start Column:", value = 11, min = 1, step = 1, width = "100%")
-                  ),
-                  column(3, 
-                         actionButton(ns("apply_meta_filter"), "Apply Filters", icon = icon("check"), class = "btn-primary w-100", style = "margin-top: 25px;")
-                  ),
-                  column(3, 
-                         actionButton(ns("clear_meta_filter"), "Clear Filters", icon = icon("xmark"), class = "btn-outline-secondary w-100", style = "margin-top: 25px;")
-                  )
-                ),
-                tags$hr(),
-                tags$small(textOutput(ns("filtered_sample_count")), class = "text-muted")
-              ),
-              class = "mb-3" # Add some margin below the accordion
-            ),
-            uiOutput(ns("pcvs_kasp_marker_design_result"))
-          ),
-
-          bslib::nav_panel(
-            "Linkage Disequilibrium",
-            icon = icon("link"),
-            uiOutput(ns("ld_analysis_ui"))
-          )
-      )
-    )
-  }
-
-  query_database_card <- function(ns) {
-    bslib::card(
-      class = "shadow p",
-      bslib::card_header(
-        tags$strong("Query Genomic Data for Target Region"),
-        class = 'text-center',
-        style = "font-size:18px;"
-      ),
-      selectInput(
-        width = "100%",
-        inputId = ns("query_database"),
-        label = "Select genomic view to explore:",
-        choices = c(
-          "Genotypes" = "genotypes",
-          "Variants" = "variants",
-          "Annotations" = "annotations",
-          "Annotation Summary" = "annotation_summary"
-        ),
-        selected = "annotations"
-      ),
-      # Conditionally show gene name input only when 'Annotations' is selected
-      conditionalPanel(
-        condition = paste0("input['", ns("query_database"), "'] === 'annotations'"),
-        textInput(
-          ns("query_gene_name"),
-          "Gene Name (Optional)",
-          value = NULL,
-          placeholder = "e.g. Sobic.005G213600",
-          width = "100%"
-        )
-      ),
-      bslib::card_footer(
-        div(
-          style = "display: flex; justify-content: center;",
-          actionButton(
-            ns("query_dbase_btn"),
-            tags$b("Fetch Data"),
-            width = "70%",
-            icon = icon("play"),
-            style = "background-color: forestgreen; color: white; font-weight: bold; border: none;",
-            `onmouseover` = "this.style.backgroundColor='#145214'",
-            `onmouseout` = "this.style.backgroundColor='forestgreen'"
-          )
-        )
-      )
-    )
-  }
-
-  query_action_card <- function(ns) {
-    bslib::card(
-      class = "shadow p",
-      bslib::card_header(
-        tags$strong("Extract Putative Causal Variants"),
-        class = 'text-center',
-        style = "font-size:18px;"
-      ),
-      bslib::navset_card_underline(
-        id = ns('impact_card'),
-        bslib::nav_panel(
-          "By Impact & AF",
-          icon = icon("filter"),
-          bslib::card_body(
-            uiOutput(ns("impact_level_ui")),
-            sliderInput(
-              ns("af_range"),
-              "Minimum Alternate Allele Frequency",
-              min = 0,
-              max = 1,
-              value = 0.05,
-              step = 0.01,
-              width = "100%"
-            )
-           # verbatimTextOutput(outputId = ns("alt_freq_range"))
-          )
-        ),
-        bslib::nav_panel(
-          title = "By Variant ID",
-          icon = icon("list-check"),
-          bslib::card_body(
-            selectizeInput(
-              ns("manual_variant_ids"),
-              "Select Variant IDs",
-              choices = NULL,
-              multiple = TRUE,
-              width = "100%",
-              options = list(placeholder = "Select variants from region...")
-            )
-          )
-        )
-      ),
-      bslib::card_footer(
-        div(
-          class = "d-grid",
-          actionButton(
-            ns("get_pcv_btn"),
-            tags$b("Extract PCVs"),
-            class = "btn-warning",
-            width = "100%",
-            icon = icon("filter")
-          )
-        )
-      )
-    )
-  }
 
   # ------------------------------------------------------------------
   # THE TWO MAIN VIEWS THAT'S PRE-CONNECTION AND ACTIVE-CONNECTION UI
@@ -604,26 +394,8 @@ gene_cord_tab <- function(ns) {
       # Set Gene Cordinates Button
       actionButton(
         ns("show_gene_cord_btn"),
-        "Target Region",
+        "Identify Variants",
         icon = icon("crosshairs"),
-        width = "100%",
-        class = "btn-outline-primary btn-lg mb-4 fw-bold text-start"
-      ),
-
-      # Query Database button
-      actionButton(
-        ns("show_query_actions_btn"),
-        "Browse Variants",
-        icon = icon("search"),
-        width = "100%",
-        class = "btn-outline-primary btn-lg mb-4 fw-bold text-start"
-      ),
-
-      # Get Putative Causal Variants button
-      actionButton(
-        ns("get_pcv_sidebar_btn"),
-        "Causal Variants",
-        icon = icon("bolt"),
         width = "100%",
         class = "btn-outline-primary btn-lg mb-4 fw-bold text-start"
       ),
@@ -631,7 +403,7 @@ gene_cord_tab <- function(ns) {
       # Design KASP Markers button
       actionButton(
         ns("design_kasp_sidebar_btn"),
-        "Marker Design",
+        "Design Markers",
         icon = icon("dna"),
         width = "100%",
         class = "btn-outline-primary btn-lg mb-4 fw-bold text-start"
@@ -661,18 +433,6 @@ gene_cord_tab <- function(ns) {
         gene_cord_tab(ns)
       ),
 
-      # Query actions tab
-      bslib::nav_panel_hidden(
-        value = 'query_tab',
-        query_actions_tab(ns)
-      ),
-
-      # Filter out Pcvs
-      bslib::nav_panel_hidden(
-        value = 'pcv_tab',
-        get_pcv_card(ns)
-      ),
-
       # HIDDEN KASP MARKER DESIGN TAB
       bslib::nav_panel_hidden(
         value = "mark_design",
@@ -686,7 +446,7 @@ gene_cord_tab <- function(ns) {
             icon = icon("arrow-left"),
             class = "btn btn-light btn-lg me-3" # A more modern, subtle button
           ),
-          tags$h4("KASP Marker Design", class = "m-0 fw-bold text-primary")
+          tags$h4("KASP Design KASP Markers", class = "m-0 fw-bold text-primary")
         ),
 
         fluidRow(
@@ -726,7 +486,7 @@ gene_cord_tab <- function(ns) {
                 ),
                 numericInput(
                   ns("modal_genotype_start_col"),
-                  "Index of First Genotype Column",
+                  "First Genotype Column",
                   value = 11,
                   min = 1,
                   step = 1,
@@ -765,7 +525,7 @@ gene_cord_tab <- function(ns) {
                   bslib::card_header(
                     class = "bg-light d-flex align-items-center",
                     icon("table", class = "me-2 text-primary"),
-                    strong("KASP Marker Design Results & Sequence Alignment")
+                  strong("KASP Design KASP Markers Results")
                   ),
                   bslib::card_body(
                     class = "p-0",
@@ -777,13 +537,13 @@ gene_cord_tab <- function(ns) {
                       col_widths = c(3, 6, 3),
                       selectInput(
                         ns("exten"),
-                        "Download file as?",
+                        "Download Format",
                         choices = c(".csv", ".xlsx"),
                         selected = ".xlsx"
                       ),
                       textInput(
                         ns("file_name"),
-                        "Enter File Prefix",
+                        "File Prefix",
                         value = "Kasp M_D for Intertek"
                       ),
                       div(
@@ -874,6 +634,27 @@ mod_variant_discovery_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    # Helper function to apply a list of filters to a dataframe
+    apply_filters_to_df <- function(df, filters) {
+      if (is.null(df) || is.null(filters) || length(filters) == 0) {
+        return(df)
+      }
+      filtered_df <- df
+      for (f in filters) {
+        if (!f$column %in% names(filtered_df)) next
+
+        # Drop rows with NA in the filter column to avoid errors
+        filtered_df <- filtered_df[!is.na(filtered_df[[f$column]]), ]
+
+        if (is.numeric(f$value) && is.numeric(filtered_df[[f$column]])) {
+          filtered_df <- filtered_df[filtered_df[[f$column]] >= f$value[1] & filtered_df[[f$column]] <= f$value[2], ]
+        } else {
+          filtered_df <- filtered_df[as.character(filtered_df[[f$column]]) %in% as.character(f$value), ]
+        }
+      }
+      return(filtered_df)
+    }
+
     # ------------------------------------------------------------------
     # DASHBOARD  SIDEBAR
     # ------------------------------------------------------------------
@@ -888,33 +669,6 @@ mod_variant_discovery_server <- function(id) {
     observeEvent(input$show_gene_cord_btn, {
       updateTabsetPanel(session, "param_header", selected = "gene_cord")
       update_sidebar_buttons("show_gene_cord_btn")
-    })
-
-    # Query database
-    observeEvent(input$show_query_actions_btn, {
-      updateTabsetPanel(session, "param_header", selected = "query_tab")
-      update_sidebar_buttons("show_query_actions_btn")
-    })
-
-    # Design KASP Markers (from sidebar)
-    observeEvent(input$design_kasp_sidebar_btn, {
-      # Evaluate target genotype matrix to isolate metadata-filtered accessions prior to UI rendering
-      active_data <- if (!is.null(values$filtered_pcvs_by_meta)) {
-        values$filtered_pcvs_by_meta
-      } else {
-        values$query_geno_react
-      }
-      req(active_data)
-
-      bslib::toggle_sidebar(id = 'db_sidebar', open = 'closed')
-      updateTabsetPanel(inputId = 'param_header', selected = "mark_design")
-      updateSelectizeInput(
-        session,
-        inputId = "modal_marker_ID",
-        choices = active_data$variant_id,
-        server = TRUE
-      )
-      update_sidebar_buttons("design_kasp_sidebar_btn")
     })
 
     # ------------------------------------------------------------------
@@ -1410,15 +1164,25 @@ mod_variant_discovery_server <- function(id) {
     # ------------------------------------------------------------------
     values <- reactiveValues(
       result = NULL,
-      query_db_val = NULL,
-      query_ann_react = NULL,
-      query_geno_react = NULL,
       last_action = NULL,
-      regional_variants = NULL,
-      regional_annotations = NULL,
-      regional_genotypes = NULL,
+      data_for_marker_design = NULL,
+      # New reactive values for on-demand tables
+      table_genotypes = NULL,
+      table_variants = NULL,
+      table_annotations = NULL,
+      table_annotation_summary = NULL,
       ld_results = NULL,
-      filtered_pcvs_by_meta = NULL,
+      filters_genotypes = NULL,
+      filters_variants = NULL,
+      filters_annotations = NULL,
+      filtered_ids_genotypes = NULL,
+      filtered_ids_variants = NULL,
+      filtered_ids_annotations = NULL,
+      final_selected_variants = NULL,
+      plot_filters_annotations = NULL, # For de-coupling plot reactivity
+      plot_filters_genotypes = NULL,
+      plot_filters_variants = NULL,
+      filtered_sample_ids = NULL,
       geodesic_plot_obj = NULL
     )
 
@@ -1432,44 +1196,26 @@ mod_variant_discovery_server <- function(id) {
       )
     }
 
-    annotation_summary_results_ui <- function(ns) {
-      bslib::card(
-        bslib::card_header("Annotation Statistics"),
-        bslib::card(
-          bslib::card_header(
-            "Annotation Summary",
-            class = "bg-primary text-light"
-          ),
-          reactable::reactableOutput(ns("ann_summary_tbl"))
-        ),
-        bslib::card(
-          bslib::card_header("Impact Summary", class = "bg-primary text-light"),
-          reactable::reactableOutput(ns("impact_summary_tbl"))
-        ),
-        bslib::card(
-          bslib::card_header(
-            "Variant Type Totals",
-            class = "bg-primary text-light"
-          ),
-          reactable::reactableOutput(ns("variant_totals_tbl"))
-        ),
-        class = "mt-3"
-      )
-    }
-
     observeEvent(values$result, {
       req(rv$connected, values$result)
 
-      values$regional_variants <- NULL
-      values$regional_annotations <- NULL
-      values$regional_genotypes <- NULL
       values$ld_results <- NULL
       values$geodesic_plot_obj <- NULL
+      # Clear on-demand tables when region changes
+      values$table_genotypes <- NULL
+      values$table_variants <- NULL
+      values$table_annotations <- NULL
+      values$table_annotation_summary <- NULL
+      values$final_selected_variants <- NULL
+      values$filters_genotypes <- NULL; values$filters_variants <- NULL; values$filters_annotations <- NULL
+      values$plot_filters_annotations <- NULL; values$plot_filters_genotypes <- NULL; values$plot_filters_variants <- NULL
+      filter_states$genotypes <- NULL; filter_states$variants <- NULL; filter_states$annotations <- NULL
+      values$filtered_sample_ids <- NULL
 
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
         color = "#27AE60",
-        text = "Plotting variants hotspot..."
+        text = "Loading regional data..."
       )
 
       c_type <- rv$conn_type
@@ -1483,19 +1229,20 @@ mod_variant_discovery_server <- function(id) {
           if (c_type == "sqlite") {
             temp_con <- connect_local_db(d_path, quiet = TRUE)
             on.exit(disconnect_local_db(temp_con, quiet = TRUE))
-            variants_data <- fetch_table_region(con = temp_con, table_name = "variants", chrom = chr, start = st, end = en)
-            annotations_data <- fetch_table_region(con = temp_con, table_name = "annotations", chrom = chr, start = st, end = en)
-            genotypes_data <- fetch_table_region(con = temp_con, table_name = "genotypes", chrom = chr, start = st, end = en)
+            list(
+              variants = fetch_table_region(con = temp_con, table_name = "variants", chrom = chr, start = st, end = en),
+              annotations = fetch_table_region(con = temp_con, table_name = "annotations", chrom = chr, start = st, end = en),
+              genotypes = fetch_table_region(con = temp_con, table_name = "genotypes", chrom = chr, start = st, end = en),
+              summary = summarize_annotations(con = temp_con, chrom = chr, start = st, end = en)
+            )
           } else {
-            variants_data <- fetch_table_region(connect_db_mode = 'online', table_name = "variants", chrom = chr, start = st, end = en)
-            annotations_data <- fetch_table_region(connect_db_mode = 'online', table_name = "annotations", chrom = chr, start = st, end = en)
-            genotypes_data <- fetch_table_region(connect_db_mode = 'online', table_name = "genotypes", chrom = chr, start = st, end = en)
+            list(
+              variants = fetch_table_region(connect_db_mode = 'online', table_name = "variants", chrom = chr, start = st, end = en),
+              annotations = fetch_table_region(connect_db_mode = 'online', table_name = "annotations", chrom = chr, start = st, end = en),
+              genotypes = fetch_table_region(connect_db_mode = 'online', table_name = "genotypes", chrom = chr, start = st, end = en),
+              summary = summarize_annotations(connect_db_mode = 'online', chrom = chr, start = st, end = en)
+            )
           }
-          list(
-            variants = variants_data,
-            annotations = annotations_data,
-            genotypes = genotypes_data
-          )
         },
         seed = TRUE,
         packages = c("panGenomeBreedr")
@@ -1504,11 +1251,12 @@ mod_variant_discovery_server <- function(id) {
       promises::then(
         p,
         onFulfilled = function(data) {
-          values$regional_variants <- data$variants
-          values$regional_annotations <- data$annotations
-          values$regional_genotypes <- data$genotypes
+          values$table_variants <- data$variants
+          values$table_annotations <- data$annotations
+          values$table_genotypes <- data$genotypes
+          values$table_annotation_summary <- data$summary
           shinybusy::remove_modal_spinner()
-          shinyWidgets::show_toast("Variant hotspots plotted.", type = "success")
+          shinyWidgets::show_toast("Regional data loaded and plot rendered.", type = "success")
         },
         onRejected = function(err) {
           shinybusy::remove_modal_spinner()
@@ -1519,181 +1267,6 @@ mod_variant_discovery_server <- function(id) {
           )
         }
       )
-    })
-
-    # ------------------------------------------------------------------
-    # METADATA FILTERING LOGIC FOR PCVs
-    # ------------------------------------------------------------------
-
-    observeEvent(values$query_geno_react, {
-      req(rv$sample_metadata)
-      meta_cols <- colnames(rv$sample_metadata)
-      filterable_cols <- setdiff(meta_cols, c("lib", "array_index"))
-      updateSelectizeInput(
-        session,
-        "meta_filter_col",
-        choices = filterable_cols,
-        selected = ""
-      )
-    })
-
-    output$meta_filter_values_ui <- renderUI({
-      req(input$meta_filter_col)
-
-      lapply(input$meta_filter_col, function(col) {
-        unique_values <- sort(unique(na.omit(rv$sample_metadata[[col]])))
-        selectizeInput(
-          ns(paste0("meta_vals_", col)),
-          label = paste("Select values for:", col),
-          choices = unique_values,
-          multiple = TRUE,
-          width = "100%"
-        )
-      })
-    })
-
-    observeEvent(input$apply_meta_filter, {
-      req(values$query_geno_react, rv$sample_metadata, input$meta_filter_col)
-
-      filters_list <- lapply(input$meta_filter_col, function(col) {
-        input[[paste0("meta_vals_", col)]]
-      })
-      names(filters_list) <- input$meta_filter_col
-
-      filters_list <- filters_list[sapply(filters_list, function(x) {
-        !is.null(x) && length(x) > 0
-      })]
-
-      if (length(filters_list) == 0) {
-        shinyWidgets::show_alert(
-          title = "No Filter Values",
-          text = "Please select at least one value to filter by.",
-          type = "warning"
-        )
-        return()
-      }
-
-      shinybusy::show_modal_spinner(
-        spin = "fading-circle",
-        color = "#27AE60",
-        text = "Applying metadata filters..."
-      )
-
-      tryCatch(
-        {
-          genotype_start_col_val <- input$genotype_start_col_input
-
-          result_df <- if (rv$conn_type == "sqlite") {
-            filter_genotypes_by_metadata(
-              con = rv$conn,
-              genotype_matrix = values$query_geno_react,
-              genotype_start_col = genotype_start_col_val,
-              filters = filters_list
-            )
-          } else {
-            filter_genotypes_by_metadata(
-              connect_db_mode = 'online',
-              genotype_matrix = values$query_geno_react,
-              genotype_start_col = genotype_start_col_val,
-              filters = filters_list
-            )
-          }
-
-          values$filtered_pcvs_by_meta <- result_df
-
-          shinybusy::remove_modal_spinner()
-          show_toast_success(text = paste("Filtered PCVs by metadata."))
-        },
-        error = function(e) {
-          shinybusy::remove_modal_spinner()
-          shinyWidgets::show_alert(
-            title = "Filter Error",
-            text = e$message,
-            type = "danger"
-          )
-          values$filtered_pcvs_by_meta <- NULL
-        }
-      )
-    })
-
-    observeEvent(input$clear_meta_filter, {
-      updateSelectizeInput(session, "meta_filter_col", selected = "")
-      values$filtered_pcvs_by_meta <- NULL
-      show_toast_success(text = "Metadata filters cleared.", type = "info")
-    })
-
-    output$genotype_results_tbl <- reactable::renderReactable({
-      if (!is.null(values$filtered_pcvs_by_meta)) {
-        req(values$filtered_pcvs_by_meta)
-        render_reactable(values$filtered_pcvs_by_meta)
-      } else {
-        req(values$query_geno_react)
-        render_reactable(values$query_geno_react)
-      }
-    })
-
-    output$pcvs_kasp_marker_design_result <- renderUI({
-      req(values$query_geno_react)
-      genotype_results_ui(ns)
-    })
-
-    output$filtered_sample_count <- renderText({
-      if (!is.null(values$filtered_pcvs_by_meta)) {
-        original_samples <- ncol(values$query_geno_react) -
-          length(c(
-            "variant_id",
-            "chrom",
-            "pos",
-            "ref",
-            "alt",
-            "variant_type",
-            "major_allele",
-            "minor_allele",
-            "major_allele_freq",
-            "minor_allele_freq"
-          ))
-        filtered_samples <- ncol(values$filtered_pcvs_by_meta) -
-          length(c(
-            "variant_id",
-            "chrom",
-            "pos",
-            "ref",
-            "alt",
-            "variant_type",
-            "major_allele",
-            "minor_allele",
-            "major_allele_freq",
-            "minor_allele_freq"
-          ))
-        paste0(
-          "Showing ",
-          filtered_samples,
-          " samples (out of ",
-          original_samples,
-          " original samples) after filtering."
-        )
-      } else if (!is.null(values$query_geno_react)) {
-        original_samples <- ncol(values$query_geno_react) -
-          length(c(
-            "variant_id",
-            "chrom",
-            "pos",
-            "ref",
-            "alt",
-            "variant_type",
-            "major_allele",
-            "minor_allele",
-            "major_allele_freq",
-            "minor_allele_freq"
-          ))
-        paste0(
-          "Showing all ",
-          original_samples,
-          " samples. No metadata filters applied."
-        )
-      } else {
-        "No samples to display."
-      }
     })
 
     observeEvent(input$pcv_nav_id, {
@@ -1751,15 +1324,28 @@ mod_variant_discovery_server <- function(id) {
             req(input$gff_file)
             gff_path <- input$gff_file$datapath
           }
-          values$result <- gene_coord_gff(trimws(input$gene_name), gff_path)
+          gff_df <- gene_coord_gff(trimws(input$gene_name), gff_path)
+
+          # Extract coordinates for the 'gene' feature to standardize values$result
+          gene_feature <- gff_df[gff_df$Feature == "gene", ]
+
+          if (nrow(gene_feature) == 0) {
+            stop("Could not find 'gene' feature in the GFF file for the provided gene name.")
+          }
+
+          # Standardize values$result to be a list with the overall gene boundaries
+          values$result <- list(
+            chrom = gene_feature$Chromosome[1],
+            start = min(gene_feature$Start, na.rm = TRUE),
+            end = max(gene_feature$End, na.rm = TRUE)
+          )
+
           shinyWidgets::show_alert(
             title = "Found Gene Co-ordinates",
-            text = sprintf(
-              "Chromosome: %s | Start: %d | End: %d",
-              values$result$chrom,
-              values$result$start,
-              values$result$end
-            ),
+            text = sprintf("Chromosome: %s | Start: %s | End: %s",
+                           values$result$chrom,
+                           format(values$result$start, big.mark = ","),
+                           format(values$result$end, big.mark = ",")),
             type = "success",
             timer = 5000
           )
@@ -1907,12 +1493,9 @@ mod_variant_discovery_server <- function(id) {
             )
             shinyWidgets::show_alert(
               title = "Gene Coordinates Set",
-              text = sprintf(
-                "Chromosome: %s | Start: %d | End: %d",
-                chr_val,
-                st_val,
-                en_val
-              ),
+              text = sprintf("Chromosome: %s | Start: %s | End: %s",
+                             chr_val, format(st_val, big.mark = ","),
+                             format(en_val, big.mark = ",")),
               type = "success",
               timer = 5000
             )
@@ -1992,6 +1575,94 @@ mod_variant_discovery_server <- function(id) {
       )
     })
 
+    output$step2_explore_ui <- renderUI({
+      req(values$result)
+      tagList(
+        tags$hr(class = "my-4"),
+        tags$h5("Step 2: Explore Regional Variants", class = "fw-bold mb-3"),
+
+        # Central Filtering Controls
+        bslib::card(
+          class = "shadow-sm mb-4",
+          bslib::card_body(
+            class = "p-2",
+            div(
+              class = "d-flex justify-content-between align-items-center",
+              tags$strong(textOutput(ns("filtered_variant_summary_text"))),
+              div(
+                class = "d-flex gap-2",
+                actionButton(ns("refine_plot_btn"), "Apply Filters & Update Plot", icon = icon("search-plus"), class = "btn-primary"),
+                actionButton(ns("design_markers_from_region_btn"), "Design Markers", icon = icon("dna"), class = "btn-success"),
+                actionButton(ns("clear_all_filters_btn"), "Clear All Filters", icon = icon("xmark"), class = "btn-outline-secondary")
+              )
+            )
+          )
+        ),
+
+        # Variant Hotspot Plot is the main feature
+        uiOutput(outputId = ns("variant_hotspot_plot_ui")),
+
+        # Accordion for detailed data tables
+        bslib::accordion(
+          id = ns("explore_data_accordion"),
+          open = FALSE,
+          multiple = TRUE,
+          class = "mt-3",
+
+          # Genotypes Panel
+          bslib::accordion_panel(
+            title = "Genotypes",
+            icon = icon("table"),
+            div(
+              class = "d-flex justify-content-between align-items-center mb-3",
+              tags$strong(textOutput(ns("filtered_sample_count"))),
+              actionButton(ns("filter_genotypes_btn"), "Filter Table", icon = icon("filter"), class = "btn-outline-secondary")
+            ),
+            uiOutput(ns("regional_genotypes_ui"))
+          ),
+
+          # Variants Panel
+          bslib::accordion_panel(
+            title = "Variants",
+            icon = icon("table"),
+            div(
+              class = "d-grid gap-2 d-md-flex justify-content-md-end",
+              actionButton(ns("filter_variants_btn"), "Filter Table", icon = icon("filter"), class = "btn-outline-secondary mb-3")
+            ),
+            uiOutput(ns("regional_variants_ui"))
+          ),
+
+          # Annotations Panel
+          bslib::accordion_panel(
+            title = "Annotations",
+            icon = icon("table"),
+            div(
+              class = "d-grid gap-2 d-md-flex justify-content-md-end",
+              actionButton(ns("filter_annotations_btn"), "Filter Table", icon = icon("filter"), class = "btn-outline-secondary mb-3")
+            ),
+            uiOutput(ns("regional_annotations_ui")),
+            tags$hr(),
+            bslib::accordion(
+              id = ns("annotation_summary_accordion"),
+              open = FALSE,
+              bslib::accordion_panel(
+                "Annotation Summary",
+                icon = icon("bars-staggered"),
+                uiOutput(ns("annotation_summary_ui"))
+              )
+            )
+          ),
+
+          # LD Analysis Panel
+          bslib::accordion_panel(
+            title = "Linkage Disequilibrium Analysis",
+            icon = icon("link"),
+            uiOutput(ns("ld_analysis_ui"))
+          )
+        )
+      )
+    })
+
     output$variant_hotspot_plot_ui <- renderUI({
       req(values$result)
       bslib::card(
@@ -2016,17 +1687,609 @@ mod_variant_discovery_server <- function(id) {
     })
 
     hotspot_plot_obj <- reactive({
-      req(values$regional_variants, values$result)
-      plot_variant_hotspots(
-        variant_table = values$regional_variants,
-        annotation_table = values$regional_annotations,
-        region_start = values$result$start,
-        region_end = values$result$end
-      )
+      req(values$result, values$table_annotations, values$table_genotypes)
+
+      # Initialize with full regional data
+      plot_ann <- values$table_annotations
+      plot_geno <- values$table_genotypes
+
+      # Apply the final intersection of variants from the main filter button.
+      if (!is.null(values$final_selected_variants)) {
+        plot_ann <- plot_ann[plot_ann$variant_id %in% values$final_selected_variants, ]
+        plot_geno <- plot_geno[plot_geno$variant_id %in% values$final_selected_variants, ]
+      }
+
+      # Re-apply annotation filters to prevent plotting unfiltered impacts for selected variants.
+      if (!is.null(values$plot_filters_annotations)) {
+        plot_ann <- apply_filters_to_df(plot_ann, values$plot_filters_annotations)
+      }
+
+      # Deduplicate annotations, keeping only the most severe impact per variant.
+      if (nrow(plot_ann) > 0 && "impact" %in% names(plot_ann)) {
+        impact_levels <- c("HIGH", "MODERATE", "LOW", "MODIFIER", "UNKNOWN")
+        plot_ann$impact_rank <- factor(plot_ann$impact, levels = impact_levels, ordered = TRUE)
+        plot_ann <- plot_ann[order(plot_ann$impact_rank, na.last = TRUE), ]
+        plot_ann <- plot_ann[!duplicated(plot_ann$variant_id), ]
+        plot_ann$impact_rank <- NULL
+      }
+
+      # Handle empty plot case.
+      if (nrow(plot_ann) == 0 || nrow(plot_geno) == 0) {
+        empty_plot <- ggplot2::ggplot() + ggplot2::theme_void() +
+          ggplot2::labs(title = "No variants to display based on current filters.") +
+          ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
+
+        if (input$define_region_method == 'gene') {
+          req(input$gene_name)
+          gff_path <- if (input$input_method == "url") req(input$gff_url) else req(input$gff_file$datapath)
+          gene_model_plot <- plot_gene_model(gene_df = gene_coord_gff(gene_name = input$gene_name, gff_path))
+          return(empty_plot / gene_model_plot + patchwork::plot_layout(heights = c(4, 1)))
+        } else {
+          return(empty_plot)
+        }
+      }
+
+      # Render plots with the clean, deduplicated data.
+      if (input$define_region_method == 'gene') {
+        req(input$gene_name)
+        gff_path <- if (input$input_method == "url") req(input$gff_url) else req(input$gff_file$datapath)
+        hotspot_overlay_plot(
+          gene_name = input$gene_name,
+          gff_path = gff_path,
+          annotations_df = plot_ann,
+          genotypes_df = plot_geno,
+          selected_variants = unique(values$final_selected_variants)
+        )
+      } else { # 'coords'
+        var_df <- merge(plot_ann, plot_geno, by = "variant_id")
+        plot_variant_hotspot(var_df = var_df, start_pos = values$result$start, end_pos = values$result$end)
+      }
     })
 
     output$hotspot_plot <- renderPlot({
       hotspot_plot_obj()
+    })
+
+    # ==========================================================================
+    # INTERACTIVE FILTERING LOGIC
+    # ==========================================================================
+
+    filter_states <- reactiveValues(genotypes = NULL, variants = NULL, annotations = NULL, sample_filters = NULL)
+    
+    show_filter_modal <- function(table_name, data) {
+      req(data)
+      # filterable_cols <- names(data)[sapply(data, function(x) !is.list(x) && !is.data.frame(x))]
+
+      showModal(modalDialog(
+        title = paste("Filter", tools::toTitleCase(table_name), "Table"),
+        size = "l", easyClose = TRUE,
+        div(
+          class = "p-3 mb-3 bg-light rounded border",
+          h5("Add New Filter"),
+          bslib::layout_columns(
+            col_widths = c(4, 5, 3),
+            selectizeInput(ns(paste0("filter_col_", table_name)), "Column", choices = NULL),
+            uiOutput(ns(paste0("filter_widget_", table_name))),
+            div(class = "d-flex align-items-end", actionButton(ns(paste0("add_filter_", table_name)), "Add Filter", icon = icon("plus"), class = "btn-primary w-100"))
+          )
+        ),
+        h5("Active Filters"),
+        uiOutput(ns(paste0("active_filters_ui_", table_name))),
+        footer = tagList(
+          modalButton("Cancel"),
+          actionButton(ns(paste0("clear_modal_filters_", table_name)), "Clear Filters in Modal", class = "btn-outline-danger"),
+          actionButton(ns(paste0("apply_modal_filters_", table_name)), "Apply & Close", icon = icon("check"), class = "btn-success")
+        )
+      ))
+    }
+    
+    handle_table_filtering <- function(table_name, data_reactive) {
+      observeEvent(input[[paste0("filter_", table_name, "_btn")]], {
+        req(data_reactive())
+        df <- data_reactive()
+        show_filter_modal(table_name, df)
+
+        # Use server-side selectize for performance.
+        filterable_cols <- names(df)[sapply(df, function(x) !is.list(x) && !is.data.frame(x))]
+        updateSelectizeInput(
+          session,
+          paste0("filter_col_", table_name),
+          choices = filterable_cols,
+          server = TRUE
+        )
+      })
+    
+      output[[paste0("filter_widget_", table_name)]] <- renderUI({
+        req(input[[paste0("filter_col_", table_name)]])
+        col <- input[[paste0("filter_col_", table_name)]]
+        col_data <- data_reactive()[[col]]
+        if (is.numeric(col_data)) {
+          rng <- range(col_data, na.rm = TRUE)
+          sliderInput(ns(paste0("filter_val_", table_name)), "Range", min = rng[1], max = rng[2], value = rng)
+        } else {
+          choices <- sort(unique(na.omit(as.character(col_data))))
+          selectizeInput(ns(paste0("filter_val_", table_name)), "Values", choices = choices, multiple = TRUE, options = list(placeholder = "Select value(s)..."))
+        }
+      })
+    
+      observeEvent(input[[paste0("add_filter_", table_name)]], {
+        req(input[[paste0("filter_col_", table_name)]], input[[paste0("filter_val_", table_name)]])
+        new_filter <- list(column = input[[paste0("filter_col_", table_name)]], value = input[[paste0("filter_val_", table_name)]])
+        current_filters <- filter_states[[table_name]]
+        filter_states[[table_name]] <- if (is.null(current_filters)) list(new_filter) else c(current_filters, list(new_filter))
+      })
+    
+      output[[paste0("active_filters_ui_", table_name)]] <- renderUI({
+        filters <- filter_states[[table_name]]
+        if (is.null(filters) || length(filters) == 0) return(tags$p("No filters added yet.", class = "text-muted"))
+        tagList(lapply(seq_along(filters), function(i) {
+          f <- filters[[i]]; val_str <- paste(f$value, collapse = ", "); if (is.numeric(f$value)) val_str <- paste(f$value[1], "-", f$value[2])
+          div(class = "d-flex justify-content-between align-items-center p-2 border-bottom",
+              tags$span(tags$b(f$column), ": ", val_str),
+              actionButton(ns(paste0("remove_filter_", table_name, "_", i)), "", icon = icon("xmark"), class = "btn-sm btn-outline-danger"))
+        }))
+      })
+    
+      observe({
+        filters <- filter_states[[table_name]]
+        if (!is.null(filters) && length(filters) > 0) {
+          lapply(seq_along(filters), function(i) {
+            observeEvent(input[[paste0("remove_filter_", table_name, "_", i)]], {
+              current_filters <- filter_states[[table_name]]; current_filters[[i]] <- NULL
+              filter_states[[table_name]] <- Filter(Negate(is.null), current_filters)
+            }, ignoreInit = TRUE, once = TRUE)
+          })
+        }
+      })
+    
+      observeEvent(input[[paste0("clear_modal_filters_", table_name)]], { filter_states[[table_name]] <- NULL })
+    
+      observeEvent(input[[paste0("apply_modal_filters_", table_name)]], {
+        current_col <- input[[paste0("filter_col_", table_name)]]
+        current_val <- input[[paste0("filter_val_", table_name)]]
+    
+        if (!is.null(current_col) && nzchar(current_col) && !is.null(current_val) && length(current_val) > 0) {
+          new_filter <- list(column = current_col, value = current_val)
+          is_duplicate <- any(sapply(filter_states[[table_name]], function(f) isTRUE(all.equal(f, new_filter))))
+          if (!is_duplicate) {
+            filter_states[[table_name]] <- c(filter_states[[table_name]], list(new_filter))
+          }
+        }
+    
+        modal_filters <- filter_states[[table_name]]
+        values[[paste0("filters_", table_name)]] <- modal_filters
+    
+        if (!is.null(modal_filters) && length(modal_filters) > 0) {
+          full_data <- data_reactive()
+          req(full_data)
+          filtered_data <- apply_filters_to_df(full_data, modal_filters)
+          n_variants <- length(unique(filtered_data$variant_id))
+    
+          shinyWidgets::show_toast(
+            title = paste(tools::toTitleCase(table_name), "Filter Applied"),
+            text = paste(n_variants, "variants pass this filter. The table has been updated."),
+            type = "info",
+            timer = 5000,
+            position = "bottom-end"
+          )
+        } else {
+          shinyWidgets::show_toast(
+            title = "Filters Cleared",
+            text = "All filters for this table have been removed.",
+            type = "info", timer = 5000, position = "bottom-end"
+          )
+        }
+        removeModal()
+      })
+    }
+    
+    # handle_table_filtering("genotypes", reactive(values$table_genotypes))
+    handle_table_filtering("variants", reactive(values$table_variants))
+    handle_table_filtering("annotations", reactive(values$table_annotations))
+
+
+    observeEvent(input$refine_plot_btn, {
+      # Collect variant IDs from each filtered table.
+      id_sets <- list()
+
+      if (!is.null(values$filters_genotypes) && length(values$filters_genotypes) > 0) {
+        req(values$table_genotypes)
+        id_sets$geno <- apply_filters_to_df(values$table_genotypes, values$filters_genotypes)$variant_id
+      }
+
+      if (!is.null(values$filters_variants) && length(values$filters_variants) > 0) {
+        req(values$table_variants)
+        id_sets$vars <- apply_filters_to_df(values$table_variants, values$filters_variants)$variant_id
+      }
+
+      if (!is.null(values$filters_annotations) && length(values$filters_annotations) > 0) {
+        req(values$table_annotations)
+        id_sets$ann <- apply_filters_to_df(values$table_annotations, values$filters_annotations)$variant_id
+      }
+
+      if (length(id_sets) > 0) {
+        # Intersect IDs to get the final variant set.
+        final_ids <- Reduce(intersect, id_sets)
+        values$final_selected_variants <- final_ids
+        # Snapshot filters for plot rendering.
+        values$plot_filters_annotations <- values$filters_annotations
+        values$plot_filters_genotypes <- values$filters_genotypes
+        values$plot_filters_variants <- values$filters_variants
+        show_toast_success(paste(length(final_ids), "variants selected after filtering."))
+      } else {
+        # No filters active; show all variants.
+        values$final_selected_variants <- NULL
+        values$plot_filters_annotations <- NULL; values$plot_filters_genotypes <- NULL; values$plot_filters_variants <- NULL
+        show_toast_success("No active filters. Showing all variants.", type = "info")
+      }
+    })
+
+    observeEvent(input$clear_all_filters_btn, {
+      values$filters_genotypes <- NULL; values$filters_variants <- NULL; values$filters_annotations <- NULL
+      values$plot_filters_annotations <- NULL; values$plot_filters_genotypes <- NULL; values$plot_filters_variants <- NULL
+      values$final_selected_variants <- NULL
+      filter_states$genotypes <- NULL; filter_states$variants <- NULL; filter_states$annotations <- NULL
+      show_toast_success("All filters cleared.", type = "info")
+    })
+
+    observeEvent(input$design_markers_from_region_btn, {
+      # Set marker candidates from filtered variants or all variants.
+      marker_candidates <- if (!is.null(values$final_selected_variants) && length(values$final_selected_variants) > 0) {
+        values$final_selected_variants
+      } else {
+        # Fallback to all variants in the region if no filters are applied.
+        req(values$table_variants)
+        unique(values$table_variants$variant_id)
+      }
+
+      if (length(marker_candidates) == 0) {
+        shinyWidgets::show_alert(
+          title = "No Variants to Design",
+          text = "There are no variants in the current filtered selection to proceed with marker design.",
+          type = "warning"
+        )
+        return()
+      }
+
+      shinybusy::show_modal_spinner(
+        spin = "fading-circle",
+        color = "#27AE60",
+        text = "Preparing variants for marker design..."
+      )
+
+      c_type <- rv$conn_type
+      d_path <- rv$db_path
+      meta_cols <- c("chrom", "pos", "ref", "alt", "variant_type", 'major_allele', "minor_allele", "major_allele_freq", "minor_allele_freq")
+
+      p <- future::future({
+        if (c_type == "sqlite") {
+          temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
+          on.exit(disconnect_local_db(temp_con, quiet = TRUE))
+          fetch_genotypes_by_id(con = temp_con, variant_ids = marker_candidates, meta_data = meta_cols)
+        } else {
+          fetch_genotypes_by_id(connect_db_mode = 'online', variant_ids = marker_candidates, meta_data = meta_cols)
+        }
+      }, seed = TRUE, packages = c("panGenomeBreedr"))
+
+      promises::then(
+        p,
+        onFulfilled = function(geno_data) {
+          shinybusy::remove_modal_spinner()
+          if (is.null(geno_data) || nrow(geno_data) == 0) {
+            shinyWidgets::show_alert(title = "Error", text = "Could not retrieve genotype data for the selected variants.", type = "danger")
+            return()
+          }
+          
+          values$data_for_marker_design <- geno_data
+
+          bslib::toggle_sidebar(id = 'db_sidebar', open = 'closed')
+          update_sidebar_buttons("design_kasp_sidebar_btn")
+          updateTabsetPanel(inputId = 'param_header', selected = "mark_design")
+          
+          updateSelectizeInput(session, inputId = "modal_marker_ID", choices = marker_candidates, selected = marker_candidates, server = TRUE)
+          
+          show_toast_success(paste("Loaded", length(marker_candidates), "variants for marker design."))
+        },
+        onRejected = function(e) {
+          shinybusy::remove_modal_spinner()
+          shinyWidgets::show_alert(title = "Error", text = e$message, type = "error")
+        }
+      )
+    })
+
+    # Design KASP Markers (from sidebar)
+    observeEvent(input$design_kasp_sidebar_btn, {
+      req(values$data_for_marker_design)
+
+      bslib::toggle_sidebar(id = 'db_sidebar', open = 'closed')
+      updateTabsetPanel(inputId = 'param_header', selected = "mark_design")
+      updateSelectizeInput(
+        session,
+        inputId = "modal_marker_ID",
+        choices = values$data_for_marker_design$variant_id,
+        server = TRUE
+      )
+      update_sidebar_buttons("design_kasp_sidebar_btn")
+    })
+
+    output$filtered_variant_summary_text <- renderText({
+      total_in_region <- length(unique(c(values$table_genotypes$variant_id, values$table_variants$variant_id, values$table_annotations$variant_id)))
+      if (!is.null(values$final_selected_variants)) {
+        paste("Visualizing", length(values$final_selected_variants), "of", total_in_region, "variants after filtering.")
+      } else {
+        paste("Visualizing all", total_in_region, "variants in region. No plot filters applied.")
+      }
+    })
+
+    observe({
+      shinyjs::toggleClass("filter_genotypes_btn", "btn-warning", !is.null(values$filters_genotypes) && length(values$filters_genotypes) > 0)
+      shinyjs::toggleClass("filter_variants_btn", "btn-warning", !is.null(values$filters_variants) && length(values$filters_variants) > 0)
+      shinyjs::toggleClass("filter_annotations_btn", "btn-warning", !is.null(values$filters_annotations) && length(values$filters_annotations) > 0)
+    })
+
+    # ==========================================================================
+    # TABLE RENDERING LOGIC
+    # ==========================================================================
+    
+    render_table_ui <- function(ui_id, data_slot, table_output_id) {
+      output[[ui_id]] <- renderUI({
+        req(values[[data_slot]])
+        reactable::reactableOutput(ns(table_output_id))
+      })
+    }
+    
+    render_table_output <- function(output_id, display_reactive) {
+      output[[output_id]] <- reactable::renderReactable({
+        req(display_reactive())
+        render_reactable(display_reactive())
+      })
+    }
+    
+    # Genotype display reactive: filters both rows (variants) and columns (samples).
+    display_genotypes <- reactive({
+      req(values$table_genotypes)
+      data <- values$table_genotypes
+
+      # Filter by sample metadata (columns).
+      sample_ids <- values$filtered_sample_ids
+      if (!is.null(sample_ids)) {
+        # Preserve non-sample metadata columns.
+        standard_meta_cols <- c("variant_id", "chrom", "pos", "ref", "alt", "variant_type", "major_allele", "minor_allele", "major_allele_freq", "minor_allele_freq")
+        meta_cols_in_data <- intersect(standard_meta_cols, names(data))
+        cols_to_keep <- c(meta_cols_in_data, intersect(sample_ids, names(data)))
+        data <- data[, cols_to_keep, drop = FALSE]
+      }
+
+      # Filter by variant properties (rows).
+      filters <- values$filters_genotypes
+      apply_filters_to_df(data, filters)
+    })
+
+    # Generic display reactive for tables with only row filtering.
+    create_display_reactive <- function(table_slot, filter_slot) {
+      reactive({
+        req(values[[table_slot]])
+        data <- values[[table_slot]]
+        filters <- values[[filter_slot]]
+        apply_filters_to_df(data, filters)
+      })
+    }
+    display_variants <- create_display_reactive("table_variants", "filters_variants")
+    display_annotations <- create_display_reactive("table_annotations", "filters_annotations")
+    
+    render_table_ui("regional_genotypes_ui", "table_genotypes", "regional_genotypes_table"); render_table_output("regional_genotypes_table", display_genotypes)
+    render_table_ui("regional_variants_ui", "table_variants", "regional_variants_table"); render_table_output("regional_variants_table", display_variants)
+    render_table_ui("regional_annotations_ui", "table_annotations", "regional_annotations_table"); render_table_output("regional_annotations_table", display_annotations)
+
+    # ==========================================================================
+    # GENOTYPE TABLE FILTERING LOGIC (SPECIALIZED)
+    # ==========================================================================
+    observe({
+      req(rv$sample_metadata)
+      meta_cols <- colnames(rv$sample_metadata)
+      # Exclude non-categorical columns from filter choices.
+      filterable_cols <- setdiff(meta_cols, c("lib", "array_index", "lat", "lon", "latitude", "longitude"))
+      updateSelectizeInput(
+        session,
+        "meta_filter_col",
+        choices = filterable_cols,
+        selected = ""
+      )
+    })
+
+    observeEvent(input$filter_genotypes_btn, {
+      req(values$table_genotypes)
+      df <- values$table_genotypes
+      
+      showModal(modalDialog(
+        title = "Filter Genotype Table",
+        size = "xl", easyClose = TRUE,
+        bslib::navset_card_tab(
+          id = ns("genotype_filter_tabs"),
+          bslib::nav_panel(
+            "Filter Variants (Rows)",
+            div(
+              class = "p-3 mb-3 bg-light rounded border",
+              h5("Add New Variant Filter"),
+              bslib::layout_columns(
+                col_widths = c(4, 5, 3),
+                selectizeInput(ns("filter_col_genotypes"), "Column", choices = NULL),
+                uiOutput(ns("filter_widget_genotypes")),
+                div(class = "d-flex align-items-end", actionButton(ns("add_filter_genotypes"), "Add Filter", icon = icon("plus"), class = "btn-primary w-100"))
+              )
+            ),
+            h5("Active Variant Filters"),
+            uiOutput(ns("active_filters_ui_genotypes"))
+          ),
+          bslib::nav_panel(
+            "Filter Samples (Columns)",
+            selectizeInput(ns("modal_meta_filter_col"), "Filter by:", choices = NULL, multiple = TRUE, width = "100%"),
+            uiOutput(ns("modal_meta_filter_values_ui"))
+          )
+        ),
+        footer = tagList(
+          modalButton("Cancel"),
+          actionButton(ns("clear_genotype_filters_btn"), "Clear All Filters", class = "btn-outline-danger"),
+          actionButton(ns("apply_genotype_filters_btn"), "Apply & Close", icon = icon("check"), class = "btn-success")
+        )
+      ))
+
+      # Update row filter choices.
+      filterable_cols <- names(df)[sapply(df, function(x) !is.list(x) && !is.data.frame(x))]
+      updateSelectizeInput(session, "filter_col_genotypes", choices = filterable_cols, server = TRUE)
+      
+      # Update column (sample metadata) filter choices.
+      req(rv$sample_metadata)
+      meta_cols <- colnames(rv$sample_metadata)
+      filterable_meta_cols <- setdiff(meta_cols, c("lib", "array_index", "lat", "lon", "latitude", "longitude"))
+      updateSelectizeInput(session, "modal_meta_filter_col", choices = filterable_meta_cols, server = TRUE)
+    })
+
+    # Row (variant) filters
+    output$filter_widget_genotypes <- renderUI({
+      req(input$filter_col_genotypes)
+      col <- input$filter_col_genotypes; col_data <- values$table_genotypes[[col]]
+      if (is.numeric(col_data)) {
+        rng <- range(col_data, na.rm = TRUE)
+        sliderInput(ns("filter_val_genotypes"), "Range", min = rng[1], max = rng[2], value = rng)
+      } else {
+        choices <- sort(unique(na.omit(as.character(col_data))))
+        selectizeInput(ns("filter_val_genotypes"), "Values", choices = choices, multiple = TRUE, options = list(placeholder = "Select value(s)..."))
+      }
+    })
+    observeEvent(input$add_filter_genotypes, {
+      req(input$filter_col_genotypes, input$filter_val_genotypes)
+      new_filter <- list(column = input$filter_col_genotypes, value = input$filter_val_genotypes)
+      filter_states$genotypes <- c(filter_states$genotypes, list(new_filter))
+    })
+    output$active_filters_ui_genotypes <- renderUI({
+      filters <- filter_states$genotypes
+      if (is.null(filters) || length(filters) == 0) return(tags$p("No variant filters added yet.", class = "text-muted"))
+      # Reuses the generic UI logic but with specific IDs.
+      tagList(lapply(seq_along(filters), function(i) {
+        f <- filters[[i]]; val_str <- paste(f$value, collapse = ", "); if (is.numeric(f$value)) val_str <- paste(f$value[1], "-", f$value[2])
+        div(class = "d-flex justify-content-between align-items-center p-2 border-bottom",
+            tags$span(tags$b(f$column), ": ", val_str),
+            actionButton(ns(paste0("remove_filter_genotypes_", i)), "", icon = icon("xmark"), class = "btn-sm btn-outline-danger"))
+      }))
+    })
+    observe({
+      filters <- filter_states$genotypes
+      if (!is.null(filters) && length(filters) > 0) {
+        lapply(seq_along(filters), function(i) {
+          observeEvent(input[[paste0("remove_filter_genotypes_", i)]], {
+            current_filters <- filter_states$genotypes; current_filters[[i]] <- NULL
+            filter_states$genotypes <- Filter(Negate(is.null), current_filters)
+          }, ignoreInit = TRUE, once = TRUE)
+        })
+      }
+    })
+
+    # Column (sample) filters
+    output$modal_meta_filter_values_ui <- renderUI({
+      req(input$modal_meta_filter_col)
+      lapply(input$modal_meta_filter_col, function(col) {
+        unique_values <- sort(unique(na.omit(rv$sample_metadata[[col]])))
+        selectizeInput(ns(paste0("modal_meta_vals_", col)), label = paste("Select values for:", col), choices = unique_values, multiple = TRUE, width = "100%")
+      })
+    })
+
+    # Modal actions
+    observeEvent(input$clear_genotype_filters_btn, {
+      filter_states$genotypes <- NULL
+      filter_states$sample_filters <- NULL
+      updateSelectizeInput(session, "modal_meta_filter_col", selected = "")
+    })
+
+    observeEvent(input$apply_genotype_filters_btn, {
+      # Apply variant filters.
+      values$filters_genotypes <- filter_states$genotypes
+      
+      # Apply sample filters.
+      if (!is.null(input$modal_meta_filter_col) && length(input$modal_meta_filter_col) > 0) {
+        filters_list <- lapply(input$modal_meta_filter_col, function(col) input[[paste0("modal_meta_vals_", col)]])
+        names(filters_list) <- input$modal_meta_filter_col
+        filters_list <- filters_list[sapply(filters_list, function(x) !is.null(x) && length(x) > 0)]
+
+        if (length(filters_list) > 0) {
+          filtered_meta <- rv$sample_metadata
+          for (col_name in names(filters_list)) {
+            filtered_meta <- filtered_meta[filtered_meta[[col_name]] %in% filters_list[[col_name]], , drop = FALSE]
+          }
+          values$filtered_sample_ids <- filtered_meta$lib
+        } else {
+          values$filtered_sample_ids <- NULL
+        }
+      } else {
+        values$filtered_sample_ids <- NULL
+      }
+      
+      show_toast_success("Genotype table filters applied.", type = "info")
+      removeModal()
+    })
+
+    observeEvent(input$clear_meta_filter, {
+      values$filtered_sample_ids <- NULL
+      # Clear UI.
+      updateSelectizeInput(session, "meta_filter_col", selected = "")
+      show_toast_success("Sample filters cleared.", type = "info")
+    })
+
+    output$filtered_sample_count <- renderText({
+      if (!is.null(values$filtered_sample_ids)) {
+        total_samples <- length(unique(rv$sample_metadata$lib))
+        paste("Showing", length(values$filtered_sample_ids), "of", total_samples, "samples.")
+      } else if (!is.null(values$table_genotypes)) {
+        # Count sample columns by excluding known metadata columns.
+        standard_meta_cols <- c("variant_id", "chrom", "pos", "ref", "alt", "variant_type", "major_allele", "minor_allele", "major_allele_freq", "minor_allele_freq")
+        sample_cols <- setdiff(names(values$table_genotypes), standard_meta_cols)
+        total_samples <- length(sample_cols)
+
+        paste0("Showing all ", total_samples, " samples.")
+      } else {
+        "No samples to display."
+      }
+    })
+
+    # UI and Server for Annotation Summary
+    output$annotation_summary_ui <- renderUI({
+      req(values$table_annotation_summary)
+      tagList(
+        bslib::card(
+          class = "shadow-sm mb-3",
+          bslib::card_header("Annotation Type Summary"),
+          bslib::card_body(
+            reactable::reactableOutput(ns("ann_summary_tbl"))
+          )
+        ),
+        bslib::card(
+          class = "shadow-sm mb-3",
+          bslib::card_header("Impact Summary"),
+          bslib::card_body(
+            reactable::reactableOutput(ns("impact_summary_tbl"))
+          )
+        ),
+        bslib::card(
+          class = "shadow-sm",
+          bslib::card_header("Variant Type Totals"),
+          bslib::card_body(
+            reactable::reactableOutput(ns("variant_totals_tbl"))
+          )
+        )
+      )
+    })
+
+    output$ann_summary_tbl <- reactable::renderReactable({
+      req(values$table_annotation_summary)
+      render_reactable(values$table_annotation_summary$annotation_summary)
+    })
+    output$impact_summary_tbl <- reactable::renderReactable({
+      req(values$table_annotation_summary)
+      render_reactable(values$table_annotation_summary$impact_summary)
+    })
+    output$variant_totals_tbl <- reactable::renderReactable({
+      req(values$table_annotation_summary)
+      render_reactable(values$table_annotation_summary$variant_type_totals)
     })
 
     output$download_hotspot_plot <- downloadHandler(
@@ -2053,8 +2316,39 @@ mod_variant_discovery_server <- function(id) {
       }
     )
 
+    # Update LD target variants when filter results change.
+    observe({
+      # Trigger only when LD panel is visible.
+      req(
+        "Linkage Disequilibrium Analysis" %in% input$explore_data_accordion,
+        values$table_genotypes
+      )
+
+      # React to changes in the final, plotted variant set.
+      final_variants <- values$final_selected_variants
+      
+      variant_choices <- values$table_genotypes$variant_id
+      
+      # Pre-select the variants shown in the plot.
+      pre_selected_variants <- if (!is.null(final_variants)) {
+        # Ensure pre-selections are valid choices.
+        intersect(final_variants, variant_choices)
+      } else {
+        NULL
+      }
+      
+      updateSelectizeInput(
+        session,
+        "target_ids",
+        choices = variant_choices,
+        selected = pre_selected_variants,
+        server = TRUE
+      )
+    })
+
     output$ld_analysis_ui <- renderUI({
-      req(values$result)
+      req(values$table_genotypes)
+
       tagList(
         bslib::card(
           class = "shadow-sm",
@@ -2131,11 +2425,13 @@ mod_variant_discovery_server <- function(id) {
     })
 
     ld_analysis_results <- eventReactive(input$run_ld_analysis, {
-      req(values$regional_genotypes)
-      if (nrow(values$regional_genotypes) < 2) {
+      req(display_genotypes())
+      geno_data <- display_genotypes()
+
+      if (nrow(geno_data) < 2) {
         shinyWidgets::show_alert(
           title = "Not enough variants",
-          text = "LD analysis requires at least two variants in the region.",
+          text = "LD analysis requires at least two variants in the current selection.",
           type = "warning"
         )
         return(NULL)
@@ -2157,14 +2453,14 @@ mod_variant_discovery_server <- function(id) {
           }
 
           ld_res <- calculate_LD(
-            df = values$regional_genotypes,
+            df = geno_data,
             target_variant_ids = target_variants
           )
 
           plot_pkg <- plot_ld_geodesic(
             ld_df = ld_res,
-            query_db_geno = values$regional_genotypes,
-            query_db_annot = values$regional_annotations,
+            query_db_geno = geno_data, # Use the filtered geno data for positions
+            query_db_annot = values$table_annotations, # Use full annotations for impact lookup
             metric = input$ld_metric,
             target_variant_ids = target_variants,
             threshold = input$ld_r2_threshold,
@@ -2342,468 +2638,10 @@ mod_variant_discovery_server <- function(id) {
       }
     )
 
-    observe({
-      if (
-        !is.null(input$query_database) && input$query_database == "q_entire"
-      ) {
-        output$display_qd_choice <- renderUI({
-          tagList(
-            selectInput(
-              ns("table_name"),
-              "Data Type to Extract",
-              choices = c("variants", "annotations", "genotypes"),
-              selected = "annotations",
-              width = "100%"
-            ),
-            uiOutput(ns("gene_name_id"))
-          )
-        })
-      } else if (
-        !is.null(input$query_database) && input$query_database == "q_annt"
-      ) {
-        output$display_qd_choice <- renderUI({
-          tagList(
-            selectInput(
-              ns("table_name_a"),
-              "Annotations Source",
-              choices = c("variants", "annotations", "genotypes"),
-              selected = "annotations",
-              width = "100%"
-            ),
-            selectInput(
-              ns("table_name_v"),
-              "Variants Source",
-              choices = c("variants", "annotations", "genotypes"),
-              selected = "variants",
-              width = "100%"
-            )
-          )
-        })
-      } else if (is.null(input$query_database)) {
-        output$display_qd_choice <- renderUI({
-          NULL
-        })
-      }
-    })
-
-    output$gene_name_id <- renderUI({
-      if (input$table_name == "annotations") {
-        textInput(
-          ns("query_gene_name"),
-          "Gene Name",
-          value = NULL,
-          width = "100%"
-        )
-      }
-    })
-
-    # ==========================================================================
-    #  QUERY EXECUTION & RESULTS (Browse Variants)
-    # ==========================================================================
-
-    observeEvent(input$query_dbase_btn, {
-      values$last_action <- NULL
-      req(rv$connected, values$result, input$query_database)
-
-      updateTabsetPanel(session, inputId = "query_db_nav_id", selected = "Main Database Results")
-
-      shinybusy::show_modal_spinner(
-        spin = "fading-circle",
-        color = "#27AE60",
-        text = "Querying Database... Please wait."
-      )
-
-      # Capture reactive inputs for the future
-      c_type <- rv$conn_type
-      d_path <- rv$db_path
-      query_type <- input$query_database
-      res_chrom <- values$result$chrom
-      res_start <- values$result$start
-      res_end <- values$result$end
-      q_gene_name <- if (query_type == "annotations" && !is.null(input$query_gene_name) && input$query_gene_name != "") {
-        input$query_gene_name
-      } else {
-        NULL
-      }
-
-      p <- future::future({
-        # This code runs in a separate process
-        if (c_type == "sqlite") {
-          temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
-          on.exit(disconnect_local_db(temp_con, quiet = TRUE))
-        }
-
-        if (query_type %in% c("genotypes", "variants", "annotations")) {
-          if (c_type == "sqlite") {
-            result <- fetch_table_region(
-              con = temp_con, table_name = query_type,
-              chrom = res_chrom, start = res_start, end = res_end,
-              gene_name = q_gene_name
-            )
-          } else { # postgres
-            result <- fetch_table_region(
-              connect_db_mode = 'online',
-              table_name = query_type,
-              chrom = res_chrom, start = res_start, end = res_end,
-              gene_name = q_gene_name
-            )
-          }
-          return(list(type = "main_db", data = result))
-
-        } else if (query_type == "annotation_summary") {
-          if (c_type == "sqlite") {
-            result <- summarize_annotations(
-              con = temp_con, variants_table = "variants",
-              annotations_table = "annotations", chrom = res_chrom,
-              start = res_start, end = res_end
-            )
-          } else { # postgres
-            result <- summarize_annotations(
-              connect_db_mode = 'online',
-              annotations_table = "annotations", variants_table = "variants",
-              chrom = res_chrom, start = res_start, end = res_end
-            )
-          }
-          return(list(type = "annotation_summ", data = result))
-        }
-      }, seed = TRUE, packages = c("panGenomeBreedr"))
-
-      promises::then(
-        p,
-        onFulfilled = function(result) {
-          if (result$type == "main_db") {
-            values$query_db_val <- result$data
-            values$query_ann_react <- NULL
-            values$last_action <- "main_db"
-            show_toast_success(text = paste("Queried", tools::toTitleCase(query_type)))
-          } else if (result$type == "annotation_summ") {
-            values$query_ann_react <- result$data
-            values$query_db_val <- NULL
-            values$last_action <- "annotation_summ"
-            show_toast_success("Annotation Summary Retrieved")
-          }
-          shinybusy::remove_modal_spinner()
-        },
-        onRejected = function(e) {
-          shinybusy::remove_modal_spinner()
-          shinyWidgets::show_alert(
-            title = "Failed!",
-            text = e$message,
-            type = "danger",
-            timer = 5000
-          )
-        }
-      )
-    })
-
-    output$ann_summary_tbl <- reactable::renderReactable({
-      req(values$query_ann_react)
-      render_reactable(values$query_ann_react$annotation_summary)
-    })
-    output$impact_summary_tbl <- reactable::renderReactable({
-      req(values$query_ann_react)
-      render_reactable(values$query_ann_react$impact_summary)
-    })
-    output$variant_totals_tbl <- reactable::renderReactable({
-      req(values$query_ann_react)
-      render_reactable(values$query_ann_react$variant_type_totals)
-    })
-
-    output$query_db_display <- renderUI({
-      req(values$last_action)
-
-      if (values$last_action == "main_db") {
-        req(values$query_db_val)
-        reactable::renderReactable(render_reactable(values$query_db_val))
-      } else if (values$last_action == "annotation_summ") {
-        req(values$query_ann_react)
-        annotation_summary_results_ui(ns)
-      }
-    })
-
-    observeEvent(input$get_pcv_sidebar_btn, {
-      updateTabsetPanel(session, "param_header", selected = "pcv_tab")
-      update_sidebar_buttons("get_pcv_sidebar_btn")
-    })
-
-    # ==========================================================================
-    # CAUSAL VARIANTS (PCVs) EXTRACTION
-    # ==========================================================================
-    output$impact_level_ui <- renderUI({
-      ns <- session$ns
-
-      impact_order <- c("HIGH", "MODERATE", "LOW", "MODIFIER")
-      choices <- character(0)
-      selected_choice <- NULL
-      placeholder_text <- "First, select a genomic region"
-
-      # Check if regional annotations are available from the hotspot plot data
-      if (!is.null(values$regional_annotations) && "impact" %in% names(values$regional_annotations) && nrow(values$regional_annotations) > 0) {
-        available_impacts <- unique(na.omit(as.character(values$regional_annotations$impact)))
-
-        if (length(available_impacts) > 0) {
-          # Filter and order the available impacts according to our preferred order
-          choices <- intersect(impact_order, available_impacts)
-          selected_choice <- if (length(choices) > 0) {
-            choices[1]
-          } else {
-            NULL
-          } # Default to the highest available impact
-          placeholder_text <- "Select impact level(s)..."
-        } else {
-          placeholder_text <- "No impact data in region"
-        }
-      }
-
-      # Use selectizeInput to get the placeholder feature
-      selectizeInput(
-        ns("impact_level"),
-        "Select Impact Level",
-        choices = choices,
-        selected = selected_choice,
-        multiple = TRUE,
-        width = "100%",
-        options = list(placeholder = placeholder_text)
-      )
-    })
-
-    genotype_results_ui <- function(ns) {
-      bslib::card(
-        div(
-          style = "overflow-x: auto;",
-          reactable::reactableOutput(ns("genotype_results_tbl"))
-        ),
-        class = "mt-3",
-        bslib::card_footer(
-          textInput(
-            ns("File_name"),
-            "Enter File Name",
-            value = "Chrom 05",
-            width = "30%"
-          ),
-          div(
-            style = "display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; flex-grow: 1;",
-            shinyWidgets::downloadBttn(
-              color = "primary",
-              style = "unite",
-              icon = icon("upload"),
-              outputId = ns("download_excel"),
-              label = "Export Genotype Matrix as .xlsx"
-            )
-          )
-        )
-      )
-    }
-
-    observe({
-      req(
-        rv$connected,
-        values$result$chrom,
-        values$result$start,
-        values$result$end
-      )
-
-      c_type <- rv$conn_type
-      d_path <- rv$db_path
-      chr <- values$result$chrom
-      st <- values$result$start
-      en <- values$result$end
-
-      p <- future::future(
-        {
-          if (c_type == "sqlite") {
-            temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
-            res <- fetch_table_region(
-              con = temp_con,
-              table_name = "variants",
-              chrom = chr,
-              start = st,
-              end = en
-            )
-            disconnect_local_db(temp_con, quiet = TRUE)
-          } else {
-            res <- fetch_table_region(
-              connect_db_mode = 'online',
-              table_name = "variants",
-              chrom = chr,
-              start = st,
-              end = en
-            )
-          }
-          if (nrow(res) > 0) return(res$variant_id) else return(NULL)
-        },
-        seed = TRUE
-      )
-
-      promises::then(
-        p,
-        onFulfilled = function(var_ids) {
-          if (!is.null(var_ids)) {
-            updateSelectizeInput(
-              session,
-              "manual_variant_ids",
-              choices = var_ids,
-              server = TRUE
-            )
-          } else {
-            updateSelectizeInput(
-              session,
-              "manual_variant_ids",
-              choices = character(0),
-              options = list(placeholder = "No variants found in region")
-            )
-          }
-        },
-        onRejected = function(err) {
-          message("Failed to fetch variant IDs: ", err$message)
-        }
-      )
-    })
-
-    observeEvent(input$get_pcv_btn, {
-      values$query_geno_react <- NULL
-      values$filtered_pcvs_by_meta <- NULL
-      req(rv$connected)
-
-      updateTabsetPanel(session, "param_header", selected = "pcv_tab")
-      updateTabsetPanel(
-        session,
-        inputId = "pcv_nav_id",
-        selected = "PCVs for KASP Marker Design"
-      )
-
-      # Determine spinner text and check requirements upfront
-      if (input$impact_card == "By Impact & AF") {
-        req(input$impact_level, values$result, input$af_range)
-        spinner_text <- "Filtering by Impact and AF..."
-      } else if (input$impact_card == "By Variant ID") {
-        req(input$manual_variant_ids)
-        spinner_text <- "Extracting Selected Variants..."
-      } else {
-        return() # Should not happen
-      }
-
-      shinybusy::show_modal_spinner(
-        spin = "fading-circle",
-        color = "#27AE60",
-        text = spinner_text
-      )
-
-      # Capture reactive inputs for the future
-      c_type <- rv$conn_type
-      d_path <- rv$db_path
-      impact_card_val <- input$impact_card
-      impact_lvl <- input$impact_level
-      res <- values$result
-      af_val <- input$af_range
-      manual_ids <- input$manual_variant_ids
-      meta_cols <- c("chrom", "pos", "ref", "alt", "variant_type", 'major_allele', "minor_allele", "major_allele_freq", "minor_allele_freq")
-
-      p <- future::future({
-        # This code runs in a separate process
-        if (c_type == "sqlite") {
-          temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
-          on.exit(disconnect_local_db(temp_con, quiet = TRUE))
-        }
-
-        if (impact_card_val == "By Impact & AF") {
-          impact_result <- if (c_type == "sqlite") {
-            fetch_variants_by_impact(con = temp_con, impact_level = impact_lvl, chrom = res$chrom, start = res$start, end = res$end)
-          } else {
-            fetch_variants_by_impact(connect_db_mode = 'online', impact_level = impact_lvl, chrom = res$chrom, start = res$start, end = res$end)
-          }
-          if (is.null(impact_result) || nrow(impact_result) == 0) return(list(data = NULL, type = "impact"))
-
-          full_gt <- if (c_type == "sqlite") {
-            fetch_genotypes_by_id(con = temp_con, variant_ids = impact_result$variant_id, meta_data = meta_cols)
-          } else {
-            fetch_genotypes_by_id(connect_db_mode = 'online', variant_ids = impact_result$variant_id, meta_data = meta_cols)
-          }
-          if (is.null(full_gt) || nrow(full_gt) == 0) return(list(data = NULL, type = "impact"))
-
-          filtered_af_result <- filter_by_allele_frequency(gt = full_gt, min_af = af_val)
-
-          if (is.null(filtered_af_result) || nrow(filtered_af_result) == 0) return(list(data = NULL, type = "impact"))
-
-          filtered_ids <- filtered_af_result$variant_id
-          query_result <- full_gt[full_gt$variant_id %in% filtered_ids, ]
-          return(list(data = query_result, type = "impact"))
-
-        } else if (impact_card_val == "By Variant ID") {
-          query_result <- if (c_type == "sqlite") {
-            fetch_genotypes_by_id(con = temp_con, variant_ids = manual_ids, meta_data = meta_cols)
-          } else {
-            fetch_genotypes_by_id(
-              connect_db_mode = 'online',
-              variant_ids = manual_ids,
-              meta_data = meta_cols
-            )
-          }
-          return(list(data = query_result, type = "id"))
-        }
-      }, seed = TRUE, packages = c("panGenomeBreedr"))
-
-      promises::then(
-        p,
-        onFulfilled = function(result) {
-          values$query_geno_react <- result$data
-          if (!is.null(result$data) && nrow(result$data) > 0) {
-            if (result$type == "impact") {
-              show_toast_success(text = paste("Found", nrow(result$data), "Putative Causal Variants"))
-            } else {
-              show_toast_success(text = paste("Extracted", nrow(result$data), "Selected Variants"))
-            }
-          } else {
-            if (result$type == "impact") {
-              shinyWidgets::show_alert(
-                title = "No Variants Found",
-                text = paste("No variants found with MAF >=", af_val, ". Try a lower threshold."),
-                type = "warning", timer = 5000
-              )
-            } else {
-              shinyWidgets::show_alert(
-                title = "No Variants Found",
-                text = "Could not extract genotypes for the selected IDs.",
-                type = "warning"
-              )
-            }
-          }
-          shinybusy::remove_modal_spinner()
-        },
-        onRejected = function(e) {
-          shinybusy::remove_modal_spinner()
-          shinyWidgets::show_alert(title = "Error", text = e$message, type = "error")
-        }
-      )
-
-      output$pcvs_kasp_marker_design_result <- renderUI({
-        genotype_results_ui(ns)
-      })
-    })
-
-    # Evaluate target genotype matrix to compile final output matrix
-    output$download_excel <- downloadHandler(
-      filename = function() {
-        paste0(
-          "dbquery_",
-          gsub(' ', '', input$File_name),
-          "_variant_matrix.xlsx"
-        )
-      },
-      content = function(file) {
-        active_data <- if (!is.null(values$filtered_pcvs_by_meta)) {
-          values$filtered_pcvs_by_meta
-        } else {
-          values$query_geno_react
-        }
-        writexl::write_xlsx(active_data, path = file)
-      }
-    )
-
     observeEvent(input$go_back, {
-      updateTabsetPanel(session, inputId = 'param_header', selected = 'pcv_tab')
+      updateTabsetPanel(session, inputId = 'param_header', selected = 'gene_cord')
       bslib::toggle_sidebar(id = 'db_sidebar', open = 'open')
-      update_sidebar_buttons("get_pcv_sidebar_btn")
+      update_sidebar_buttons("show_gene_cord_btn")
     })
 
     # ==========================================================================
@@ -2815,12 +2653,7 @@ mod_variant_discovery_server <- function(id) {
 
     observeEvent(input$modal_run_but, {
       # Isolate target alleles for locus assay development
-      active_data <- if (!is.null(values$filtered_pcvs_by_meta)) {
-        values$filtered_pcvs_by_meta
-      } else {
-        values$query_geno_react
-      }
-
+      active_data <- values$data_for_marker_design
       req(
         active_data,
         input$modal_genome_file$datapath,

@@ -59,30 +59,21 @@ reference:
 
   - subtitle: "Database Schema & Metadata"
     contents:
-      - list_sqlite_tables
-      - pg_list_tables
-      - summarize_sqlite_tables
-      - pg_summarize_tables
-      - list_table_columns
-      - pg_list_table_columns
+      - list_tables
+      - summarize_database
+      - list_columns
 
   - subtitle: "Core Data Queries"
     contents:
-      - query_db
-      - pg_query_db
-      - query_genotypes
-      - pg_query_genotypes
-      - get_sample_metadata
-      - pg_get_sample_metadata
-      - query_geno_by_meta
-      - pg_query_geno_by_meta
+      - fetch_table_region
+      - fetch_genotypes_by_id
+      - fetch_accession_metadata
+      - filter_genotypes_by_metadata
 
   - subtitle: "Targeted Variant Filters"
     contents:
-      - query_by_af
-      - pg_query_by_af
-      - query_by_impact
-      - pg_query_by_impact
+      - fetch_variants_by_allele_frequency
+      - fetch_variants_by_impact
 
   - subtitle: "Summaries & Statistics"
     contents:
@@ -90,7 +81,7 @@ reference:
       - summarize_variant_impacts
       - count_variant_types
       - summarize_annotations
-      
+
   - subtitle: "Allele Frequency Handlers"
     contents:
       - calculate_allele_frequencies
@@ -100,12 +91,14 @@ reference:
     contents:
       - calculate_LD
       - plot_ld_geodesic
-      
+
   - subtitle: "Visualization"
     contents:
       - plot_accession_map
-      - plot_variant_hotspots
-      
+      - plot_variant_hotspot
+      - plot_gene_model
+      - hotspot_overlay_plot
+
   - subtitle: "Marker Design & Utilities"
     contents:
       - kasp_marker_design

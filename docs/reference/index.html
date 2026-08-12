@@ -89,13 +89,6 @@
 
         <dt>
 
-          <code><a href="list_columns.html">list_columns()</a></code>
-
-        </dt>
-        <dd>Get table schema details</dd>
-
-        <dt>
-
           <code><a href="summarize_database.html">summarize_database()</a></code>
 
         </dt>
@@ -103,10 +96,10 @@
 
         <dt>
 
-          <code><a href="fetch_accession_metadata.html">fetch_accession_metadata()</a></code>
+          <code><a href="list_columns.html">list_columns()</a></code>
 
         </dt>
-        <dd>Get sample metadata from the database</dd>
+        <dd>Get table schema details</dd>
       </dl></div><div class="section level2">
 
       <h3 id="core-data-queries">Core Data Queries<a class="anchor" aria-label="anchor" href="#core-data-queries"></a></h3>
@@ -133,6 +126,13 @@
 
         <dt>
 
+          <code><a href="fetch_accession_metadata.html">fetch_accession_metadata()</a></code>
+
+        </dt>
+        <dd>Get sample metadata from the database</dd>
+
+        <dt>
+
           <code><a href="filter_genotypes_by_metadata.html">filter_genotypes_by_metadata()</a></code>
 
         </dt>
@@ -149,17 +149,17 @@
 
       <dl><dt>
 
-          <code><a href="fetch_variants_by_impact.html">fetch_variants_by_impact()</a></code>
-
-        </dt>
-        <dd>Extract variants based on functional mutation impact</dd>
-
-        <dt>
-
           <code><a href="fetch_variants_by_allele_frequency.html">fetch_variants_by_allele_frequency()</a></code>
 
         </dt>
         <dd>Fetch variants by allele frequency</dd>
+
+        <dt>
+
+          <code><a href="fetch_variants_by_impact.html">fetch_variants_by_impact()</a></code>
+
+        </dt>
+        <dd>Extract variants based on functional mutation impact</dd>
       </dl></div><div class="section level2">
 
       <h3 id="summaries-statistics">Summaries &amp; Statistics<a class="anchor" aria-label="anchor" href="#summaries-statistics"></a></h3>
@@ -262,10 +262,24 @@
 
         <dt>
 
-          <code><a href="plot_variant_hotspots.html">plot_variant_hotspots()</a></code>
+          <code><a href="plot_variant_hotspot.html">plot_variant_hotspot()</a></code>
 
         </dt>
-        <dd>Plot variant hotspots</dd>
+        <dd>Plot genomic variant hotspots (SNPs and INDELs) extracted from the database (local)</dd>
+
+        <dt>
+
+          <code><a href="plot_gene_model.html">plot_gene_model()</a></code>
+
+        </dt>
+        <dd>Plot the gene model using genomic coordinates (local)</dd>
+
+        <dt>
+
+          <code><a href="hotspot_overlay_plot.html">hotspot_overlay_plot()</a></code>
+
+        </dt>
+        <dd>Generate a combined gene model and variant hotspot overlay plot (local)</dd>
       </dl></div><div class="section level2">
 
       <h3 id="marker-design-utilities">Marker Design &amp; Utilities<a class="anchor" aria-label="anchor" href="#marker-design-utilities"></a></h3>
@@ -288,7 +302,7 @@
           <code><a href="gene_coord_gff.html">gene_coord_gff()</a></code>
 
         </dt>
-        <dd>Get the genomic range of a candidate gene from a GFF file</dd>
+        <dd>Get the genomic range of a candidate gene and its features using the Sobic ID from a GFF file (local)</dd>
 
         <dt>
 

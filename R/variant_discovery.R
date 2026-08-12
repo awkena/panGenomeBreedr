@@ -245,6 +245,7 @@ set_api_url <- function(url) {
 #'
 #' @returns The character string of the active API URL.
 #' @export
+#' @importFrom httr GET content stop_for_status timeout
 get_api_url <- function() {
   # Check if the user set a temporary custom URL in this session
   url <- getOption("panGenomeBreedr.api_url")
@@ -269,8 +270,13 @@ get_api_url <- function() {
         if (is.na(url) || !nzchar(url)) stop("Empty endpoint value")
       },
       error = function(e) {
-       # If the github raw file's link fails
-        cat('Please ensure you have a stable connection')
+        # If the GitHub raw file's link fails, provide a helpful error
+        stop(
+          "Could not automatically retrieve the API URL. ",
+          "Please check your internet connection or set the URL manually using set_api_url().\n",
+          "Original error: ", e$message,
+          call. = FALSE
+        )
       }
     )
   }
@@ -658,85 +664,6 @@ summarize_database <- function(
     return(data.frame(table = tables, n_rows = counts, row.names = NULL))
   }
 }
-
-
-
-
-#' Get the genomic range of a candidate gene from a GFF file
-#' 
-#' @description This function parses a GFF3 file (local or remote) to find the
-#' genomic coordinates (chromosome, start, end) for a specified gene ID.
-#'
-#' @param gene_name A character value indicating the Sobic ID of the candidate gene.
-#' @param gff_path A character value specifying the path to the GFF3 file.
-#'   URL paths and GZ-compressed files are supported.
-#' @returns A list object of three components indicating the chromosome, start
-#' and end coordinates of candidate gene.
-#' @examples
-#' \donttest{
-#' # example code
-#'
-#' # Define path to a remote sorghum GFF3 file (v5.1)
-#' gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
-#' 
-#' # Retrieve coordinates for a candidate gene
-#' gene_coord_gff(gene_name = "Sobic.005G213600",
-#'                gff_path = gff_path)
-#'
-#' }
-#' @export
-#' @importFrom R.utils isUrl isGzipped gunzip
-gene_coord_gff <- function(gene_name, gff_path) {
-
-  # We handle remote URLs by downloading the file to a temporary location first.
-  if (R.utils::isUrl(gff_path)) {
-    local_temp <- file.path(tempdir(), basename(gff_path))
-    utils::download.file(gff_path, destfile = local_temp, mode = "wb", quiet = TRUE)
-    on.exit(if (file.exists(local_temp)) unlink(local_temp), add = TRUE)
-    target_path <- local_temp
-  } else {
-    target_path <- gff_path
-  }
-
-  # If the file is compressed, decompress it to a temporary GFF file before reading.
-  if (R.utils::isGzipped(target_path)) {
-    decompressed_gff <- file.path(tempdir(), "temp_genomic_data.gff3")
-    R.utils::gunzip(target_path, destname = decompressed_gff, overwrite = TRUE, remove = FALSE)
-    on.exit(if (file.exists(decompressed_gff)) unlink(decompressed_gff), add = TRUE)
-    read_from <- decompressed_gff
-  } else {
-    read_from <- target_path
-  }
-
-  # Load the GFF file, skipping headers.
-  gff <- utils::read.delim(read_from, comment.char = "#", header = FALSE, sep = "\t", stringsAsFactors = FALSE)
-
-  # Assign standard GFF3 column headers for logical filtering
-  colnames(gff) <- c("seqid", "source", "type", "start", "end", "score", "strand", "phase", "attributes")
-
-  # Filter for gene features and extract the name/ID attribute using regex.
-  genes <- gff[gff$type == "gene", ]
-  genes$extracted_id <- sub(".*(?:ID|Name)=([^;]+).*", "\\1", genes$attributes)
-
-  # Locate the specific gene match
-  gmatch <- genes[genes$extracted_id == gene_name, ]
-
-  if (nrow(gmatch) == 0) {
-    stop(paste("Gene ID", gene_name, "was not found in the provided GFF file."))
-  }
-
-  if (nrow(gmatch) > 1) {
-    warning("Multiple gene entries found; returning coordinates for the first occurrence.")
-  }
-
-  # Return the genomic range as a structured list
-  return(list(
-    chrom = gmatch$seqid[1],
-    start = as.integer(gmatch$start[1]),
-    end = as.integer(gmatch$end[1])
-  ))
-}
-
 
 
 
@@ -2585,237 +2512,6 @@ plot_accession_map <- function(metadata, color_by = "countryorigin") {
 
 
 
-
-#' Plot variant hotspots
-#'
-#' @param variant_table Data frame containing basic variants
-#' @param annotation_table Data frame containing annotations
-#' @param region_start Numeric start position
-#' @param region_end Numeric end position
-#' @import ggplot2
-#' @importFrom stats runif
-#' @examples
-#' \donttest{
-#' # Load the package
-#' library(panGenomeBreedr)
-#' 
-#' # Fetch variant and annotation data for a specific region from the online database
-#' variants <- fetch_table_region(
-#'   table_name = "variants",
-#'   chrom = "Chr05",
-#'   start = 75104537,
-#'   end = 75106403,
-#'   connect_db_mode = 'online'
-#' )
-#' 
-#' annotations <- fetch_table_region(
-#'   table_name = "annotations",
-#'   chrom = "Chr05",
-#'   start = 75104537,
-#'   end = 75106403,
-#'   connect_db_mode = 'online'
-#' )
-#' 
-#' # Generate the variant hotspot plot
-#' hotspot_plot <- plot_variant_hotspots(
-#'   variant_table = variants,
-#'   annotation_table = annotations
-#' )
-#' 
-#' # Display the plot
-#' print(hotspot_plot)
-#' }
-#' @export
-#'
-plot_variant_hotspots <- function(
-  variant_table,
-  annotation_table = NULL,
-  region_start = NULL,
-  region_end = NULL
-) {
-  pos <- y_pos <- impact <- variant_type <- NULL
-
-  plot_df <- variant_table
-  if (!"variant_type" %in% colnames(plot_df)) {
-    plot_df$variant_type <- sub("_.*", "", plot_df$variant_id)
-  }
-
-  # Join and Deduplicate Annotations
-  impact_levels <- c("HIGH", "MODERATE", "LOW", "MODIFIER", "UNKNOWN")
-
-  if (
-    !is.null(annotation_table) &&
-      nrow(annotation_table) > 0 &&
-      "impact" %in% colnames(annotation_table)
-  ) {
-    anno_sub <- annotation_table[, c("variant_id", "impact")]
-    anno_sub$impact <- factor(
-      anno_sub$impact,
-      levels = impact_levels,
-      ordered = TRUE
-    )
-    anno_sub <- anno_sub[order(anno_sub$impact, na.last = TRUE), ]
-    anno_sub <- anno_sub[!duplicated(anno_sub$variant_id), ]
-
-    plot_df <- merge(plot_df, anno_sub, by = "variant_id", all.x = TRUE)
-    plot_df$impact <- as.character(plot_df$impact)
-    plot_df$impact[is.na(plot_df$impact)] <- "UNKNOWN"
-  } else {
-    plot_df$impact <- "UNKNOWN"
-  }
-
-  plot_df$impact <- factor(plot_df$impact, levels = rev(impact_levels))
-
-  # Extract start and stop postion from table if is null
-  if (is.null(region_start)) {
-    region_start <- min(plot_df$pos, na.rm = TRUE)
-  }
-  if (is.null(region_end)) {
-    region_end <- max(plot_df$pos, na.rm = TRUE)
-  }
-
-  total_vars <- nrow(plot_df)
-  snp_ct <- sum(plot_df$variant_type == "SNP", na.rm = TRUE)
-  indel_ct <- sum(plot_df$variant_type == "INDEL", na.rm = TRUE)
-
-  summary_text <- sprintf(
-    "Total Unique Variants: %s  |  SNPs: %s  |  INDELs: %s",
-    scales::comma(total_vars),
-    scales::comma(snp_ct),
-    scales::comma(indel_ct)
-  )
-
-  # Assigning base elevations to each impact level
-  y_mapping <- c(
-    "HIGH" = 4,
-    "MODERATE" = 3,
-    "LOW" = 2,
-    "MODIFIER" = 1,
-    "UNKNOWN" = 0.5
-  )
-  plot_df$base_y <- y_mapping[as.character(plot_df$impact)]
-
-  # Add micro-jitter within lanes so points don't perfectly overlap
-  set.seed(42)
-  plot_df$y_pos <- plot_df$base_y +
-    runif(nrow(plot_df), min = -0.25, max = 0.25)
-
-  # Color Impact levels
-  impact_colors <- c(
-    "HIGH" = "#e11d48",
-    "MODERATE" = "#f59e0b",
-    "LOW" = "#3b82f6",
-    "MODIFIER" = "#94a3b8",
-    "UNKNOWN" = "#cbd5e1"
-  )
-
-  type_shapes <- c("SNP" = 21, "INDEL" = 24)
-
-  # Plot
-  p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = pos, y = y_pos)) +
-    ggplot2::geom_hline(
-      yintercept = c(1, 2, 3, 4),
-      color = "#f1f5f9",
-      linewidth = 0.5
-    ) +
-    ggplot2::geom_hline(yintercept = 0, linewidth = 2, color = "#cbd5e1") +
-    ggplot2::geom_segment(
-      ggplot2::aes(xend = pos, yend = 0),
-      color = "#dcdfe3",
-      alpha = 0.3,
-      linewidth = 0.4
-    ) +
-    ggplot2::geom_point(
-      ggplot2::aes(fill = impact, shape = variant_type),
-      size = 5,
-      color = "black",
-      stroke = 0.5,
-      alpha = 0.7
-    ) +
-    # Manual setting of legends and mapping values
-    ggplot2::scale_fill_manual(values = impact_colors, name = "Max Impact") +
-    ggplot2::scale_shape_manual(values = type_shapes, name = "Variant Type") +
-    ggplot2::scale_x_continuous(labels = scales::comma) +
-    ggplot2::coord_cartesian(
-      xlim = c(region_start, region_end),
-      ylim = c(-0.1, 4.5)
-    ) +
-    ggplot2::theme_minimal(base_size = 14) +
-    ggplot2::labs(
-      title = "Genomic Variant Hotspots",
-      subtitle = paste0(
-        plot_df$chrom[1],
-        ": ",
-        scales::comma(region_start),
-        " - ",
-        scales::comma(region_end)
-      ),
-      caption = summary_text,
-      x = "Genomic Position (bp)"
-    ) +
-    ggplot2::guides(
-      fill = ggplot2::guide_legend(
-        override.aes = list(shape = 21, size = 4),
-        order = 1
-      ),
-      shape = ggplot2::guide_legend(
-        override.aes = list(fill = "#fefefe14", size = 4, color = 'black'),
-        order = 2
-      ) # Modifyying legends
-    ) +
-    ggplot2::theme(
-      axis.text.y = ggplot2::element_blank(),
-      axis.title.y = ggplot2::element_blank(),
-      panel.grid.major.y = ggplot2::element_blank(),
-      panel.grid.minor.y = ggplot2::element_blank(),
-      panel.grid.minor.x = ggplot2::element_blank(),
-      panel.grid.major.x = ggplot2::element_line(
-        color = "#e2e8f0",
-        linetype = "dashed"
-      ),
-
-      legend.position = "right",
-      legend.box = "vertical",
-      legend.title = ggplot2::element_text(
-        face = "bold",
-        size = 10,
-        color = "#475569"
-      ),
-      legend.text = ggplot2::element_text(size = 9, color = "#334155"),
-
-      plot.title = ggplot2::element_text(
-        face = "bold",
-        size = 16,
-        color = "#0f172a",
-        hjust = 0.5
-      ),
-      plot.subtitle = ggplot2::element_text(
-        color = "#64748b",
-        size = 12,
-        hjust = 0.5,
-        margin = ggplot2::margin(b = 10)
-      ),
-      plot.caption = ggplot2::element_text(
-        face = "bold",
-        color = "#1e293b",
-        size = 12,
-        hjust = 1,
-        margin = ggplot2::margin(t = 15)
-      ),
-      axis.title.x = ggplot2::element_text(
-        face = "bold",
-        color = "#475569",
-        margin = ggplot2::margin(t = 10)
-      )
-    )
-
-  return(p)
-}
-
-
-
-
-
 #' Compute Linkage Disequilibrium (LD) Metrics (R2 and D')
 #'
 #' @param df A data frame containing the genotype matrix. Must include a `variant_id`
@@ -3552,3 +3248,740 @@ append_locus_allele_metrics <- function(
 
   return(region_matrix[, optimized_column_order, drop = FALSE])
 }
+
+
+
+
+#' Get the genomic range of a candidate gene and its features using the Sobic ID from a GFF file (local)
+#' @param gene_name A character value indicating the Sobic ID of candidate gene.
+#' @param gff_path A character value specifying the path to gff3 file. GZ compressed
+#' files and URL file paths are acceptable.
+#' @returns A data frame containing the genomic coordinates (chromosome, start, end, strand)
+#' of the gene, transcripts, 5'-UTR, CDS, and 3'-UTR.
+#' @examples
+#' \donttest{
+#' # example code
+#' library(panGenomeBreedr)
+#' # Path to GFF3 file
+#' gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+#' gene_features <- gene_coord_gff(gene_name = "Sobic.005G213600",
+#'                                 gff_path = gff_path)
+#' head(gene_features)
+#' }
+#' @export
+#' @importFrom R.utils isUrl isGzipped gunzip
+gene_coord_gff <- function(gene_name, gff_path) {
+  # Setup strictly unique temporary file paths to prevent namespace collisions
+  temp_download <- tempfile(pattern = "dl_", fileext = ".gff3")
+  temp_gff <- tempfile(pattern = "extracted_", fileext = ".gff3")
+
+  # Ensure only these specific unique temp files are deleted on exit
+  on.exit(
+    {
+      if (file.exists(temp_download)) {
+        unlink(temp_download)
+      }
+      if (file.exists(temp_gff)) unlink(temp_gff)
+    },
+    add = TRUE
+  )
+
+  # Read GFF
+  if (R.utils::isUrl(gff_path)) {
+    utils::download.file(gff_path, destfile = temp_download, quiet = TRUE)
+
+    if (R.utils::isGzipped(temp_download)) {
+      R.utils::gunzip(
+        temp_download,
+        destname = temp_gff,
+        overwrite = TRUE,
+        remove = FALSE
+      )
+      gff <- utils::read.delim(
+        temp_gff,
+        comment.char = "#",
+        header = FALSE,
+        sep = "\t"
+      )
+    } else {
+      gff <- utils::read.delim(
+        temp_download,
+        comment.char = "#",
+        header = FALSE,
+        sep = "\t"
+      )
+    }
+  } else if (R.utils::isGzipped(gff_path)) {
+    # Extract local compressed files temporarily without deleting the user's original file
+    R.utils::gunzip(
+      gff_path,
+      destname = temp_gff,
+      overwrite = TRUE,
+      remove = FALSE
+    )
+    gff <- utils::read.delim(
+      temp_gff,
+      comment.char = "#",
+      header = FALSE,
+      sep = "\t"
+    )
+  } else {
+    gff <- utils::read.delim(
+      gff_path,
+      comment.char = "#",
+      header = FALSE,
+      sep = "\t"
+    )
+  }
+
+  # Assign standard column names based on the GFF format specifications
+  colnames(gff) <- c(
+    "seqid",
+    "source",
+    "type",
+    "start",
+    "end",
+    "score",
+    "strand",
+    "phase",
+    "attributes"
+  )
+
+  # 1. Identify the core gene
+  gene_pattern <- paste0("(ID|Name)=", gene_name, "([;]|$)")
+  gff_gene <- gff[gff$type == "gene" & grepl(gene_pattern, gff$attributes), ]
+
+  if (nrow(gff_gene) == 0) {
+    stop("Gene not found in GFF.")
+  }
+  if (nrow(gff_gene) > 1) {
+    warning("Multiple gene matches found; using the first match.")
+    gff_gene <- gff_gene[1, ]
+  }
+
+  # Extract the exact ID to reliably link child features
+  gene_id <- sub(".*ID=([^;]+).*", "\\1", gff_gene$attributes)
+
+  # 2. Extract transcripts (mRNAs)
+  tx_pattern <- paste0("Parent=", gene_id, "([;]|$)")
+  transcripts <- gff[
+    gff$type %in% c("mRNA", "transcript") & grepl(tx_pattern, gff$attributes),
+  ]
+
+  # Initialize list to compile all target features
+  results_list <- list()
+
+  # Add the main gene block
+  results_list[[1]] <- data.frame(
+    ID = gene_id,
+    Feature = "gene",
+    Chromosome = gff_gene$seqid,
+    Start = as.integer(gff_gene$start),
+    End = as.integer(gff_gene$end),
+    Strand = gff_gene$strand,
+    stringsAsFactors = FALSE
+  )
+
+  # 3. Process each transcript and its sub-features
+  if (nrow(transcripts) > 0) {
+    for (i in seq_len(nrow(transcripts))) {
+      tx <- transcripts[i, ]
+      tx_id <- sub(".*ID=([^;]+).*", "\\1", tx$attributes)
+
+      results_list[[length(results_list) + 1]] <- data.frame(
+        ID = tx_id,
+        Feature = tx$type,
+        Chromosome = tx$seqid,
+        Start = as.integer(tx$start),
+        End = as.integer(tx$end),
+        Strand = tx$strand,
+        stringsAsFactors = FALSE
+      )
+
+      # Grab all children of this specific transcript (CDS, UTRs, etc.)
+      child_pattern <- paste0("Parent=", tx_id, "([;]|$)")
+      children <- gff[grepl(child_pattern, gff$attributes), ]
+
+      if (nrow(children) > 0) {
+        # Add the raw standard features directly
+        results_list[[length(results_list) + 1]] <- data.frame(
+          ID = tx_id,
+          Feature = children$type,
+          Chromosome = children$seqid,
+          Start = as.integer(children$start),
+          End = as.integer(children$end),
+          Strand = children$strand,
+          stringsAsFactors = FALSE
+        )
+      }
+    }
+  }
+
+  # 4. Collapse and filter to user's desired features
+  final_df <- do.call(rbind, results_list)
+
+  target_features <- c(
+    "gene",
+    "mRNA",
+    "transcript",
+    "five_prime_UTR",
+    "CDS",
+    "three_prime_UTR"
+  )
+  final_df <- final_df[final_df$Feature %in% target_features, ]
+
+  # Order logically by ID and Start position for clean downstream parsing
+  final_df <- final_df[order(final_df$ID, final_df$Start), ]
+  rownames(final_df) <- NULL
+
+  return(final_df)
+}
+
+
+#' Plot the gene model using genomic coordinates (local)
+#'
+#' @description Visualizes the gene structure with adjusted component heights,
+#' a cleaned legend, and a strand orientation arrow. Introns are implicitly
+#' represented by the exposed transcript backbone.
+#' @param gene_df A data frame containing the genomic coordinates, expected to
+#' be the output from \code{gene_coord_gff}.
+#' @returns A \code{ggplot} object representing the structural gene model.
+#' @examples
+#' \donttest{
+#' library(panGenomeBreedr)
+#' # Path to GFF3 file
+#' gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+#' gene_features <- gene_coord_gff(gene_name = "Sobic.005G213600",
+#'                                 gff_path = gff_path)
+#' # Plot gene model for Sobic.005G213600
+#' plot_gene_model(gene_df = gene_features)
+#' }
+#' @export
+#' @importFrom ggplot2 ggplot aes geom_rect geom_segment scale_fill_manual theme_minimal labs theme element_blank arrow
+#' @importFrom grid unit
+plot_gene_model <- function(gene_df) {
+  Start <- End <- ymin <- ymax <- Feature <- x_start <- x_end <- NULL
+
+  # 1. Assign geometric heights based on Feature types
+  gene_df$ymin <- ifelse(
+    gene_df$Feature == "CDS",
+    -0.15,
+    ifelse(grepl("UTR", gene_df$Feature), -0.075, -0.01)
+  )
+
+  gene_df$ymax <- ifelse(
+    gene_df$Feature == "CDS",
+    0.15,
+    ifelse(grepl("UTR", gene_df$Feature), 0.075, 0.01)
+  )
+
+  # 2. Sort the data frame to ensure the backbone is drawn first (bottom layer)
+  gene_df <- gene_df[order(gene_df$ymax), ]
+
+  # 3. Extract the backbone to map the strand direction arrow
+  backbone <- gene_df[gene_df$Feature %in% c("gene", "mRNA", "transcript"), ]
+
+  # Map arrow coordinates dynamically based on strand (+ points right, - points left)
+  if (nrow(backbone) > 0) {
+    backbone$x_start <- ifelse(
+      backbone$Strand == "-",
+      backbone$End,
+      backbone$Start
+    )
+    backbone$x_end <- ifelse(
+      backbone$Strand == "-",
+      backbone$Start,
+      backbone$End
+    )
+  }
+
+  # 4. Define the clean color palette
+  type_colors <- c(
+    "five_prime_UTR" = "#0E77F0", # Light blue
+    "CDS" = "#FFA500", # orange
+    "three_prime_UTR" = "#009E73", # Green
+    "gene" = "#999999", # Grey backbone
+    "mRNA" = "#999999"
+  ) # Grey fallback
+
+  # 5. Plot the structure
+  p <- ggplot2::ggplot() +
+
+    # Draw rectangles for all features with a thin border
+    ggplot2::geom_rect(
+      data = gene_df,
+      ggplot2::aes(
+        xmin = Start,
+        xmax = End,
+        ymin = ymin,
+        ymax = ymax,
+        fill = Feature,
+        height = 0.01
+      ),
+      color = "black",
+      linewidth = 0.3
+    ) +
+
+    # Draw the orientation arrow running through the center of the backbone
+    ggplot2::geom_segment(
+      data = backbone,
+      ggplot2::aes(x = x_start, xend = x_end, y = 0, yend = 0),
+      arrow = ggplot2::arrow(
+        length = grid::unit(0.1, "inches"),
+        type = "closed"
+      ),
+      color = "black",
+      linewidth = 0.4
+    ) +
+
+    # Map colors AND refine legend
+    ggplot2::scale_fill_manual(
+      values = type_colors,
+      name = " ",
+      breaks = c("five_prime_UTR", "CDS", "three_prime_UTR"),
+      labels = c("5' UTR", "CDS", "3' UTR")
+    ) +
+
+    ggplot2::theme_classic() +
+    ggplot2::labs(x = "Genomic Position (bp)", y = "") +
+
+    # Clean up the y-axis
+    ggplot2::theme(
+      axis.line.y = ggplot2::element_blank(),
+      axis.text.y = ggplot2::element_blank(),
+      axis.line.x = ggplot2::element_blank(),
+      axis.ticks.y = ggplot2::element_blank(),
+      panel.grid.minor.y = ggplot2::element_blank(),
+      panel.grid.major.y = ggplot2::element_blank(),
+      panel.grid.minor.x = ggplot2::element_blank(),
+      panel.grid.major.x = ggplot2::element_line(
+        color = "#E5E5E5",
+        linetype = "dashed"
+      ),
+      legend.position = "bottom"
+    )
+
+  return(p)
+}
+
+
+#' Plot genomic variant hotspots (SNPs and INDELs) extracted from the database (local)
+#'
+#' @description Visualizes variant distributions across a genomic region.
+#' Variants are mapped by position, with impact levels determining their
+#' vertical placement (lollipop style), variant types mapped to shapes, and
+#' minor allele frequencies (MAF) mapped to point size.
+#' @param var_df A data frame containing variant data. Required columns:
+#' \code{variant_type} (character: "SNP", "INDEL"), \code{variant_id},
+#' \code{impact} (character: "MODIFIER", "LOW", "MODERATE", "HIGH"), and a numeric MAF column.
+#' @param chrom_col A character string specifying the chromosome column.
+#' @param pos_col A character string specifying the variant position column.
+#' @param maf_col A character string specifying the minor allele frequency column.
+#' @param start_pos A numeric integer for the region start. Default is the minimum
+#' position in var_df.
+#' @param end_pos A numeric integer for the region end. Default is the maximum
+#' position in var_df.
+#' @returns A \code{ggplot} object representing the variant hotspots.
+#' @examples
+#' \donttest{
+#' library(panGenomeBreedr)
+#' # Extract genotypes within the candidate gene: Sobic.005G213600
+#' gt_region <- fetch_table_region(table_name = "genotypes",
+#'                                 chrom = "Chr05",
+#'                                 start = 75104537,
+#'                                 end = 75106403,
+#'                                 connect_db_mode = "online"
+#'                                 )
+#'
+#' # Extract annotations for the candidate gene
+#' annota_region <- fetch_table_region(table_name = "annotations",
+#'                                     chrom = "Chr05",
+#'                                     start = 75104537,
+#'                                     end = 75106403,
+#'                                     gene_name = "Sobic.005G213600",
+#'                                     connect_db_mode = "online"
+#'                                     )
+#'
+#' var_df <- merge(annota_region, gt_region, by = "variant_id")
+#'
+#' plot_variant_hotspot(var_df)
+#' }
+#' @export
+#' @importFrom ggplot2 ggplot aes geom_hline geom_segment geom_point scale_fill_manual scale_shape_manual scale_size_continuous scale_x_continuous scale_y_continuous theme_minimal labs theme element_blank element_text element_line guides guide_legend margin
+#' @importFrom scales comma
+#' @importFrom stats runif
+plot_variant_hotspot <- function(
+  var_df,
+  chrom_col = "chrom.x",
+  pos_col = "pos.x",
+  maf_col = "minor_allele_freq",
+  start_pos = NULL,
+  end_pos = NULL
+) {
+  plot_y <- base_y <- impact <- variant_type <- NULL
+
+  # 1. Handle missing boundaries dynamically
+  if (is.null(start_pos)) {
+    start_pos <- min(var_df[[pos_col]], na.rm = TRUE)
+  }
+  if (is.null(end_pos)) {
+    end_pos <- max(var_df[[pos_col]], na.rm = TRUE)
+  }
+
+  # 2. Assign base y-coordinates based on Impact levels to stratify them vertically
+  var_df$base_y <- ifelse(
+    var_df$impact == "HIGH",
+    4,
+    ifelse(var_df$impact == "MODERATE", 3, ifelse(var_df$impact == "LOW", 2, 1))
+  )
+
+  # Add deterministic jitter so the stem drop-lines align perfectly with the points
+  set.seed(123)
+  var_df$plot_y <- var_df$base_y +
+    stats::runif(nrow(var_df), min = -0.3, max = 0.3)
+
+  # 3. Calculate summary statistics for the dynamic caption
+  total_vars <- length(unique(var_df$variant_id))
+  n_snps <- length(unique(var_df$variant_id[var_df$variant_type == "SNP"]))
+  n_indels <- length(unique(var_df$variant_id[var_df$variant_type == "INDEL"]))
+  caption_text <- paste0(
+    "Total Unique Variants: ",
+    total_vars,
+    " | SNPs: ",
+    n_snps,
+    " | INDELS: ",
+    n_indels
+  )
+
+  # Get chromosome number
+  chr <- var_df[[chrom_col]][1]
+
+  # 4. Define specific palettes mapped directly to the requested visual style
+  impact_colors <- c(
+    "MODIFIER" = "#CDBAAB", # Greyish purple
+    "LOW" = "#7198EC", # Blue
+    "MODERATE" = "#C98FD9", # Magenta/Purple
+    "HIGH" = "#F70909"
+  ) # Red
+
+  type_shapes <- c(
+    "SNP" = 21, # Filled circle (allows color borders)
+    "INDEL" = 24
+  ) # Filled triangle up
+
+  # Ensure factor levels so legends are ordered from least to most impact
+  var_df$impact <- factor(
+    var_df$impact,
+    levels = c("MODIFIER", "LOW", "MODERATE", "HIGH")
+  )
+
+  # 5. Build the plot
+  plt <- ggplot2::ggplot(var_df, ggplot2::aes(x = .data[[pos_col]])) +
+
+    # Add the thick baseline representing the chromosome track
+    ggplot2::geom_hline(yintercept = 0, color = "#C9D4E5", linewidth = 1.2) +
+
+    # Add the stem drop-lines (must be drawn BEFORE points so they sit underneath)
+    ggplot2::geom_segment(
+      ggplot2::aes(
+        x = .data[[pos_col]],
+        xend = .data[[pos_col]],
+        y = 0,
+        yend = plot_y
+      ),
+      color = "#E0E0E0",
+      linewidth = 0.3,
+      alpha = 0.6
+    ) +
+
+    # Add the variant points: mapped to y, fill, shape, AND size (MAF)
+    ggplot2::geom_point(
+      ggplot2::aes(
+        y = plot_y,
+        fill = impact,
+        shape = variant_type,
+        size = .data[[maf_col]]
+      ),
+      color = "black",
+      stroke = 0.4,
+      alpha = 0.8
+    ) +
+
+    # Map aesthetics explicitly
+    ggplot2::scale_fill_manual(values = impact_colors, name = "Max Impact") +
+    ggplot2::scale_shape_manual(values = type_shapes, name = "Variant Type") +
+
+    # Scale point sizes for MAF so they remain visible but don't overwhelm the plot
+    # New line
+    ggplot2::scale_size_continuous(
+      name = "MAF",
+      range = c(1.5, 6),
+      breaks = c(0.05, 0.1, 0.2, 0.3, 0.4, 0.5)
+    ) +
+
+    # Apply labels and format x-axis limits with commas
+    ggplot2::labs(
+      title = caption_text,
+      subtitle = paste0(
+        chr,
+        ": ",
+        scales::comma(start_pos),
+        " - ",
+        scales::comma(end_pos)
+      ),
+      x = "Genomic Position (bp)",
+      y = ""
+    ) +
+
+    # Use standard comma formatting for the x-axis scale
+    ggplot2::scale_x_continuous(
+      labels = scales::comma,
+      limits = c(start_pos, end_pos)
+    ) +
+
+    # Hardcode y-axis limits so the baseline rests cleanly near the bottom
+    ggplot2::scale_y_continuous(limits = c(-0.2, 4.8)) +
+
+    # Apply clean structural theme
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(size = 14, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 10, color = "darkgrey"),
+
+      # Position the caption text heavily to the left under the axis
+      plot.caption = ggplot2::element_text(
+        hjust = 0,
+        size = 10,
+        face = "bold",
+        margin = ggplot2::margin(t = 15)
+      ),
+
+      # Handle gridlines
+      panel.grid.major.x = ggplot2::element_line(
+        color = "#E5E5E5",
+        linetype = "dashed"
+      ),
+      panel.grid.minor.x = ggplot2::element_blank(),
+      panel.grid.major.y = ggplot2::element_blank(),
+      panel.grid.minor.y = ggplot2::element_blank(),
+
+      # Strip away standard y-axis visuals
+      axis.text.y = ggplot2::element_blank(),
+      axis.ticks.y = ggplot2::element_blank(),
+      axis.title.y = ggplot2::element_blank(),
+
+      # Clean up x-axis text
+      axis.text.x = ggplot2::element_text(size = 10, color = "black"),
+
+      # Position the legend
+      legend.position = "right",
+      legend.title = ggplot2::element_text(face = "bold", size = 9),
+      legend.text = ggplot2::element_text(size = 8)
+    ) +
+
+    # Ensure legends correctly preview shapes and don't visually clash
+    ggplot2::guides(
+      fill = ggplot2::guide_legend(override.aes = list(shape = 21, size = 4)),
+      shape = ggplot2::guide_legend(
+        override.aes = list(size = 4, fill = "darkgrey")
+      ),
+      size = ggplot2::guide_legend(
+        override.aes = list(shape = 21, fill = "darkgrey")
+      )
+    )
+
+  return(plt)
+}
+
+
+#' Generate a combined gene model and variant hotspot overlay plot (local)
+#'
+#' @description Generates a vertically stacked visualization aligning a structural
+#' gene model with its corresponding regional variant hotspots.
+#'
+#' @details This wrapper function integrates genomic annotations and variant genotypes.
+#'
+#' @param gene_name A character string indicating the Sobic ID of the candidate gene.
+#' @param gff_path A character string specifying the path to the GFF3 file.
+#' @param annotations_df A data frame containing variant annotations for the region.
+#' @param genotypes_df A data frame containing variant genotypes for the region.
+#' @param selected_variants An optional character vector of specific `variant_id`s to
+#' highlight on the plot with vertical lines, enlarged points, and labels.
+#' @param text_sz A numeric value for specifying text size for selected variants.
+#' @examples
+#' \donttest{
+#' library(panGenomeBreedr)
+#'
+#' # 1. Define parameters
+#' gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+#' gene <- "Sobic.005G213600"
+#'
+#' # Fetch data for the gene region
+#' ann_df <- fetch_table_region(
+#'   table_name = "annotations",
+#'   chrom = "Chr05", start = 75104537, end = 75106403,
+#'   connect_db_mode = 'online'
+#' )
+#' geno_df <- fetch_table_region(
+#'   table_name = "genotypes",
+#'   chrom = "Chr05", start = 75104537, end = 75106403,
+#'   connect_db_mode = 'online'
+#' )
+#'
+#' #  Generate and display the plot
+#' if (nrow(ann_df) > 0 && nrow(geno_df) > 0) {
+#'   hotspot_overlay_plot(
+#'     gene_name = gene, gff_path = gff_path,
+#'     annotations_df = ann_df, genotypes_df = geno_df
+#'   )
+#' }
+#' }
+#' @returns A \code{patchwork} object containing the combined, aligned plots.
+#' @export
+#' @importFrom ggplot2 geom_vline geom_point theme element_blank aes scale_y_continuous coord_cartesian
+#' @importFrom ggrepel geom_text_repel
+#' @importFrom patchwork plot_layout
+hotspot_overlay_plot <- function(
+  gene_name,
+  gff_path,
+  annotations_df,
+  genotypes_df,
+  selected_variants = NULL,
+  text_sz = 2.5
+) {
+  # Get the gene model from the gff3 file
+  gene_model <- gene_coord_gff(gene_name = gene_name, gff_path)
+
+  # Plot the gene model
+  gene_model_plot <- plot_gene_model(gene_df = gene_model)
+
+  chr <- gene_model$Chromosome[1] # Get chromosome number
+
+  # Get the start pos of the gene
+  start_pos <- min(gene_model$Start[gene_model$Feature == "gene"], na.rm = TRUE)
+
+  # Get the end pos of the gene
+  end_pos <- max(gene_model$End[gene_model$Feature == "gene"], na.rm = TRUE)
+
+  var_df <- merge(annotations_df, genotypes_df, by = "variant_id")
+
+  # Generate the base hotspot plot
+  hotspot_plot <- plot_variant_hotspot(
+    var_df,
+    start_pos = start_pos,
+    end_pos = end_pos
+  )
+
+  # Remove the x-axis text and title from the top plot so it flows cleanly into the bottom plot
+  hotspot_clean <- hotspot_plot +
+    ggplot2::theme(
+      axis.title.x = ggplot2::element_blank(),
+      axis.text.x = ggplot2::element_blank(),
+      axis.ticks.x = ggplot2::element_blank()
+    )
+
+  # Annotate combined plot to show selected variants
+  if (!is.null(selected_variants)) {
+    # Filter the dataset for the selected variants
+    sel_df <- var_df[var_df$variant_id %in% selected_variants, ]
+
+    if (nrow(sel_df) > 0) {
+      # Clean the variant labels for plotting (Remove redundant Chr info)
+      sel_df$clean_label <- gsub(
+        paste0("_", chr, "_"),
+        " ",
+        sel_df$variant_id,
+        ignore.case = TRUE
+      )
+
+      # Replicate the deterministic y-axis mapping used in plot_variant_hotspot
+      # so the overlay coordinates perfectly match the underlying plot
+      sel_df$base_y <- ifelse(
+        sel_df$impact == "HIGH",
+        4,
+        ifelse(
+          sel_df$impact == "MODERATE",
+          3,
+          ifelse(sel_df$impact == "LOW", 2, 1)
+        )
+      )
+
+      # We must replicate the jitter on the FULL df first to match the original seed alignment
+      set.seed(123)
+      var_df$base_y <- ifelse(
+        var_df$impact == "HIGH",
+        4,
+        ifelse(
+          var_df$impact == "MODERATE",
+          3,
+          ifelse(var_df$impact == "LOW", 2, 1)
+        )
+      )
+      var_df$plot_y <- var_df$base_y +
+        stats::runif(nrow(var_df), min = -0.3, max = 0.3)
+
+      # Now extract the exactly matched y-coordinates
+      sel_df$plot_y <- var_df$plot_y[match(
+        sel_df$variant_id,
+        var_df$variant_id
+      )]
+
+      # Add vertical dotted lines bridging both plots
+      hotspot_clean <- hotspot_clean +
+        ggplot2::geom_vline(
+          xintercept = sel_df$pos.x,
+          linetype = "dotted",
+          color = "black",
+          alpha = 0.6
+        )
+
+      gene_model_plot <- gene_model_plot +
+        ggplot2::geom_vline(
+          xintercept = sel_df$pos.x,
+          linetype = "dotted",
+          color = "black",
+          alpha = 0.6
+        )
+
+      # Expand the y-axis to prevent the nudged coordinates and tall vertical text from being dropped
+      suppressMessages({
+        hotspot_clean <- hotspot_clean +
+          ggplot2::scale_y_continuous(limits = c(-0.2, 7.5)) +
+          ggplot2::coord_cartesian(clip = "off")
+      })
+
+      # Add enlarged points and names to the hotspot plot
+      hotspot_clean <- hotspot_clean +
+        ggplot2::geom_point(
+          data = sel_df,
+          ggplot2::aes(x = pos.x, y = plot_y),
+          size = 5,
+          color = "black",
+          shape = 21,
+          stroke = 1
+        ) +
+        ggrepel::geom_text_repel(
+          data = sel_df,
+          ggplot2::aes(x = pos.x, y = plot_y, label = clean_label),
+          size = text_sz,
+          fontface = "bold",
+          angle = 90, # Rotate labels vertically
+          hjust = 0, # Anchor text cleanly at the bottom
+          vjust = 0.5, # Center align the line to the text base
+          nudge_y = 0.8, # Push text upward to clear the plotting space
+          direction = "x", # Force ggrepel to only spread them sideways if they overlap
+          max.overlaps = Inf
+        ) # Force all requested labels to draw
+    }
+  }
+
+  final_overlay <- hotspot_clean /
+    gene_model_plot +
+    patchwork::plot_layout(heights = c(4, 1), axes = "collect")
+
+  # View the final combined plot
+  return(final_overlay)
+}
+
+
+

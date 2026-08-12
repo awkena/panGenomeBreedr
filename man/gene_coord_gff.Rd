@@ -2,51 +2,31 @@
 % Please edit documentation in R/variant_discovery.R
 \name{gene_coord_gff}
 \alias{gene_coord_gff}
-<<<<<<< HEAD
-\title{Get the genomic range of a candidate gene from a GFF file}
-=======
 \title{Get the genomic range of a candidate gene and its features using the Sobic ID from a GFF file (local)}
->>>>>>> main
 \usage{
 gene_coord_gff(gene_name, gff_path)
 }
 \arguments{
-\item{gene_name}{A character value indicating the Sobic ID of the candidate gene.}
+\item{gene_name}{A character value indicating the Sobic ID of candidate gene.}
 
-\item{gff_path}{A character value specifying the path to the GFF3 file.
-URL paths and GZ-compressed files are supported.}
+\item{gff_path}{A character value specifying the path to gff3 file. GZ compressed
+files and URL file paths are acceptable.}
 }
 \value{
 A data frame containing the genomic coordinates (chromosome, start, end, strand)
 of the gene, transcripts, 5'-UTR, CDS, and 3'-UTR.
 }
 \description{
-<<<<<<< HEAD
-This function parses a GFF3 file (local or remote) to find the
-genomic coordinates (chromosome, start, end) for a specified gene ID.
-=======
 Get the genomic range of a candidate gene and its features using the Sobic ID from a GFF file (local)
->>>>>>> main
 }
 \examples{
 \donttest{
 # example code
-<<<<<<< HEAD
-
-# Define path to a remote sorghum GFF3 file (v5.1)
-gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
-
-# Retrieve coordinates for a candidate gene
-gene_coord_gff(gene_name = "Sobic.005G213600",
-               gff_path = gff_path)
-
-=======
 library(panGenomeBreedr)
 # Path to GFF3 file
 gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
 gene_features <- gene_coord_gff(gene_name = "Sobic.005G213600",
                                 gff_path = gff_path)
 head(gene_features)
->>>>>>> main
 }
 }

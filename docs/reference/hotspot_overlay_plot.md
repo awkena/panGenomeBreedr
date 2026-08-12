@@ -9,8 +9,8 @@ model with its corresponding regional variant hotspots.
 hotspot_overlay_plot(
   gene_name,
   gff_path,
-  connect_db_mode = c("online", "local"),
-  local_db_path = NULL,
+  annotations_df,
+  genotypes_df,
   selected_variants = NULL,
   text_sz = 2.5
 )
@@ -26,15 +26,13 @@ hotspot_overlay_plot(
 
   A character string specifying the path to the GFF3 file.
 
-- connect_db_mode:
+- annotations_df:
 
-  A character string specifying the database connection mode: either
-  "online" or "local".
+  A data frame containing variant annotations for the region.
 
-- local_db_path:
+- genotypes_df:
 
-  A character string specifying the local folder path to the database if
-  running in "local" mode.
+  A data frame containing variant genotypes for the region.
 
 - selected_variants:
 
@@ -52,22 +50,37 @@ A `patchwork` object containing the combined, aligned plots.
 ## Details
 
 This wrapper function integrates genomic annotations and variant
-genotypes. It natively queries the pangenome-scale variant relational
-database. Whether operating in 'online' mode or 'local' mode, it
-leverages the underlying Parquet and DuckDB architectures optimized for
-sorghum to efficiently retrieve variants and their snpEff annotations
-before plotting.
+genotypes.
 
 ## Examples
 
 ``` r
 # \donttest{
 library(panGenomeBreedr)
+
+# 1. Define parameters
 gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
-hotspot_overlay_plot(gene_name = "Sobic.005G213600",
-                     gff_path = gff_path,
-                     connect_db_mode = "online",
-                     selected_variants = c("INDEL_Chr05_75104881", "INDEL_Chr05_75105587"))
+gene <- "Sobic.005G213600"
+
+# Fetch data for the gene region
+ann_df <- fetch_table_region(
+  table_name = "annotations",
+  chrom = "Chr05", start = 75104537, end = 75106403,
+  connect_db_mode = 'online'
+)
+geno_df <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = "Chr05", start = 75104537, end = 75106403,
+  connect_db_mode = 'online'
+)
+
+#  Generate and display the plot
+if (nrow(ann_df) > 0 && nrow(geno_df) > 0) {
+  hotspot_overlay_plot(
+    gene_name = gene, gff_path = gff_path,
+    annotations_df = ann_df, genotypes_df = geno_df
+  )
+}
 
 # }
 ```

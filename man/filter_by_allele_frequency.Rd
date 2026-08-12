@@ -16,23 +16,23 @@ filter_by_allele_frequency(
 \arguments{
 \item{gt}{A data frame containing genotype calls queried from the genotypes table.}
 
-\item{variant_id_col}{Character. The column name in \code{gt} matching unique variant identifiers.
+\item{variant_id_col}{Character. The column name in \code{gt} matching unique variant identifiers. 
 Defaults to \code{"variant_id"}.}
 
-\item{chrom_col}{Character. The column name in \code{gt} matching chromosome names.
+\item{chrom_col}{Character. The column name in \code{gt} matching chromosome names. 
 Defaults to \code{"chrom"}.}
 
-\item{pos_col}{Character. The column name in \code{gt} matching genomic positions.
+\item{pos_col}{Character. The column name in \code{gt} matching genomic positions. 
 Defaults to \code{"pos"}.}
 
-\item{min_af}{Numeric. Minimum alternate allele frequency threshold for filtering.
+\item{min_af}{Numeric. Minimum alternate allele frequency threshold for filtering. 
 Must fall between 0 and 1. Defaults to \code{0}.}
 
-\item{max_af}{Numeric. Maximum alternate allele frequency threshold for filtering.
+\item{max_af}{Numeric. Maximum alternate allele frequency threshold for filtering. 
 Must fall between 0 and 1. Defaults to \code{1}.}
 }
 \value{
-A data frame of variants passing the frequency thresholds, tracking their coordinates,
+A data frame of variants passing the frequency thresholds, tracking their coordinates, 
   calculated reference allele frequencies (\code{ref_af}), and alternate allele frequencies (\code{alt_af}).
 }
 \description{
@@ -52,20 +52,11 @@ my_db_folder <- system.file("extdata", "pangenome_scale_db",
 con <- connect_local_db(folder_path = my_db_folder)
 
 # Query genotypes
-<<<<<<< HEAD:man/filter_by_allele_frequency.Rd
 gt_region <- fetch_table_region(con = con, chrom = "Chr05", start = 75104537, 
                       end = 75106403, table_name = "genotypes")
 
 filtered_vars <- filter_by_allele_frequency(gt_region, variant_id_col = "variant_id", 
                               chrom_col = "chrom", pos_col = "pos", 
-=======
-gt_region <- query_db(con = con, chrom = "Chr05", start = 75104537,
-                      end = 75106403, table_name = "genotypes")
-
-# Filter out rare variants or monomorphic lines by restricting the alternate allele frequency window
-filtered_vars <- filter_by_af(gt_region, variant_id_col = "variant_id",
-                              chrom_col = "chrom", pos_col = "pos",
->>>>>>> main:man/filter_by_af.Rd
                               min_af = 0.05, max_af = 0.95)
 
 # Disconnect at the end of your session

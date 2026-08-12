@@ -47,9 +47,10 @@ export(parent_missing)
 export(parent_poly)
 export(parse_marker_ns)
 export(plot_accession_map)
+export(plot_gene_model)
 export(plot_ld_geodesic)
 export(plot_plate)
-export(plot_variant_hotspots)
+export(plot_variant_hotspot)
 export(pred_status)
 export(pred_summary)
 export(pred_summary_plot)
@@ -114,6 +115,7 @@ importFrom(ggplot2,
   margin,
   scale_fill_manual,
   scale_shape_manual,
+  scale_size_continuous,
   scale_x_continuous,
   scale_y_continuous,
   theme,
@@ -132,7 +134,9 @@ importFrom(gridExtra,marrangeGrob)
 importFrom(httr,
   GET,
   content,
-  http_error
+  http_error,
+  stop_for_status,
+  timeout
 )
 importFrom(jsonlite,fromJSON)
 importFrom(patchwork,plot_layout)
