@@ -132,15 +132,16 @@ mapping LD values these include: "magma", "plasma", "inferno", "viridis", "mako"
 <span class="r-in"><span>chrom <span class="op">=</span> <span class="st">"Chr03"</span>,</span></span>
 <span class="r-in"><span>gene_name <span class="op">=</span> <span class="st">"Sobic.003G421300"</span>,</span></span>
 <span class="r-in"><span>start <span class="op">=</span> <span class="fl">79037682</span>,</span></span>
-<span class="r-in"><span>end <span class="op">=</span> <span class="fl">79039091</span></span></span>
+<span class="r-in"><span>end <span class="op">=</span> <span class="fl">79039091</span>,</span></span>
+<span class="r-in"><span>connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">query_geno</span> <span class="op">&lt;-</span> <span class="fu">panGenomeBreedr</span><span class="fu">::</span><span class="fu">pg_query_db</span><span class="op">(</span></span></span>
 <span class="r-in"><span>table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span></span>
 <span class="r-in"><span>chrom <span class="op">=</span> <span class="st">"Chr03"</span>,</span></span>
-<span class="r-in"><span>gene_name <span class="op">=</span> <span class="st">"Sobic.003G421300"</span>,</span></span>
 <span class="r-in"><span>start <span class="op">=</span> <span class="fl">79037682</span>,</span></span>
-<span class="r-in"><span>end <span class="op">=</span> <span class="fl">79039091</span></span></span>
+<span class="r-in"><span>end <span class="op">=</span> <span class="fl">79039091</span>,</span></span>
+<span class="r-in"><span>connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Compute your updated wide data containing distance tracking columns</span></span></span>
@@ -158,11 +159,13 @@ mapping LD values these include: "magma", "plasma", "inferno", "viridis", "mako"
 <span class="r-in"><span>  metric <span class="op">=</span> <span class="st">"R2"</span>,</span></span>
 <span class="r-in"><span>  target_variant_ids <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"INDEL_Chr03_79037889"</span>, <span class="st">"SNP_Chr03_79037855"</span>,<span class="st">"SNP_Chr03_79037944"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  threshold <span class="op">=</span> <span class="fl">0.2</span>, </span></span>
+<span class="r-in"><span>  threshold <span class="op">=</span> <span class="fl">0.8</span>, </span></span>
 <span class="r-in"><span>  block_threshold <span class="op">=</span> <span class="fl">0.8</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Access the plot</span></span></span>
 <span class="r-in"><span><span class="va">result</span><span class="op">$</span><span class="va">plot</span></span></span>
+<span class="r-plt img"><img src="plot_ld_geodesic-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Access the haploblock table</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">table</span><span class="op">)</span></span></span>

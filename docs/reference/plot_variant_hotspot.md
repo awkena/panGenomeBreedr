@@ -59,6 +59,8 @@ A `ggplot` object representing the variant hotspots.
 library(panGenomeBreedr)
 # Extract genotypes within the candidate gene: Sobic.005G213600
 gt_region <- fetch_table_region(table_name = "genotypes",
+# Extract genotypes within the candidate gene: Sobic.005G213600
+gt_region <- fetch_table_region(table_name = "genotypes",
                                 chrom = "Chr05",
                                 start = 75104537,
                                 end = 75106403,
