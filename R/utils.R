@@ -2279,8 +2279,6 @@ cross_qc_annotate <- function(x,
 }
 
 
-
-
 #' Generate Geodesic Landscape Plot and Extract Haploblock Data
 #'
 #' @param ld_df A long-format data frame of pairwise LD statistics containing 
