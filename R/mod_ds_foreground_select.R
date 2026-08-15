@@ -12,7 +12,7 @@ mod_ds_foreground_select_ui <- function(id) {
   tagList(
     navset_card_underline(
       nav_panel(
-        title = "Foreground select",
+        title = "Foreground Selection",
         icon = icon("flask"),
         bslib::layout_sidebar(
           sidebar = bslib::sidebar(

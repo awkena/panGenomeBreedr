@@ -2141,7 +2141,7 @@ mod_variant_discovery_server <- function(id) {
       col <- input$filter_col_genotypes; col_data <- values$table_genotypes[[col]]
       if (is.numeric(col_data)) {
         rng <- range(col_data, na.rm = TRUE)
-        sliderInput(ns("filter_val_genotypes"), "Range", min = rng[1], max = rng[2], value = rng)
+        sliderInput(ns("filter_val_genotypes"), "Range", min = rng[1], max = rng[2], value = rng,step = 0.01)
       } else {
         choices <- sort(unique(na.omit(as.character(col_data))))
         selectizeInput(ns("filter_val_genotypes"), "Values", choices = choices, multiple = TRUE, options = list(placeholder = "Select value(s)..."))

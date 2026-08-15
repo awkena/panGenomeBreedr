@@ -18,7 +18,7 @@ mod_ds_marker_ass_bac_ui <- function(id) {
   tagList(
     navset_card_underline(
       nav_panel(
-        title = "Decision Support for MABC",
+        title = "Background Recovery",
         icon = icon("flask"),
         bslib::layout_sidebar(
           sidebar = bslib::sidebar(
