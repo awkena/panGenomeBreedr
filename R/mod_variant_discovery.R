@@ -475,6 +475,24 @@ gene_cord_tab <- function(ns) {
                   width = "100%",
                   placeholder = "lgs1"
                 ),
+                textInput(
+                  ns("modal_genome_version"),
+                  "Genome Version",
+                  width = "100%",
+                  placeholder = "Sbicolor v5.1"
+                ),
+                textInput(
+                  ns("modal_trait"),
+                  "Trait",
+                  width = "100%",
+                  placeholder = "Stay-green"
+                ),
+                textInput(
+                  ns("modal_owner"),
+                  "Owner",
+                  width = "100%",
+                  placeholder = "Green Evolution"
+                ),
                 numericInput(
                   ns("modal_maf"),
                   "Minor Allele Frequency (MAF)",
@@ -1055,7 +1073,7 @@ mod_variant_discovery_server <- function(id) {
       "Variant Statistics",
       "variant_stats",
       summarize_variants,
-      include_annotations = FALSE # Explicitly set to FALSE as in original logic
+      include_annotations = FALSE 
     )
 
     fetch_data(
@@ -2648,15 +2666,16 @@ mod_variant_discovery_server <- function(id) {
         active_data,
         input$modal_genome_file$datapath,
         input$modal_maf,
-        input$modal_marker_ID
+        input$modal_marker_ID,
+        input$modal_genome_version,
+        input$modal_trait,
+        input$modal_owner
       )
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
         color = "#27AE60",
         text = "Designing KASP Marker... Please wait."
       )
-      list_markers <- list()
-      list_plots <- list()
       tryCatch(
         {
           gt_cols <- colnames(active_data)
@@ -2665,41 +2684,41 @@ mod_variant_discovery_server <- function(id) {
           pos_col <- gt_cols[grep("pos", gt_cols, ignore.case = TRUE)[1]]
           ref_col <- gt_cols[grep("ref", gt_cols, ignore.case = TRUE)[1]]
           alt_col <- gt_cols[grep("alt", gt_cols, ignore.case = TRUE)[1]]
-          geno_start <- 11
           unique_chr <- unique(active_data[[chrom_col]])
 
-          for (marker in input$modal_marker_ID) {
-            result_data <- kasp_marker_design(
-              vcf_file = NULL,
-              gt_df = active_data,
-              variant_id_col = id_col,
-              chrom_col = chrom_col,
-              pos_col = pos_col,
-              ref_al_col = ref_col,
-              alt_al_col = alt_col,
-              geno_start = input$modal_genotype_start_col,
-              marker_ID = marker,
-              chr = unique_chr,
-              genome_file = input$modal_genome_file$datapath,
-              plot_file = tempdir(),
-              region_name = input$modal_reg_name,
-              maf = input$modal_maf,
-              save_alignment = FALSE
-            )
-            list_markers[[marker]] <- result_data$marker_data
-            list_plots[[marker]] <- result_data$plot
-          }
-          kasp_des.result(data.table::rbindlist(list_markers))
-          kasp_des.plot(list_plots)
+          # The kasp_marker_design function now handles multiple marker IDs
+          result_data <- kasp_marker_design(
+            gt_df = active_data,
+            variant_id_col = id_col,
+            chrom_col = chrom_col,
+            pos_col = pos_col,
+            ref_al_col = ref_col,
+            alt_al_col = alt_col,
+            geno_start = input$modal_genotype_start_col,
+            marker_IDs = input$modal_marker_ID, # Pass all selected markers
+            chr = unique_chr,
+            genome_file = input$modal_genome_file$datapath,
+            plot_file = tempdir(),
+            region_name = input$modal_reg_name,
+            maf = input$modal_maf,
+            save_alignment = FALSE
+          )
+
+          intertek_table <- make_intertek_table(
+            marker_data = result_data,
+            genome_version = input$modal_genome_version,
+            region_name = input$modal_reg_name,
+            trait = input$modal_trait,
+            owner = input$modal_owner
+          )
+
+
+          kasp_des.result(intertek_table)
+          kasp_des.plot(result_data$plot)
 
           shinyWidgets::show_alert(
             title = "Success!",
-            text = paste(
-              length(list_markers),
-              "KASP marker(s) and",
-              length(list_plots),
-              "plot(s) designed successfully"
-            ),
+            text = paste(nrow(intertek_table), "KASP marker(s) designed successfully."),
             type = "success",
             timer = 5000
           )

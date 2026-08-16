@@ -81,7 +81,9 @@
 ### Marker Design & Utilities
 
 - [`kasp_marker_design()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_marker_design.md)
-  : Design KASP markers based on causal variants.
+  : Design KASP markers for one or more causal variants.
+- [`make_intertek_table()`](https://awkena.github.io/panGenomeBreedr/reference/make_intertek_table.md)
+  : Generate a Standardized Intertek Submission Table for KASP Markers
 - [`gene_coord_gff()`](https://awkena.github.io/panGenomeBreedr/reference/gene_coord_gff.md)
   : Get the genomic range of a candidate gene and its features using the
   Sobic ID from a GFF file (local)

@@ -2358,3 +2358,180 @@ append_locus_allele_metrics <- function(
 
   return(region_matrix)
 }
+
+
+#' Generate a Standardized Intertek Submission Table for KASP Markers
+#'
+#' @description
+#' This function transforms marker data into a standardized data frame that is
+#' compliant with the Intertek genotyping submission format. It processes one or
+#' more markers, generates a unique Intertek-formatted SNP name, and organizes
+#' all required information into a clean, submission-ready table.
+#'
+#' @details
+#' The function constructs a unique `SNP Name*` for each marker by combining
+#' the genome version, chromosome, position, and a suffix indicating the
+#' variant type.
+#' - **Substitutions (SNPs):** A suffix is derived from the IUPAC ambiguity code
+#'   for the allele pair (e.g., 'AG' becomes 'R'). If the combination is not a
+#'   standard IUPAC code, 'X' is used.
+#' - **Insertions/Deletions (INDELs):** The suffix is always 'I'.
+#'
+#' The final name format is `genome_version_chr_pos_suffix`.
+#'
+#' @param marker_data A list containing a `$marker_data` data frame. This data
+#'   frame must have one or more rows, each with the following columns:
+#'   `SNP_Name`, `SNP`, `Marker_Name`, `Chromosome`, `Chromosome_Position`,
+#'   `Sequence`, `ReferenceAllele`, and `AlternativeAllele`.
+#' @param genome_version A character string specifying the genome or assembly
+#'   version (e.g., "Sbv5.1").
+#' @param region_name A character string for the QTL, gene, or region name
+#'   associated with the markers.
+#' @param trait A character string describing the trait associated with the markers.
+#' @param owner A character string identifying the name of the person or lab
+#'   responsible for the submission.
+#' @param publication_status A character string for the publication status.
+#'   Defaults to "Restricted".
+#'
+#' @return A data frame with columns formatted for Intertek submission. If an
+#'   error occurs while processing a specific marker, the 'Comments' column for
+#'   that row will contain the error message.
+#'
+#' @export
+#' @family KASP-marker-design
+#'
+#' @examples
+#' \donttest{
+#' marker_data <- list(
+#'   marker_data = data.frame(
+#'     SNP_Name = "SNP_Chr03_11361160",
+#'     SNP = "Substitution",
+#'     Marker_Name = "example",
+#'     Chromosome = "Chr03",
+#'     Chromosome_Position = 11361160,
+#'     Sequence = "ACTG...[G/A]...CTGAAA",
+#'     ReferenceAllele = "G",
+#'     AlternativeAllele = "A",
+#'     stringsAsFactors = FALSE
+#'   )
+#' )
+#'
+#' make_intertek_table(marker_data = marker_data, genome_version = "Sbv5.1",
+#' region_name = "qDT3.1", trait = "Stay-green", owner = "Cruet-Burgos")
+#' }
+#' 
+make_intertek_table <- function(
+  marker_data,
+  genome_version,
+  region_name,
+  trait,
+  owner,
+  publication_status = "Restricted"
+) {
+
+  # Ensure the primary input is a list with the expected data frame element.
+  if (!is.list(marker_data) || !"marker_data" %in% names(marker_data)) {
+    stop("`marker_data` must be a list containing a `$marker_data` data.frame.")
+  }
+
+  md <- marker_data$marker_data
+  if (!is.data.frame(md) || nrow(md) == 0) {
+    stop("`marker_data$marker_data` must be a non-empty data.frame.")
+  }
+
+  # Verify that all required columns are present in the marker data.
+  required_cols <- c(
+    "SNP_Name", "SNP", "Marker_Name", "Chromosome", "Chromosome_Position",
+    "Sequence", "ReferenceAllele", "AlternativeAllele"
+  )
+  missing_cols <- setdiff(required_cols, names(md))
+  if (length(missing_cols) > 0) {
+    stop(
+      "Missing required columns in `marker_data$marker_data`: ",
+      paste(missing_cols, collapse = ", ")
+    )
+  }
+
+  # Define IUPAC codes for SNP suffix generation.
+  iupacode <- data.frame(
+    one_letter = c('R', 'Y', 'S', 'W', 'K', 'M'),
+    allele_comb1 = c('AG', 'CT', 'CG', 'AT', 'GT', 'AC'),
+    stringsAsFactors = FALSE
+  )
+
+  # Process Each Marker Row 
+  intertek_rows <- lapply(seq_len(nrow(md)), function(i) {
+
+    # Initialize a template for the output row. 
+    intertek_row <- data.frame(
+      `S/no` = NA_character_,
+      `SNP Name*` = NA_character_,
+      `Alternative ID` = NA_character_,
+      `SNP*` = NA_character_,
+      `Sequence*` = NA_character_,
+      Trait = trait,
+      `Gene/QTL` = region_name,
+      `Chromosome Number` = NA_character_,
+      `Chromosome Position` = NA_character_,
+      `Reference Allele` = NA_character_,
+      `Alternative Allele` = NA_character_,
+      `Owner*` = owner,
+      `Published/Restricted*` = publication_status,
+      Reference = NA_character_,
+      `SNP Geographical/Strain Relevance` = NA_character_,
+      Comments = NA_character_,
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    )
+
+    tryCatch({
+      # Extract the current row for processing.
+      row_md <- md[i, ]
+
+      # Extract numeric part of the chromosome string (e.g., "Chr05" -> "05").
+      chr_num <- gsub("[^0-9]", "", row_md$Chromosome)
+      pos_chr <- as.character(row_md$Chromosome_Position)
+
+      # Determine the suffix for the SNP name based on variant type.
+      if (identical(row_md$SNP, "Substitution")) {
+        # For SNPs, sort alleles to create a consistent key (e.g., "AG", not "GA").
+        pair_sorted <- paste0(
+          sort(c(row_md$ReferenceAllele, row_md$AlternativeAllele)),
+          collapse = ""
+        )
+        # Match the sorted pair to an IUPAC code.
+        suffix <- iupacode$one_letter[match(pair_sorted, iupacode$allele_comb1)]
+        # If no standard IUPAC code exists, use 'X' as a fallback.
+        if (is.na(suffix)) suffix <- "X"
+      } else {
+        # For INDELs, the standard suffix is 'I'.
+        suffix <- "I"
+      }
+
+      # Construct the final Intertek-formatted table.
+      snp_name <- paste(genome_version, chr_num, pos_chr, suffix, sep = "_")
+
+      intertek_row$`SNP Name*` <- snp_name
+      intertek_row$`SNP*` <- paste(row_md$ReferenceAllele, row_md$AlternativeAllele, sep = "/")
+      intertek_row$`Sequence*` <- row_md$Sequence
+      intertek_row$`Chromosome Number` <- chr_num
+      intertek_row$`Chromosome Position` <- pos_chr
+      intertek_row$`Reference Allele` <- row_md$ReferenceAllele
+      intertek_row$`Alternative Allele` <- row_md$AlternativeAllele
+
+      return(intertek_row)
+
+    }, error = function(e) {
+      intertek_row$Comments <- paste("Processing Error:", e$message)
+      return(intertek_row)
+    })
+  })
+
+  # Combine the list of processed rows into a single data frame.
+  final_table <- do.call(rbind, intertek_rows)
+
+  # Replace any remaining NA values with empty strings 
+  final_table[is.na(final_table)] <- ""
+
+  return(final_table)
+}

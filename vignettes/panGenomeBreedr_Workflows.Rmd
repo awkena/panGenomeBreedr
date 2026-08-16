@@ -605,6 +605,15 @@ lgs1 <- kasp_marker_design(gt_df = geno_high_filtered,
                            plot_file = path,
                            region_name = "lgs1")
 
+# Create the Intertek-formatted table.
+intertek_table <- make_intertek_table(
+  marker_data = lgs1,
+  genome_version = "Sbv5.1",
+  region_name = "lgs1",
+  trait = "Stay-green",
+  owner = "Green Evolution"
+)
+
 
 # View marker alignment output from temp folder
 path3 <- file.path(path, list.files(path = path, "alignment_"))
@@ -645,8 +654,8 @@ The required sequence for submission to Intertek for the designed KASP marker is
 
 ```{r, echo = FALSE}
 library(knitr)
-knitr::kable(lgs1$marker_data, 
-             caption = 'Table 6: Intertek required sequence for a KASP marker.', 
+knitr::kable(intertek_table, 
+             caption = 'Table 6: Intertek-formatted table for KASP markers.', 
              format = 'html', 
              padding = 0, 
              booktabs = TRUE, 

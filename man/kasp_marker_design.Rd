@@ -2,7 +2,7 @@
 % Please edit documentation in R/kasp_marker_design.R
 \name{kasp_marker_design}
 \alias{kasp_marker_design}
-\title{Design KASP markers based on causal variants.}
+\title{Design KASP markers for one or more causal variants.}
 \usage{
 kasp_marker_design(
   vcf_file = NULL,
@@ -13,7 +13,7 @@ kasp_marker_design(
   ref_al_col = "ref",
   alt_al_col = "alt",
   geno_start = 7,
-  marker_ID,
+  marker_IDs,
   chr = NULL,
   genome_file,
   save_alignment = TRUE,
@@ -38,8 +38,8 @@ of reference and alternate alleles, respectively in `gt_df` or `vcf_file`.}
 \item{geno_start}{An integer value specifying the column index number of the
 start of the sample genotypes in `gt_df` or `vcf_file`.}
 
-\item{marker_ID}{Designated name of variant for marker design. Name must be
-contained in `gt_df` or `vcf_file`.}
+\item{marker_IDs}{A character vector of one or more variant names for marker
+design. Names must be contained in `gt_df` or `vcf_file`.}
 
 \item{chr}{A character value representation the chromosome description in the
 `genome_file`. Providing this helps to save memory in R.}
@@ -63,13 +63,14 @@ all information required for KASP marker design, and a plot of DNA sequence
 alignment to the reference genome.
 }
 \description{
-Design KASP markers based on causal variants.
+Design KASP markers for one or more causal variants.
 }
 \details{
 This function provides the intertek sequence to be used for marker development
 for the selected casual variants. It provides all the information of allele and
 location to fill Intertek form.It needs a vcf file of variants calls, and a genome
-sequence of the target crop in fasta format.
+sequence of the target crop in fasta format. It can now process multiple
+markers in a single call.
 }
 \examples{
 \donttest{
@@ -88,7 +89,7 @@ ma1 <- kasp_marker_design(vcf_file = path2,
                           alt_al_col = 'ALT',
                           genome_file = path1,
                           geno_start = 10,
-                          marker_ID = "SNP_Chr02_69200443",
+                          marker_IDs = "SNP_Chr02_69200443",
                           chr = "Chr02",
                           save_alignment = TRUE,
                           plot_file = path,

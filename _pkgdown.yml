@@ -102,6 +102,7 @@ reference:
   - subtitle: "Marker Design & Utilities"
     contents:
       - kasp_marker_design
+      - make_intertek_table
       - gene_coord_gff
       - extract_variant
       - folder_download_gd

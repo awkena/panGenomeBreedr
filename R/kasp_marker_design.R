@@ -1,5 +1,5 @@
 
-#' Design KASP markers based on causal variants.
+#' Design KASP markers for one or more causal variants.
 #' @param vcf_file Path to the vcf file containing identified variants.
 #' @param gt_df A data frame or matrix containing the meta data of identified
 #' variants and sample VCF genotype calls. The variants are rows and samples as
@@ -10,8 +10,8 @@
 #' of reference and alternate alleles, respectively in `gt_df` or `vcf_file`.
 #' @param geno_start An integer value specifying the column index number of the
 #' start of the sample genotypes in `gt_df` or `vcf_file`.
-#' @param marker_ID Designated name of variant for marker design. Name must be
-#' contained in `gt_df` or `vcf_file`.
+#' @param marker_IDs A character vector of one or more variant names for marker
+#'   design. Names must be contained in `gt_df` or `vcf_file`.
 #' @param chr A character value representation the chromosome description in the
 #' `genome_file`. Providing this helps to save memory in R.
 #' @param genome_file Path to reference genome file in fasta format, either
@@ -40,7 +40,7 @@
 #'                           alt_al_col = 'ALT',
 #'                           genome_file = path1,
 #'                           geno_start = 10,
-#'                           marker_ID = "SNP_Chr02_69200443",
+#'                           marker_IDs = "SNP_Chr02_69200443",
 #'                           chr = "Chr02",
 #'                           save_alignment = TRUE,
 #'                           plot_file = path,
@@ -58,8 +58,8 @@
 #' This function provides the intertek sequence to be used for marker development
 #' for the selected casual variants. It provides all the information of allele and
 #' location to fill Intertek form.It needs a vcf file of variants calls, and a genome
-#' sequence of the target crop in fasta format.
-#'
+#' sequence of the target crop in fasta format. It can now process multiple
+#' markers in a single call.
 #'
 #' @returns A list object of two components comprising a data frame containing
 #' all information required for KASP marker design, and a plot of DNA sequence
@@ -76,7 +76,7 @@ kasp_marker_design <- function(vcf_file = NULL,
                                ref_al_col = 'ref',
                                alt_al_col = 'alt',
                                geno_start = 7,
-                               marker_ID,
+                               marker_IDs,
                                chr = NULL,
                                genome_file,
                                save_alignment = TRUE,
@@ -172,12 +172,12 @@ kasp_marker_design <- function(vcf_file = NULL,
     variant_table$MAF <- round(calculate_allele_frequencies(gt = geno)$alt_af, 3)
   }
 
-  # # Reading genome by chromosome subset or whole genome
-  # # Indexing for genome file
+  # Reading genome by chromosome subset or whole genome
+  # Indexing for genome file
   dd <-  Biostrings::fasta.index(genome_file, seqtype = "DNA")
 
-  # # Read only the sequence for the chromosome with the variant if provided,
-  # # else read the whole genome sequence
+  # Read only the sequence for the chromosome with the variant if provided,
+  # else read the whole genome sequence
   if (!is.null(chr) && chr %in% dd$desc) {
 
     indx <-  which(dd$desc == chr)
@@ -190,16 +190,22 @@ kasp_marker_design <- function(vcf_file = NULL,
 
   }
 
-
-  #### extracting information from variant table
-  variant <- variant_table[variant_table$variant_id == marker_ID,]
-  pos <- as.numeric(variant$pos) #position of variant
-  type <- variant$type #type of variant
-  w_var <- nchar(variant$ref) # length of variant
-  chromosome <- variant$chrom
-
   # snp variants only for adjacent highly polymorphic regions
   variants_snp_only <- variant_table[variant_table$type == 'Substitution',] # getting SNPs
+
+  # --- Loop through each marker ID to design KASP assays ---
+  results <- lapply(marker_IDs, function(current_marker_ID) {
+
+    #### extracting information from variant table
+    variant <- variant_table[variant_table$variant_id == current_marker_ID, ]
+    if (nrow(variant) == 0) {
+      warning(paste("Marker ID not found, skipping:", current_marker_ID))
+      return(NULL)
+    }
+    pos <- as.numeric(variant$pos) #position of variant
+    type <- variant$type #type of variant
+    w_var <- nchar(variant$ref) # length of variant
+    chromosome <- variant$chrom
 
   ###### Setting boundaries for markers
   ####### Upstream
@@ -569,7 +575,7 @@ kasp_marker_design <- function(vcf_file = NULL,
   # Plot
   pp <- ggplot2::ggplot(sequence_df,
                         ggplot2::aes(x = position,
-                                     y = y,
+                                     y = y, 
                                      color = color)) +
     ggplot2::geom_text( ggplot2::aes(label = trimws(base, which = 'both')),
                         size = 4.5,
@@ -577,7 +583,7 @@ kasp_marker_design <- function(vcf_file = NULL,
                         family = 'mono',
                         key_glyph = 'rect') +
     ggplot2::scale_color_identity( guide = "legend",
-                                   name = paste("Alignment for marker", marker_ID),
+                                   name = paste("Alignment for marker", current_marker_ID),
                                    labels = legend_labels,
                                    breaks = legend_breaks) +
 
@@ -603,7 +609,7 @@ kasp_marker_design <- function(vcf_file = NULL,
   if (save_alignment) {
 
     # Save ggplot object as a pdf device
-    ggplot2::ggsave(filename = paste0('alignment_', marker_ID, '.pdf'),
+    ggplot2::ggsave(filename = paste0('alignment_', current_marker_ID, '.pdf'),
                     plot = pp,
                     device = "pdf",
                     path = file.path(plot_file),
@@ -613,6 +619,21 @@ kasp_marker_design <- function(vcf_file = NULL,
 
   }
 
-  return(list(marker_data = marker_data, plot = pp))
+    return(list(marker_data = marker_data, plot = pp))
+  })
 
+  # --- Consolidate results ---
+  # Filter out NULL results from skipped markers
+  results <- results[!sapply(results, is.null)]
+
+  if (length(results) == 0) {
+    stop("No valid markers were processed.")
+  }
+
+  # Combine marker_data from all iterations into a single data frame
+  all_marker_data <- do.call(rbind, lapply(results, `[[`, "marker_data"))
+  all_plots <- lapply(results, `[[`, "plot")
+  names(all_plots) <- sapply(results, function(x) x$marker_data$SNP_Name)
+
+  return(list(marker_data = all_marker_data, plot = all_plots))
 }
