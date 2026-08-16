@@ -70,21 +70,22 @@
 <li>
 <a href="#variant-discovery">Variant Discovery</a>
 <ul>
-<li><a href="#curated-sorghum-variant-resource-and-database-rationale">Curated
-Sorghum Variant Resource and Database Rationale</a></li>
+<li><a href="#database-architecture-options">Database Architecture
+Options</a></li>
+<li><a href="#example-database-curated-sorghum-pangenome-scale-variant-resource">Example
+Database: Curated Sorghum Pangenome-Scale Variant Resource</a></li>
 <li><a href="#recommended-schema-for-the-parquet-duckdb-database">Recommended
 Schema for the Parquet / DuckDB Database</a></li>
 <li><a href="#database-creation">Database Creation</a></li>
-<li><a href="#query-variant-tables">Query Variant Tables</a></li>
-<li><a href="#query-online-database">Query Online Database</a></li>
+<li><a href="#database-querying">Database Querying</a></li>
+<li><a href="#connecting-to-online-database-with-a-custom-api-endpoint">Connecting
+to Online Database with a Custom API Endpoint</a></li>
+<li><a href="#visualizing-variant-hotspots-and-gene-models-with-pangb">Visualizing
+Variant Hotspots and Gene Models with panGB</a></li>
 <li><a href="#filter-variants-by-allele-frequency">Filter Variants by
 Allele Frequency</a></li>
 <li><a href="#summarize-snpeff-annotation-and-impact">Summarize SnpEff
 Annotation and Impact</a></li>
-<li><a href="#filter-variants-by-allele-frequency">Filter Variants by
-Allele Frequency</a></li>
-<li><a href="#visualizing-variant-hotspots-and-gene-models-with-pangb">Visualizing
-Variant Hotspots and Gene Models with panGB</a></li>
 <li><a href="#evaluating-linkage-disequilibrium-for-marker-design">Evaluating
 Linkage Disequilibrium for Marker Design</a></li>
 </ul>
@@ -112,39 +113,44 @@ Support for Foreground Selection</a></li>
 <div class="section level2">
 <h2 id="variant-discovery">Variant Discovery<a class="anchor" aria-label="anchor" href="#variant-discovery"></a>
 </h2>
+<p>Directly querying raw snpEff-annotated VCF files from R is
+computationally expensive and inefficient, especially when scaling up to
+pangenome-level datasets. To overcome this bottleneck, the variant
+discovery pipeline in <code>panGenomeBreedr</code> (<code>panGB</code>)
+relies entirely on an optimized relational database architecture.</p>
+<p>This design guarantees efficient querying and HPC-independent
+accessibility, standardizing and accelerating the path from raw variant
+files to functional marker development.</p>
 <div class="section level3">
-<h3 id="curated-sorghum-variant-resource-and-database-rationale">Curated Sorghum Variant Resource and Database Rationale<a class="anchor" aria-label="anchor" href="#curated-sorghum-variant-resource-and-database-rationale"></a>
+<h3 id="database-architecture-options">Database Architecture Options<a class="anchor" aria-label="anchor" href="#database-architecture-options"></a>
 </h3>
-<p>The examples used in this documentation are based on a
-<strong>Curated Sorghum Variant Resource</strong> derived from
-whole-genome resequencing data of <strong>1,676 sorghum lines</strong>.
-Variant calling was performed using version <strong>v5.1</strong> of the
-<strong>BTx623</strong> reference genome. The resulting
-<strong>SNP</strong> and <strong>INDEL</strong> variants were
-functionally annotated using <strong>snpEff</strong>.</p>
-<p>Direct querying of raw <strong>snpEff-annotated VCF files</strong>
-from R is computationally slow and inefficient, especially with large
-datasets. To handle this efficiently, <code>panGenomeBreedr</code>
-offers two flexible ways to access your data:</p>
-<ol style="list-style-type: decimal">
+<p>To handle massive datasets efficiently, <code>panGB</code> offers two
+flexible ways to access your data:</p>
+<ul>
+<li>
+<strong>Local Database (Parquet/DuckDB):</strong> Work directly on
+your local machine using an optimized, columnar file format. This option
+is incredibly fast, requires no complex server setup, and is ideal for
+working offline or on standard personal computers.</li>
 <li>
 <strong>Cloud Database:</strong> Connect to a central database
-securely hosted on the internet. This allows multiple breeders to
-quickly search massive datasets at the same time, without needing to
-download massive files or rely on expensive local computer
-hardware.</li>
-<li>
-<strong>Local Database:</strong> Work directly on your own computer
-using a highly optimized, compact file format (Parquet/DuckDB). This
-option is incredibly fast, requires no complicated server setup, and is
-perfect for working offline or on a personal machine.</li>
-</ol>
-<p><strong>We strongly recommend adopting these structured database
-formats for other crop systems.</strong> Organizing your data this way
-standardizes and accelerates the path from raw variant annotated files
-to precision marker development and targeted crop improvement.</p>
-<p>A zipped archive containing the <strong>Curated Sorghum Variant
-Resource</strong> can be downloaded <a href="https://drive.google.com/file/d/1L97pKk2RZt3CiUkl-8IRwpEIT1rN7YsS/view?usp=sharing" class="external-link">here</a>.</p>
+securely hosted on the cloud. This allows multiple researchers to
+simultaneously search massive datasets without downloading heavy files
+or relying on expensive local hardware.</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="example-database-curated-sorghum-pangenome-scale-variant-resource">Example Database: Curated Sorghum Pangenome-Scale Variant
+Resource<a class="anchor" aria-label="anchor" href="#example-database-curated-sorghum-pangenome-scale-variant-resource"></a>
+</h3>
+<p>The examples used throughout this documentation are based on a
+curated, pangenome-scale variant resource for Sorghum. This dataset was
+derived from whole-genome resequencing data of <strong>1,676 sorghum
+lines</strong>. Variant calling was performed using version
+<strong>v5.1</strong> of the <strong>BTx623</strong> reference genome,
+and the resulting SNP and INDEL variants were functionally annotated
+using <strong>snpEff</strong>.</p>
+<p>Download the zipped archive of the database below: <a href="https://drive.google.com/file/d/1L97pKk2RZt3CiUkl-8IRwpEIT1rN7YsS/view?usp=sharing" class="external-link">here</a>.</p>
 </div>
 <div class="section level3">
 <h3 id="recommended-schema-for-the-parquet-duckdb-database">Recommended Schema for the Parquet / DuckDB Database<a class="anchor" aria-label="anchor" href="#recommended-schema-for-the-parquet-duckdb-database"></a>
@@ -236,7 +242,8 @@ names, and functional categories.</p>
 </h4>
 <p>This table stores genotype calls per sample for each variant. To save
 space with large pangenomes, genotypes are packed into a single text
-array column (<code>calls</code>).</p>
+array column (<code>calls</code>) and organized by chromosomes for fast
+querying.</p>
 <table class="table">
 <colgroup>
 <col width="18%">
@@ -319,6 +326,11 @@ in the <code>genotypes</code> array</td>
 </tr>
 </tbody>
 </table>
+<blockquote>
+<p><strong>Note:</strong> We strongly recommend adopting these
+structured database formats across other crop systems to modernize data
+management and accelerate targeted crop improvement.</p>
+</blockquote>
 </div>
 </div>
 <div class="section level3">
@@ -337,14 +349,26 @@ tree (<code>variants.parquet</code>, <code>annotations.parquet</code>,
 <code>extdata/</code> folder of the package.</p>
 </div>
 <div class="section level3">
-<h3 id="query-variant-tables">Query Variant Tables<a class="anchor" aria-label="anchor" href="#query-variant-tables"></a>
+<h3 id="database-querying">Database Querying<a class="anchor" aria-label="anchor" href="#database-querying"></a>
 </h3>
+<p>Efficient querying is one of the main drivers for building a
+parquet-backed relational database for the sorghum pangenome-scale
+variant resource.</p>
 <p>The <code><a href="../reference/fetch_table_region.html">fetch_table_region()</a></code> function allows users to query
-specific tables within a panGenomeBreedr-formatted DuckDB database for
-variants, annotations, or genotypes based on chromosome coordinates or
-candidate gene IDs.</p>
-<p>This function retrieves records from one of the following tables in
-the database:</p>
+specific tables within a parquet-backed database for variants,
+annotations, or genotypes based on chromosome coordinates or candidate
+gene IDs. The function can retrieve variants and their annotations from
+both <strong>online</strong> and <strong>local</strong> database
+sources.</p>
+<p>panGB is configured to automatically connect to the public
+<strong>Curated Sorghum Pangenome-Scale Variant Resource</strong> out of
+the box. No special URL configuration is needed. To query the online
+database resource, simply set the
+<code>connect_db_mode = 'online'</code> argument in any of the
+data-fetching functions (e.g., <code><a href="../reference/fetch_table_region.html">fetch_table_region()</a></code>,
+<code><a href="../reference/summarize_variants.html">summarize_variants()</a></code>).</p>
+<p>When used correctly, the <code><a href="../reference/fetch_table_region.html">fetch_table_region()</a></code> function
+retrieves records from one of the following tables in the database:</p>
 <ul>
 <li>
 <code>variants</code>: Basic variant information (chromosome,
@@ -358,7 +382,8 @@ metadata of the variants.</li>
 </ul>
 <p>Users can specify genomic coordinates (<code>chrom</code>,
 <code>start</code>, <code>end</code>) or a candidate gene name
-(<code>gene_name</code>) to extract relevant entries.</p>
+(<code>gene_name</code>) to extract relevant annotations for the
+specified gene.</p>
 <p>If used correctly, the <code><a href="../reference/fetch_table_region.html">fetch_table_region()</a></code> function
 returns a data frame containing the filtered records from the selected
 table.</p>
@@ -929,28 +954,10 @@ Chr05
 </tr>
 </tbody>
 </table>
-<div class="section level4">
-<h4 id="query-online-database-for-sorghum">Query Online Database for Sorghum<a class="anchor" aria-label="anchor" href="#query-online-database-for-sorghum"></a>
-</h4>
-<p><code>panGenomeBreedr</code> offers the flexibility to connect
-directly to online databases, allowing you to seamlessly query massive
-datasets without downloading large files to your local machine. This is
-ideal for collaborative projects or for users without high-performance
-computing resources. You can use the default public database or connect
-to your own private server.</p>
-<div class="section level5">
-<h5 id="scenario-a-using-the-default-public-database">Scenario A: Using the Default Public Database<a class="anchor" aria-label="anchor" href="#scenario-a-using-the-default-public-database"></a>
-</h5>
-<p>The package is configured to automatically connect to the public
-<strong>Curated Sorghum Variant Resource</strong> out of the box. No
-special URL configuration is needed. To query this online resource,
-simply set the <code>connect_db_mode = 'online'</code> argument in any
-of the data-fetching functions (e.g., <code><a href="../reference/fetch_table_region.html">fetch_table_region()</a></code>,
-<code><a href="../reference/summarize_variants.html">summarize_variants()</a></code>).</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Extract genotypes within a genomic range from the default public database</span></span>
+<span><span class="co"># Extract genotypes within a genomic range from the online database</span></span>
 <span><span class="va">test_gt_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span>
 <span>  table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span>
 <span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span>
@@ -967,16 +974,16 @@ of the data-fetching functions (e.g., <code><a href="../reference/fetch_table_re
 <span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level5">
-<h5 id="scenario-b-connecting-to-a-custom-or-private-api-endpoint">Scenario B: Connecting to a Custom or Private API Endpoint<a class="anchor" aria-label="anchor" href="#scenario-b-connecting-to-a-custom-or-private-api-endpoint"></a>
-</h5>
+<div class="section level3">
+<h3 id="connecting-to-online-database-with-a-custom-api-endpoint">Connecting to Online Database with a Custom API Endpoint<a class="anchor" aria-label="anchor" href="#connecting-to-online-database-with-a-custom-api-endpoint"></a>
+</h3>
 <p>For collaborative projects or institutions that host their own
 genomic data, panGenomeBreedr can be configured to connect to a custom
 API endpoint. Before running any queries, you must direct the package to
 your private server using the <code><a href="../reference/set_api_url.html">set_api_url()</a></code> function.</p>
 <p><em>Note:</em> To ensure full compatibility, your private database
 must follow the same schema as the public <strong>Curated Sorghum
-Variant Resource</strong>.</p>
+Pangenome-Scale Variant Resource</strong>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
@@ -995,6 +1002,100 @@ Variant Resource</strong>.</p>
 <span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
+<div class="section level3">
+<h3 id="visualizing-variant-hotspots-and-gene-models-with-pangb">Visualizing Variant Hotspots and Gene Models with panGB<a class="anchor" aria-label="anchor" href="#visualizing-variant-hotspots-and-gene-models-with-pangb"></a>
+</h3>
+<p>panGB allows users to mine the sorghum parquet-backed pangenome-scale
+variant database to identify putative causal mutations for candidate
+genes annotated in the a GFF3 file for sorghum (V5.1). panGB streamlines
+this process by providing seamless integration between genomic
+annotations in the GFF3 file, the remote pangenome-scale variant
+database, and dynamic visualizations.</p>
+<p>For this example, we will interrogate a specific <em>Sorghum
+bicolor</em> candidate gene (<code>Sobic.005G213600</code>).</p>
+<p>First, load the package and define the essential inputs. We require a
+GFF3 file for the reference genome to map structural features (exons,
+introns, UTRs) and the specific candidate gene ID we wish to
+investigate.</p>
+<p>Before we can query the variant database, we need the exact genomic
+bounds of our candidate gene. The <code><a href="../reference/gene_coord_gff.html">gene_coord_gff()</a></code> function
+parses the remote GFF3 file and returns the spatial coordinates for the
+specified gene.</p>
+<p>With the physical boundaries defined, we can now fetch the underlying
+genomic data. panGB interacts directly with remote variant databases.
+Using the <code>connect_db_mode = 'online'</code> argument allows us to
+pull slices of big data into our local R environment without downloading
+the entire pangenome dataset.</p>
+<p>The final step is to align the queried genetic variation directly
+against the physical gene model.</p>
+<p>The <code><a href="../reference/hotspot_overlay_plot.html">hotspot_overlay_plot()</a></code> function constructs a layered
+visualization. It maps the gene structure (drawn directly from the GFF3)
+and overlays the variant density and annotations, allowing you to
+rapidly visually pinpoint regions of high functional variation within
+the candidate gene.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 1. Define the path to the reference GFF3 file</span></span>
+<span><span class="va">gff_path</span> <span class="op">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"</span></span>
+<span></span>
+<span><span class="co"># Define the candidate gene of interest</span></span>
+<span><span class="va">cand_gene</span> <span class="op">&lt;-</span> <span class="st">"Sobic.005G213600"</span></span>
+<span></span>
+<span><span class="co"># 2. Extract the candidate gene coordinates from the GFF3 file</span></span>
+<span><span class="va">gene_coord</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gene_coord_gff.html">gene_coord_gff</a></span><span class="op">(</span>gene_name <span class="op">=</span> <span class="va">cand_gene</span>, gff_path <span class="op">=</span> <span class="va">gff_path</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># View the extracted boundaries</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">gene_coord</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                        ID         Feature Chromosome    Start      End Strand</span></span>
+<span><span class="co">#&gt; 1 Sobic.005G213600.1.v5.1            mRNA      Chr05 75104537 75106403      -</span></span>
+<span><span class="co">#&gt; 2 Sobic.005G213600.1.v5.1 three_prime_UTR      Chr05 75104537 75104865      -</span></span>
+<span><span class="co">#&gt; 3 Sobic.005G213600.1.v5.1             CDS      Chr05 75104866 75106168      -</span></span>
+<span><span class="co">#&gt; 4 Sobic.005G213600.1.v5.1             CDS      Chr05 75106279 75106334      -</span></span>
+<span><span class="co">#&gt; 5 Sobic.005G213600.1.v5.1  five_prime_UTR      Chr05 75106335 75106403      -</span></span>
+<span><span class="co">#&gt; 6   Sobic.005G213600.v5.1            gene      Chr05 75104537 75106403      -</span></span>
+<span></span>
+<span><span class="co"># 3. Fetch variant annotation data for the candidate gene region</span></span>
+<span><span class="va">ann_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span>
+<span>  table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span>
+<span>  chrom <span class="op">=</span> <span class="va">gene_coord</span><span class="op">$</span><span class="va">Chromosome</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>  start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">gene_coord</span><span class="op">$</span><span class="va">Start</span><span class="op">)</span>,</span>
+<span>  end <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">gene_coord</span><span class="op">$</span><span class="va">End</span><span class="op">)</span>,</span>
+<span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 4. Fetch the genotype calls for the identified variants</span></span>
+<span><span class="va">geno_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span>
+<span>  table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span>
+<span>  chrom <span class="op">=</span> <span class="va">gene_coord</span><span class="op">$</span><span class="va">Chromosome</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>  start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">gene_coord</span><span class="op">$</span><span class="va">Start</span><span class="op">)</span>,</span>
+<span>  end <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">gene_coord</span><span class="op">$</span><span class="va">End</span><span class="op">)</span>,</span>
+<span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co"># 5. Generate and display a variant hotspot aligned to the gene model</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">ann_df</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">geno_df</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="../reference/hotspot_overlay_plot.html">hotspot_overlay_plot</a></span><span class="op">(</span></span>
+<span>    gene_name <span class="op">=</span> <span class="va">cand_gene</span>, </span>
+<span>    gff_path <span class="op">=</span> <span class="va">gff_path</span>,</span>
+<span>    annotations_df <span class="op">=</span> <span class="va">ann_df</span>, </span>
+<span>    genotypes_df <span class="op">=</span> <span class="va">geno_df</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Insufficient data retrieved to generate the hotspot plot."</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<div class="figure">
+<img src="figures/gene_model_variant_hotspot-1.png" class="r-plt" alt="Fig. 1. Genomic distribution and functional annotation of candidate gene, Sobic.005G213600, generated by panGB. The plot visualizes the snpEff annotations for 102 unique variants (75 SNPs, 27 INDELs) mapped across the gene model for Sobic.005G213600. Variant shape denotes type (circles for SNPs, triangles for INDELs), point size reflects Minor Allele Frequency (MAF), and color indicates the maximum predicted functional impact relative to the 5' UTR, coding sequence (CDS), and 3' UTR regions." width="100%"><p class="caption">
+Fig. 1. Genomic distribution and functional annotation of candidate
+gene, Sobic.005G213600, generated by panGB. The plot visualizes the
+snpEff annotations for 102 unique variants (75 SNPs, 27 INDELs) mapped
+across the gene model for Sobic.005G213600. Variant shape denotes type
+(circles for SNPs, triangles for INDELs), point size reflects Minor
+Allele Frequency (MAF), and color indicates the maximum predicted
+functional impact relative to the 5’ UTR, coding sequence (CDS), and 3’
+UTR regions.
+</p>
 </div>
 </div>
 <div class="section level3">
@@ -1007,7 +1108,7 @@ variant types (e.g., SNPs, indels) within a defined genomic region.</p>
 <p>This function enables users to quickly assess the types and
 functional implications of variants located within candidate genes or
 genomic intervals of interest.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Locate the package example database folder</span></span>
@@ -1211,7 +1312,7 @@ region grouped by variant type.</p></li>
 variants with a HIGH impact on protein function.</strong> To see these
 variants, we need to use the <code><a href="../reference/fetch_variants_by_impact.html">fetch_variants_by_impact()</a></code>
 function, as shown below:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
@@ -1668,7 +1769,7 @@ meet desired minor allele frequency (MAF) thresholds for marker
 development.</p>
 <p>An example usage for the <code><a href="../reference/filter_by_allele_frequency.html">filter_by_allele_frequency()</a></code>
 function is shown in the code snippet below:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Locate the package example database folder</span></span>
@@ -1777,7 +1878,7 @@ Chr05
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Locate the package example database folder</span></span>
@@ -1797,90 +1898,6 @@ Chr05
 <span><span class="co"># Cleanly close the connection and release memory allocations</span></span>
 <span><span class="fu"><a href="../reference/disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_demo</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Successfully disconnected from the local database. Memory cleared.</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="visualizing-variant-hotspots-and-gene-models-with-pangb">Visualizing Variant Hotspots and Gene Models with panGB<a class="anchor" aria-label="anchor" href="#visualizing-variant-hotspots-and-gene-models-with-pangb"></a>
-</h3>
-<p>panGB allows users to mine the sorghum parquet-backed large-scale
-variant database to identify causal mutations for candidate genes
-annotated in the a GFF3 file for sorghum (V5.1). panGB streamlines this
-process by providing seamless integration between genomic annotations in
-the GFF3 file, the remote pangenome-scale variant database, and dynamic
-visualizations.</p>
-<p>For this example, we will interrogate a specific <em>Sorghum
-bicolor</em> candidate gene (<code>Sobic.005G213600</code>).</p>
-<p>First, load the package and define the essential inputs. We require a
-GFF3 file for the reference genome to map structural features (exons,
-introns, UTRs) and the specific candidate gene ID we wish to
-investigate.</p>
-<p>Before we can query the variant database, we need the exact genomic
-bounds of our candidate gene. The <code><a href="../reference/gene_coord_gff.html">gene_coord_gff()</a></code> function
-parses the remote GFF3 file and returns the spatial coordinates for the
-specified gene.</p>
-<p>With the physical boundaries defined, we can now fetch the underlying
-genomic data. panGB interacts directly with remote variant databases.
-Using the <code>connect_db_mode = 'online'</code> argument allows us to
-pull slices of big data into our local R environment without downloading
-the entire pangenome dataset.</p>
-<p>The final step is to align the queried genetic variation directly
-against the physical gene model.</p>
-<p>The <code><a href="../reference/hotspot_overlay_plot.html">hotspot_overlay_plot()</a></code> function constructs a layered
-visualization. It maps the gene structure (drawn directly from the GFF3)
-and overlays the variant density and annotations, allowing you to
-rapidly visually pinpoint regions of high functional variation within
-the candidate gene.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 1. Define the path to the reference GFF3 file</span></span>
-<span><span class="va">gff_path</span> <span class="op">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"</span></span>
-<span></span>
-<span><span class="co"># Define the candidate gene of interest</span></span>
-<span><span class="va">cand_gene</span> <span class="op">&lt;-</span> <span class="st">"Sobic.005G213600"</span></span>
-<span></span>
-<span><span class="co"># 2. Extract the candidate gene coordinates from the GFF3 file</span></span>
-<span><span class="va">gene_coord</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gene_coord_gff.html">gene_coord_gff</a></span><span class="op">(</span>gene_name <span class="op">=</span> <span class="va">cand_gene</span>, gff_path <span class="op">=</span> <span class="va">gff_path</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># View the extracted boundaries</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">gene_coord</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                        ID         Feature Chromosome    Start      End Strand</span></span>
-<span><span class="co">#&gt; 1 Sobic.005G213600.1.v5.1            mRNA      Chr05 75104537 75106403      -</span></span>
-<span><span class="co">#&gt; 2 Sobic.005G213600.1.v5.1 three_prime_UTR      Chr05 75104537 75104865      -</span></span>
-<span><span class="co">#&gt; 3 Sobic.005G213600.1.v5.1             CDS      Chr05 75104866 75106168      -</span></span>
-<span><span class="co">#&gt; 4 Sobic.005G213600.1.v5.1             CDS      Chr05 75106279 75106334      -</span></span>
-<span><span class="co">#&gt; 5 Sobic.005G213600.1.v5.1  five_prime_UTR      Chr05 75106335 75106403      -</span></span>
-<span><span class="co">#&gt; 6   Sobic.005G213600.v5.1            gene      Chr05 75104537 75106403      -</span></span>
-<span></span>
-<span><span class="co"># 3. Fetch variant annotation data for the candidate gene region</span></span>
-<span><span class="va">ann_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span>
-<span>  table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span>
-<span>  chrom <span class="op">=</span> <span class="va">gene_coord</span><span class="op">$</span><span class="va">Chromosome</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
-<span>  start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">gene_coord</span><span class="op">$</span><span class="va">Start</span><span class="op">)</span>,</span>
-<span>  end <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">gene_coord</span><span class="op">$</span><span class="va">End</span><span class="op">)</span>,</span>
-<span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 4. Fetch the genotype calls for the identified variants</span></span>
-<span><span class="va">geno_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span>
-<span>  table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span>
-<span>  chrom <span class="op">=</span> <span class="va">gene_coord</span><span class="op">$</span><span class="va">Chromosome</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
-<span>  start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">gene_coord</span><span class="op">$</span><span class="va">Start</span><span class="op">)</span>,</span>
-<span>  end <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">gene_coord</span><span class="op">$</span><span class="va">End</span><span class="op">)</span>,</span>
-<span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 5. Generate and display a variant hotspot aligned to the gene model</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">ann_df</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">geno_df</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="../reference/hotspot_overlay_plot.html">hotspot_overlay_plot</a></span><span class="op">(</span></span>
-<span>    gene_name <span class="op">=</span> <span class="va">cand_gene</span>, </span>
-<span>    gff_path <span class="op">=</span> <span class="va">gff_path</span>,</span>
-<span>    annotations_df <span class="op">=</span> <span class="va">ann_df</span>, </span>
-<span>    genotypes_df <span class="op">=</span> <span class="va">geno_df</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Insufficient data retrieved to generate the hotspot plot."</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<p><img src="figures/unnamed-chunk-13-1.png" class="r-plt" alt="" width="100%"></p>
 </div>
 <div class="section level3">
 <h3 id="evaluating-linkage-disequilibrium-for-marker-design">Evaluating Linkage Disequilibrium for Marker Design<a class="anchor" aria-label="anchor" href="#evaluating-linkage-disequilibrium-for-marker-design"></a>
@@ -1908,7 +1925,7 @@ complicate marker design.</p></li>
 <p>The <code>panGenomeBreedr</code> package simplifies this analysis.
 First, we compute the pairwise LD metrics for our filtered variants
 across the target region:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Compute LD around our causal variants</span></span>
 <span><span class="va">ld_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_LD.html">calculate_LD</a></span><span class="op">(</span></span>
 <span>  df <span class="op">=</span> <span class="va">gt_region</span>,</span>
@@ -2135,7 +2152,7 @@ tightly linked variant clusters.</p>
 <p><em>Note:</em> We set <code>block_threshold = 0.95</code> below to
 group variants exhibiting very strong, but realistic, linkage into our
 output haploblock table.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Visualize the LD and extract haploblock tables</span></span>
 <span><span class="va">ld_haplo_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_ld_geodesic.html">plot_ld_geodesic</a></span><span class="op">(</span></span>
 <span>  ld_df <span class="op">=</span> <span class="va">ld_result</span>,</span>
@@ -2348,7 +2365,7 @@ INDEL
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Example to design a KASP marker on a HIGH impact Deletion variant</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># (default directory for saving alignment outputs)</span></span>
@@ -2549,7 +2566,7 @@ row tags for genotyping data: <code>Statistics</code>, <code>DNA</code>,
 <p>The raw file is imported as a list object in R. Thus, all components
 in the imported data can be extracted using the row tag ID as shown in
 the code snippet below:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Import raw KASP genotyping file (.csv) using the read_kasp_csv() function</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
@@ -2574,7 +2591,7 @@ the code snippet below:</p>
 fluorescence colors to samples based on their observed genotype calls.
 This step is accomplished using the <code><a href="../reference/kasp_color.html">kasp_color()</a></code> function
 in <code>panGB</code> as shown in the code snippet below:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Assign KASP fluorescence colors using the kasp_color() function</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="co"># Create a subet variable called plates: masterplate x snpid</span></span>
@@ -2616,7 +2633,7 @@ discrimination), a cluster plot needs to be generated.</p>
 <code><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2()</a></code>functions in <code>panGB</code> can be
 used to make the cluster plots for each plate and KASP marker as shown
 below:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># KASP QC plot for Plate 05</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>,</span>
@@ -2634,7 +2651,7 @@ Fig. 3. Cluster plot for Plate 5 using FAM and HEX colors for grouping
 observed genotypes.
 </p>
 </div>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># KASP QC plot for Plate 05</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span> <span class="fu"><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>,</span>
@@ -2687,7 +2704,7 @@ above. If this information is not available, set the argument
 <p>The <code><a href="../reference/pred_summary.html">pred_summary()</a></code> function produces a summary of
 predicted genotypes for positive controls in each reaction plate after
 verification (Table 6), as shown in the code snippet below:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get prediction summary for all plates</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">my_sum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pred_summary.html">pred_summary</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span>,</span>
@@ -2859,7 +2876,7 @@ snpSB00805
 <p>The output of the <code><a href="../reference/pred_summary.html">pred_summary()</a></code> function can be
 visualized as bar plots using the <code><a href="../reference/pred_summary_plot.html">pred_summary_plot()</a></code>
 function as shown in the code snippet below:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get prediction summary for snp:snpSB00804</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">my_sum</span> <span class="op">&lt;-</span> <span class="va">my_sum</span><span class="op">$</span><span class="va">summ</span></span>
@@ -2887,7 +2904,7 @@ Fig. 5. Match/Mismatch rate of predictions for snp: snpSB00804.
 <p>Users can visualize the observed genotype calls in a plate design
 format using the <code><a href="../reference/plot_plate.html">plot_plate()</a></code> function as depicted in
 Figure 6, using the code snippet below:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_plate.html">plot_plate</a></span><span class="op">(</span><span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>, pdf <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $`SE-24-1088_P01_d1_snpSB00804`</span></span></code></pre></div>
 <div class="figure">
@@ -2936,7 +2953,7 @@ samples as rows. It comes with some meta data about the samples. Marker
 names are informative: chromosome number and position coordinates are
 embedded in the marker names
 (<code>Eg. S1_778962: chr = 1, pos = 779862</code>).</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Set path to the directory where your data is located</span></span>
 <span><span class="va">path1</span> <span class="op">&lt;-</span>  <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"agriplex_dat.csv"</span>,</span>
@@ -3203,7 +3220,7 @@ re-coding to numeric format is done as follows:</p>
 <li>Loci with at least one missing parental or any other genotype =
 -5.</li>
 </ul>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Parse snp ids to generate a map file</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
@@ -3353,7 +3370,7 @@ S1_1985365
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Process genotype data to re-order SNPs based on chromosome and positions</span></span>
 <span><span class="va">stg5</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/proc_kasp.html">proc_kasp</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">stg5</span>,</span>
 <span>                  kasp_map <span class="op">=</span> <span class="va">map_file</span>,</span>
@@ -3668,7 +3685,7 @@ Stg5-|-_3
 <p>All is now set to generate the heatmap (Figure 7) using the
 <code><a href="../reference/cross_qc_ggplot.html">cross_qc_ggplot()</a></code> function, as shown in the code snippet
 below:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Get prediction summary for snp:snpSB00804</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
@@ -3710,7 +3727,7 @@ PDF file in a directory outside R.</p>
 effective, we can use the <code><a href="../reference/cross_qc_annotate.html">cross_qc_annotate()</a></code> function to
 generate a heatmap (Figure 8) with an annotation of the position of the
 <em>stg5</em> locus on Chr 1, as shown below:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">###########################################################################</span></span>
 <span><span class="co"># Subset data for the first 30 markers on Chr 1</span></span>
@@ -3771,7 +3788,7 @@ defined RPP threshold on the bar plot.</p>
 <p>We can compute and visualize the observed RPP values for the
 <em>stg5</em> NILs across all polymorphic loci as shown in the code
 snippet below:</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Calculate weighted RPP</span></span>
 <span><span class="va">rpp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_rpp_bc.html">calc_rpp_bc</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">num_geno</span>,</span>
@@ -4321,7 +4338,7 @@ presence of favorable alleles by converting raw marker genotype data
 into a binary matrix (1 = favorable allele present, 0 = absent) based on
 a set of trait-predictive markers. The <code><a href="../reference/foreground_select.html">foreground_select()</a></code>
 function is shown in the code snippet below:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Marker genotype data</span></span>
@@ -4499,7 +4516,7 @@ loci are involved in each combination.</p></li>
 <li><p><strong>Left bar plot:</strong> shows how many lines have the
 favorable allele for each individual target locus.</p></li>
 </ul>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Make an Upset plot and overlay with trait loci names</span></span>
 <span><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sets <span class="op">=</span> <span class="va">marker_info</span><span class="op">$</span><span class="va">qtl_markers</span>,</span>
 <span>                      locus <span class="op">=</span> <span class="va">marker_info</span><span class="op">$</span><span class="va">locus_name</span><span class="op">)</span></span>
@@ -4556,7 +4573,7 @@ desired allele presence/absence profile across loci. Using the binary
 matrix, users can extract line IDs corresponding to any intersection
 (i.e., specific combinations of favorable alleles revealed by the UpSet
 plot).</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Find lines with favorable alleles at all target loci</span></span>

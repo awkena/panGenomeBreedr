@@ -82,23 +82,23 @@ online_summary <- summarize_annotations(
 print(online_summary)
 #> $annotation_summary
 #>                        annotation variant_type count
-#> 1           upstream_gene_variant          SNP   149
-#> 2             3_prime_UTR_variant          SNP    18
-#> 3              frameshift_variant        INDEL     6
-#> 4         downstream_gene_variant        INDEL    13
-#> 5         downstream_gene_variant          SNP    46
-#> 6             3_prime_UTR_variant        INDEL    13
-#> 7     disruptive_inframe_deletion        INDEL     2
-#> 8                  intron_variant          SNP     6
-#> 9             5_prime_UTR_variant        INDEL     1
-#> 10             synonymous_variant          SNP    21
-#> 11          upstream_gene_variant        INDEL    53
-#> 12            5_prime_UTR_variant          SNP     1
-#> 13  conservative_inframe_deletion        INDEL     1
-#> 14                 intron_variant        INDEL     2
-#> 15               missense_variant          SNP    29
-#> 16   disruptive_inframe_insertion        INDEL     1
-#> 17 conservative_inframe_insertion        INDEL     1
+#> 1             5_prime_UTR_variant          SNP     1
+#> 2   conservative_inframe_deletion        INDEL     1
+#> 3                  intron_variant        INDEL     2
+#> 4         downstream_gene_variant          SNP    46
+#> 5    disruptive_inframe_insertion        INDEL     1
+#> 6  conservative_inframe_insertion        INDEL     1
+#> 7         downstream_gene_variant        INDEL    13
+#> 8                missense_variant          SNP    29
+#> 9                  intron_variant          SNP     6
+#> 10            5_prime_UTR_variant        INDEL     1
+#> 11    disruptive_inframe_deletion        INDEL     2
+#> 12             synonymous_variant          SNP    21
+#> 13          upstream_gene_variant        INDEL    53
+#> 14            3_prime_UTR_variant        INDEL    13
+#> 15          upstream_gene_variant          SNP   149
+#> 16            3_prime_UTR_variant          SNP    18
+#> 17             frameshift_variant        INDEL     6
 #> 
 #> $impact_summary
 #>     impact variant_type count

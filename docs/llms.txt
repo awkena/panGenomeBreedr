@@ -12,14 +12,14 @@ workflow](reference/figures/workflow.png)
 
 *Fig. 1.* Conceptual workflow of the panGenomeBreedr (panGB) package for
 pangenome-enabled marker development. Using snpEff-annotated VCF files
-organized within a SQLite database, panGB enables querying for variants
-within candidate genes or user-defined genomic regions. It retrieves
-mutation annotations and predicted impacts from snpEff to identify
-putative causal variants (PCVs), which serve as the basis for designing
-functional trait-predictive markers. The package supports
-hypothesis-driven validation of these markers and also facilitates the
-design of additional marker types, including precision-introgression and
-background markers.
+organized within a parquet-backed relational database, panGB enables
+querying for variants within candidate genes or user-defined genomic
+regions. It retrieves mutation annotations and predicted impacts from
+snpEff to identify putative causal variants (PCVs), which serve as the
+basis for designing functional trait-predictive markers. The package
+supports hypothesis-driven validation of these markers and also
+facilitates the design of additional marker types, including
+precision-introgression and background markers.
 
 In its current development version, panGB provides customizable R
 functions for **variant discovery from snpEff-annotated VCF files, KASP
@@ -152,9 +152,6 @@ If the package does not run as expected, check the following:
 
 - [Jacques
   Faye](https://sites.google.com/site/morrislaboratory/people/jacques-faye)
-
-- [Benjamin
-  Annor](https://webapps.knust.edu.gh/staff/dirsearch/profile/summary/093520aa7216.html)
 
 - [Terry
   Felderhoff](https://www.agronomy.k-state.edu/about/people/faculty/felderhoff-terry/)

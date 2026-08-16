@@ -3,21 +3,21 @@
 ## Table of contents
 
 - [Variant Discovery](#variant-discovery)
-  - [Curated Sorghum Variant Resource and Database
-    Rationale](#curated-sorghum-variant-resource-and-database-rationale)
+  - [Database Architecture Options](#database-architecture-options)
+  - [Example Database: Curated Sorghum Pangenome-Scale Variant
+    Resource](#example-database-curated-sorghum-pangenome-scale-variant-resource)
   - [Recommended Schema for the Parquet / DuckDB
     Database](#recommended-schema-for-the-parquet-duckdb-database)
   - [Database Creation](#database-creation)
-  - [Query Variant Tables](#query-variant-tables)
-  - [Query Online Database](#query-online-database)
+  - [Database Querying](#database-querying)
+  - [Connecting to Online Database with a Custom API
+    Endpoint](#connecting-to-online-database-with-a-custom-api-endpoint)
+  - [Visualizing Variant Hotspots and Gene Models with
+    panGB](#visualizing-variant-hotspots-and-gene-models-with-pangb)
   - [Filter Variants by Allele
     Frequency](#filter-variants-by-allele-frequency)
   - [Summarize SnpEff Annotation and
     Impact](#summarize-snpeff-annotation-and-impact)
-  - [Filter Variants by Allele
-    Frequency](#filter-variants-by-allele-frequency)
-  - [Visualizing Variant Hotspots and Gene Models with
-    panGB](#visualizing-variant-hotspots-and-gene-models-with-pangb)
   - [Evaluating Linkage Disequilibrium for Marker
     Design](#evaluating-linkage-disequilibrium-for-marker-design)
 - [KASP Marker Design](#kasp-marker-design)
@@ -35,35 +35,40 @@
 
 ## Variant Discovery
 
-### Curated Sorghum Variant Resource and Database Rationale
+Directly querying raw snpEff-annotated VCF files from R is
+computationally expensive and inefficient, especially when scaling up to
+pangenome-level datasets. To overcome this bottleneck, the variant
+discovery pipeline in `panGenomeBreedr` (`panGB`) relies entirely on an
+optimized relational database architecture.
 
-The examples used in this documentation are based on a **Curated Sorghum
-Variant Resource** derived from whole-genome resequencing data of
-**1,676 sorghum lines**. Variant calling was performed using version
-**v5.1** of the **BTx623** reference genome. The resulting **SNP** and
-**INDEL** variants were functionally annotated using **snpEff**.
+This design guarantees efficient querying and HPC-independent
+accessibility, standardizing and accelerating the path from raw variant
+files to functional marker development.
 
-Direct querying of raw **snpEff-annotated VCF files** from R is
-computationally slow and inefficient, especially with large datasets. To
-handle this efficiently, `panGenomeBreedr` offers two flexible ways to
-access your data:
+### Database Architecture Options
 
-1.  **Cloud Database:** Connect to a central database securely hosted on
-    the internet. This allows multiple breeders to quickly search
-    massive datasets at the same time, without needing to download
-    massive files or rely on expensive local computer hardware.
-2.  **Local Database:** Work directly on your own computer using a
-    highly optimized, compact file format (Parquet/DuckDB). This option
-    is incredibly fast, requires no complicated server setup, and is
-    perfect for working offline or on a personal machine.
+To handle massive datasets efficiently, `panGB` offers two flexible ways
+to access your data:
 
-**We strongly recommend adopting these structured database formats for
-other crop systems.** Organizing your data this way standardizes and
-accelerates the path from raw variant annotated files to precision
-marker development and targeted crop improvement.
+- **Local Database (Parquet/DuckDB):** Work directly on your local
+  machine using an optimized, columnar file format. This option is
+  incredibly fast, requires no complex server setup, and is ideal for
+  working offline or on standard personal computers.
+- **Cloud Database:** Connect to a central database securely hosted on
+  the cloud. This allows multiple researchers to simultaneously search
+  massive datasets without downloading heavy files or relying on
+  expensive local hardware.
 
-A zipped archive containing the **Curated Sorghum Variant Resource** can
-be downloaded
+### Example Database: Curated Sorghum Pangenome-Scale Variant Resource
+
+The examples used throughout this documentation are based on a curated,
+pangenome-scale variant resource for Sorghum. This dataset was derived
+from whole-genome resequencing data of **1,676 sorghum lines**. Variant
+calling was performed using version **v5.1** of the **BTx623** reference
+genome, and the resulting SNP and INDEL variants were functionally
+annotated using **snpEff**.
+
+Download the zipped archive of the database below:
 [here](https://drive.google.com/file/d/1L97pKk2RZt3CiUkl-8IRwpEIT1rN7YsS/view?usp=sharing).
 
 ### Recommended Schema for the Parquet / DuckDB Database
@@ -102,7 +107,7 @@ including predicted effects, gene names, and functional categories.
 
 This table stores genotype calls per sample for each variant. To save
 space with large pangenomes, genotypes are packed into a single text
-array column (`calls`).
+array column (`calls`) and organized by chromosomes for fast querying.
 
 | Column | Description |
 |----|----|
@@ -130,6 +135,10 @@ for interactive maps), only a few base columns are strictly required.
 | `lat` / `lon` | Optional. Geographic coordinates for the interactive map |
 | `...` | Optional. Any other phenotypic or population data |
 
+> **Note:** We strongly recommend adopting these structured database
+> formats across other crop systems to modernize data management and
+> accelerate targeted crop improvement.
+
 ### Database Creation
 
 We generated the curated database using a custom workflow that:
@@ -144,15 +153,31 @@ A prebuilt mini example database directory
 (`mini_curated_sorghum_variant_resource`) is included in the `extdata/`
 folder of the package.
 
-### Query Variant Tables
+### Database Querying
+
+Efficient querying is one of the main drivers for building a
+parquet-backed relational database for the sorghum pangenome-scale
+variant resource.
 
 The
 [`fetch_table_region()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)
-function allows users to query specific tables within a
-panGenomeBreedr-formatted DuckDB database for variants, annotations, or
-genotypes based on chromosome coordinates or candidate gene IDs.
+function allows users to query specific tables within a parquet-backed
+database for variants, annotations, or genotypes based on chromosome
+coordinates or candidate gene IDs. The function can retrieve variants
+and their annotations from both **online** and **local** database
+sources.
 
-This function retrieves records from one of the following tables in the
+panGB is configured to automatically connect to the public **Curated
+Sorghum Pangenome-Scale Variant Resource** out of the box. No special
+URL configuration is needed. To query the online database resource,
+simply set the `connect_db_mode = 'online'` argument in any of the
+data-fetching functions (e.g.,
+[`fetch_table_region()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md),
+[`summarize_variants()`](https://awkena.github.io/panGenomeBreedr/reference/summarize_variants.md)).
+
+When used correctly, the
+[`fetch_table_region()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)
+function retrieves records from one of the following tables in the
 database:
 
 - `variants`: Basic variant information (chromosome, position, REF/ALT
@@ -162,7 +187,8 @@ database:
   the variants.
 
 Users can specify genomic coordinates (`chrom`, `start`, `end`) or a
-candidate gene name (`gene_name`) to extract relevant entries.
+candidate gene name (`gene_name`) to extract relevant annotations for
+the specified gene.
 
 If used correctly, the
 [`fetch_table_region()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)
@@ -193,28 +219,29 @@ Table 1: Queried genotypes for variants from the local database.
 Table 2: Queried annotations for variants from the local database.
 {.table}
 
-#### Query Online Database for Sorghum
+``` r
 
-`panGenomeBreedr` offers the flexibility to connect directly to online
-databases, allowing you to seamlessly query massive datasets without
-downloading large files to your local machine. This is ideal for
-collaborative projects or for users without high-performance computing
-resources. You can use the default public database or connect to your
-own private server.
+library(panGenomeBreedr)
 
-##### Scenario A: Using the Default Public Database
+# Extract genotypes within a genomic range from the online database
+test_gt_region <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403,
+  connect_db_mode ='online'
+)
 
-The package is configured to automatically connect to the public
-**Curated Sorghum Variant Resource** out of the box. No special URL
-configuration is needed. To query this online resource, simply set the
-`connect_db_mode = 'online'` argument in any of the data-fetching
-functions (e.g.,
-[`fetch_table_region()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md),
-[`summarize_variants()`](https://awkena.github.io/panGenomeBreedr/reference/summarize_variants.md)).
+# Extract annotations for a specific candidate gene
+test_annota_region <- fetch_table_region(
+  table_name = "annotations",
+  chrom = "Chr05",
+  gene_name = "Sobic.005G213600",
+  connect_db_mode = 'online'
+)
+```
 
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`` `` ``# Extract genotypes within a genomic range from the default public database`` ``test_gt_region`` ``<-`` `[`fetch_table_region`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)`(`` `` table_name ``=`` ``"genotypes"``,`` `` chrom ``=`` ``"Chr05"``,`` `` start ``=`` ``75104537``,`` `` end ``=`` ``75106403``,`` `` connect_db_mode ``=``'online'`` ``)`` `` ``# Extract annotations for a specific candidate gene`` ``test_annota_region`` ``<-`` `[`fetch_table_region`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)`(`` `` table_name ``=`` ``"annotations"``,`` `` chrom ``=`` ``"Chr05"``,`` `` gene_name ``=`` ``"Sobic.005G213600"``,`` `` connect_db_mode ``=`` ``'online'`` ``)`
-
-##### Scenario B: Connecting to a Custom or Private API Endpoint
+### Connecting to Online Database with a Custom API Endpoint
 
 For collaborative projects or institutions that host their own genomic
 data, panGenomeBreedr can be configured to connect to a custom API
@@ -224,9 +251,143 @@ your private server using the
 function.
 
 *Note:* To ensure full compatibility, your private database must follow
-the same schema as the public **Curated Sorghum Variant Resource**.
+the same schema as the public **Curated Sorghum Pangenome-Scale Variant
+Resource**.
 
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`` `` ``# 1. Point the package to your custom API endpoint`` `[`set_api_url`](https://awkena.github.io/panGenomeBreedr/reference/set_api_url.md)`(``"http://132.145.61.28:8000"``)`` ``#> panGenomeBreedr API endpoint successfully set to: http://132.145.61.28:8000`` ``#> panGenomeBreedr API endpoint successfully set to: http://132.145.61.28:8000`` `` ``# 2. Query your private database exactly as you normally would`` ``test_gt_private`` ``<-`` `[`fetch_table_region`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)`(`` `` table_name ``=`` ``"genotypes"``,`` `` chrom ``=`` ``"Chr05"``,`` `` start ``=`` ``75104537``,`` `` end ``=`` ``75106403``,`` `` connect_db_mode ``=`` ``'online'`` `` ``)`
+``` r
+
+library(panGenomeBreedr)
+
+# 1. Point the package to your custom API endpoint
+set_api_url("http://132.145.61.28:8000")
+#> panGenomeBreedr API endpoint successfully set to: http://132.145.61.28:8000
+#> panGenomeBreedr API endpoint successfully set to: http://132.145.61.28:8000
+
+# 2. Query your private database exactly as you normally would
+test_gt_private <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403,
+  connect_db_mode = 'online'
+
+)
+```
+
+### Visualizing Variant Hotspots and Gene Models with panGB
+
+panGB allows users to mine the sorghum parquet-backed pangenome-scale
+variant database to identify putative causal mutations for candidate
+genes annotated in the a GFF3 file for sorghum (V5.1). panGB streamlines
+this process by providing seamless integration between genomic
+annotations in the GFF3 file, the remote pangenome-scale variant
+database, and dynamic visualizations.
+
+For this example, we will interrogate a specific *Sorghum bicolor*
+candidate gene (`Sobic.005G213600`).
+
+First, load the package and define the essential inputs. We require a
+GFF3 file for the reference genome to map structural features (exons,
+introns, UTRs) and the specific candidate gene ID we wish to
+investigate.
+
+Before we can query the variant database, we need the exact genomic
+bounds of our candidate gene. The
+[`gene_coord_gff()`](https://awkena.github.io/panGenomeBreedr/reference/gene_coord_gff.md)
+function parses the remote GFF3 file and returns the spatial coordinates
+for the specified gene.
+
+With the physical boundaries defined, we can now fetch the underlying
+genomic data. panGB interacts directly with remote variant databases.
+Using the `connect_db_mode = 'online'` argument allows us to pull slices
+of big data into our local R environment without downloading the entire
+pangenome dataset.
+
+The final step is to align the queried genetic variation directly
+against the physical gene model.
+
+The
+[`hotspot_overlay_plot()`](https://awkena.github.io/panGenomeBreedr/reference/hotspot_overlay_plot.md)
+function constructs a layered visualization. It maps the gene structure
+(drawn directly from the GFF3) and overlays the variant density and
+annotations, allowing you to rapidly visually pinpoint regions of high
+functional variation within the candidate gene.
+
+``` r
+
+library(panGenomeBreedr)
+
+# 1. Define the path to the reference GFF3 file
+gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+
+# Define the candidate gene of interest
+cand_gene <- "Sobic.005G213600"
+
+# 2. Extract the candidate gene coordinates from the GFF3 file
+gene_coord <- gene_coord_gff(gene_name = cand_gene, gff_path = gff_path)
+
+# View the extracted boundaries
+head(gene_coord)
+#>                        ID         Feature Chromosome    Start      End Strand
+#> 1 Sobic.005G213600.1.v5.1            mRNA      Chr05 75104537 75106403      -
+#> 2 Sobic.005G213600.1.v5.1 three_prime_UTR      Chr05 75104537 75104865      -
+#> 3 Sobic.005G213600.1.v5.1             CDS      Chr05 75104866 75106168      -
+#> 4 Sobic.005G213600.1.v5.1             CDS      Chr05 75106279 75106334      -
+#> 5 Sobic.005G213600.1.v5.1  five_prime_UTR      Chr05 75106335 75106403      -
+#> 6   Sobic.005G213600.v5.1            gene      Chr05 75104537 75106403      -
+
+# 3. Fetch variant annotation data for the candidate gene region
+ann_df <- fetch_table_region(
+  table_name = "annotations",
+  chrom = gene_coord$Chromosome[1],
+  start = min(gene_coord$Start),
+  end = max(gene_coord$End),
+  connect_db_mode = 'online'
+)
+
+# 4. Fetch the genotype calls for the identified variants
+geno_df <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = gene_coord$Chromosome[1],
+  start = min(gene_coord$Start),
+  end = max(gene_coord$End),
+  connect_db_mode = 'online'
+)
+```
+
+``` r
+
+
+# 5. Generate and display a variant hotspot aligned to the gene model
+if (nrow(ann_df) > 0 && nrow(geno_df) > 0) {
+  hotspot_overlay_plot(
+    gene_name = cand_gene, 
+    gff_path = gff_path,
+    annotations_df = ann_df, 
+    genotypes_df = geno_df
+  )
+} else {
+  message("Insufficient data retrieved to generate the hotspot plot.")
+}
+```
+
+![Fig. 1. Genomic distribution and functional annotation of candidate
+gene, Sobic.005G213600, generated by panGB. The plot visualizes the
+snpEff annotations for 102 unique variants (75 SNPs, 27 INDELs) mapped
+across the gene model for Sobic.005G213600. Variant shape denotes type
+(circles for SNPs, triangles for INDELs), point size reflects Minor
+Allele Frequency (MAF), and color indicates the maximum predicted
+functional impact relative to the 5' UTR, coding sequence (CDS), and 3'
+UTR regions.](figures/gene_model_variant_hotspot-1.png)
+
+Fig. 1. Genomic distribution and functional annotation of candidate
+gene, Sobic.005G213600, generated by panGB. The plot visualizes the
+snpEff annotations for 102 unique variants (75 SNPs, 27 INDELs) mapped
+across the gene model for Sobic.005G213600. Variant shape denotes type
+(circles for SNPs, triangles for INDELs), point size reflects Minor
+Allele Frequency (MAF), and color indicates the maximum predicted
+functional impact relative to the 5’ UTR, coding sequence (CDS), and 3’
+UTR regions.
 
 ### Summarize SnpEff Annotation and Impact
 
@@ -324,50 +485,28 @@ function is shown in the code snippet below:
 
 Table 3: Filtered variants from the local database. {.table}
 
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`` `` ``# Locate the package example database folder`` ``mini_folder`` ``<-`` `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata"``, ``"pangenome_scale_db"``, `` `` package ``=`` ``"panGenomeBreedr"``, `` `` mustWork ``=`` ``TRUE``)`` `` `` ``# Establish a virtual connection to the offline database engine`` ``con_demo`` ``<-`` `[`connect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/connect_local_db.md)`(``folder_path ``=`` ``mini_folder``)`` ``#> Successfully connected to the local offline database! Pangenome-scale database mounted safely. No folder named pcil.`` `` ``# Get genotype data for HIGH impact variants that passed allele filter`` ``geno_high_filtered`` ``<-`` `[`fetch_genotypes_by_id`](https://awkena.github.io/panGenomeBreedr/reference/fetch_genotypes_by_id.md)`(``con ``=`` ``con_demo``,`` `` variant_ids ``=`` ``geno_high_filtered``$``variant_id``,`` `` meta_data ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"chrom"``, ``"pos"``, ``"ref"``, ``"alt"``, ``"variant_type"``)``)`` `` ``# Cleanly close the connection and release memory allocations`` `[`disconnect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/disconnect_local_db.md)`(``con_demo``)`` ``#> Successfully disconnected from the local database. Memory cleared.`
+``` r
 
-### Visualizing Variant Hotspots and Gene Models with panGB
+library(panGenomeBreedr)
 
-panGB allows users to mine the sorghum parquet-backed large-scale
-variant database to identify causal mutations for candidate genes
-annotated in the a GFF3 file for sorghum (V5.1). panGB streamlines this
-process by providing seamless integration between genomic annotations in
-the GFF3 file, the remote pangenome-scale variant database, and dynamic
-visualizations.
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "pangenome_scale_db", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
+                           
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
 
-For this example, we will interrogate a specific *Sorghum bicolor*
-candidate gene (`Sobic.005G213600`).
+# Get genotype data for HIGH impact variants that passed allele filter
+geno_high_filtered <- fetch_genotypes_by_id(con = con_demo,
+                                      variant_ids = geno_high_filtered$variant_id,
+                                      meta_data = c("chrom", "pos", "ref", "alt", "variant_type"))
 
-First, load the package and define the essential inputs. We require a
-GFF3 file for the reference genome to map structural features (exons,
-introns, UTRs) and the specific candidate gene ID we wish to
-investigate.
-
-Before we can query the variant database, we need the exact genomic
-bounds of our candidate gene. The
-[`gene_coord_gff()`](https://awkena.github.io/panGenomeBreedr/reference/gene_coord_gff.md)
-function parses the remote GFF3 file and returns the spatial coordinates
-for the specified gene.
-
-With the physical boundaries defined, we can now fetch the underlying
-genomic data. panGB interacts directly with remote variant databases.
-Using the `connect_db_mode = 'online'` argument allows us to pull slices
-of big data into our local R environment without downloading the entire
-pangenome dataset.
-
-The final step is to align the queried genetic variation directly
-against the physical gene model.
-
-The
-[`hotspot_overlay_plot()`](https://awkena.github.io/panGenomeBreedr/reference/hotspot_overlay_plot.md)
-function constructs a layered visualization. It maps the gene structure
-(drawn directly from the GFF3) and overlays the variant density and
-annotations, allowing you to rapidly visually pinpoint regions of high
-functional variation within the candidate gene.
-
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`` `` ``# 1. Define the path to the reference GFF3 file`` ``gff_path`` ``<-`` ``"https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"`` `` ``# Define the candidate gene of interest`` ``cand_gene`` ``<-`` ``"Sobic.005G213600"`` `` ``# 2. Extract the candidate gene coordinates from the GFF3 file`` ``gene_coord`` ``<-`` `[`gene_coord_gff`](https://awkena.github.io/panGenomeBreedr/reference/gene_coord_gff.md)`(``gene_name ``=`` ``cand_gene``, gff_path ``=`` ``gff_path``)`` `` ``# View the extracted boundaries`` `[`head`](https://rdrr.io/r/utils/head.html)`(``gene_coord``)`` ``#> ID Feature Chromosome Start End Strand`` ``#> 1 Sobic.005G213600.1.v5.1 mRNA Chr05 75104537 75106403 -`` ``#> 2 Sobic.005G213600.1.v5.1 three_prime_UTR Chr05 75104537 75104865 -`` ``#> 3 Sobic.005G213600.1.v5.1 CDS Chr05 75104866 75106168 -`` ``#> 4 Sobic.005G213600.1.v5.1 CDS Chr05 75106279 75106334 -`` ``#> 5 Sobic.005G213600.1.v5.1 five_prime_UTR Chr05 75106335 75106403 -`` ``#> 6 Sobic.005G213600.v5.1 gene Chr05 75104537 75106403 -`` `` ``# 3. Fetch variant annotation data for the candidate gene region`` ``ann_df`` ``<-`` `[`fetch_table_region`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)`(`` `` table_name ``=`` ``"annotations"``,`` `` chrom ``=`` ``gene_coord``$``Chromosome``[``1``]``,`` `` start ``=`` `[`min`](https://rdrr.io/r/base/Extremes.html)`(``gene_coord``$``Start``)``,`` `` end ``=`` `[`max`](https://rdrr.io/r/base/Extremes.html)`(``gene_coord``$``End``)``,`` `` connect_db_mode ``=`` ``'online'`` ``)`` `` ``# 4. Fetch the genotype calls for the identified variants`` ``geno_df`` ``<-`` `[`fetch_table_region`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)`(`` `` table_name ``=`` ``"genotypes"``,`` `` chrom ``=`` ``gene_coord``$``Chromosome``[``1``]``,`` `` start ``=`` `[`min`](https://rdrr.io/r/base/Extremes.html)`(``gene_coord``$``Start``)``,`` `` end ``=`` `[`max`](https://rdrr.io/r/base/Extremes.html)`(``gene_coord``$``End``)``,`` `` connect_db_mode ``=`` ``'online'`` ``)`` `` ``# 5. Generate and display a variant hotspot aligned to the gene model`` ``if`` ``(`[`nrow`](https://rdrr.io/r/base/nrow.html)`(``ann_df``)`` ``>`` ``0`` ``&&`` `[`nrow`](https://rdrr.io/r/base/nrow.html)`(``geno_df``)`` ``>`` ``0``)`` ``{`` `` `[`hotspot_overlay_plot`](https://awkena.github.io/panGenomeBreedr/reference/hotspot_overlay_plot.md)`(`` `` gene_name ``=`` ``cand_gene``, `` `` gff_path ``=`` ``gff_path``,`` `` annotations_df ``=`` ``ann_df``, `` `` genotypes_df ``=`` ``geno_df`` `` ``)`` ``}`` ``else`` ``{`` `` `[`message`](https://rdrr.io/r/base/message.html)`(``"Insufficient data retrieved to generate the hotspot plot."``)`` ``}`
-
-![](figures/unnamed-chunk-13-1.png)
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
+```
 
 ### Evaluating Linkage Disequilibrium for Marker Design
 
