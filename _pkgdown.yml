@@ -116,7 +116,7 @@ reference:
       - plot_pcil_positive
       - plot_pcil_best_lines
       - fetch_pcil_negative
-      - plot_pcil_negative_pairs
+      - plot_pcil_pairs
 
   - title: "KASP Marker Validation"
     contents:

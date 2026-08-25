@@ -8,7 +8,7 @@ negative controls.
 ## Usage
 
 ``` r
-plot_pcil_negative_pairs(pcil_neg_results, pcil_data)
+plot_pcil_pairs(pcil_neg_results, pcil_data)
 ```
 
 ## Arguments
@@ -64,8 +64,8 @@ pcil_neg_pcv <- fetch_pcil_negative(
 )
 
 # 2. Generate side-by-side visual comparisons
-pair_plots <- plot_pcil_negative_pairs(
-  pcil_neg_results = pcil_neg_pcv, 
+pair_plots <- plot_pcil_pairs(
+  pcil_neg_results = pcil_neg_pcv,
   pcil_data = pcil_data
 )
 

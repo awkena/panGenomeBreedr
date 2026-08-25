@@ -1322,8 +1322,8 @@ plot_pcil_best_lines <- function(
 #' )
 #' 
 #' # 2. Generate side-by-side visual comparisons
-#' pair_plots <- plot_pcil_negative_pairs(
-#'   pcil_neg_results = pcil_neg_pcv, 
+#' pair_plots <- plot_pcil_pairs(
+#'   pcil_neg_results = pcil_neg_pcv,
 #'   pcil_data = pcil_data
 #' )
 #' 
@@ -1331,7 +1331,7 @@ plot_pcil_best_lines <- function(
 #'   print(pair_plots[[1]])
 #' }
 #' }
-plot_pcil_negative_pairs <- function(pcil_neg_results, pcil_data) {
+plot_pcil_pairs <- function(pcil_neg_results, pcil_data) {
 
   # --- 1. Input Validation ---
   if (!is.list(pcil_neg_results) || !"pairs_extended" %in% names(pcil_neg_results)) {

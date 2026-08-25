@@ -589,12 +589,12 @@ surface the cleanest, most informative carriers.
 
 | SampleID | Region | Family | mean_donor_frac | total_Mb | total_blocks | F | Rank |
 |:---|:---|:---|---:|---:|---:|---:|---:|
-| 25ALM_BC1F3s1_2186 | SNP_Chr03_79037855 | Mota Maradi/SC49 | 0.9087747 | 68.25 | 12 | 0.8433 | 1 |
-| 25ALM_BC1F3s1_0416 | SNP_Chr03_79037855 | Mota Maradi/SC49 | 0.9929687 | 88.50 | 13 | 0.8250 | 2 |
-| 25ALM_BC1F3s1_1552 | SNP_Chr03_79037855 | IRAT204/SC1439 | 0.9712524 | 101.25 | 8 | 0.7697 | 3 |
-| GMS_MN2025_114058 | SNP_Chr03_79037855 | Mota Maradi/SC49 | 0.9106486 | 139.50 | 15 | 0.8615 | 4 |
-| 25ALM_BC1F3s1_0534 | SNP_Chr03_79037855 | IRAT204/SC1439 | 0.9120370 | 141.75 | 11 | 0.7582 | 5 |
-| 25ALM_BC1F3s1_1580 | SNP_Chr03_79037855 | Mota Maradi/SC49 | 0.8922930 | 162.75 | 17 | 0.8516 | 6 |
+| 25ALM_BC1F3s1_2186 | INDEL_Chr03_79037889 | Mota Maradi/SC49 | 0.9087747 | 68.25 | 12 | 0.8433 | 1 |
+| 25ALM_BC1F3s1_0416 | INDEL_Chr03_79037889 | Mota Maradi/SC49 | 0.9929687 | 88.50 | 13 | 0.8250 | 2 |
+| 25ALM_BC1F3s1_1552 | INDEL_Chr03_79037889 | IRAT204/SC1439 | 0.9712524 | 101.25 | 8 | 0.7697 | 3 |
+| GMS_MN2025_114058 | INDEL_Chr03_79037889 | Mota Maradi/SC49 | 0.9106486 | 139.50 | 15 | 0.8615 | 4 |
+| 25ALM_BC1F3s1_0534 | INDEL_Chr03_79037889 | IRAT204/SC1439 | 0.9120370 | 141.75 | 11 | 0.7582 | 5 |
+| 25ALM_BC1F3s1_1580 | INDEL_Chr03_79037889 | Mota Maradi/SC49 | 0.8922930 | 162.75 | 17 | 0.8516 | 6 |
 
 Table 8: Top-ranked PCIL positive (carrier) lines per target region.
 {.table}
@@ -634,17 +634,17 @@ criteria used for positive selection.
 
 | SampleID_Positive | SampleID_Negative | Region | IBS_dis | total_Mb_neg | F_neg |
 |:---|:---|:---|:---|---:|---:|
-| 25ALM_BC1F3s1_2186 | GMS_MN2025_132056 | SNP_Chr03_79037855 | 0.0870820 | 69.75 | 0.8332 |
-| 25ALM_BC1F3s1_0416 | GMS_MN2025_132056 | SNP_Chr03_79037855 | 0.1251400 | 69.75 | 0.8332 |
-| 25ALM_BC1F3s1_1552 | 25ALM_BC1F3s1_0095 | SNP_Chr03_79037855 | 0.0910448 | 42.75 | 0.8706 |
-| GMS_MN2025_114058 | GMS_MN2025_132056 | SNP_Chr03_79037855 | 0.0737892 | 69.75 | 0.8332 |
-| 25ALM_BC1F3s1_0534 | 25ALM_BC1F3s1_0095 | SNP_Chr03_79037855 | 0.0917089 | 42.75 | 0.8706 |
-| 25ALM_BC1F3s1_1580 | GMS_MN2025_132056 | SNP_Chr03_79037855 | 0.0906915 | 69.75 | 0.8332 |
+| 25ALM_BC1F3s1_2186 | GMS_MN2025_132056 | INDEL_Chr03_79037889 | 0.0870820 | 69.75 | 0.8332 |
+| 25ALM_BC1F3s1_0416 | GMS_MN2025_132056 | INDEL_Chr03_79037889 | 0.1251400 | 69.75 | 0.8332 |
+| 25ALM_BC1F3s1_1552 | 25ALM_BC1F3s1_0095 | INDEL_Chr03_79037889 | 0.0910448 | 42.75 | 0.8706 |
+| GMS_MN2025_114058 | GMS_MN2025_132056 | INDEL_Chr03_79037889 | 0.0737892 | 69.75 | 0.8332 |
+| 25ALM_BC1F3s1_0534 | 25ALM_BC1F3s1_0095 | INDEL_Chr03_79037889 | 0.0917089 | 42.75 | 0.8706 |
+| 25ALM_BC1F3s1_1580 | GMS_MN2025_132056 | INDEL_Chr03_79037889 | 0.0906915 | 69.75 | 0.8332 |
 
 Table 9: Best-matched PCIL negative control for each positive line.
 {.table}
 
-`pair_plots`` ``<-`` `[`plot_pcil_negative_pairs`](https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_negative_pairs.md)`(``pcil_neg_results ``=`` ``pcil_neg_pcv``, pcil_data ``=`` ``pcil_data``)`` `[`print`](https://rdrr.io/r/base/print.html)`(``pair_plots``[[``1``]``]``)`
+`pair_plots`` ``<-`` `[`plot_pcil_pairs`](https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_pairs.md)`(``pcil_neg_results ``=`` ``pcil_neg_pcv``, pcil_data ``=`` ``pcil_data``)`` `[`print`](https://rdrr.io/r/base/print.html)`(``pair_plots``[[``1``]``]``)`
 
 ![Fig. 4. Genome-wide comparison of a PCIL positive line (magenta)
 against its ranked negative controls (blue = best match, black =

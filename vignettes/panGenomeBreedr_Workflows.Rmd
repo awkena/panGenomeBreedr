@@ -765,7 +765,7 @@ knitr::kable(head(pcil_neg_pcv$pairs_best[, c("SampleID_Positive", "SampleID_Neg
 ```
 
 ```{r pcil_negative_pairs_plot, fig.cap = "Fig. 4. Genome-wide comparison of a PCIL positive line (magenta) against its ranked negative controls (blue = best match, black = others). The two lines are near-identical everywhere except at the target locus on Chr03, confirming a valid near-isogenic pair.", fig.width = 12, fig.height = 6}
-pair_plots <- plot_pcil_negative_pairs(pcil_neg_results = pcil_neg_pcv, pcil_data = pcil_data)
+pair_plots <- plot_pcil_pairs(pcil_neg_results = pcil_neg_pcv, pcil_data = pcil_data)
 print(pair_plots[[1]])
 ```
 

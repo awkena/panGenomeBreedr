@@ -3021,7 +3021,7 @@ mod_variant_discovery_server <- function(id) {
           }
 
           pcil$negative_results <- res
-          pcil$negative_plots <- plot_pcil_negative_pairs(
+          pcil$negative_plots <- plot_pcil_pairs(
             pcil_neg_results = res,
             pcil_data = rv$pcil_data
           )

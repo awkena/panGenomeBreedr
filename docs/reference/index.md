@@ -109,7 +109,7 @@
   : Plot Best PCIL Candidate Lines
 - [`fetch_pcil_negative()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_negative.md)
   : Fetch Negative Control PCILs
-- [`plot_pcil_negative_pairs()`](https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_negative_pairs.md)
+- [`plot_pcil_pairs()`](https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_pairs.md)
   : Plot PCIL Positive and Negative Pairs
 
 ## KASP Marker Validation
