@@ -113,6 +113,8 @@ print(online_summary)
 #>   variant_type total_variants
 #> 1        INDEL             27
 #> 2          SNP             75
+#> 1        INDEL             27
+#> 2          SNP             75
 #> 
 
 # --- Offline Mode ---
