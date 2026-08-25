@@ -95,7 +95,14 @@ mod_mv_read_kasp_csv_server <- function(id) {
 
     # get the list data from the uploaded KASP genotyping file.
     observeEvent(input$submit_btn, {
-      req(input$row_tags, input$Kasp_csv.file, input$data_space, input$datatype)
+      if (!validate_required_inputs(list(
+        "KASP Results File" = input$Kasp_csv.file,
+        "Data Format" = input$datatype,
+        "Ordered Row Tags" = input$row_tags,
+        "Row Spacing" = input$data_space
+      ))) {
+        return()
+      }
       tryCatch(
         {
           # Response based on datatype selected.

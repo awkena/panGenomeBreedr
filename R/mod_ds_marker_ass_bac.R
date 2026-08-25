@@ -30,7 +30,7 @@ mod_ds_marker_ass_bac_ui <- function(id) {
             # Accordion with organized sections
             bslib::accordion(
               id = "introgression_accordion",
-              open = c("files", "mapfile", "settings","qc"),
+              open = "files", # Only the first panel is open by default
 
               ## Data Acquisition
               bslib::accordion_panel(
@@ -559,6 +559,22 @@ mod_ds_marker_ass_bac_server <- function(id) {
     })
 
 
+    # Validate required fields before processing, so a missing field shows a
+    # modal naming it instead of the "Process Data" button doing nothing.
+    observeEvent(input$config, {
+      if (!validate_required_inputs(list(
+        "Uploaded Genotype Data (upload a file first)" = sub_validated_data(),
+        "Marker Start" = input$marker_start,
+        "Sample ID Column" = input$sample_id,
+        "Allele Separator" = input$allele_sep,
+        "Recurrent Parent" = input$rp,
+        "Donor Parent" = input$dp,
+        "Map File Source" = input$choice
+      ))) {
+        return()
+      }
+    })
+
     # process data.
     Result <- eventReactive(input$config, {
       req(
@@ -709,7 +725,14 @@ mod_ds_marker_ass_bac_server <- function(id) {
 
     # Switch tabs eagerly when button is clicked
     observeEvent(input$generate_rpp_plot, {
-      req(calc_rpp_bc_result(), input$rpp_col, input$rpp_sample_id)
+      if (!validate_required_inputs(list(
+        "RPP Results (calculate RPP first)" = calc_rpp_bc_result(),
+        "Total RPP Column" = input$rpp_col,
+        "Sample ID Column" = input$rpp_sample_id,
+        "Selection Threshold Basis" = input$rpp_threshold_mode
+      ))) {
+        return()
+      }
       bslib::nav_select("config_pages", "plot_tab")
     })
 

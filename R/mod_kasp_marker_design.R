@@ -26,7 +26,7 @@ mod_kasp_marker_design_ui <- function(id) {
         ## Data Acquisition
         bslib::accordion(
           id = "config_accordion",
-          open = c("files", "mapping", "params", "markers"), # Panels to be open by default
+          open = "files", # Only the first panel is open by default
 
           bslib::accordion_panel(
             title = div(
@@ -588,13 +588,33 @@ mod_kasp_marker_design_server <- function(id) {
 
     # Check which input is available and make use of it
     observeEvent(input$run_but, {
-      req(
-        input$variant_id_col, input$chrom_col,
-        input$pos_col, input$ref_al_col, input$alt_al_col,
-        input$geno_start, input$marker_ID, input$chr_ID,
-        input$genome_file$datapath, input$maf, input$genome_version,
-        input$trait, input$owner
-      )
+      data_source_field <- if (identical(input$upload_choice, "snpEff Annotated VCF")) {
+        list("snpEff Annotated VCF File" = input$vcf_file)
+      } else {
+        list("Genotype Matrix File" = gt_data())
+      }
+
+      if (!validate_required_inputs(c(
+        list(
+          "Variant Data Type" = input$upload_choice,
+          "Variant IDs Column" = input$variant_id_col,
+          "Chromosome Column" = input$chrom_col,
+          "Position Column" = input$pos_col,
+          "Reference Allele Column" = input$ref_al_col,
+          "Alternate Allele Column" = input$alt_al_col,
+          "Genotype Data Start Column" = input$geno_start,
+          "Marker Variants" = input$marker_ID,
+          "Target Chromosome" = input$chr_ID,
+          "Genome Reference File" = input$genome_file,
+          "Minor Allele Frequency (MAF)" = input$maf,
+          "Genome Version" = input$genome_version,
+          "Trait" = input$trait,
+          "Owner" = input$owner
+        ),
+        data_source_field
+      ))) {
+        return()
+      }
 
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
@@ -604,14 +624,12 @@ mod_kasp_marker_design_server <- function(id) {
 
       # Determine the data source based on user's choice
       vcf_path <- if (input$upload_choice == "snpEff Annotated VCF") {
-        req(input$vcf_file)
         input$vcf_file$datapath
       } else {
         NULL
       }
 
       genotype_df <- if (input$upload_choice == "Genotype Matrix (Processed)") {
-        req(gt_data())
         gt_data()
       } else {
         NULL
