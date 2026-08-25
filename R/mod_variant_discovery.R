@@ -1596,7 +1596,17 @@ mod_variant_discovery_server <- function(id) {
 
     observeEvent(input$submit, {
       removeModal()
-      req(input$gene_name)
+      method_field <- if (identical(input$input_method, "file")) {
+        list("GFF3 File" = input$gff_file)
+      } else {
+        list("GFF3 URL" = input$gff_url)
+      }
+      if (!validate_required_inputs(c(
+        list("Gene Name (Sobic ID)" = input$gene_name),
+        method_field
+      ))) {
+        return()
+      }
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
         color = "#27AE60",
@@ -1604,12 +1614,10 @@ mod_variant_discovery_server <- function(id) {
       )
       tryCatch(
         {
-          if (input$input_method == "url") {
-            req(input$gff_url)
-            gff_path <- input$gff_url
-          } else if (input$input_method == "file") {
-            req(input$gff_file)
-            gff_path <- input$gff_file$datapath
+          gff_path <- if (input$input_method == "url") {
+            input$gff_url
+          } else {
+            input$gff_file$datapath
           }
           gff_df <- gene_coord_gff(trimws(input$gene_name), gff_path)
 
@@ -1653,7 +1661,14 @@ mod_variant_discovery_server <- function(id) {
     })
 
     observeEvent(input$set_genocod_btn, {
-      req(input$chrom, input$start, input$end, rv$connected)
+      req(rv$connected)
+      if (!validate_required_inputs(list(
+        "Chromosome" = input$chrom,
+        "Start Position" = input$start,
+        "End Position" = input$end
+      ))) {
+        return()
+      }
 
       chr_val <- sprintf("Chr%02d", input$chrom)
       st_val <- input$start
@@ -2393,7 +2408,12 @@ mod_variant_discovery_server <- function(id) {
 
     # ---- Step 1: Identify Donor Families ----
     observeEvent(input$find_pcil_families_btn, {
-      req(input$pcil_marker_ID, rv$pcil_data)
+      if (!validate_required_inputs(list(
+        "Variant ID" = input$pcil_marker_ID,
+        "PCIL Data (click 'Load PCIL Data' on the overview tab first)" = rv$pcil_data
+      ))) {
+        return()
+      }
 
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
@@ -2668,14 +2688,25 @@ mod_variant_discovery_server <- function(id) {
 
   # PCIL STEP 2 SERVER SIDE LOGIC
     observeEvent(input$find_pcil_positive_btn, {
-      req(input$pcil_pos_type)
+      pos_type_fields <- if (identical(input$pcil_pos_type, "gene")) {
+        list("Gene ID(s)" = input$pcil_gene_ids)
+      } else {
+        list(
+          "Variant ID(s)" = input$pcil_marker_ID,
+          "Regional Variant Data (search a genomic region first)" = values$data_for_pcil_selection
+        )
+      }
+      if (!validate_required_inputs(c(
+        list("Search Type (Gene/Position)" = input$pcil_pos_type),
+        pos_type_fields
+      ))) {
+        return()
+      }
 
       # 1. Determine variants_select_geno based on user's radio button choice
       variants_select_geno <- if (input$pcil_pos_type == "gene") {
-        req(input$pcil_gene_ids)
         input$pcil_gene_ids # Passes the character vector of Sobic IDs
       } else {
-        req(values$data_for_pcil_selection, input$pcil_marker_ID)
         # Passes the filtered dataframe with Chr, Pos, etc.
         values$data_for_pcil_selection[
           values$data_for_pcil_selection$variant_id %in% input$pcil_marker_ID,
@@ -2984,7 +3015,12 @@ mod_variant_discovery_server <- function(id) {
     
 # ---- Step 3: Execution Observer ----
     observeEvent(input$find_pcil_negative_btn, {
-      req(pcil$positive_results$best_lines, input$pcil_n_neg)
+      if (!validate_required_inputs(list(
+        "Positive PCIL Lines (run 'Identify PCIL Positive Lines' first)" = pcil$positive_results$best_lines,
+        "Number of Negative Controls" = input$pcil_n_neg
+      ))) {
+        return()
+      }
 
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
@@ -3859,15 +3895,17 @@ mod_variant_discovery_server <- function(id) {
     observeEvent(input$modal_run_but, {
       # Isolate target alleles for locus assay development
       active_data <- values$data_for_marker_design
-      req(
-        active_data,
-        input$modal_genome_file$datapath,
-        input$modal_maf,
-        input$modal_marker_ID,
-        input$modal_genome_version,
-        input$modal_trait,
-        input$modal_owner
-      )
+      if (!validate_required_inputs(list(
+        "Variants for Marker Design (select a region and click 'Design Markers' first)" = active_data,
+        "Genome Reference File" = input$modal_genome_file,
+        "Minor Allele Frequency (MAF)" = input$modal_maf,
+        "Marker ID" = input$modal_marker_ID,
+        "Genome Version" = input$modal_genome_version,
+        "Trait" = input$modal_trait,
+        "Owner" = input$modal_owner
+      ))) {
+        return()
+      }
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
         color = "#27AE60",

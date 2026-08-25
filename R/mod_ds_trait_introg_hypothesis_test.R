@@ -32,7 +32,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
             # Accordion with organized sections
             bslib::accordion(
               id = "introgression_accordion",
-              open = c("files", "mapfile", "settings", "qc"),
+              open = "files", # Only the first panel is open by default
 
               ## Data Acquisition
               bslib::accordion_panel(
@@ -774,6 +774,22 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     })
 
 
+    # Validate required fields before processing, so a missing field shows a
+    # modal naming it instead of the "Process Data" button doing nothing.
+    observeEvent(input$config, {
+      if (!validate_required_inputs(list(
+        "Uploaded Genotype Data (upload a file first)" = sub_validated_data(),
+        "Marker Start" = input$marker_start,
+        "Sample ID Column" = input$sample_id,
+        "Allele Separator" = input$allele_sep,
+        "Recurrent Parent" = input$rp,
+        "Donor Parent" = input$dp,
+        "Map File Source" = input$choice
+      ))) {
+        return()
+      }
+    })
+
     # process data.
    Result <- eventReactive(input$config, {
       req(sub_validated_data(),input$marker_start,input$sample_id ,
@@ -1007,7 +1023,16 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
     # Switch tabs eagerly when button is clicked
     observeEvent(input$generate_heatmap, {
-      req(input$options, Result(), input$snp_ids, input$chr, input$chr_pos, input$parents)
+      if (!validate_required_inputs(list(
+        "Processed Data (process your data first)" = Result(),
+        "Display Annotations Option" = input$options,
+        "Marker Column" = input$snp_ids,
+        "Chromosome Column" = input$chr,
+        "Position Column" = input$chr_pos,
+        "Parents" = input$parents
+      ))) {
+        return()
+      }
       bslib::nav_select("config_pages", "plot_tab")
     })
 

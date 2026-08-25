@@ -25,7 +25,7 @@ mod_ds_foreground_select_ui <- function(id) {
             # Accordion with organized sections
             bslib::accordion(
               id = "foreground_accordion",
-              open = c("files", "config", "selection"), # Panels open by default
+              open = "files", # Only the first panel is open by default
 
               ## Data Acquisition
               bslib::accordion_panel(
@@ -425,7 +425,19 @@ mod_ds_foreground_select_server <- function(id) {
 
      # Eagerly switch tabs when user clicks "Generate UpSet Plot"
     observeEvent(input$generate_plot, {
-      req(result_data(), marker_info())
+      if (!validate_required_inputs(list(
+        "Foreground Marker Matrix (process your data first)" = result_data(),
+        "Marker Info (process your data first)" = marker_info(),
+        "Main Bar Y-axis Label" = input$mainbar_y_label,
+        "Sets X-axis Label" = input$sets_x_label,
+        "Text Scale" = input$text_scale,
+        "Metadata Plot Type" = input$plot_type,
+        "Assign (Position)" = input$plot_assign,
+        "Metadata Column" = input$plot_column,
+        "Colors" = input$plot_colors
+      ))) {
+        return()
+      }
       bslib::nav_select("results_tabs", "plot_tab")
     })
 

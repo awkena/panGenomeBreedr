@@ -82,32 +82,32 @@ online_summary <- summarize_annotations(
 print(online_summary)
 #> $annotation_summary
 #>                        annotation variant_type count
-#> 1   conservative_inframe_deletion        INDEL     1
-#> 2                  intron_variant        INDEL     2
-#> 3             5_prime_UTR_variant          SNP     1
-#> 4    disruptive_inframe_insertion        INDEL     1
-#> 5  conservative_inframe_insertion        INDEL     1
-#> 6             3_prime_UTR_variant        INDEL    13
-#> 7           upstream_gene_variant        INDEL    53
-#> 8              synonymous_variant          SNP    21
-#> 9              frameshift_variant        INDEL     6
-#> 10            3_prime_UTR_variant          SNP    18
-#> 11               missense_variant          SNP    29
-#> 12            5_prime_UTR_variant        INDEL     1
-#> 13                 intron_variant          SNP     6
-#> 14        downstream_gene_variant        INDEL    13
+#> 1           upstream_gene_variant          SNP   149
+#> 2    disruptive_inframe_insertion        INDEL     1
+#> 3  conservative_inframe_insertion        INDEL     1
+#> 4         downstream_gene_variant        INDEL    13
+#> 5             5_prime_UTR_variant          SNP     1
+#> 6   conservative_inframe_deletion        INDEL     1
+#> 7                  intron_variant        INDEL     2
+#> 8         downstream_gene_variant          SNP    46
+#> 9              synonymous_variant          SNP    21
+#> 10          upstream_gene_variant        INDEL    53
+#> 11            3_prime_UTR_variant        INDEL    13
+#> 12               missense_variant          SNP    29
+#> 13            3_prime_UTR_variant          SNP    18
+#> 14             frameshift_variant        INDEL     6
 #> 15    disruptive_inframe_deletion        INDEL     2
-#> 16        downstream_gene_variant          SNP    46
-#> 17          upstream_gene_variant          SNP   149
+#> 16                 intron_variant          SNP     6
+#> 17            5_prime_UTR_variant        INDEL     1
 #> 
 #> $impact_summary
 #>     impact variant_type count
-#> 1 MODIFIER          SNP   220
-#> 2 MODIFIER        INDEL    82
-#> 3      LOW          SNP    21
-#> 4 MODERATE        INDEL     5
-#> 5 MODERATE          SNP    29
-#> 6     HIGH        INDEL     6
+#> 1 MODIFIER        INDEL    82
+#> 2 MODERATE          SNP    29
+#> 3 MODIFIER          SNP   220
+#> 4     HIGH        INDEL     6
+#> 5      LOW          SNP    21
+#> 6 MODERATE        INDEL     5
 #> 
 #> $variant_type_totals
 #>   variant_type total_variants
