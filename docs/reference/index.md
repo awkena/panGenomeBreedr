@@ -95,6 +95,23 @@
 - [`get_google_id()`](https://awkena.github.io/panGenomeBreedr/reference/get_google_id.md)
   : Get the folder or file ID from a Google Drive shareable link.
 
+### PCIL Family Selection
+
+- [`fetch_pcil_families_by_variant()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_families_by_variant.md)
+  : Fetch Pangenome-Characterized Introgression Lines (PCIL) by Variant
+- [`fetch_pcil_data()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_data.md)
+  : Fetch All PCIL Data Tables
+- [`fetch_pcil_positive()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_positive.md)
+  : Fetch PCIL Positive Lines
+- [`plot_pcil_positive()`](https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_positive.md)
+  : Plot PCIL Positive Introgressions
+- [`plot_pcil_best_lines()`](https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_best_lines.md)
+  : Plot Best PCIL Candidate Lines
+- [`fetch_pcil_negative()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_negative.md)
+  : Fetch Negative Control PCILs
+- [`plot_pcil_negative_pairs()`](https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_negative_pairs.md)
+  : Plot PCIL Positive and Negative Pairs
+
 ## KASP Marker Validation
 
 - [`read_kasp_csv()`](https://awkena.github.io/panGenomeBreedr/reference/read_kasp_csv.md)

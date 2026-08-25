@@ -85,34 +85,34 @@ print(online_summary)
 #> 1             5_prime_UTR_variant          SNP     1
 #> 2   conservative_inframe_deletion        INDEL     1
 #> 3                  intron_variant        INDEL     2
-#> 4         downstream_gene_variant          SNP    46
-#> 5    disruptive_inframe_insertion        INDEL     1
-#> 6  conservative_inframe_insertion        INDEL     1
-#> 7         downstream_gene_variant        INDEL    13
-#> 8                missense_variant          SNP    29
-#> 9                  intron_variant          SNP     6
-#> 10            5_prime_UTR_variant        INDEL     1
-#> 11    disruptive_inframe_deletion        INDEL     2
-#> 12             synonymous_variant          SNP    21
-#> 13          upstream_gene_variant        INDEL    53
+#> 4         downstream_gene_variant        INDEL    13
+#> 5             3_prime_UTR_variant          SNP    18
+#> 6              frameshift_variant        INDEL     6
+#> 7         downstream_gene_variant          SNP    46
+#> 8     disruptive_inframe_deletion        INDEL     2
+#> 9                missense_variant          SNP    29
+#> 10                 intron_variant          SNP     6
+#> 11            5_prime_UTR_variant        INDEL     1
+#> 12   disruptive_inframe_insertion        INDEL     1
+#> 13 conservative_inframe_insertion        INDEL     1
 #> 14            3_prime_UTR_variant        INDEL    13
 #> 15          upstream_gene_variant          SNP   149
-#> 16            3_prime_UTR_variant          SNP    18
-#> 17             frameshift_variant        INDEL     6
+#> 16             synonymous_variant          SNP    21
+#> 17          upstream_gene_variant        INDEL    53
 #> 
 #> $impact_summary
 #>     impact variant_type count
-#> 1 MODIFIER        INDEL    82
+#> 1     HIGH        INDEL     6
 #> 2 MODIFIER          SNP   220
-#> 3 MODERATE        INDEL     5
-#> 4      LOW          SNP    21
+#> 3      LOW          SNP    21
+#> 4 MODERATE        INDEL     5
 #> 5 MODERATE          SNP    29
-#> 6     HIGH        INDEL     6
+#> 6 MODIFIER        INDEL    82
 #> 
 #> $variant_type_totals
 #>   variant_type total_variants
-#> 1          SNP             75
-#> 2        INDEL             27
+#> 1        INDEL             27
+#> 2          SNP             75
 #> 
 
 # --- Offline Mode ---

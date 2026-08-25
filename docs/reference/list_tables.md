@@ -36,7 +36,10 @@ library(panGenomeBreedr)
 # List all tables in the online database
 online_tables <- list_tables(connect_db_mode = 'online')
 print(online_tables)
-#> [1] "annotations" "genotypes"   "metadata"    "variants"   
+#>  [1] "annotations"          "genotypes"            "metadata"            
+#>  [4] "pcil_genes"           "pcil_genomewide"      "pcil_ibs"            
+#>  [7] "pcil_introgressions"  "pcil_metadata"        "pcil_sample_metadata"
+#> [10] "variants"            
 
 # --- Offline Mode ---
 # Locate the package example database folder

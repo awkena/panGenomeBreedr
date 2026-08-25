@@ -56,6 +56,7 @@ variant type.
 The final name format is `genome_version_chr_pos_suffix`.
 }
 \examples{
+\donttest{
 marker_data <- list(
   marker_data = data.frame(
     SNP_Name = "SNP_Chr03_11361160",
@@ -72,6 +73,7 @@ marker_data <- list(
 
 make_intertek_table(marker_data = marker_data, genome_version = "Sbv5.1",
 region_name = "qDT3.1", trait = "Stay-green", owner = "Cruet-Burgos")
+}
 
 }
 \concept{KASP-marker-design}

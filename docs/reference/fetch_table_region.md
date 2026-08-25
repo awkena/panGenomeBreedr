@@ -94,20 +94,20 @@ online_genotypes_data <- fetch_table_region(
   connect_db_mode = 'online'
 )
 print(online_genotypes_data[1:6, 1:12])
-#>           variant_id chrom      pos ref alt variant_type major_allele
-#> 1 SNP_Chr05_75104557 Chr05 75104557   C   T          SNP            C
-#> 2 SNP_Chr05_75104560 Chr05 75104560   C   T          SNP            C
-#> 3 SNP_Chr05_75104568 Chr05 75104568   G   T          SNP            G
-#> 4 SNP_Chr05_75104569 Chr05 75104569   C   A          SNP            C
-#> 5 SNP_Chr05_75104574 Chr05 75104574   C   T          SNP            C
-#> 6 SNP_Chr05_75104591 Chr05 75104591   A   G          SNP            A
+#>             variant_id chrom      pos ref  alt variant_type major_allele
+#> 1 INDEL_Chr05_75104541 Chr05 75104541   T TGAC        INDEL            T
+#> 2 INDEL_Chr05_75104564 Chr05 75104564   C   CA        INDEL            C
+#> 3 INDEL_Chr05_75104573 Chr05 75104573  TC    T        INDEL           TC
+#> 4 INDEL_Chr05_75104585 Chr05 75104585   A  AAT        INDEL            A
+#> 5 INDEL_Chr05_75104618 Chr05 75104618   G   GC        INDEL            G
+#> 6 INDEL_Chr05_75104703 Chr05 75104703   C  CTG        INDEL            C
 #>   minor_allele major_allele_freq minor_allele_freq IDMM ISGC
-#> 1            T           0.89051           0.10949  0|0  0|0
-#> 2            T           0.88962           0.11038  0|0  0|0
-#> 3            T           0.99791           0.00209  0|0  0|0
-#> 4            A           0.99791           0.00209  0|0  0|0
-#> 5            T           0.99195           0.00805  0|0  0|0
-#> 6            G           0.96420           0.03580  0|0  0|0
+#> 1         TGAC           0.99881           0.00119  0|0  0|0
+#> 2           CA           0.88544           0.11456  0|0  0|0
+#> 3            T           0.88484           0.11516  0|0  0|0
+#> 4          AAT           0.88365           0.11635  0|0  0|0
+#> 5           GC           0.88455           0.11545  0|0  0|0
+#> 6          CTG           0.99821           0.00179  0|0  0|0
 
 # --- Offline Mode ---
 # Locate the package example database folder

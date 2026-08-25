@@ -108,6 +108,16 @@ reference:
       - folder_download_gd
       - get_google_id
 
+  - subtitle: "PCIL Family Selection"
+    contents:
+      - fetch_pcil_families_by_variant
+      - fetch_pcil_data
+      - fetch_pcil_positive
+      - plot_pcil_positive
+      - plot_pcil_best_lines
+      - fetch_pcil_negative
+      - plot_pcil_negative_pairs
+
   - title: "KASP Marker Validation"
     contents:
       - read_kasp_csv

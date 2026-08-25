@@ -38,11 +38,17 @@ library(panGenomeBreedr)
 # Summarize all tables in the online database
 online_summary <- summarize_database(connect_db_mode = 'online')
 print(online_summary)
-#>         table   n_rows
-#> 1 annotations 61679112
-#> 2    metadata     1676
-#> 3    variants 38230911
-#> 4   genotypes 38230930
+#>                   table   n_rows
+#> 1           annotations 61679112
+#> 2              metadata     1676
+#> 3            pcil_genes    35052
+#> 4       pcil_genomewide     2067
+#> 5              pcil_ibs  2137278
+#> 6   pcil_introgressions    17951
+#> 7         pcil_metadata     1836
+#> 8  pcil_sample_metadata     2067
+#> 9              variants 38230911
+#> 10            genotypes 38230930
 
 # --- Offline Mode ---
 # Locate the package example database folder

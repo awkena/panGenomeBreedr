@@ -50,9 +50,10 @@ Imports:
     scales
 Depends: 
     R (>= 4.1)
-Suggests: 
+Suggests:
     Biostrings,
     BSgenome,
+    colourpicker,
     config,
     data.table,
     DT,

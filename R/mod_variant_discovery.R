@@ -167,6 +167,148 @@ mod_variant_discovery_ui <- function(id) {
       )
     )
   }
+  
+  pcil_info_tab <- function(ns) {
+    tagList(
+      bslib::card(
+        class = "shadow-sm mb-3",
+        bslib::card_header(
+          class = "d-flex justify-content-between align-items-center",
+          tagList(
+            icon("table", class = "me-1 text-primary"),
+            "PCIL Data Overview"
+          ),
+          # load PCIL data button
+          shinyWidgets::actionBttn(
+            ns("get_pcil_data"),
+            "Load PCIL Data",
+            style = "bordered",
+            size = "xs",
+            color = "primary",
+            icon = icon("cloud-download-alt")
+          )
+        ),
+        bslib::card_body(
+          bslib::navset_card_pill(
+            bslib::nav_panel(
+              "PCIL Metadata",
+              icon = icon("table"),
+              reactable::reactableOutput(ns("pcil_metadata_table"))
+            ),
+            bslib::nav_spacer(),
+            bslib::nav_panel(
+              "Gene Regions",
+              icon = icon("dna"),
+              reactable::reactableOutput(ns("pcil_gene_regions_table"))
+            ),
+            bslib::nav_spacer(),
+            bslib::nav_panel(
+              "Introgressions",
+              icon = icon("project-diagram"),
+              reactable::reactableOutput(ns("pcil_introgressions_table"))
+            )
+          )
+        )
+      ),
+      bslib::card(
+        bslib::card_body(
+          bslib::navset_card_pill(
+            bslib::nav_panel(
+              "Genome-wide Introgressions",
+              icon = icon("globe"),
+              reactable::reactableOutput(ns(
+                "pcil_genomewide_introgressions_table"
+              ))
+            ),
+            bslib::nav_spacer(),
+            bslib::nav_panel(
+              "Inbreeding Coefficients",
+              icon = icon("chart-line"),
+              reactable::reactableOutput(ns(
+                "pcil_inbreeding_coefficient_table"
+              ))
+            ),
+            bslib::nav_spacer(),
+            bslib::nav_panel(
+              "IBS Distance",
+              icon = icon("fingerprint"),
+              reactable::reactableOutput(ns("pcil_IBS_dis_table"))
+            )
+          )
+        )
+      )
+    )
+  }
+
+  # -------------------
+  # PCIL Selection Tab 
+  # -------------------
+  pcil_selection_tab <- function(ns) {
+    tagList(
+      # Adds some space below the title
+      tags$br(),
+
+      bslib::navset_card_underline(
+        id = ns("pcil_workflow_tabs"),
+        # --- TAB 1: Identify Donor Families ---
+        bslib::nav_panel(
+          title = "1. Identify PCIL Families for PCVs",
+          icon = icon("users"),
+
+          # Centered Input Card
+          bslib::layout_columns(
+            col_widths = c(-2, 8, -2), # Creates a centered 8-column card
+            bslib::card(
+              bslib::card_body(
+                tags$p(
+                  "Choose the variant(s) of interest and search for PCIL families carrying the alternate allele.",
+                  class = "text-muted small text-center mb-4"
+                ),
+                selectizeInput(
+                  ns("pcil_marker_ID"),
+                  "Variant ID",
+                  choices = NULL,
+                  multiple = TRUE,
+                  options = list(placeholder = "Select variants..."),
+                  width = "100%"
+                ),
+                div(
+                  class = "d-grid mt-3",
+                  actionButton(
+                    ns("find_pcil_families_btn"),
+                    "Find Families",
+                    icon = icon("search"),
+                    class = "btn-success fw-bold py-2"
+                  )
+                )
+              )
+            )
+          ),
+
+          # Results area (Full width)
+          uiOutput(ns("pcil_family_results_ui"))
+        ),
+
+        bslib::nav_spacer(),
+
+        # --- TAB 2: Positive Lines ---
+        bslib::nav_panel(
+          title = "2. Identify PCIL Positive Lines",
+          icon = icon("magnifying-glass-plus"),
+          uiOutput(ns("pcil_step2_ui"))
+        ),
+
+        bslib::nav_spacer(),
+
+        # --- TAB 3: Negative Controls ---
+        bslib::nav_panel(
+          title = "3. Identify PCIL Negative Lines",
+          icon = icon("shield-halved"),
+          uiOutput(ns("pcil_step3_ui"))
+        )
+      )
+    )
+  }
 
  # ------------------------------------------------------------------
 # Cmbined Coordinate Entry Card
@@ -362,11 +504,12 @@ gene_cord_tab <- function(ns) {
   )
   
 
+  # SIDEBAR LAYOUT LOGIC & NAV BUTTONS
   active_dashboard_view <- bslib::layout_sidebar(
     fillable = FALSE,
     sidebar = bslib::sidebar(
       id = ns('db_sidebar'),
-      width = 320,
+      width = 300,
       bg = "#f8f9fa",
       class = "p-3",
       title = tags$h3(
@@ -381,26 +524,25 @@ gene_cord_tab <- function(ns) {
         tags$span("Database Connected", class = "fw-bold small mb-0")
       ),
 
-      # Navigation Buttons
-      # Get database Info button
+      # DATABASE OVERVIEW NAV BUTTON
       actionButton(
         ns("get_db_info"),
-        "Database Overview",
+        "Database Info",
         icon = icon("info-circle"),
         width = "100%",
         class = "btn-primary btn-lg mb-2 fw-bold text-start"
       ),
 
-      # Set Gene Cordinates Button
+      # PCV IDENTIFICATION BUTTON
       actionButton(
-        ns("show_gene_cord_btn"),
+        ns("identify_variants_btn"),
         "Identify Variants",
         icon = icon("crosshairs"),
         width = "100%",
         class = "btn-outline-primary btn-lg mb-4 fw-bold text-start"
       ),
 
-      # Design KASP Markers button
+      # KASP MARKER DESIGN NAV BUTTON
       actionButton(
         ns("design_kasp_sidebar_btn"),
         "Design Markers",
@@ -409,6 +551,16 @@ gene_cord_tab <- function(ns) {
         class = "btn-outline-primary btn-lg mb-4 fw-bold text-start"
       ),
 
+      # PCIL SELECTION NAV BUTTON
+      actionButton(
+        ns("pcil_selection_btn"),
+        "PCIL Selection",
+        icon = icon("seedling"),
+        width = "100%",
+        class = "btn-outline-primary btn-lg mb-4 fw-bold text-start"
+      ),
+
+      # DATABASE DISCONNECTION BUTTON
       actionButton(
         ns("disconnect_btn"),
         "Disconnect",
@@ -418,13 +570,25 @@ gene_cord_tab <- function(ns) {
     ),
 
     # MAIN CONTENT AREA
+    # acts as a fake router - sidebar buttons call updateTabsetPanel(param_header, selected = <value>)
+    # to switch which nav_panel_hidden below is showing
     bslib::navset_hidden(
       id = ns('param_header'),
 
-      # Info tab
+      # Info tabs
       bslib::nav_panel_hidden(
         value = 'info_tab',
-        info_tab(ns)
+        bslib::navset_card_tab(
+          id = ns("db_overview_tabs"),
+          bslib::nav_panel(
+            title = "Pangenome-scale Resource",
+            info_tab(ns)
+          ),
+          bslib::nav_panel(
+            title = "Pangenome Characterised Introgression Lines",
+            pcil_info_tab(ns)
+          )
+        )
       ),
 
       # Gene coordinates tab
@@ -446,7 +610,10 @@ gene_cord_tab <- function(ns) {
             icon = icon("arrow-left"),
             class = "btn btn-light btn-lg me-3" # A more modern, subtle button
           ),
-          tags$h4("KASP Design KASP Markers", class = "m-0 fw-bold text-primary")
+          tags$h4(
+            "KASP Design KASP Markers",
+            class = "m-0 fw-bold text-primary"
+          )
         ),
 
         fluidRow(
@@ -509,7 +676,7 @@ gene_cord_tab <- function(ns) {
                   min = 1,
                   step = 1,
                   width = "100%"
-                ) 
+                )
               ),
               bslib::card_footer(
                 class = "bg-transparent border-0",
@@ -608,6 +775,21 @@ gene_cord_tab <- function(ns) {
             )
           )
         )
+      ),
+      # PCIL SELECTION TAB
+      bslib::nav_panel_hidden(
+        value = "pcil_selection",
+
+        # Page header matching your clean aesthetic
+        div(
+          class = "d-flex align-items-center mb-4",
+          tags$h4(
+            "PCIL Selection & Analysis",
+            class = "m-0 fw-bold text-primary"
+          )
+        ),
+
+        pcil_selection_tab(ns)
       )
     )
   )
@@ -620,6 +802,7 @@ gene_cord_tab <- function(ns) {
   tagList(
     shinyjs::useShinyjs(),
     div(id = ns("pre_connection_panel"), pre_connection_view),
+    # server toggles these two panels with shinyjs::show/hide on connect/disconnect
     shinyjs::hidden(div(
       id = ns("active_dashboard_panel"),
       active_dashboard_view
@@ -674,14 +857,64 @@ mod_variant_discovery_server <- function(id) {
     })
 
     # Gene cordinates
-    observeEvent(input$show_gene_cord_btn, {
+    observeEvent(input$identify_variants_btn, {
       updateTabsetPanel(session, "param_header", selected = "gene_cord")
-      update_sidebar_buttons("show_gene_cord_btn")
+      update_sidebar_buttons("identify_variants_btn")
+    })
+
+    # PCIL Selection Navigation
+    observeEvent(input$pcil_selection_btn, {
+      if (is.null(values$data_for_pcil_selection)) {
+        showModal(
+          modalDialog(
+            title = div(
+              class = "d-flex align-items-center",
+              icon(
+                "circle-info",
+                class = "text-primary me-2",
+                style = "font-size: 1.5rem;"
+              ),
+              tags$b("No Variants Selected Yet")
+            ),
+            size = "m",
+            easyClose = TRUE,
+            fade = TRUE,
+            div(
+              class = "text-muted",
+              "You need to identify putative causal variants before starting PCIL selection. ",
+              "Head over to the ",
+              tags$b("Identify Variants"),
+              " tab, explore a genomic region, and click ",
+              tags$b("PCIL Selection"),
+              " there to send your selected variants to this step."
+            ),
+            footer = tagList(
+              modalButton("Close"),
+              actionButton(
+                ns("goto_identify_variants_btn"),
+                "Go to Identify Variants",
+                class = "btn-primary fw-bold px-4",
+                icon = icon("crosshairs")
+              )
+            )
+          )
+        )
+        return()
+      }
+
+      updateTabsetPanel(session, "param_header", selected = "pcil_selection")
+      update_sidebar_buttons("pcil_selection_btn")
+
+      # Optional: If you need to trigger any specific data rendering
+      # exclusively when this tab is opened, do it here.
+      # req(rv$pcil_data)
     })
 
     # ------------------------------------------------------------------
     # REACTIVE VALUES & STATE MANAGEMENT
     # ------------------------------------------------------------------
+    # Connection-level state - lives for the whole session.
+    # See `values` further down for state scoped to the currently selected region.
     rv <- reactiveValues(
       conn = NULL,
       connected = FALSE,
@@ -695,51 +928,103 @@ mod_variant_discovery_server <- function(id) {
       sqlite_summary = NULL,
       variant_count = NULL,
       variant_stats = NULL,
-      lst_tbl_column = NULL
+      lst_tbl_column = NULL,
+      pcil_data = NULL
     )
 
     output$is_connected <- reactive(rv$connected)
     outputOptions(output, "is_connected", suspendWhenHidden = FALSE)
 
-    # ------------------------------------------------------------------
-    # DATABASE CONNECTION MODE LOGIC
-    # ------------------------------------------------------------------
+  # ------------------------------------------------------------------
+  # DATABASE CONNECTION MODE LOGIC & PCIL data loading
+  # ------------------------------------------------------------------
 
-    #  Local DuckDB/Parquet Connection
+  ## NEW: ON-DEMAND LAZY LOADING HELPER FOR PCIL DATA
+  load_pcil_on_demand <- function(c_type, d_path, on_success_callback = NULL) {
+    shinybusy::show_modal_spinner(
+      spin = "fading-circle",
+      color = "#27AE60",
+      text = "Loading PCIL Resource..."
+    )
+
+    p <- future::future(
+      {
+        if (c_type == "sqlite") {
+          temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
+          on.exit(disconnect_local_db(temp_con, quiet = TRUE))
+          fetch_pcil_data(con = temp_con)
+        } else {
+          fetch_pcil_data(connect_db_mode = 'online')
+        }
+      },
+      seed = TRUE,
+      packages = c("panGenomeBreedr")
+    )
+
+    promises::then(
+      p,
+      onFulfilled = function(res) {
+        rv$pcil_data <- res
+        shinybusy::remove_modal_spinner()
+        shinyWidgets::show_toast(
+          "PCIL data loaded successfully.",
+          type = "success"
+        )
+
+        # If a callback was provided (e.g., transition to the next tab), execute it now
+        if (!is.null(on_success_callback)) {
+          on_success_callback()
+        }
+      },
+      onRejected = function(err) {
+        shinybusy::remove_modal_spinner()
+        shinyWidgets::show_alert(
+          title = "Error Loading PCIL Data!",
+          text = err$message,
+          type = "error"
+        )
+      }
+    )
+  }
+
+    ### LOCAL DATABASE CONNECTION 
     volumes <- c(Home = path.expand("~"), shinyFiles::getVolumes()())
     shinyFiles::shinyDirChoose(
       input,
       "connect_btn",
       roots = volumes,
       session = session
-    )
+    )# Offline file choosing logic
 
     observeEvent(input$connect_btn, {
       shinyjs::hide(id = 'impact_card')
-
-      # Check if a valid directory was selected
       if (!is.integer(input$connect_btn)) {
         db_path <- shinyFiles::parseDirPath(volumes, input$connect_btn)
-
         shinybusy::show_modal_spinner(
           spin = "fading-circle",
           color = "#27AE60",
           text = "Connecting to Database... Please wait."
         )
+
         tryCatch(
           {
             if (!is.null(rv$conn) && rv$conn_type == "sqlite") {
               disconnect_local_db(rv$conn)
               rv$conn <- NULL
             }
-
             rv$conn <- connect_local_db(folder_path = db_path)
             rv$connected <- TRUE
             rv$conn_type <- "sqlite"
-            rv$tables <- list_tables(con = rv$conn)
-            rv$sample_metadata <- fetch_accession_metadata(con = rv$conn)
             rv$db_path <- db_path
 
+            # Load ONLY Pangenome-scale data initially
+            shinybusy::update_modal_spinner(
+              "Loading Pangenome-scale Resource..."
+            )
+            rv$tables <- list_tables(con = rv$conn)
+            rv$sample_metadata <- fetch_accession_metadata(con = rv$conn)
+
+            # Instantly transition to dashboard (No PCIL fetching here)
             shinyjs::hide("pre_connection_panel")
             shinyjs::show("active_dashboard_panel")
             shinyWidgets::show_alert(
@@ -752,12 +1037,8 @@ mod_variant_discovery_server <- function(id) {
           error = function(e) {
             shinyWidgets::show_alert(
               title = "Connection Error!",
-              text = paste(
-                "Failed to connect or read from database:",
-                e$message
-              ),
-              type = "danger",
-              timer = 8000
+              text = e$message,
+              type = "danger"
             )
           },
           finally = {
@@ -767,7 +1048,7 @@ mod_variant_discovery_server <- function(id) {
       }
     })
 
-    # Show Modal for PostgreSQL Connection
+    ### MODAL WINDOW IF USER SELECTS API CONNECTION
     observeEvent(input$btn_show_postgres_modal, {
       showModal(
         modalDialog(
@@ -821,6 +1102,7 @@ mod_variant_discovery_server <- function(id) {
       )
     })
 
+    ### OBSERVER FOR ONLINE CONNECTION
     observeEvent(input$btn_connect_postgres, {
       removeModal()
       shinybusy::show_modal_spinner(
@@ -828,6 +1110,7 @@ mod_variant_discovery_server <- function(id) {
         color = "#27AE60",
         text = "Connecting to database..."
       )
+
       tryCatch(
         {
           target_url <- if (input$api_choice == "custom") {
@@ -835,13 +1118,20 @@ mod_variant_discovery_server <- function(id) {
           } else {
             get_api_url()
           }
-
           set_api_url(target_url)
-          rv$tables <- list_tables(connect_db_mode = 'online')
-          rv$connected <- TRUE
-          rv$sample_metadata <- fetch_accession_metadata(connect_db_mode = 'online')
-          rv$conn_type <- "postgres"
 
+          rv$connected <- TRUE
+          rv$conn_type <- "postgres"
+          rv$db_path <- NULL
+
+          # Load ONLY Pangenome-scale data initially
+          shinybusy::update_modal_spinner("Loading Pangenome-scale Resource...")
+          rv$tables <- list_tables(connect_db_mode = 'online')
+          rv$sample_metadata <- fetch_accession_metadata(
+            connect_db_mode = 'online'
+          )
+
+          # Instantly transition to dashboard (No PCIL fetching here)
           shinyjs::hide("pre_connection_panel")
           shinyjs::show("active_dashboard_panel")
           shinyWidgets::show_alert(
@@ -854,9 +1144,8 @@ mod_variant_discovery_server <- function(id) {
         error = function(e) {
           shinyWidgets::show_alert(
             title = "Failed!",
-            text = "Unable to reach database. Please check your internet connection",
-            type = "danger",
-            timer = 5000
+            text = "Unable to reach database.",
+            type = "danger"
           )
         },
         finally = {
@@ -882,6 +1171,7 @@ mod_variant_discovery_server <- function(id) {
       rv$variant_count <- NULL
       rv$variant_stats <- NULL
       rv$lst_tbl_column <- NULL
+      rv$pcil_data <- NULL
 
       values$result <- NULL
       values$query_db_val <- NULL
@@ -944,6 +1234,8 @@ mod_variant_discovery_server <- function(id) {
       actual_preferred <- intersect(preferred_cols, all_cols)
       candidate_cols <- setdiff(all_cols, c(actual_preferred, cols_to_exclude))
 
+      # Auto-pick columns worth coloring the map by: skip ID-like/near-unique
+      # columns and cap how many distinct categories a column can have.
       heuristic_passed_cols <- Filter(
         function(col_name) {
           col_data <- meta[[col_name]]
@@ -1146,6 +1438,17 @@ mod_variant_discovery_server <- function(id) {
       )
     })
 
+
+
+    # Render PCIL tables
+    output$pcil_metadata_table <- reactable::renderReactable({ req(rv$pcil_data$pcil_metadata); render_reactable(rv$pcil_data$pcil_metadata) })
+    output$pcil_gene_regions_table <- reactable::renderReactable({ req(rv$pcil_data$pcil_gene_regions); render_reactable(rv$pcil_data$pcil_gene_regions) })
+    output$pcil_introgressions_table <- reactable::renderReactable({ req(rv$pcil_data$pcil_introgressions); render_reactable(rv$pcil_data$pcil_introgressions) })
+    output$pcil_genomewide_introgressions_table <- reactable::renderReactable({ req(rv$pcil_data$pcil_genomewide_introgressions); render_reactable(rv$pcil_data$pcil_genomewide_introgressions) })
+    output$pcil_inbreeding_coefficient_table <- reactable::renderReactable({ req(rv$pcil_data$pcil_inbreeding_coefficient); render_reactable(rv$pcil_data$pcil_inbreeding_coefficient) })
+    output$pcil_IBS_dis_table <- reactable::renderReactable({ req(rv$pcil_data$pcil_IBS_dis); render_reactable(rv$pcil_data$pcil_IBS_dis) })
+
+
     output$table_impact_id <- reactable::renderReactable({
       req(rv$variant_impact)
       render_reactable(rv$variant_impact)
@@ -1170,10 +1473,13 @@ mod_variant_discovery_server <- function(id) {
     # ------------------------------------------------------------------
     # QUERY LOGIC
     # ------------------------------------------------------------------
+    # Per-region state - gets wiped and re-populated every time values$result
+    # (the selected chrom/start/end) changes. See the observeEvent(values$result, ...) below.
     values <- reactiveValues(
       result = NULL,
       last_action = NULL,
       data_for_marker_design = NULL,
+      data_for_pcil_selection = NULL,
       # New reactive values for on-demand tables
       table_genotypes = NULL,
       table_variants = NULL,
@@ -1204,6 +1510,17 @@ mod_variant_discovery_server <- function(id) {
       )
     }
 
+    # PCIL Selection workflow state (donor families -> positive lines -> negative controls)
+    pcil <- reactiveValues(
+      family_results = NULL,
+      positive_results = NULL,
+      positive_plots = NULL,
+      negative_results = NULL,
+      negative_plots = NULL
+    )
+
+    # Runs on every new region (gene lookup or manual coords) - clears out the
+    # previous region's tables/filters, then re-fetches everything for the new range.
     observeEvent(values$result, {
       req(rv$connected, values$result)
 
@@ -1275,44 +1592,6 @@ mod_variant_discovery_server <- function(id) {
           )
         }
       )
-    })
-
-    observeEvent(input$pcv_nav_id, {
-      if (input$pcv_nav_id == "Linkage Disequilibrium") {
-        req(values$regional_genotypes)
-        #req(values$query_geno_react)
-
-        if (
-          nrow(values$regional_genotypes) > 0 &&
-            "variant_id" %in% names(values$regional_genotypes)
-        ) {
-          variant_choices <- values$regional_genotypes$variant_id
-
-            pre_selected_variants <- if (
-              !is.null(values$query_geno_react) &&
-                nrow(values$query_geno_react) > 0
-            ) {
-              intersect(values$query_geno_react$variant_id, variant_choices)
-            } else {
-              NULL
-            }
-
-          updateSelectizeInput(
-            session,
-            "target_ids",
-            selected = pre_selected_variants,
-            choices = variant_choices,
-            server = TRUE
-          )
-        } else {
-          updateSelectizeInput(
-            session,
-            "target_ids",
-            choices = character(0),
-            server = TRUE
-          )
-        }
-      }
     })
 
     observeEvent(input$submit, {
@@ -1398,6 +1677,8 @@ mod_variant_discovery_server <- function(id) {
       c_type <- rv$conn_type
       d_path <- rv$db_path
 
+      # Validate against cached stats if we already have them (skips a DB round trip);
+      # otherwise fetch chrom bounds first and validate once they arrive (see else branch below).
       if (!is.null(rv$variant_stats)) {
         v_stats <- rv$variant_stats
         chr_stats <- v_stats[v_stats$chrom == chr_val, ]
@@ -1599,8 +1880,9 @@ mod_variant_discovery_server <- function(id) {
               tags$strong(textOutput(ns("filtered_variant_summary_text"))),
               div(
                 class = "d-flex gap-2",
-                actionButton(ns("refine_plot_btn"), "Apply Filters & Update Plot", icon = icon("search-plus"), class = "btn-primary"),
+                actionButton(ns("refine_plot_btn"), "Apply All Filters", icon = icon("search-plus"), class = "btn-primary"),
                 actionButton(ns("design_markers_from_region_btn"), "Design Markers", icon = icon("dna"), class = "btn-success"),
+                actionButton(ns("send_to_pcil_btn"), "PCIL Selection", icon = icon("seedling"), class = "btn-outline-success"),
                 actionButton(ns("clear_all_filters_btn"), "Clear All Filters", icon = icon("xmark"), class = "btn-outline-secondary")
               )
             )
@@ -1685,10 +1967,18 @@ mod_variant_discovery_server <- function(id) {
           )
         ),
         bslib::card_body(
-          shinycssloaders::withSpinner(
-            plotOutput(ns('hotspot_plot'), height = "600px"),
-            type = 4,
-            color = "#27AE60"
+          div(
+            numericInput(
+              inputId = ns('gene_txt_sz'),
+              label = 'Label size',
+              value = 2.5,
+              min = 1
+            ),
+            shinycssloaders::withSpinner(
+              plotOutput(ns('hotspot_plot'), height = "600px"),
+              type = 4,
+              color = "#27AE60"
+            )
           )
         )
       )
@@ -1714,7 +2004,7 @@ mod_variant_discovery_server <- function(id) {
 
       # Deduplicate annotations, keeping only the most severe impact per variant.
       if (nrow(plot_ann) > 0 && "impact" %in% names(plot_ann)) {
-        impact_levels <- c("HIGH", "MODERATE", "LOW", "MODIFIER", "UNKNOWN")
+        impact_levels <- c("HIGH", "MODERATE", "LOW", "MODIFIER")
         plot_ann$impact_rank <- factor(plot_ann$impact, levels = impact_levels, ordered = TRUE)
         plot_ann <- plot_ann[order(plot_ann$impact_rank, na.last = TRUE), ]
         plot_ann <- plot_ann[!duplicated(plot_ann$variant_id), ]
@@ -1746,7 +2036,8 @@ mod_variant_discovery_server <- function(id) {
           gff_path = gff_path,
           annotations_df = plot_ann,
           genotypes_df = plot_geno,
-          selected_variants = unique(values$final_selected_variants)
+          selected_variants = unique(values$final_selected_variants),
+          text_sz = input$gene_txt_sz
         )
       } else { # 'coords'
         var_df <- merge(plot_ann, plot_geno, by = "variant_id")
@@ -1762,8 +2053,10 @@ mod_variant_discovery_server <- function(id) {
     # INTERACTIVE FILTERING LOGIC
     # ==========================================================================
 
+    # Draft filters while a filter modal is open; only copied over to values$filters_*
+    # (the ones actually applied to the tables/plot) when the user hits Apply & Close.
     filter_states <- reactiveValues(genotypes = NULL, variants = NULL, annotations = NULL, sample_filters = NULL)
-    
+
     show_filter_modal <- function(table_name, data) {
       req(data)
       # filterable_cols <- names(data)[sapply(data, function(x) !is.list(x) && !is.data.frame(x))]
@@ -1791,6 +2084,8 @@ mod_variant_discovery_server <- function(id) {
       ))
     }
     
+    # Reusable filter-modal wiring, shared by the variants & annotations tables below.
+    # Genotypes gets its own version further down since it also filters by sample columns.
     handle_table_filtering <- function(table_name, data_reactive) {
       observeEvent(input[[paste0("filter_", table_name, "_btn")]], {
         req(data_reactive())
@@ -1977,6 +2272,7 @@ mod_variant_discovery_server <- function(id) {
         } else {
           fetch_genotypes_by_id(connect_db_mode = 'online', variant_ids = marker_candidates, meta_data = meta_cols)
         }
+
       }, seed = TRUE, packages = c("panGenomeBreedr"))
 
       promises::then(
@@ -2005,9 +2301,924 @@ mod_variant_discovery_server <- function(id) {
       )
     })
 
+    # =========================
+  # PCIL SELECTION WORKFLOW
+  # =========================
+  observeEvent(input$get_pcil_data, {
+    req(rv$connected)
+    if (is.null(rv$pcil_data)) {
+      load_pcil_on_demand(
+        c_type = rv$conn_type,
+        d_path = rv$db_path,
+        on_success_callback = NULL
+      )
+    } else {
+      shinyWidgets::show_toast("PCIL data is already loaded.", type = "info")
+    }
+  })
+    
+    observeEvent(input$send_to_pcil_btn, {
+      req(values$table_variants)
+
+      marker_candidates <- if (
+        !is.null(values$final_selected_variants) &&
+          length(values$final_selected_variants) > 0
+      ) {
+        values$final_selected_variants
+      } else {
+        unique(values$table_variants$variant_id)
+      }
+
+      if (length(marker_candidates) == 0) {
+        shinyWidgets::show_alert(
+          title = "No Variants to Send",
+          text = "There are no variants to send to PCIL selection.",
+          type = "warning"
+        )
+        return()
+      }
+
+      # Define the transition logic that must happen after PCIL data is ready
+      transition_to_pcil_tab <- function() {
+        values$data_for_pcil_selection <- values$table_variants[
+          values$table_variants$variant_id %in% marker_candidates,
+        ]
+
+        update_sidebar_buttons("pcil_selection_btn")
+        updateTabsetPanel(
+          session,
+          inputId = 'param_header',
+          selected = "pcil_selection"
+        )
+
+        updateSelectizeInput(
+          session,
+          inputId = "pcil_marker_ID",
+          choices = marker_candidates,
+          selected = marker_candidates,
+          server = TRUE
+        )
+
+        gene_choices <- if (!is.null(values$table_annotations)) {
+          unique(stats::na.omit(values$table_annotations$gene_name))
+        } else {
+          character(0)
+        }
+        updateSelectizeInput(
+          session,
+          inputId = "pcil_gene_ids",
+          choices = gene_choices,
+          server = TRUE
+        )
+
+        show_toast_success(paste(
+          "Loaded",
+          length(marker_candidates),
+          "variants for PCIL selection."
+        ))
+      }
+
+      # Check if PCIL data exists. If not, fetch it first, then transition.
+      if (is.null(rv$pcil_data)) {
+        load_pcil_on_demand(
+          c_type = rv$conn_type,
+          d_path = rv$db_path,
+          on_success_callback = transition_to_pcil_tab
+        )
+      } else {
+        # If already loaded, transition instantly
+        transition_to_pcil_tab()
+      }
+    })
+
+    # ---- Step 1: Identify Donor Families ----
+    observeEvent(input$find_pcil_families_btn, {
+      req(input$pcil_marker_ID, rv$pcil_data)
+
+      shinybusy::show_modal_spinner(
+        spin = "fading-circle",
+        color = "#27AE60",
+        text = "Searching for donor families..."
+      )
+
+      c_type <- rv$conn_type
+      d_path <- rv$db_path
+      selection <- input$pcil_marker_ID
+      pcil_data_local <- rv$pcil_data
+
+      p <- future::future(
+        {
+          if (c_type == "sqlite") {
+            temp_con <- connect_local_db(folder_path = d_path, quiet = TRUE)
+            on.exit(disconnect_local_db(temp_con, quiet = TRUE))
+            fetch_pcil_families_by_variant(
+              con = temp_con,
+              selection = selection,
+              pcil_data = pcil_data_local,
+              connect_db_mode = 'local'
+            )
+          } else {
+            fetch_pcil_families_by_variant(
+              selection = selection,
+              pcil_data = pcil_data_local,
+              connect_db_mode = 'online'
+            )
+          }
+        },
+        seed = TRUE,
+        packages = c("panGenomeBreedr")
+      )
+
+      promises::then(
+        p,
+        onFulfilled = function(res) {
+          shinybusy::remove_modal_spinner()
+          if (is.null(res)) {
+            shinyWidgets::show_alert(
+              title = "No Donor Families Found",
+              text = "No PCIL families were identified as putative donors for the selected variant(s).",
+              type = "warning"
+            )
+            return()
+          }
+          pcil$family_results <- res
+          pcil$positive_results <- NULL
+          pcil$positive_plots <- NULL
+          pcil$negative_results <- NULL
+          pcil$negative_plots <- NULL
+          show_toast_success("Donor family search complete.")
+        },
+        onRejected = function(e) {
+          shinybusy::remove_modal_spinner()
+          shinyWidgets::show_alert(title = "Error", text = e$message, type = "error")
+        }
+      )
+    })
+
+    # Output UI for Step 1: Contains 3 pills for the 3 returned tables
+    output$pcil_family_results_ui <- renderUI({
+      req(pcil$family_results)
+
+      bslib::navset_card_pill(
+        # 1. Family Summary Table
+        bslib::nav_panel(
+          "Family Summary",
+          icon = icon("table"),
+          div(
+            class = "d-flex justify-content-end mb-2",
+            downloadButton(
+              ns("dl_fam_summary"),
+              "Export",
+              class = "btn-outline-success btn-sm"
+            )
+          ),
+          reactable::reactableOutput(ns("tbl_fam_summary"))
+        ),
+
+        # 2. Genotypes (geno_pi) Table
+        bslib::nav_panel(
+          "Genotypes Metadata",
+          icon = icon("dna"),
+          div(
+            class = "d-flex justify-content-end mb-2",
+            downloadButton(
+              ns("dl_geno_pi"),
+              "Export",
+              class = "btn-outline-success btn-sm"
+            )
+          ),
+          reactable::reactableOutput(ns("tbl_geno_pi"))
+        ),
+
+        # 3. PCIL Summary Table
+        bslib::nav_panel(
+          "PCIL Details",
+          icon = icon("list"),
+          div(
+            class = "d-flex justify-content-end mb-2",
+            downloadButton(
+              ns("dl_pcil_summary"),
+              "Export",
+              class = "btn-outline-success btn-sm"
+            )
+          ),
+          reactable::reactableOutput(ns("tbl_pcil_summary"))
+        )
+      )
+    })
+
+    # Render Reactables for Step 1
+    output$tbl_fam_summary <- reactable::renderReactable({
+      req(pcil$family_results$pcil_family_summary)
+      render_reactable(pcil$family_results$pcil_family_summary)
+    })
+
+    output$tbl_geno_pi <- reactable::renderReactable({
+      req(pcil$family_results$geno_pi)
+      render_reactable(pcil$family_results$geno_pi)
+    })
+
+    output$tbl_pcil_summary <- reactable::renderReactable({
+      req(pcil$family_results$pcil_summary)
+      render_reactable(pcil$family_results$pcil_summary)
+    })
+
+    # Download Handlers for Step 1
+    output$dl_fam_summary <- downloadHandler(
+      filename = function() {
+        paste0("pcil_donor_family_summary_", Sys.Date(), ".csv")
+      },
+      content = function(file) {
+        write.csv(
+          pcil$family_results$pcil_family_summary,
+          file,
+          row.names = FALSE
+        )
+      }
+    )
+    output$dl_geno_pi <- downloadHandler(
+      filename = function() paste0("pcil_geno_pi_", Sys.Date(), ".csv"),
+      content = function(file) {
+        write.csv(pcil$family_results$geno_pi, file, row.names = FALSE)
+      }
+    )
+    output$dl_pcil_summary <- downloadHandler(
+      filename = function() paste0("pcil_summary_details_", Sys.Date(), ".csv"),
+      content = function(file) {
+        write.csv(pcil$family_results$pcil_summary, file, row.names = FALSE)
+      }
+    )
+
+    # ---- Step 2: Select Positive PCIL Lines (UI Render) ----
+    output$pcil_step2_ui <- renderUI({
+      tagList(
+        # Centered Input Card
+        bslib::layout_columns(
+          col_widths = c(-1, 10, -1), # Leaves 1 column of empty space on each side
+          bslib::card(
+            bslib::card_body(
+              # Centered Radio Buttons
+              div(
+                class = "d-flex justify-content-center mb-3",
+                radioButtons(
+                  ns("pcil_pos_type"),
+                  "Define Target By:",
+                  choices = c(
+                    "Variant Position" = "position",
+                    "Gene ID" = "gene"
+                  ),
+                  selected = "position",
+                  inline = TRUE
+                )
+              ),
+
+              # Conditional Target Inputs
+              conditionalPanel(
+                condition = paste0(
+                  "input['",
+                  ns("pcil_pos_type"),
+                  "'] === 'position'"
+                ),
+                numericInput(
+                  ns("pcil_window"),
+                  "Window (+/- bp)",
+                  value = 0,
+                  min = 0,
+                  step = 100,
+                  width = "100%"
+                )
+              ),
+              conditionalPanel(
+                condition = paste0(
+                  "input['",
+                  ns("pcil_pos_type"),
+                  "'] === 'gene'"
+                ),
+                selectizeInput(
+                  ns("pcil_gene_ids"),
+                  "Gene ID(s)",
+                  choices = NULL,
+                  multiple = TRUE,
+                  options = list(
+                    create = TRUE,
+                    placeholder = "e.g. Sobic.003G421300"
+                  ),
+                  width = "100%"
+                )
+              ),
+
+              tags$hr(class = "my-4 opacity-25"),
+
+              # 4-Column Threshold Inputs
+              bslib::layout_columns(
+                col_widths = c(3, 3, 3, 3),
+                numericInput(
+                  ns("pcil_sel"),
+                  "Top N Lines",
+                  value = 15,
+                  min = 1,
+                  step = 1
+                ),
+                numericInput(
+                  ns("pcil_donor_thresh"),
+                  "Min Donor Fraction",
+                  value = 0.75,
+                  min = 0,
+                  max = 1,
+                  step = 0.05
+                ),
+                numericInput(
+                  ns("pcil_block_quantile"),
+                  "Block Size Quantile",
+                  value = 0.75,
+                  min = 0,
+                  max = 1,
+                  step = 0.05
+                ),
+                numericInput(
+                  ns("pcil_F_quantile"),
+                  "Inbreeding (F) Quantile",
+                  value = 0.25,
+                  min = 0,
+                  max = 1,
+                  step = 0.05
+                )
+              ),
+
+              # Action Button
+              div(
+                class = "d-grid mt-4",
+                actionButton(
+                  ns("find_pcil_positive_btn"),
+                  "Find Positive PCILs",
+                  icon = icon("magnifying-glass-plus"),
+                  class = "btn-success fw-bold py-2"
+                )
+              )
+            )
+          )
+        ),
+
+        # Results area (Full width below the input card)
+        uiOutput(ns("pcil_positive_results_ui"))
+      )
+    })
+
+
+
+  # PCIL STEP 2 SERVER SIDE LOGIC
+    observeEvent(input$find_pcil_positive_btn, {
+      req(input$pcil_pos_type)
+
+      # 1. Determine variants_select_geno based on user's radio button choice
+      variants_select_geno <- if (input$pcil_pos_type == "gene") {
+        req(input$pcil_gene_ids)
+        input$pcil_gene_ids # Passes the character vector of Sobic IDs
+      } else {
+        req(values$data_for_pcil_selection, input$pcil_marker_ID)
+        # Passes the filtered dataframe with Chr, Pos, etc.
+        values$data_for_pcil_selection[
+          values$data_for_pcil_selection$variant_id %in% input$pcil_marker_ID,
+        ]
+      }
+
+      shinybusy::show_modal_spinner(
+        spin = "fading-circle",
+        color = "#27AE60",
+        text = "Selecting positive PCIL lines..."
+      )
+
+      tryCatch(
+        {
+          # 2. Execute the function with the UI inputs
+          res <- fetch_pcil_positive(
+            pcil_data = rv$pcil_data,
+            variants_select_geno = variants_select_geno,
+            type = input$pcil_pos_type,
+            sel = input$pcil_sel,
+            donor_thresh = input$pcil_donor_thresh,
+            block_quantile = input$pcil_block_quantile,
+            F_quantile = input$pcil_F_quantile,
+            window = if (input$pcil_pos_type == "position") {
+              input$pcil_window
+            } else {
+              0
+            },
+            available_ids = if (
+              input$pcil_pos_type == "position" && !is.null(pcil$family_results)
+            ) {
+              pcil$family_results$pcil_summary[, c("sample_id", "selection")]
+            } else {
+              NULL
+            },
+            result_pcil_families = pcil$family_results
+          )
+
+          # 3. Handle Empty Results
+          if (is.null(res$best_lines) || nrow(res$best_lines) == 0) {
+            shinybusy::remove_modal_spinner()
+            shinyWidgets::show_alert(
+              title = "No Positive PCILs Found",
+              text = "No PCIL lines met the specified positive-selection criteria.",
+              type = "warning"
+            )
+            return()
+          }
+
+          # 4. Save results to state and generate plots
+          pcil$positive_results <- res
+          pcil$positive_plots <- list(
+            per_region = plot_pcil_positive(pcil_positive_result = res),
+            best_lines = plot_pcil_best_lines(
+              pcil_positive_result = res,
+              pcil_data = rv$pcil_data
+            )
+          )
+
+          # Reset Step 3 (Negative controls) if Step 2 is re-run
+          pcil$negative_results <- NULL
+          pcil$negative_plots <- NULL
+
+          shinybusy::remove_modal_spinner()
+          show_toast_success("Positive PCIL selection complete.")
+        },
+        error = function(e) {
+          shinybusy::remove_modal_spinner()
+          shinyWidgets::show_alert(
+            title = "Error",
+            text = e$message,
+            type = "error"
+          )
+        }
+      )
+    })
+
+
+    # PCIL STEP 2 RESULTS RENDERING
+    output$pcil_positive_results_ui <- renderUI({
+      req(pcil$positive_results)
+      region_choices <- names(pcil$positive_plots$per_region)
+
+      bslib::navset_card_pill(full_screen = TRUE,
+        # 1. All Positive PCILs
+        bslib::nav_panel(
+          "All Positive PCILs",
+          icon = icon("table"),
+          div(
+            class = "d-flex justify-content-end mb-2",
+            downloadButton(
+              ns("dl_pos_all"),
+              "Export",
+              class = "btn-outline-success btn-sm"
+            )
+          ),
+          reactable::reactableOutput(ns("tbl_pos_all"))
+        ),
+
+        # 2. Best Lines
+        bslib::nav_panel(
+          "Best Lines",
+          icon = icon("star"),
+          div(
+            class = "d-flex justify-content-end mb-2",
+            downloadButton(
+              ns("dl_pos_best"),
+              "Export",
+              class = "btn-outline-success btn-sm"
+            )
+          ),
+          reactable::reactableOutput(ns("tbl_pos_best"))
+        ),
+
+        # 3. Regions Evaluated
+        bslib::nav_panel(
+          "Regions Evaluated",
+          icon = icon("map"),
+          div(
+            class = "d-flex justify-content-end mb-2",
+            downloadButton(
+              ns("dl_pos_regions"),
+              "Export",
+              class = "btn-outline-success btn-sm"
+            )
+          ),
+          reactable::reactableOutput(ns("tbl_pos_regions"))
+        ),
+
+        # 4. Plots (Now with nested tabs for full width)
+        bslib::nav_panel(
+          "Plots",
+          icon = icon("chart-bar"),
+          div(
+            class = "d-flex justify-content-between align-items-end mb-3 mt-2",
+            selectInput(
+              ns("pcil_pos_region_choice"),
+              "View Region:",
+              choices = region_choices,
+              width = "300px"
+            ),
+            downloadButton(
+              ns("download_pcil_positive_plots"),
+              "Download All Plots (PDF)",
+              class = "btn-outline-success btn-sm mb-3"
+            )
+          ),
+
+          # Nested Tabset for the Plots
+          bslib::navset_card_tab(
+            id = ns("pcil_pos_plot_tabs"),
+
+            bslib::nav_panel(
+              title = "All PCIL (+) in Region",
+              icon = icon("align-left"),
+              bslib::card_body(
+                shinycssloaders::withSpinner(
+                  plotOutput(ns("pcil_positive_plot"), height = "600px"),
+                  type = 4,
+                  color = "#27AE60"
+                )
+              )
+            ),
+
+            bslib::nav_panel(
+              title = "Best Candidates (Genome-wide)",
+              icon = icon("globe"),
+              bslib::card_body(
+                shinycssloaders::withSpinner(
+                  plotOutput(ns("pcil_best_lines_plot"), height = "600px"),
+                  type = 4,
+                  color = "#27AE60"
+                )
+              )
+            )
+          )
+        )
+      )
+    })
+
+
+    # ---- Step 2: Render Reactables ----
+    output$tbl_pos_all <- reactable::renderReactable({
+      req(pcil$positive_results$pcil_positive)
+      render_reactable(pcil$positive_results$pcil_positive)
+    })
+
+    output$tbl_pos_best <- reactable::renderReactable({
+      req(pcil$positive_results$best_lines)
+      render_reactable(pcil$positive_results$best_lines)
+    })
+
+    output$tbl_pos_regions <- reactable::renderReactable({
+      req(pcil$positive_results$regions)
+      render_reactable(pcil$positive_results$regions)
+    })
+
+    # ---- Step 2: Render Plots ----
+    output$pcil_positive_plot <- renderPlot({
+      req(pcil$positive_plots$per_region, input$pcil_pos_region_choice)
+      print(pcil$positive_plots$per_region[[input$pcil_pos_region_choice]])
+    })
+
+    output$pcil_best_lines_plot <- renderPlot({
+      req(pcil$positive_plots$best_lines, input$pcil_pos_region_choice)
+      print(pcil$positive_plots$best_lines[[input$pcil_pos_region_choice]])
+    })
+
+    # ---- Step 2: Download Handlers ----
+    output$dl_pos_all <- downloadHandler(
+      filename = function() paste0("pcil_positive_all_", Sys.Date(), ".csv"),
+      content = function(file) {
+        write.csv(pcil$positive_results$pcil_positive, file, row.names = FALSE)
+      }
+    )
+    output$dl_pos_best <- downloadHandler(
+      filename = function() {
+        paste0("pcil_positive_best_lines_", Sys.Date(), ".csv")
+      },
+      content = function(file) {
+        write.csv(pcil$positive_results$best_lines, file, row.names = FALSE)
+      }
+    )
+    output$dl_pos_regions <- downloadHandler(
+      filename = function() {
+        paste0("pcil_positive_regions_", Sys.Date(), ".csv")
+      },
+      content = function(file) {
+        write.csv(pcil$positive_results$regions, file, row.names = FALSE)
+      }
+    )
+
+    output$download_pcil_positive_plots <- downloadHandler(
+      filename = function() paste0("pcil_positive_plots_", Sys.Date(), ".pdf"),
+      content = function(file) {
+        grDevices::pdf(file, width = 14, height = 8, onefile = TRUE)
+        lapply(pcil$positive_plots$per_region, print)
+        lapply(pcil$positive_plots$best_lines, print)
+        grDevices::dev.off()
+      }
+    )
+
+
+    # ==========================================================================
+    # STEP 3: SELECT NEGATIVE CONTROL PCILS
+    # ==========================================================================
+
+    # ---- Step 3: Select Negative Control PCILs (UI Render) ----
+    output$pcil_step3_ui <- renderUI({
+      # 1. Lock state: If Step 2 hasn't been run, hide the inputs and show a message
+      if (is.null(pcil$positive_results$best_lines)) {
+        return(
+          div(
+            class = "text-center p-5 text-muted",
+            icon("lock", class = "fa-3x mb-3 opacity-25"),
+            tags$h5("Awaiting Positive Lines"),
+            tags$p(
+              "Please complete '2. Identify PCIL Positive Lines' to unlock negative control matching."
+            )
+          )
+        )
+      }
+
+      # 2. Active state: Render the centered inputs and full-width results
+      tagList(
+        # Centered Input Card
+        bslib::layout_columns(
+          col_widths = c(-3, 6, -3), # Tighter center for a single input
+          bslib::card(
+            bslib::card_body(
+              div(
+                class = "text-center mb-4",
+                tags$p(
+                  "Find genetically similar background controls lacking the introgression.",
+                  class = "text-muted small m-0"
+                )
+              ),
+
+              numericInput(
+                ns("pcil_n_neg"),
+                "Negative Controls per Positive Line",
+                value = 10,
+                min = 1,
+                step = 1,
+                width = "100%"
+              ),
+
+              div(
+                class = "d-grid mt-4",
+                actionButton(
+                  ns("find_pcil_negative_btn"),
+                  "Find Controls",
+                  icon = icon("shield-halved"),
+                  class = "btn-success fw-bold py-2"
+                )
+              )
+            )
+          )
+        ),
+
+        # Results area (Full width below the input card)
+        uiOutput(ns("pcil_negative_results_ui"))
+      )
+    })
+
+    
+# ---- Step 3: Execution Observer ----
+    observeEvent(input$find_pcil_negative_btn, {
+      req(pcil$positive_results$best_lines, input$pcil_n_neg)
+
+      shinybusy::show_modal_spinner(
+        spin = "fading-circle",
+        color = "#27AE60",
+        text = "Selecting negative control PCILs..."
+      )
+
+      tryCatch(
+        {
+          res <- fetch_pcil_negative(
+            pcil_data = rv$pcil_data,
+            pcil_positive_result = pcil$positive_results,
+            n_neg = input$pcil_n_neg,
+
+            # THE FIX: Added !is.null(pcil$family_results) to prevent a crash if Step 1 is skipped
+            available_ids = if (
+              input$pcil_pos_type == "position" && !is.null(pcil$family_results)
+            ) {
+              pcil$family_results$pcil_summary[, c("sample_id", "selection")]
+            } else {
+              NULL
+            },
+            result_pcil_families = pcil$family_results
+          )
+
+          if (is.null(res$pairs_best) || nrow(res$pairs_best) == 0) {
+            shinybusy::remove_modal_spinner()
+            shinyWidgets::show_alert(
+              title = "No Negative Controls Found",
+              text = "No suitable negative control PCILs were identified for the selected positive lines.",
+              type = "warning"
+            )
+            return()
+          }
+
+          pcil$negative_results <- res
+          pcil$negative_plots <- plot_pcil_negative_pairs(
+            pcil_neg_results = res,
+            pcil_data = rv$pcil_data
+          )
+
+          shinybusy::remove_modal_spinner()
+          show_toast_success("Negative control selection complete.")
+        },
+        error = function(e) {
+          shinybusy::remove_modal_spinner()
+          shinyWidgets::show_alert(
+            title = "Error",
+            text = e$message,
+            type = "error"
+          )
+        }
+      )
+    })
+
+    
+# ---- Step 3: Results UI ----
+    output$pcil_negative_results_ui <- renderUI({
+      req(pcil$negative_results$pairs_best)
+      pair_choices <- names(pcil$negative_plots)
+
+      bslib::navset_card_pill(
+        full_screen = TRUE,
+
+        # 1. Matched Pairs Table (best negative control per positive line)
+        bslib::nav_panel(
+          "Matched Pairs Table",
+          icon = icon("table"),
+          tags$p(
+            class = "text-muted small mb-2",
+            "The single best-matched negative control for each PCIL positive line."
+          ),
+          div(
+            class = "d-flex justify-content-end mb-2",
+            downloadButton(
+              ns("download_pcil_negative_best_table"),
+              "Export Table",
+              class = "btn-outline-success btn-sm"
+            )
+          ),
+          reactable::reactableOutput(ns("pcil_pairs_table"))
+        ),
+
+        # 2. Ranked Candidates (all n_neg candidates per positive line)
+        bslib::nav_panel(
+          "Ranked Candidates",
+          icon = icon("list-ol"),
+          tags$p(
+            class = "text-muted small mb-2",
+            "Every ranked negative control candidate per positive line, not just the best match - useful if the top match turns out to be unavailable."
+          ),
+          div(
+            class = "d-flex justify-content-end mb-2",
+            downloadButton(
+              ns("download_pcil_negative_table"),
+              "Export Table",
+              class = "btn-outline-success btn-sm"
+            )
+          ),
+          reactable::reactableOutput(ns("pcil_pairs_extended_table"))
+        ),
+
+        # 3. Pair Alignment Plots
+        bslib::nav_panel(
+          "Pair Alignment Plots",
+          icon = icon("chart-bar"),
+          div(
+            class = "d-flex justify-content-between align-items-end mb-3 mt-2",
+            selectInput(
+              ns("pcil_neg_pair_choice"),
+              "View Pair:",
+              choices = pair_choices,
+              width = "600px"
+            ),
+            downloadButton(
+              ns("download_pcil_negative_plots"),
+              "Download All Plots (PDF)",
+              class = "btn-outline-success btn-sm mb-3"
+            )
+          ),
+          bslib::card(
+            class = "shadow-sm border-0",
+            bslib::card_body(
+              shinycssloaders::withSpinner(
+                plotOutput(ns("pcil_negative_plot"), height = "600px"),
+                type = 4,
+                color = "#27AE60"
+              )
+            )
+          )
+        )
+      )
+    })
+
+    # ---- Step 3: Render Reactables & Plots ----
+    output$pcil_pairs_table <- reactable::renderReactable({
+      req(pcil$negative_results$pairs_best)
+      render_reactable(pcil$negative_results$pairs_best)
+    })
+
+    output$pcil_pairs_extended_table <- reactable::renderReactable({
+      req(pcil$negative_results)
+      tbl <- pcil$negative_results$pairs_extended
+      if (!is.null(tbl) && is.data.frame(tbl) && nrow(tbl) > 0) {
+        render_reactable(tbl)
+      } else {
+        reactable::reactable(
+          data.frame(Message = character(0)),
+          language = reactable::reactableLang(
+            noData = "Only 1 negative control was requested per positive line, so there's nothing beyond the best match shown in Matched Pairs Table. Raise \"Negative Controls per Positive Line\" above 1 to see ranked alternatives here."
+          )
+        )
+      }
+    })
+
+    output$pcil_negative_plot <- renderPlot({
+      req(pcil$negative_plots, input$pcil_neg_pair_choice)
+      print(pcil$negative_plots[[input$pcil_neg_pair_choice]])
+    })
+
+    # ---- Step 3: Download Handlers ----
+    output$download_pcil_negative_best_table <- downloadHandler(
+      filename = function() {
+        paste0("pcil_negative_pairs_best_", Sys.Date(), ".csv")
+      },
+      content = function(file) {
+        write.csv(pcil$negative_results$pairs_best, file, row.names = FALSE)
+      }
+    )
+
+    output$download_pcil_negative_table <- downloadHandler(
+      filename = function() {
+        paste0("pcil_negative_pairs_extended_", Sys.Date(), ".csv")
+      },
+      content = function(file) {
+        # pairs_extended only exists when n_neg > 1 (see fetch_pcil_negative());
+        # fall back to pairs_best so the download button always produces something.
+        tbl <- pcil$negative_results$pairs_extended
+        if (is.null(tbl)) tbl <- pcil$negative_results$pairs_best
+        write.csv(tbl, file, row.names = FALSE)
+      }
+    )
+
+    output$download_pcil_negative_plots <- downloadHandler(
+      filename = function() {
+        paste0("pcil_negative_pair_plots_", Sys.Date(), ".pdf")
+      },
+      content = function(file) {
+        grDevices::pdf(file, width = 14, height = 8, onefile = TRUE)
+        lapply(pcil$negative_plots, print)
+        grDevices::dev.off()
+      }
+    )
+    
+
     # Design KASP Markers (from sidebar)
     observeEvent(input$design_kasp_sidebar_btn, {
-      req(values$data_for_marker_design)
+      if (is.null(values$data_for_marker_design)) {
+        showModal(
+          modalDialog(
+            title = div(
+              class = "d-flex align-items-center",
+              icon(
+                "circle-info",
+                class = "text-primary me-2",
+                style = "font-size: 1.5rem;"
+              ),
+              tags$b("No Variants Selected Yet")
+            ),
+            size = "m",
+            easyClose = TRUE,
+            fade = TRUE,
+            div(
+              class = "text-muted",
+              "You need to identify putative causal variants before designing KASP markers. ",
+              "Head over to the ",
+              tags$b("Identify Variants"),
+              " tab, explore a genomic region, and click ",
+              tags$b("Design Markers"),
+              " there to send your selected variants to this step."
+            ),
+            footer = tagList(
+              modalButton("Close"),
+              actionButton(
+                ns("goto_identify_variants_btn"),
+                "Go to Identify Variants",
+                class = "btn-primary fw-bold px-4",
+                icon = icon("crosshairs")
+              )
+            )
+          )
+        )
+        return()
+      }
 
       bslib::toggle_sidebar(id = 'db_sidebar', open = 'closed')
       updateTabsetPanel(inputId = 'param_header', selected = "mark_design")
@@ -2018,6 +3229,12 @@ mod_variant_discovery_server <- function(id) {
         server = TRUE
       )
       update_sidebar_buttons("design_kasp_sidebar_btn")
+    })
+
+    observeEvent(input$goto_identify_variants_btn, {
+      removeModal()
+      updateTabsetPanel(session, "param_header", selected = "gene_cord")
+      update_sidebar_buttons("identify_variants_btn")
     })
 
     output$filtered_variant_summary_text <- renderText({
@@ -2092,19 +3309,6 @@ mod_variant_discovery_server <- function(id) {
     # ==========================================================================
     # GENOTYPE TABLE FILTERING LOGIC (SPECIALIZED)
     # ==========================================================================
-    observe({
-      req(rv$sample_metadata)
-      meta_cols <- colnames(rv$sample_metadata)
-      # Exclude non-categorical columns from filter choices.
-      filterable_cols <- setdiff(meta_cols, c("lib", "array_index", "lat", "lon", "latitude", "longitude"))
-      updateSelectizeInput(
-        session,
-        "meta_filter_col",
-        choices = filterable_cols,
-        selected = ""
-      )
-    })
-
     observeEvent(input$filter_genotypes_btn, {
       req(values$table_genotypes)
       df <- values$table_genotypes
@@ -2234,13 +3438,6 @@ mod_variant_discovery_server <- function(id) {
       
       show_toast_success("Genotype table filters applied.", type = "info")
       removeModal()
-    })
-
-    observeEvent(input$clear_meta_filter, {
-      values$filtered_sample_ids <- NULL
-      # Clear UI.
-      updateSelectizeInput(session, "meta_filter_col", selected = "")
-      show_toast_success("Sample filters cleared.", type = "info")
     })
 
     output$filtered_sample_count <- renderText({
@@ -2649,7 +3846,7 @@ mod_variant_discovery_server <- function(id) {
     observeEvent(input$go_back, {
       updateTabsetPanel(session, inputId = 'param_header', selected = 'gene_cord')
       bslib::toggle_sidebar(id = 'db_sidebar', open = 'open')
-      update_sidebar_buttons("show_gene_cord_btn")
+      update_sidebar_buttons("identify_variants_btn")
     })
 
     # ==========================================================================
@@ -2678,6 +3875,8 @@ mod_variant_discovery_server <- function(id) {
       )
       tryCatch(
         {
+          # Column names vary depending on where active_data came from, so guess
+          # by keyword instead of relying on exact, hardcoded column names.
           gt_cols <- colnames(active_data)
           id_col <- gt_cols[grep("id", gt_cols, ignore.case = TRUE)[1]]
           chrom_col <- gt_cols[grep("chro", gt_cols, ignore.case = TRUE)[1]]
@@ -2781,8 +3980,7 @@ mod_variant_discovery_server <- function(id) {
 
     output$download_plot <- downloadHandler(
       filename = function() {
-        clean_marker <- gsub("[^[:alnum:]_-]", "_", input$marker_ID)
-        paste0("alignment_", clean_marker, ".pdf")
+        paste0("alignment_plots_", Sys.Date(), ".pdf")
       },
       content = function(file) {
         plots <- kasp_des.plot()

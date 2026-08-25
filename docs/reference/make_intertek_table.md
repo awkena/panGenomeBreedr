@@ -72,6 +72,7 @@ The final name format is \`genome_version_chr_pos_suffix\`.
 ## Examples
 
 ``` r
+# \donttest{
 marker_data <- list(
   marker_data = data.frame(
     SNP_Name = "SNP_Chr03_11361160",
@@ -96,4 +97,5 @@ region_name = "qDT3.1", trait = "Stay-green", owner = "Cruet-Burgos")
 #> 1                  A Cruet-Burgos            Restricted          
 #>   SNP Geographical/Strain Relevance Comments
 #> 1                                           
+# }
 ```

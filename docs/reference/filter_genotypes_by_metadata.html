@@ -121,40 +121,40 @@ Can be either `'local'` (default) or `'online'`.</p></dd>
 <span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">online_filtered_genotypes</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           variant_id chrom      pos variant_type ref alt major_allele</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 SNP_Chr05_75104557 Chr05 75104557          SNP   C   T            C</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 SNP_Chr05_75104560 Chr05 75104560          SNP   C   T            C</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 SNP_Chr05_75104568 Chr05 75104568          SNP   G   T            G</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 SNP_Chr05_75104569 Chr05 75104569          SNP   C   A            C</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 SNP_Chr05_75104574 Chr05 75104574          SNP   C   T            C</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 SNP_Chr05_75104591 Chr05 75104591          SNP   A   G            A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             variant_id chrom      pos variant_type ref  alt major_allele</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 INDEL_Chr05_75104541 Chr05 75104541        INDEL   T TGAC            T</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 INDEL_Chr05_75104564 Chr05 75104564        INDEL   C   CA            C</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 INDEL_Chr05_75104573 Chr05 75104573        INDEL  TC    T           TC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 INDEL_Chr05_75104585 Chr05 75104585        INDEL   A  AAT            A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 INDEL_Chr05_75104618 Chr05 75104618        INDEL   G   GC            G</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 INDEL_Chr05_75104703 Chr05 75104703        INDEL   C  CTG            C</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   minor_allele major_allele_freq minor_allele_freq JHGC ISGD IQSD ISHD JBSS</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1            T           0.72340           0.27660  0|0  0|0  0|0  1|1  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2            T           0.72340           0.27660  0|0  0|0  0|0  1|1  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3            T           1.00000           0.00000  0|0  0|0  0|0  0|0  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4            A           1.00000           0.00000  0|0  0|0  0|0  0|0  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5            T           0.97872           0.02128  0|0  0|0  0|0  1|1  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6            G           1.00000           0.00000  0|0  0|0  0|0  0|0  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1         TGAC            1.0000            0.0000  0|0  0|0  0|0  0|0  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2           CA            0.7234            0.2766  0|0  0|0  0|0  1|1  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3            T            0.7234            0.2766  0|0  0|0  0|0  1|1  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4          AAT            0.7234            0.2766  0|0  0|0  0|0  1|1  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5           GC            0.7234            0.2766  0|0  0|0  0|0  1|1  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6          CTG            1.0000            0.0000  0|0  0|0  0|0  0|0  0|0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   JBST IZJQ IZJR IZJS IZJT IZJU IZJW IZJX IZJY IZJZ IZKA INUQ INUT IQSU IQSW</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   IQST INUX INXE INXF JHGT IXPJ IXNM INXH INXI IXML IXPK INXJ IZKP IXNN IXNP</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  0|0  1|1  0|0  0|0  1|1  1|1  0|0  0|0  0|0  1|1  1|1  0|0  0|0  1|1  1|1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2  0|0  1|1  0|0  0|0  1|1  1|1  0|0  0|0  0|0  1|1  1|1  0|0  0|0  1|1  1|1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  0|0  1|1  0|0  0|0  1|1  1|1  0|0  0|0  0|0  1|1  1|1  0|0  0|0  1|1  1|1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  0|0  1|1  0|0  0|0  1|1  1|1  0|0  0|0  0|0  1|1  1|1  0|0  0|0  1|1  1|1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  0|0  1|1  0|0  0|0  1|1  1|1  0|0  0|0  0|0  1|1  1|1  0|0  0|0  1|1  1|1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   IPCI IPCJ ISHX ISIF ISIN ISIX ISJF ISHY JBPS JHHC IXNH JHHD</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  0|0  0|0  0|0  0|0  1|1  0|0  1|1  1|1  0|0  0|0  0|0  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2  0|0  0|0  0|0  0|0  1|1  0|0  1|1  1|1  0|0  0|0  0|0  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  0|0  0|0  0|0  0|0  1|1  0|0  1|1  1|1  0|0  0|0  0|0  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  0|0  0|0  0|0  0|0  1|1  0|0  1|1  1|1  0|0  0|0  0|0  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  0|0  0|0  0|0  0|0  1|1  0|0  1|1  1|1  0|0  0|0  0|0  0|0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># --- Offline Mode ---</span></span></span>

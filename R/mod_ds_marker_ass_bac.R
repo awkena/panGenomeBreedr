@@ -158,25 +158,17 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                 uiOutput(outputId = ns("cluster_focus_ui")),
                 bslib::layout_columns(
                   col_widths = c(6, 6),
-                  div(
-                    numericInput(
-                      inputId = ns("rp"),
-                      label = "Recurrent Parent Index:",
-                      value = 1,
-                      min = 1,
-                      width = "100%"
-                    ),
-                    uiOutput(outputId = ns("recurrent_help"))
+                  selectizeInput(
+                    inputId = ns("rp"),
+                    label = "Recurrent Parent:",
+                    choices = NULL,
+                    width = "100%"
                   ),
-                  div(
-                    numericInput(
-                      inputId = ns("dp"),
-                      label = "Donor Parent Index:",
-                      value = 3,
-                      min = 1,
-                      width = "100%"
-                    ),
-                    uiOutput(outputId = ns("donor_help"))
+                  selectizeInput(
+                    inputId = ns("dp"),
+                    label = "Donor Parent:",
+                    choices = NULL,
+                    width = "100%"
                   )
                 )
               ),
@@ -281,14 +273,27 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                               width = 6,
                               selectInput(inputId = ns("rpp_col"), label = "Select Total RPP Column", choices = NULL, width = "100%"),
                               selectInput(inputId = ns("rpp_sample_id"), label = "Select Sample ID Column", choices = NULL, width = "100%"),
-                              numericInput(inputId = ns("bc_gen"), label = "BC Generation", value = NULL, min = 1, width = "100%"),
-                              numericInput(inputId = ns("rpp_threshold"), label = "Selection Threshold (%)", value = 0.93, min = 0, max = 1, width = "100%"),
-                              selectInput(inputId = ns("thresh_line_col"), label = "Color of Threshold Line", choices = grDevices::colors(), selected = "firebrick", width = "100%"),
+                              radioButtons(
+                                inputId = ns("rpp_threshold_mode"),
+                                label = "Selection Threshold Basis",
+                                choices = c("Fixed %" = "fixed", "Expected BC Generation" = "bc_gen"),
+                                selected = "fixed",
+                                inline = TRUE
+                              ),
+                              conditionalPanel(
+                                condition = paste0('input["', ns("rpp_threshold_mode"), '"] == "fixed"'),
+                                numericInput(inputId = ns("rpp_threshold"), label = "Selection Threshold (%)", value = 0.93, min = 0, max = 1, width = "100%")
+                              ),
+                              conditionalPanel(
+                                condition = paste0('input["', ns("rpp_threshold_mode"), '"] == "bc_gen"'),
+                                numericInput(inputId = ns("bc_gen"), label = "BC Generation", value = 3, min = 1, width = "100%")
+                              ),
+                              colourpicker::colourInput(inputId = ns("thresh_line_col"), label = "Color of Threshold Line", value = "#B22222", width = "100%"),
                               bslib::input_switch(id = ns("show_above_thresh"), label = "Show Progenies Above Threshold", value = FALSE)
                             ),
                             column(
                               width = 6,
-                              selectInput(inputId = ns("bar_col"), label = "Set Bar Fill Color", choices = grDevices::colors(), selected = "cornflowerblue", width = "100%"),
+                              colourpicker::colourInput(inputId = ns("bar_col"), label = "Set Bar Fill Color", value = "#6495ED", width = "100%"),
                               numericInput(inputId = ns("alpha"), label = "Adjust Bar Transparency", value = 0.9, min = 0, max = 1, step = 0.1, width = "100%"),
                               numericInput(inputId = ns("text_size"), label = "Text Size", value = 15, min = 1, width = "100%"),
                               numericInput(inputId = ns("bar_width"), label = "Set Bar Width", value = 0.5, min = 0.1, width = "100%", step = 0.1),
@@ -481,6 +486,27 @@ mod_ds_marker_ass_bac_server <- function(id) {
     })
 
 
+    # Populate recurrent/donor parent pickers with sample names, mapped to their row index
+    observe({
+      req(sub_validated_data(), input$sample_id)
+
+      sample_names <- sub_validated_data()[[input$sample_id]]
+      parent_choices <- stats::setNames(as.character(seq_along(sample_names)), sample_names)
+
+      updateSelectizeInput(session,
+        inputId = "rp",
+        choices = parent_choices,
+        selected = parent_choices[1]
+      )
+
+      updateSelectizeInput(session,
+        inputId = "dp",
+        choices = parent_choices,
+        selected = if (length(parent_choices) >= 3) parent_choices[3] else parent_choices[1]
+      )
+    })
+
+
     # cluster logic
     output$cluster_focus_ui <- renderUI({
       # Only show the second dropdown if a factor is selected
@@ -509,36 +535,6 @@ mod_ds_marker_ass_bac_server <- function(id) {
       } else {
         req(input$cluster_focus)
         return(validated_data()[validated_data()[[input$cluster_by]] == input$cluster_focus, ])
-      }
-    })
-
-
-    ## Help text for donor and reccurent parents
-    # Display the Donor Name
-    output$donor_help <- renderUI({
-      if (input$cluster_by != "None") {
-        req(input$dp, input$sample_id, sub_validated_data())
-        name <- sub_validated_data()[[input$sample_id]][input$dp]
-        helpText(strong("Selected: "), span(name, style = "color: #e67e22;"))
-      } else {
-        # if user's data cannot be partitioned into groups
-        req(validated_data(), input$sample_id, input$dp)
-        name <- validated_data()[input$dp, input$sample_id]
-        helpText(strong("Selected: "), span(name, style = "color: #0275d8; font-size: 1.1em;"))
-      }
-    })
-
-    #  Display the Recurrent Name
-    output$recurrent_help <- renderUI({
-      if (input$cluster_by != "None") {
-        req(input$rp, input$sample_id, sub_validated_data())
-        name <- sub_validated_data()[[input$sample_id]][input$rp]
-        helpText(strong("Selected: "), span(name, style = "color: #0275d8; font-size: 1.1em;"))
-      } else {
-        # if user's data cannot be partitioned into groups
-        req(validated_data(), input$sample_id, input$rp)
-        name <- validated_data()[input$rp, input$sample_id]
-        helpText(strong("Selected: "), span(name, style = "color: #0275d8; font-size: 1.1em;"))
       }
     })
 
@@ -589,8 +585,8 @@ mod_ds_marker_ass_bac_server <- function(id) {
           snp_id = if (input$choice == "yes") input$snp_id else NULL,
           calls_sep = check_sep(input$allele_sep),
           data_type = if (input$data_type == "Agriplex") "agriplex" else if (input$data_type == "Kasp / DArTag") "kasp",
-          rp = input$rp,
-          dp = input$dp,
+          rp = as.numeric(input$rp),
+          dp = as.numeric(input$dp),
           Prefix = if (input$choice == "no") input$prefix_marker else NULL,
           feedback = input$choice,
           mapfile_path = if (!is.null(map_file())) map_file() else NULL
@@ -676,7 +672,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
       )
 
       # Get recurrent parent name using index index
-      parent_name <- sub_validated_data()[input$rp, input$sample_id]
+      parent_name <- sub_validated_data()[as.numeric(input$rp), input$sample_id]
 
       # Ensure the extracted name is present in the result's rowname
       req(parent_name %in% rownames(Result()$proc_kasp_f))
@@ -719,7 +715,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
 
     #  Generate the Barplot when user clicks the button
     rpp_barplot_result <- eventReactive(input$generate_rpp_plot, {
-      req(calc_rpp_bc_result(), input$rpp_col, input$rpp_sample_id)
+      req(calc_rpp_bc_result(), input$rpp_col, input$rpp_sample_id, input$rpp_threshold_mode)
 
       tryCatch(
         {
@@ -727,7 +723,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
             rpp_df = calc_rpp_bc_result(),
             rpp_sample_id = input$rpp_sample_id,
             rpp_col = input$rpp_col,
-            rpp_threshold = input$rpp_threshold,
+            rpp_threshold = if (input$rpp_threshold_mode == "fixed") input$rpp_threshold else NULL,
             text_size = input$text_size,
             text_scale_fct = input$text_scale_fct,
             alpha = input$alpha,
@@ -736,7 +732,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
             bar_col = input$bar_col,
             thresh_line_col = input$thresh_line_col,
             show_above_thresh = input$show_above_thresh,
-            bc_gen = if (is.null(input$rpp_threshold)) input$bc_gen else NULL,
+            bc_gen = if (input$rpp_threshold_mode == "bc_gen") input$bc_gen else NULL,
             pdf = FALSE
           )
         },

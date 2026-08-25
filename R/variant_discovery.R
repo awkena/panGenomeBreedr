@@ -126,7 +126,14 @@ connect_local_db <- function(folder_path, max_memory = "8GB", quiet = FALSE) {
     DBI::dbExecute(
       con,
       sprintf(
-        "CREATE VIEW pcil_metadata AS SELECT * FROM read_parquet('%s/sample_metadata.parquet')",
+        "CREATE VIEW pcil_sample_metadata AS SELECT * FROM read_parquet('%s/sample_metadata.parquet')",
+        pcil_path
+      )
+    )
+    DBI::dbExecute(
+      con,
+      sprintf(
+        "CREATE VIEW pcil_metadata AS SELECT * FROM read_parquet('%s/metadata_pcil.parquet')",
         pcil_path
       )
     )
@@ -3551,6 +3558,12 @@ plot_gene_model <- function(gene_df) {
       axis.text.y = ggplot2::element_blank(),
       axis.line.x = ggplot2::element_blank(),
       axis.ticks.y = ggplot2::element_blank(),
+      axis.text.x = ggplot2::element_text(size = 16, color = "black"),
+      axis.title.x = ggplot2::element_text(size = 18, color = "black",face = 'bold'),
+
+      # Position the legend
+      legend.title = ggplot2::element_text(face = "bold", size = 13),
+      legend.text = ggplot2::element_text(size = 12),
       panel.grid.minor.y = ggplot2::element_blank(),
       panel.grid.major.y = ggplot2::element_blank(),
       panel.grid.minor.x = ggplot2::element_blank(),
@@ -3771,12 +3784,13 @@ plot_variant_hotspot <- function(
       axis.title.y = ggplot2::element_blank(),
 
       # Clean up x-axis text
-      axis.text.x = ggplot2::element_text(size = 10, color = "black"),
+      axis.text.x = ggplot2::element_text(size = 16, color = "black"),
+      axis.title.x = ggplot2::element_text(size = 18, color = "black",face = 'bold'),
 
       # Position the legend
       legend.position = "right",
-      legend.title = ggplot2::element_text(face = "bold", size = 9),
-      legend.text = ggplot2::element_text(size = 8)
+      legend.title = ggplot2::element_text(face = "bold", size = 13),
+      legend.text = ggplot2::element_text(size = 12)
     ) +
 
     # Ensure legends correctly preview shapes and don't visually clash
@@ -3982,6 +3996,3 @@ hotspot_overlay_plot <- function(
   # View the final combined plot
   return(final_overlay)
 }
-
-
-
