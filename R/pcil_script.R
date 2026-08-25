@@ -188,7 +188,7 @@ fetch_pcil_families_by_variant <- function(
   for (v in selection) {
     for (i in 1:nrow(rp_genos)) {
       rp <- rp_genos[i, ]
-      if (is.na(rp[[v]])) next
+      if (is.na(rp[[v]]) || rp[[v]] == "Heterozygous") next
       putative_donors <- geno_pi[
         !is.na(geno_pi[[v]]) &
           geno_pi[[v]] != rp[[v]] &
@@ -427,7 +427,7 @@ fetch_pcil_positive <- function(
     tmp <- regions[r, ]
     active_introgressions <- introgressions
 
-    if (!is.null(global_available_ids)) {
+    if (!is.null(global_available_ids) && length(global_available_ids) > 0) {
       active_introgressions <- active_introgressions[
         active_introgressions$SampleID %in% global_available_ids,
       ]
@@ -1182,7 +1182,7 @@ plot_pcil_best_lines <- function(
       ) +
       ggplot2::geom_hline(
         yintercept = seq_along(levels(best_for_plot$plot_id)),
-        color = "#e9ecef",
+        color = "grey93",
         linewidth = 4,
         lineend = "square"
       ) +
@@ -1199,24 +1199,20 @@ plot_pcil_best_lines <- function(
         lineend = "butt"
       ) +
       ggplot2::scale_color_manual(
-        values = c("Top-Ranked" = "#0d6efd", "Other Candidates" = "#343a40"),
+        values = c("Top-Ranked" = "#C51B8A", "Other Candidates" = "black"),
         guide = "none"
       ) +
       ggplot2::geom_vline(
         data = region_df,
         ggplot2::aes(xintercept = StartMb),
-        color = "#dc3545",
-        linewidth = 0.8,
-        linetype = "dashed",
-        alpha = 0.8
+        color = "red",
+        linewidth = 1
       ) +
       ggplot2::geom_vline(
         data = region_df,
         ggplot2::aes(xintercept = EndMb),
-        color = "#dc3545",
-        linewidth = 0.8,
-        linetype = "dashed",
-        alpha = 0.8
+        color = "red",
+        linewidth = 1
       ) +
       ggplot2::facet_wrap(
         ~ChrLabel,
