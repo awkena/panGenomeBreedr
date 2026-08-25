@@ -169,25 +169,17 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
 
                 bslib::layout_columns(
                   col_widths = c(6, 6),
-                  div(
-                    numericInput(
-                      inputId = ns("rp"),
-                      label = "Recurrent Parent Index:",
-                      value = 1,
-                      min = 1,
-                      width = "100%"
-                    ),
-                    uiOutput(outputId = ns('recurrent_help'))
+                  selectizeInput(
+                    inputId = ns("rp"),
+                    label = "Recurrent Parent:",
+                    choices = NULL,
+                    width = "100%"
                   ),
-                  div(
-                    numericInput(
-                      inputId = ns("dp"),
-                      label = "Donor Parent Index:",
-                      value = 3,
-                      min = 1,
-                      width = "100%"
-                    ),
-                    uiOutput(outputId = ns('donor_help'))
+                  selectizeInput(
+                    inputId = ns("dp"),
+                    label = "Donor Parent:",
+                    choices = NULL,
+                    width = "100%"
                   )
                 )
               ),
@@ -395,11 +387,10 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                                 multiple = TRUE,
                                 width = "100%"
                               ),
-                              selectInput(
+                              colourpicker::colourInput(
                                 inputId = ns("panel_fill"),
                                 label = "Panel Background Fill Color",
-                                choices = grDevices::colors(),
-                                selected = "grey80",
+                                value = "#CCCCCC",
                                 width = "100%"
                               ),
                               numericInput(
@@ -414,11 +405,10 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                             # Right Column - 4 widgets
                             column(
                               width = 6,
-                              selectInput(
+                              colourpicker::colourInput(
                                 inputId = ns("panel_col"),
                                 label = "Panel Border Color",
-                                choices = grDevices::colors(),
-                                selected = "white",
+                                value = "#FFFFFF",
                                 width = "100%"
                               ),
                               numericInput(
@@ -713,6 +703,28 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     })
 
 
+    # Populate recurrent/donor parent pickers with sample names, mapped to their row index
+    # within sub_validated_data() -- the same data frame rp/dp are ultimately indexed into.
+    observe({
+      req(sub_validated_data(), input$sample_id)
+
+      sample_names <- sub_validated_data()[[input$sample_id]]
+      parent_choices <- stats::setNames(as.character(seq_along(sample_names)), sample_names)
+
+      updateSelectizeInput(session,
+        inputId = "rp",
+        choices = parent_choices,
+        selected = parent_choices[1]
+      )
+
+      updateSelectizeInput(session,
+        inputId = "dp",
+        choices = parent_choices,
+        selected = if (length(parent_choices) >= 3) parent_choices[3] else parent_choices[1]
+      )
+    })
+
+
     # cluster logic
     output$cluster_focus_ui <- renderUI({
       # Only show the second dropdown if a factor is selected
@@ -742,39 +754,6 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
         validated_data()[validated_data()[input$cluster_by] == input$cluster_focus ,]
       }
     })
-
-
-    ## Help text for donor and reccurent parents
-    # Display the Donor Name
-      output$donor_help <- renderUI({
-        if(input$cluster_by != "None"){
-        req(input$dp ,input$sample_id , sub_validated_data())
-        name <- sub_validated_data()[[input$sample_id]][input$dp]
-        helpText(strong("Selected: "), span(name, style = "color: #e67e22;"))
-        }
-        else{
-          # if user's data cannot be partitioned into groups
-          req(validated_data(), input$sample_id,input$dp )
-          name <- validated_data()[input$dp,input$sample_id]
-          helpText(strong("Selected: "), span(name, style = "color: #0275d8; font-size: 1.1em;"))
-        }
-      })
-
-      #  Display the Recurrent Name
-      output$recurrent_help <- renderUI({
-        if(input$cluster_by != "None"){
-          req(input$rp ,input$sample_id , sub_validated_data())
-          name <- sub_validated_data()[[input$sample_id]][input$rp]
-          helpText(strong("Selected: "), span(name, style = "color: #0275d8; font-size: 1.1em;"))
-        } else{
-          # if user's data cannot be partitioned into groups
-          req(validated_data(), input$sample_id,input$rp )
-          name <- validated_data()[input$rp,input$sample_id]
-          helpText(strong("Selected: "), span(name, style = "color: #0275d8; font-size: 1.1em;"))
-        }
-
-      })
-
 
 
     # Read map file if user has.
@@ -818,8 +797,8 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
                          snp_id = if (input$choice == "yes") input$snp_id else NULL,
                          calls_sep = check_sep(input$allele_sep),
                          data_type = if(input$data_type == "Agriplex") 'agriplex' else if (input$data_type == "Kasp / DArTag") 'kasp',
-                         rp = input$rp,
-                         dp = input$dp,
+                         rp = as.numeric(input$rp),
+                         dp = as.numeric(input$dp),
                          Prefix = if (input$choice == "no") input$prefix_marker else NULL,
                          feedback = input$choice,
                          mapfile_path = if (!is.null(map_file())) map_file() else NULL)
@@ -869,8 +848,8 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     color_code_checker_res <- reactive({
       req(Result() , input$dp,input$rp )
       color_code_checker(Result()$proc_kasp_f ,
-                         par_1 = rownames(Result()$proc_kasp_f)[input$rp],
-                         par_2 = rownames(Result()$proc_kasp_f)[input$dp])
+                         par_1 = rownames(Result()$proc_kasp_f)[as.numeric(input$rp)],
+                         par_2 = rownames(Result()$proc_kasp_f)[as.numeric(input$dp)])
     })
 
 

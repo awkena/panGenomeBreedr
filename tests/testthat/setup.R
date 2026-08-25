@@ -3,7 +3,7 @@
 # ==============================================================================
 
 mini_folder <- system.file(
-  "extdata/mini_curated_sorghum_variant_resource",
+  "extdata/pangenome_scale_db",
   package = "panGenomeBreedr",
   mustWork = TRUE
 )

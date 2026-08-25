@@ -72,11 +72,17 @@ Can be either `'local'` (default) or `'online'`.</p></dd>
 <span class="r-in"><span><span class="co"># Summarize all tables in the online database</span></span></span>
 <span class="r-in"><span><span class="va">online_summary</span> <span class="op">&lt;-</span> <span class="fu">summarize_database</span><span class="op">(</span>connect_db_mode <span class="op">=</span> <span class="st">'online'</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">online_summary</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         table   n_rows</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 annotations 61679112</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2    metadata     1676</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3    variants 38230911</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4   genotypes 38230930</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   table   n_rows</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1           annotations 61679112</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2              metadata     1676</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3            pcil_genes    35052</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4       pcil_genomewide     2067</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5              pcil_ibs  2137278</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6   pcil_introgressions    17951</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7         pcil_metadata     1836</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  pcil_sample_metadata     2067</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9              variants 38230911</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10            genotypes 38230930</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># --- Offline Mode ---</span></span></span>
 <span class="r-in"><span><span class="co"># Locate the package example database folder</span></span></span>

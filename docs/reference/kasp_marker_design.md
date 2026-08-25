@@ -1,6 +1,6 @@
-# Design KASP markers based on causal variants.
+# Design KASP markers for one or more causal variants.
 
-Design KASP markers based on causal variants.
+Design KASP markers for one or more causal variants.
 
 ## Usage
 
@@ -14,7 +14,7 @@ kasp_marker_design(
   ref_al_col = "ref",
   alt_al_col = "alt",
   geno_start = 7,
-  marker_ID,
+  marker_IDs,
   chr = NULL,
   genome_file,
   save_alignment = TRUE,
@@ -51,10 +51,10 @@ kasp_marker_design(
   An integer value specifying the column index number of the start of
   the sample genotypes in \`gt_df\` or \`vcf_file\`.
 
-- marker_ID:
+- marker_IDs:
 
-  Designated name of variant for marker design. Name must be contained
-  in \`gt_df\` or \`vcf_file\`.
+  A character vector of one or more variant names for marker design.
+  Names must be contained in \`gt_df\` or \`vcf_file\`.
 
 - chr:
 
@@ -96,7 +96,7 @@ This function provides the intertek sequence to be used for marker
 development for the selected casual variants. It provides all the
 information of allele and location to fill Intertek form.It needs a vcf
 file of variants calls, and a genome sequence of the target crop in
-fasta format.
+fasta format. It can now process multiple markers in a single call.
 
 ## Examples
 
@@ -117,7 +117,7 @@ ma1 <- kasp_marker_design(vcf_file = path2,
                           alt_al_col = 'ALT',
                           genome_file = path1,
                           geno_start = 10,
-                          marker_ID = "SNP_Chr02_69200443",
+                          marker_IDs = "SNP_Chr02_69200443",
                           chr = "Chr02",
                           save_alignment = TRUE,
                           plot_file = path,

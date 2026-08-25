@@ -270,9 +270,9 @@ app_ui <- function(request) {
       ),
       bslib::nav_item(), # space marker validation tab from the rest of the tab
 
-      ## Trait Introgression Decision Suite
+      ## Breeding Decision Support
       navbarMenu(
-        title = "Trait Introgression Decision Suite",
+        title = "Breeding Decision Support",
         icon = icon("cogs"),
 
         # Tab for Trait Introgression Hypothesis Testing
@@ -285,13 +285,13 @@ app_ui <- function(request) {
 
         # Tab for MABC Decision support
         bslib::nav_panel(
-          title = "Decision Support for MABC",
+          title = "Background Recovery",
           mod_ds_marker_ass_bac_ui("ds_marker_ass_bac_1")
         ),
 
         # Tab for Foreground Selection
         bslib::nav_panel(
-          title = "Foreground Selection Support",
+          title = "Foreground Selection",
           mod_ds_foreground_select_ui("ds_foreground_select_1")
         )
       ),

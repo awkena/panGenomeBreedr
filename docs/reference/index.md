@@ -81,7 +81,9 @@
 ### Marker Design & Utilities
 
 - [`kasp_marker_design()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_marker_design.md)
-  : Design KASP markers based on causal variants.
+  : Design KASP markers for one or more causal variants.
+- [`make_intertek_table()`](https://awkena.github.io/panGenomeBreedr/reference/make_intertek_table.md)
+  : Generate a Standardized Intertek Submission Table for KASP Markers
 - [`gene_coord_gff()`](https://awkena.github.io/panGenomeBreedr/reference/gene_coord_gff.md)
   : Get the genomic range of a candidate gene and its features using the
   Sobic ID from a GFF file (local)
@@ -92,6 +94,23 @@
   : Download files in a shared Google Drive folder without restrictions.
 - [`get_google_id()`](https://awkena.github.io/panGenomeBreedr/reference/get_google_id.md)
   : Get the folder or file ID from a Google Drive shareable link.
+
+### PCIL Family Selection
+
+- [`fetch_pcil_families_by_variant()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_families_by_variant.md)
+  : Fetch Pangenome-Characterized Introgression Lines (PCIL) by Variant
+- [`fetch_pcil_data()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_data.md)
+  : Fetch All PCIL Data Tables
+- [`fetch_pcil_positive()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_positive.md)
+  : Fetch PCIL Positive Lines
+- [`plot_pcil_positive()`](https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_positive.md)
+  : Plot PCIL Positive Introgressions
+- [`plot_pcil_best_lines()`](https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_best_lines.md)
+  : Plot Best PCIL Candidate Lines
+- [`fetch_pcil_negative()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_negative.md)
+  : Fetch Negative Control PCILs
+- [`plot_pcil_pairs()`](https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_pairs.md)
+  : Plot PCIL Positive and Negative Pairs
 
 ## KASP Marker Validation
 

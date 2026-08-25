@@ -148,14 +148,23 @@ mod_kasp_marker_design_ui <- function(id) {
             textInput(
               inputId = ns("reg_name"),
               label = "Region Name:",
-              placeholder = "LGS1"
+              placeholder = "lgs1"
+            ),
+            # Genome Version
+            textInput(
+              inputId = ns("genome_version"),
+              label = "Genome Version:",
+              placeholder = "Sbicolor v5.1"
+            ),
+            # Trait
+            textInput(
+              inputId = ns("trait"),
+              label = "Trait:",
+              placeholder = "Stay-green"
+            ),
+            textInput(
+              inputId = ns("owner"), label = "Owner:", placeholder = "Green Evolution"
             )
-            # Informational text suggesting how to name the region
-            # div(
-            #   class = "alert alert-info small mt-2",
-            #   icon("lightbulb", class = "me-1"),
-            #   "Give your region a descriptive name for easy identification"
-            # )
           ),
 
           ## Filter Specifications
@@ -579,134 +588,88 @@ mod_kasp_marker_design_server <- function(id) {
 
     # Check which input is available and make use of it
     observeEvent(input$run_but, {
-      list_markers <- list() # initialize list to store  marker dataframes
-      list_plots <- list() # to store plot data frames
-
       req(
         input$variant_id_col, input$chrom_col,
-        input$pos_col, input$ref_al_col, input$alt_al_col, input$geno_start,
-        input$marker_ID, input$chr_ID, input$genome_file$datapath, input$maf
+        input$pos_col, input$ref_al_col, input$alt_al_col,
+        input$geno_start, input$marker_ID, input$chr_ID,
+        input$genome_file$datapath, input$maf, input$genome_version,
+        input$trait, input$owner
       )
 
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
-        color =  "#27AE60",
-        text = "Designing KASP Marker... Please wait."
+        color = "#27AE60",
+        text = "Designing KASP Marker(s)... Please wait."
       )
 
-      # First tryCatch for VCF file processing
-      if (input$upload_choice == "snpEff Annotated VCF") {
+      # Determine the data source based on user's choice
+      vcf_path <- if (input$upload_choice == "snpEff Annotated VCF") {
         req(input$vcf_file)
-        tryCatch({
-          for (marker in input$marker_ID) {
-            # Using the altered kasp marker design here
-            result_data <- kasp_marker_design(
-              vcf_file = input$vcf_file$datapath,
-              gt_df = NULL,
-              variant_id_col = input$variant_id_col,
-              chrom_col = input$chrom_col,
-              pos_col = input$pos_col,
-              ref_al_col = input$ref_al_col,
-              alt_al_col = input$alt_al_col,
-              geno_start = input$geno_start,
-              marker_ID = marker,
-              chr = input$chr_ID,
-              genome_file = input$genome_file$datapath,
-              plot_file = tempdir(),
-              save_alignment = FALSE,
-              region_name = input$reg_name,
-              maf = input$maf
-            )
-
-            # store in list object created.
-            list_markers[[marker]] <- result_data$marker_data
-            list_plots[[marker]] <- result_data$plot
-          }
-
-
-          kasp_des.result(data.table::rbindlist(list_markers)) # store dataframes
-          kasp_des.plot(list_plots) # store  plots
-
-          shinyWidgets::show_alert(
-            title = "Success!",
-            text = paste(
-              length(list_markers), "KASP marker(s) and",
-              length(list_plots), "plot(s) designed successfully"
-            ),
-            type = "success",
-            showCloseButton = TRUE,
-            timer = 5000
-          )
-        }, error = function(e) {
-          kasp_des.result(NULL)
-          shinyWidgets::show_alert(
-            title = "Error!",
-            text = paste("Failed to design KASP from VCF file:", e$message),
-            type = "error",
-            showCloseButton = TRUE,
-            timer = 5000
-          )
-        }, finally = {
-          shinybusy::remove_modal_spinner()
-        })
-
-        # Second tryCatch for gt_data processing
-      } else if (input$upload_choice == "Genotype Matrix (Processed)") {
-        req(gt_data())
-        tryCatch({
-          for (marker in input$marker_ID) {
-            result_data <- kasp_marker_design(
-              vcf_file = NULL,
-              gt_df = gt_data(),
-              variant_id_col = input$variant_id_col,
-              chrom_col = input$chrom_col,
-              pos_col = input$pos_col,
-              ref_al_col = input$ref_al_col,
-              alt_al_col = input$alt_al_col,
-              geno_start = input$geno_start,
-              marker_ID = marker,
-              chr = input$chr_ID,
-              genome_file = input$genome_file$datapath,
-              plot_file = tempdir(),
-              region_name = input$reg_name,
-              maf = input$maf,
-              save_alignment = FALSE
-            )
-
-            list_markers[[marker]] <- result_data$marker_data
-            list_plots[[marker]] <- result_data$plot
-          }
-
-          kasp_des.result(data.table::rbindlist(list_markers)) # store dataframes
-          kasp_des.plot(list_plots) # store plots
-
-          # Success alert for gt_data processing
-          shinyWidgets::show_alert(
-            title = "Success!",
-            text = paste(
-              length(list_markers), "KASP marker(s) and",
-              length(list_plots), "plot(s) designed successfully"
-            ),
-            type = "success",
-            showCloseButton = TRUE,
-            timer = 5000
-          )
-        }, error = function(e) {
-          kasp_des.result(NULL)
-          shinyWidgets::show_alert(
-            title = "Error!",
-            text = paste(
-              "Failed to design KASP from genotype data:",
-              e$message
-            ),
-            type = "error",
-            showCloseButton = TRUE,
-            timer = 5000
-          )
-        }, finally = {
-          shinybusy::remove_modal_spinner()
-        })
+        input$vcf_file$datapath
+      } else {
+        NULL
       }
+
+      genotype_df <- if (input$upload_choice == "Genotype Matrix (Processed)") {
+        req(gt_data())
+        gt_data()
+      } else {
+        NULL
+      }
+
+      tryCatch({
+        # Call the vectorized kasp_marker_design function once
+        result_data <- kasp_marker_design(
+          vcf_file = vcf_path,
+          gt_df = genotype_df,
+          variant_id_col = input$variant_id_col,
+          chrom_col = input$chrom_col,
+          pos_col = input$pos_col,
+          ref_al_col = input$ref_al_col,
+          alt_al_col = input$alt_al_col,
+          geno_start = input$geno_start,
+          marker_IDs = input$marker_ID, # Pass the vector of IDs
+          chr = input$chr_ID,
+          genome_file = input$genome_file$datapath,
+          plot_file = tempdir(),
+          save_alignment = FALSE,
+          region_name = input$reg_name,
+          maf = input$maf
+        )
+
+        # Generate Intertek table
+        intertek_table <- make_intertek_table(
+          marker_data = result_data,
+          genome_version = input$genome_version,
+          region_name = input$reg_name,
+          trait = input$trait,
+          owner = input$owner
+        )
+
+        # Store the consolidated results
+        kasp_des.result(intertek_table)
+        kasp_des.plot(result_data$plot)
+
+        shinyWidgets::show_alert(
+          title = "Success!",
+          text = paste(nrow(intertek_table), "KASP marker(s) designed successfully."),
+          type = "success",
+          showCloseButton = TRUE,
+          timer = 5000
+        )
+      }, error = function(e) {
+        kasp_des.result(NULL)
+        kasp_des.plot(NULL)
+        shinyWidgets::show_alert(
+          title = "Error!",
+          text = paste("Failed to design KASP markers:", e$message),
+          type = "error",
+          showCloseButton = TRUE,
+          timer = 8000
+        )
+      }, finally = {
+        shinybusy::remove_modal_spinner()
+      })
     })
 
 

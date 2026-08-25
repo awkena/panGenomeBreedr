@@ -2279,442 +2279,31 @@ cross_qc_annotate <- function(x,
 }
 
 
-#' Generate Geodesic Landscape Plot and Extract Haploblock Data
-#'
-#' @param ld_df A long-format data frame of pairwise LD statistics containing
-#'   columns \code{variant_1}, \code{variant_2}, and the column matching \code{metric}.
-#' @param query_db_geno A data frame with variant genotype metadata. Must include a
-#'   \code{variant_id} column and a genomic position column (e.g., 'pos').
-#' @param query_db_annot A data frame with variant annotation metadata. Must include
-#'   \code{variant_id} and a functional \code{impact} column.
-#' @param metric Character string. The linkage metric to visualize ("R2" or "D_prime").
-#' @param target_variant_ids A character vector of variant IDs to highlight on the plot.
-#' @param threshold Numeric. The minimum LD value to display. Pairs below this
-#'   value fade to white background spaces. Defaults to 0.2.
-#' @param block_threshold Numeric. The threshold at which to group and isolate block variants. Defaults to 0.8.
-#' @param show_variant_labels Logical. If TRUE (default), displays variant IDs above the spine.
-#'
-#' @param filled Logical. If `TRUE`, renders filled geodesic polygons. If `FALSE`
-#'   (default), renders line-based trajectories.
-#' @param palette_option Character string. The `viridis` color palette to use for
-#'   mapping LD values these include: "magma", "plasma", "inferno", "viridis", "mako", "cividis", "rocket" and "turbo". Defaults to `"magma"`.
-#' @return A structured \code{list} containing two named assets:
-#' \itemize{
-#'   \item \code{plot}: A ggplot object showing the geodesic LD landscape.
-#'   \item \code{table}: A data frame where columns represent haploblocks, listing their constituent variants and impacts.
-#' }
-#'
-#' @param target_variant_ids A character vector of variant IDs to highlight on the plot.
-#' @import ggplot2
-#'
-#' @export
-#' @examples
-#' \dontrun{
-#' query_annot <- panGenomeBreedr::pg_query_db(
-#' table_name = "annotations",
-#' chrom = "Chr03",
-#' gene_name = "Sobic.003G421300",
-#' start = 79037682,
-#' end = 79039091
-#' )
-#'
-#' query_geno <- panGenomeBreedr::pg_query_db(
-#' table_name = "genotypes",
-#' chrom = "Chr03",
-#' gene_name = "Sobic.003G421300",
-#' start = 79037682,
-#' end = 79039091
-#' )
-#'
-#' # Compute your updated wide data containing distance tracking columns
-#' ld_results <- compute_LD(
-#' df = query_geno,
-#' target_variant_ids = NULL,
-#' genotype_start_col = 11
-#' )
-#'
-#' # Generate the plot and table package
-#' result <- plot_ld_geodesic(
-#'   ld_df = ld_results,
-#'   query_db_geno = query_geno,
-#'   query_db_annot = query_annot,
-#'   metric = "R2",
-#'   target_variant_ids = c("INDEL_Chr03_79037889", "SNP_Chr03_79037855","SNP_Chr03_79037944"),
-#'   threshold = 0.2,
-#'   block_threshold = 0.8
-#' )
-#'
-#' # Access the plot
-#' result$plot
-#'
-#' # Access the haploblock table
-#' print(result$table)
-#' }
-plot_ld_geodesic <- function(
-  ld_df,
-  query_db_geno,
-  query_db_annot,
-  metric = "R2",
-  threshold = 0.2,
-  block_threshold = 0.8,
-  show_variant_labels = TRUE,
-  target_variant_ids = NULL,
-  filled = FALSE,
-  palette_option = "magma"
-) {
-
-  # Set global variables to null.
-  value <- variant_1 <- variant_2 <- x <- y <- group <- linewidth_metric <- pos_mb <- y_anchor <- variant_id <- variant_type <- NULL
-
-  # Obtain the position column map
-  pos_col <- grep("pos", names(query_db_geno), ignore.case = TRUE, value = TRUE)
-  if (length(pos_col) == 0) {
-    stop("Could not find a genomic position column.")
-  }
-
-  map_info_raw <- data.frame(
-    variant_id = as.character(query_db_geno$variant_id),
-    pos = as.numeric(query_db_geno[[pos_col]]),
-    stringsAsFactors = FALSE
-  )
-
-  map_info_raw <- map_info_raw[order(map_info_raw$pos), ]
-  map_info_raw$pos_mb <- map_info_raw$pos / 1e6
-  map_info_raw$variant_type <- ifelse(
-    grepl("INDEL", map_info_raw$variant_id, ignore.case = TRUE),
-    "INDEL",
-    "SNP"
-  )
-
-  # Identify target variants
-  map_info_raw$is_target <- FALSE
-  if (!is.null(target_variant_ids) && length(target_variant_ids) > 0) {
-    map_info_raw$is_target[
-      map_info_raw$variant_id %in% target_variant_ids
-    ] <- TRUE
-  }
-
-  ld_working <- ld_df
-  names(ld_working)[names(ld_working) == "anchor_variant"] <- "variant_1"
-  names(ld_working)[names(ld_working) == "target_variant"] <- "variant_2"
-  names(ld_working)[names(ld_working) == metric] <- "value"
-
-  ld_pairs <- subset(ld_working, value >= threshold)
-  ld_pairs$p1 <- map_info_raw$pos_mb[match(
-    ld_pairs$variant_1,
-    map_info_raw$variant_id
-  )]
-  ld_pairs$p2 <- map_info_raw$pos_mb[match(
-    ld_pairs$variant_2,
-    map_info_raw$variant_id
-  )]
-  ld_pairs <- ld_pairs[!is.na(ld_pairs$p1) & !is.na(ld_pairs$p2), ]
-
-  active_variant_ids <- unique(c(ld_pairs$variant_1, ld_pairs$variant_2))
-  map_info <- map_info_raw[map_info_raw$variant_id %in% active_variant_ids, ]
-  if (nrow(map_info) == 0) {
-    stop("No variants meet the current threshold parameters.")
-  }
-
-  min_variant_x <- min(map_info$pos_mb)
-  max_variant_x <- max(map_info$pos_mb)
-  variant_span <- max_variant_x - min_variant_x
-  if (variant_span == 0) {
-    variant_span <- 0.001
-  }
-
-  # Identify haploblocks
-  core_pairs <- subset(ld_pairs, value >= block_threshold)
-  block_data_list <- list()
-
-  if (nrow(core_pairs) > 0) {
-    visited_variants <- c()
-    block_counter <- 1
-
-    for (m in 1:nrow(map_info)) {
-      v_id <- map_info$variant_id[m]
-      if (v_id %in% visited_variants) {
-        next
-      }
-
-      linked_rows <- subset(core_pairs, variant_1 == v_id | variant_2 == v_id)
-      if (nrow(linked_rows) == 0) {
-        next
-      }
-
-      linked_partners <- unique(c(linked_rows$variant_1, linked_rows$variant_2))
-      linked_partners <- sort(linked_partners)
-      visited_variants <- c(visited_variants, linked_partners)
-
-      impact_vec <- character(length(linked_partners))
-      for (i in 1:length(linked_partners)) {
-        impact_obs <- query_db_annot[
-          query_db_annot$variant_id == linked_partners[i],
-          'impact'
-        ]
-        impact_vec[i] <- if (length(unique(impact_obs)) == 1) {
-          unique(impact_obs)
-        } else {
-          paste(unique(impact_obs), collapse = ' | ')
-        }
-      }
-
-      block_df <- data.frame(
-        variants = linked_partners,
-        impacts = impact_vec,
-        stringsAsFactors = FALSE
-      )
-      names(block_df) <- c(
-        paste0("Block_", block_counter),
-        paste0("Block_", block_counter, "_Impact_Level")
-      )
-      block_data_list[[block_counter]] <- block_df
-      block_counter <- block_counter + 1
-    }
-  }
-
-  final_block_table <- data.frame()
-  if (length(block_data_list) > 0) {
-    max_rows <- max(sapply(block_data_list, nrow))
-    padded_dfs <- lapply(block_data_list, function(df) {
-      if (nrow(df) < max_rows) {
-        pad_df <- as.data.frame(matrix(
-          NA,
-          nrow = max_rows - nrow(df),
-          ncol = ncol(df)
-        ))
-        names(pad_df) <- names(df)
-        df <- rbind(df, pad_df)
-      }
-      return(df)
-    })
-    final_block_table <- do.call(cbind, padded_dfs)
-  }
-
-  # Polygon curve rendering logic
-  geom_list <- list()
-  if (nrow(ld_pairs) > 0) {
-    for (i in 1:nrow(ld_pairs)) {
-      row <- ld_pairs[i, ]
-      x1 <- min(row$p1, row$p2)
-      x2 <- max(row$p1, row$p2)
-      mid <- (x1 + x2) / 2
-      relative_span <- (x2 - x1) / variant_span
-
-      steps <- seq(0, 1, length.out = 30)
-      curve_left_x <- x1 + (mid - x1) * steps
-      curve_left_y <- -relative_span * (1 - (1 - steps)^2)
-      curve_right_x <- mid + (x2 - mid) * steps
-      curve_right_y <- -relative_span * (1 - steps^2)
-
-      if (filled) {
-        coords_x <- c(curve_left_x, curve_right_x, x1)
-        coords_y <- c(curve_left_y, curve_right_y, 0)
-      } else {
-        coords_x <- c(curve_left_x, curve_right_x)
-        coords_y <- c(curve_left_y, curve_right_y)
-      }
-
-      geom_list[[i]] <- data.frame(
-        x = coords_x,
-        y = coords_y,
-        group = i,
-        value = row$value,
-        linewidth_metric = row$value * 1.8
-      )
-    }
-  }
-  plot_geoms <- do.call(rbind, geom_list)
-
-  plot_title <- if (filled) {
-    "Geodesic Haplotype Topology"
-  } else {
-    "Geodesic Linkage Interaction Map"
-  }
-
-  plot_subtitle <- if (filled) {
-    paste0(
-      "Structural LD block characterization using ",
-      tools::toTitleCase(palette_option),
-      " topology projection"
-    )
-  } else {
-    paste0(
-      "Pairwise variant linkage resolution using ",
-      tools::toTitleCase(palette_option),
-      " trajectory projection"
-    )
-  }
-
-  map_info <- map_info[order(map_info$is_target), ]
-
-  label_data <- map_info
-  label_data$y_anchor <- 0
-  max_y_limit <- if (show_variant_labels) 1.5 else 0.1
-
-  p <- ggplot()
-
-  # Conditional Geometry Layer Selector (Arcs)
-  if (filled) {
-    p <- p +
-      geom_polygon(
-        data = plot_geoms,
-        aes(x = x, y = y, group = group, fill = value),
-        alpha = 0.35,
-        color = NA
-      )
-  } else {
-    p <- p +
-      geom_path(
-        data = plot_geoms,
-        aes(
-          x = x,
-          y = y,
-          group = group,
-          color = value,
-          linewidth = linewidth_metric
-        ),
-        alpha = 0.8,
-        lineend = "round"
-      ) +
-      scale_linewidth_identity()
-  }
-
-  # base chromosome track line
-  p <- p + geom_hline(yintercept = 0, color = "#1E293B", linewidth = 1.5)
-
-  # Add Variant Labels if enabled
-  if (show_variant_labels) {
-    # Because label_data is now sorted, these colors map perfectly to the z-indexed rendering
-    label_colors <- ifelse(label_data$is_target, "darkred", "#1E293B")
-    segment_colors <- ifelse(label_data$is_target, "darkred", "grey50")
-    segment_thickness <- ifelse(label_data$is_target, 0.6, 0.3)
-
-    p <- p +
-      ggrepel::geom_text_repel(
-        data = label_data,
-        aes(x = pos_mb, y = y_anchor, label = variant_id),
-        direction = "x",
-        nudge_y = 0.35,
-        angle = 90,
-        size = 2.8,
-        fontface = "bold",
-        color = label_colors,
-        segment.color = segment_colors,
-        segment.size = segment_thickness,
-        segment.alpha = 0.8,
-        max.overlaps = Inf,
-        box.padding = 0.2,
-        point.padding = 0.1
-      )
-  }
-
-  # Add variant dots on the spine
-  spine_colors <- ifelse(map_info$is_target, "darkred", "#1E293B")
-  spine_stroke <- ifelse(map_info$is_target, 1.2, 0.5)
-
-  p <- p +
-    geom_point(
-      data = map_info,
-      aes(x = pos_mb, y = 0, shape = variant_type),
-      size = 3.5,
-      color = spine_colors,
-      fill = "#E2E8F0",
-      stroke = spine_stroke
-    ) +
-    scale_shape_manual(
-      values = c("SNP" = 21, "INDEL" = 24),
-      name = "Variant Type"
-    )
-
-  # Configure Dynamic Coloring Palette (Arcs Only)
-  if (filled) {
-    p <- p +
-      scale_fill_viridis_c(
-        option = palette_option,
-        limits = c(0, 1),
-        name = expression(R^2),
-        direction = -1
-      )
-  } else {
-    p <- p +
-      scale_color_viridis_c(
-        option = palette_option,
-        limits = c(0, 1),
-        name = expression(R^2),
-        direction = -1
-      )
-  }
-
-  # Final Canvas Formatting
-  p <- p +
-    scale_x_continuous(
-      limits = c(
-        min_variant_x - (variant_span * 0.05),
-        max_variant_x + (variant_span * 0.05)
-      ),
-      labels = function(x) sprintf("%.4f", x),
-      expand = c(0, 0)
-    ) +
-    scale_y_continuous(limits = c(-1.1, max_y_limit), expand = c(0, 0)) +
-    theme_minimal(base_size = 11) +
-    labs(
-      title = plot_title,
-      subtitle = plot_subtitle,
-      x = "Genomic Position (Mb)",
-      y = NULL
-    ) +
-    theme(
-      panel.grid = element_blank(),
-      axis.text.y = element_blank(),
-      axis.title.y = element_blank(),
-      axis.text.x = element_text(colour = 'black', size = 12),
-      plot.title = element_text(
-        face = "bold",
-        size = 16,
-        color = "#0F172A",
-        hjust = 0.5
-      ),
-      plot.subtitle = element_text(color = "grey40", size = 12, hjust = 0.5),
-      axis.title.x = element_text(
-        face = "bold",
-        margin = margin(t = 10),
-        color = "#0F172A",
-        size = 14
-      ),
-      legend.position = "right",
-      legend.title = element_text(size = 9, face = "bold")
-    )
-
-  return(list(plot = p, table = final_block_table))
-}
-
 
 
 #' Append Locus Allele Metrics to Germplasm Genotype Matrix
 #'
-#' Computes major and minor allele states along with their respective gametic frequencies
-#' for a targeted genomic window, appending these diversity metrics directly into the
+#' Computes major and minor allele states along with their respective gametic frequencies 
+#' for a targeted genomic window, appending these diversity metrics directly into the 
 #' matrix schema immediately following the variant metadata and preceding the accession columns.
 #'
 #' @param region_matrix A dataframe from the genotype table with calls.
-#' @param ref_col A character string specifying the column name for the reference allele.
+#' @param ref_col A character string specifying the column name for the reference allele. 
 #'   Defaults to `"ref"`.
-#' @param alt_col A character string specifying the column name for the alternative allele.
+#' @param alt_col A character string specifying the column name for the alternative allele. 
 #'   Defaults to `"alt"`.
-#' @param meta_data A character vector defining the baseline variant descriptor columns
+#' @param meta_data A character vector defining the baseline variant descriptor columns 
 #'   to anchor on the left flank of the matrix. Defaults to standard genomic coordinates.
 #'
 #' @return A modified genotype matrix data frame with allele frequencies and allele type
-#'
+#' 
 #' @noRd
 append_locus_allele_metrics <- function(
-    region_matrix,
-    ref_col = "ref",
-    alt_col = "alt",
-    meta_data = c("variant_id", "chrom", "pos", "ref", "alt", "variant_type")
+  region_matrix,
+  ref_col = "ref",
+  alt_col = "alt",
+  meta_data = c("variant_id", "chrom", "pos", "ref", "alt", "variant_type")
 ) {
-
   meta_cols <- meta_data
 
   # Remove metadata columns
@@ -2723,35 +2312,33 @@ append_locus_allele_metrics <- function(
   # Extract genotype calls
   mat <- as.matrix(region_matrix[, sample_cols])
 
-  # OPTIMIZATION 1: Memory-efficient counting.
-  # Avoid the logical OR operator (`|`) on large matrices to prevent massive intermediate memory allocations.
-  het_01 <- rowSums(mat == "0|1", na.rm = TRUE)
-  het_10 <- rowSums(mat == "1|0", na.rm = TRUE)
-  het_total <- het_01 + het_10
+  # Count reference and alternative alleles
+  count_0 <- rowSums(mat == "0|0") * 2 + rowSums(mat == "0|1" | mat == "1|0")
+  count_1 <- rowSums(mat == "1|1") * 2 + rowSums(mat == "0|1" | mat == "1|0")
 
-  count_0 <- (rowSums(mat == "0|0", na.rm = TRUE) * 2) + het_total
-  count_1 <- (rowSums(mat == "1|1", na.rm = TRUE) * 2) + het_total
+  # Isolate the major allele variant
+  major_allele <- ifelse(
+    count_0 >= count_1,
+    region_matrix[[ref_col]],
+    region_matrix[[alt_col]]
+  )
 
-  # OPTIMIZATION 2: Replace `ifelse` with vectorized boolean subsetting for string assignment.
-  is_ref_major <- count_0 >= count_1
+  # Isolate the major allele variant
+  minor_allele <- ifelse(
+    count_0 < count_1,
+    region_matrix[[ref_col]],
+    region_matrix[[alt_col]]
+  )
 
-  # Pre-allocate with the alternative allele, then overwrite with the reference where true
-  major_allele <- region_matrix[[alt_col]]
-  major_allele[is_ref_major] <- region_matrix[[ref_col]][is_ref_major]
+  # Derive gametic allele frequencies based on total non-missing observed calls
+  total_alleles <- (count_0 + count_1)
 
-  minor_allele <- region_matrix[[ref_col]]
-  minor_allele[is_ref_major] <- region_matrix[[alt_col]][is_ref_major]
+  minor_allele_freq <- (pmin(count_0, count_1) /
+    ifelse(total_alleles == 0, 1, total_alleles)) |> round(digits = 5)
 
-  # OPTIMIZATION 3: Replace `ifelse` in math operations.
-  # Modifying the divisor directly avoids evaluating multiple conditions across large vectors.
-  total_alleles <- count_0 + count_1
-  safe_total <- total_alleles
-  safe_total[safe_total == 0] <- 1
+  major_allele_freq <- (pmax(count_0, count_1) /
+    ifelse(total_alleles == 0, 1, total_alleles)) |> round(digits = 5)
 
-  minor_allele_freq <- round(pmin(count_0, count_1) / safe_total, 5)
-  major_allele_freq <- round(pmax(count_0, count_1) / safe_total, 5)
-
-  # Fast column assignment
   region_matrix$major_allele <- major_allele
   region_matrix$minor_allele <- minor_allele
   region_matrix$major_allele_freq <- major_allele_freq
@@ -2765,10 +2352,186 @@ append_locus_allele_metrics <- function(
     "minor_allele_freq"
   )
 
-  # Combine columns and explicitly subset to return the final matrix
   sample_cols_n <- setdiff(names(region_matrix), c(meta_cols, new_metrics))
   optimized_column_order <- c(meta_cols, new_metrics, sample_cols_n)
+  region_matrix <- region_matrix[, optimized_column_order]
 
-  return(region_matrix[, optimized_column_order])
+  return(region_matrix)
 }
 
+
+#' Generate a Standardized Intertek Submission Table for KASP Markers
+#'
+#' @description
+#' This function transforms marker data into a standardized data frame that is
+#' compliant with the Intertek genotyping submission format. It processes one or
+#' more markers, generates a unique Intertek-formatted SNP name, and organizes
+#' all required information into a clean, submission-ready table.
+#'
+#' @details
+#' The function constructs a unique `SNP Name*` for each marker by combining
+#' the genome version, chromosome, position, and a suffix indicating the
+#' variant type.
+#' - **Substitutions (SNPs):** A suffix is derived from the IUPAC ambiguity code
+#'   for the allele pair (e.g., 'AG' becomes 'R'). If the combination is not a
+#'   standard IUPAC code, 'X' is used.
+#' - **Insertions/Deletions (INDELs):** The suffix is always 'I'.
+#'
+#' The final name format is `genome_version_chr_pos_suffix`.
+#'
+#' @param marker_data A list containing a `$marker_data` data frame. This data
+#'   frame must have one or more rows, each with the following columns:
+#'   `SNP_Name`, `SNP`, `Marker_Name`, `Chromosome`, `Chromosome_Position`,
+#'   `Sequence`, `ReferenceAllele`, and `AlternativeAllele`.
+#' @param genome_version A character string specifying the genome or assembly
+#'   version (e.g., "Sbv5.1").
+#' @param region_name A character string for the QTL, gene, or region name
+#'   associated with the markers.
+#' @param trait A character string describing the trait associated with the markers.
+#' @param owner A character string identifying the name of the person or lab
+#'   responsible for the submission.
+#' @param publication_status A character string for the publication status.
+#'   Defaults to "Restricted".
+#'
+#' @return A data frame with columns formatted for Intertek submission. If an
+#'   error occurs while processing a specific marker, the 'Comments' column for
+#'   that row will contain the error message.
+#'
+#' @export
+#' @family KASP-marker-design
+#'
+#' @examples
+#' \donttest{
+#' marker_data <- list(
+#'   marker_data = data.frame(
+#'     SNP_Name = "SNP_Chr03_11361160",
+#'     SNP = "Substitution",
+#'     Marker_Name = "example",
+#'     Chromosome = "Chr03",
+#'     Chromosome_Position = 11361160,
+#'     Sequence = "ACTG...[G/A]...CTGAAA",
+#'     ReferenceAllele = "G",
+#'     AlternativeAllele = "A",
+#'     stringsAsFactors = FALSE
+#'   )
+#' )
+#'
+#' make_intertek_table(marker_data = marker_data, genome_version = "Sbv5.1",
+#' region_name = "qDT3.1", trait = "Stay-green", owner = "Cruet-Burgos")
+#' }
+#' 
+make_intertek_table <- function(
+  marker_data,
+  genome_version,
+  region_name,
+  trait,
+  owner,
+  publication_status = "Restricted"
+) {
+
+  # Ensure the primary input is a list with the expected data frame element.
+  if (!is.list(marker_data) || !"marker_data" %in% names(marker_data)) {
+    stop("`marker_data` must be a list containing a `$marker_data` data.frame.")
+  }
+
+  md <- marker_data$marker_data
+  if (!is.data.frame(md) || nrow(md) == 0) {
+    stop("`marker_data$marker_data` must be a non-empty data.frame.")
+  }
+
+  # Verify that all required columns are present in the marker data.
+  required_cols <- c(
+    "SNP_Name", "SNP", "Marker_Name", "Chromosome", "Chromosome_Position",
+    "Sequence", "ReferenceAllele", "AlternativeAllele"
+  )
+  missing_cols <- setdiff(required_cols, names(md))
+  if (length(missing_cols) > 0) {
+    stop(
+      "Missing required columns in `marker_data$marker_data`: ",
+      paste(missing_cols, collapse = ", ")
+    )
+  }
+
+  # Define IUPAC codes for SNP suffix generation.
+  iupacode <- data.frame(
+    one_letter = c('R', 'Y', 'S', 'W', 'K', 'M'),
+    allele_comb1 = c('AG', 'CT', 'CG', 'AT', 'GT', 'AC'),
+    stringsAsFactors = FALSE
+  )
+
+  # Process Each Marker Row 
+  intertek_rows <- lapply(seq_len(nrow(md)), function(i) {
+
+    # Initialize a template for the output row. 
+    intertek_row <- data.frame(
+      `S/no` = NA_character_,
+      `SNP Name*` = NA_character_,
+      `Alternative ID` = NA_character_,
+      `SNP*` = NA_character_,
+      `Sequence*` = NA_character_,
+      Trait = trait,
+      `Gene/QTL` = region_name,
+      `Chromosome Number` = NA_character_,
+      `Chromosome Position` = NA_character_,
+      `Reference Allele` = NA_character_,
+      `Alternative Allele` = NA_character_,
+      `Owner*` = owner,
+      `Published/Restricted*` = publication_status,
+      Reference = NA_character_,
+      `SNP Geographical/Strain Relevance` = NA_character_,
+      Comments = NA_character_,
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    )
+
+    tryCatch({
+      # Extract the current row for processing.
+      row_md <- md[i, ]
+
+      # Extract numeric part of the chromosome string (e.g., "Chr05" -> "05").
+      chr_num <- gsub("[^0-9]", "", row_md$Chromosome)
+      pos_chr <- as.character(row_md$Chromosome_Position)
+
+      # Determine the suffix for the SNP name based on variant type.
+      if (identical(row_md$SNP, "Substitution")) {
+        # For SNPs, sort alleles to create a consistent key (e.g., "AG", not "GA").
+        pair_sorted <- paste0(
+          sort(c(row_md$ReferenceAllele, row_md$AlternativeAllele)),
+          collapse = ""
+        )
+        # Match the sorted pair to an IUPAC code.
+        suffix <- iupacode$one_letter[match(pair_sorted, iupacode$allele_comb1)]
+        # If no standard IUPAC code exists, use 'X' as a fallback.
+        if (is.na(suffix)) suffix <- "X"
+      } else {
+        # For INDELs, the standard suffix is 'I'.
+        suffix <- "I"
+      }
+
+      # Construct the final Intertek-formatted table.
+      snp_name <- paste(genome_version, chr_num, pos_chr, suffix, sep = "_")
+
+      intertek_row$`SNP Name*` <- snp_name
+      intertek_row$`SNP*` <- paste(row_md$ReferenceAllele, row_md$AlternativeAllele, sep = "/")
+      intertek_row$`Sequence*` <- row_md$Sequence
+      intertek_row$`Chromosome Number` <- chr_num
+      intertek_row$`Chromosome Position` <- pos_chr
+      intertek_row$`Reference Allele` <- row_md$ReferenceAllele
+      intertek_row$`Alternative Allele` <- row_md$AlternativeAllele
+
+      return(intertek_row)
+
+    }, error = function(e) {
+      intertek_row$Comments <- paste("Processing Error:", e$message)
+      return(intertek_row)
+    })
+  })
+
+  # Combine the list of processed rows into a single data frame.
+  final_table <- do.call(rbind, intertek_rows)
+
+  # Replace any remaining NA values with empty strings 
+  final_table[is.na(final_table)] <- ""
+
+  return(final_table)
+}

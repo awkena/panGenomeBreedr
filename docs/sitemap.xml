@@ -19,6 +19,10 @@
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/extract_variant.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/fetch_accession_metadata.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/fetch_genotypes_by_id.html</loc></url>
+<url><loc>https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_data.html</loc></url>
+<url><loc>https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_families_by_variant.html</loc></url>
+<url><loc>https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_negative.html</loc></url>
+<url><loc>https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_positive.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/fetch_variants_by_allele_frequency.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/fetch_variants_by_impact.html</loc></url>
@@ -48,6 +52,7 @@
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/kasp_reshape_wide.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/list_columns.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/list_tables.html</loc></url>
+<url><loc>https://awkena.github.io/panGenomeBreedr/reference/make_intertek_table.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/nsamples_plate.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/order_markers.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/parent_het.html</loc></url>
@@ -57,6 +62,9 @@
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_accession_map.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_gene_model.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_ld_geodesic.html</loc></url>
+<url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_best_lines.html</loc></url>
+<url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_pairs.html</loc></url>
+<url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_positive.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_plate.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/plot_variant_hotspot.html</loc></url>
 <url><loc>https://awkena.github.io/panGenomeBreedr/reference/pred_status.html</loc></url>

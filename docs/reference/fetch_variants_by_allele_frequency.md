@@ -78,13 +78,13 @@ online_common_vars <- fetch_variants_by_allele_frequency(
   connect_db_mode = 'online'
 )
 print(head(online_common_vars))
-#>            variant_id chrom      pos    ref_af     alt_af
-#> 1  SNP_Chr05_75104557 Chr05 75104557 0.8905131 0.10948687
-#> 2  SNP_Chr05_75104560 Chr05 75104560 0.8896181 0.11038186
-#> 7  SNP_Chr05_75104604 Chr05 75104604 0.8257757 0.17422434
-#> 8  SNP_Chr05_75104606 Chr05 75104606 0.9379475 0.06205251
-#> 11 SNP_Chr05_75104678 Chr05 75104678 0.8747017 0.12529833
-#> 14 SNP_Chr05_75104743 Chr05 75104743 0.9477924 0.05220764
+#>             variant_id chrom      pos    ref_af     alt_af
+#> 2 INDEL_Chr05_75104564 Chr05 75104564 0.8854415 0.11455847
+#> 3 INDEL_Chr05_75104573 Chr05 75104573 0.8848449 0.11515513
+#> 4 INDEL_Chr05_75104585 Chr05 75104585 0.8836516 0.11634845
+#> 5 INDEL_Chr05_75104618 Chr05 75104618 0.8845465 0.11545346
+#> 7 INDEL_Chr05_75104704 Chr05 75104704 0.9334726 0.06652745
+#> 9 INDEL_Chr05_75104800 Chr05 75104800 0.8135442 0.18645585
 
 # --- Offline Mode ---
 # Locate the package example database folder

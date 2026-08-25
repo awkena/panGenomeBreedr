@@ -14,6 +14,10 @@ export(disconnect_local_db)
 export(extract_variant)
 export(fetch_accession_metadata)
 export(fetch_genotypes_by_id)
+export(fetch_pcil_data)
+export(fetch_pcil_families_by_variant)
+export(fetch_pcil_negative)
+export(fetch_pcil_positive)
 export(fetch_table_region)
 export(fetch_variants_by_allele_frequency)
 export(fetch_variants_by_impact)
@@ -40,6 +44,7 @@ export(kasp_qc_ggplot2)
 export(kasp_reshape_wide)
 export(list_columns)
 export(list_tables)
+export(make_intertek_table)
 export(nsamples_plate)
 export(order_markers)
 export(parent_het)
@@ -49,6 +54,9 @@ export(parse_marker_ns)
 export(plot_accession_map)
 export(plot_gene_model)
 export(plot_ld_geodesic)
+export(plot_pcil_best_lines)
+export(plot_pcil_pairs)
+export(plot_pcil_positive)
 export(plot_plate)
 export(plot_variant_hotspot)
 export(pred_status)
@@ -101,7 +109,10 @@ importFrom(ggplot2,
   coord_cartesian,
   element_blank,
   element_line,
+  element_rect,
   element_text,
+  facet_wrap,
+  geom_blank,
   geom_hline,
   geom_point,
   geom_rect,
@@ -113,13 +124,17 @@ importFrom(ggplot2,
   guides,
   labs,
   margin,
+  scale_color_manual,
   scale_fill_manual,
   scale_shape_manual,
   scale_size_continuous,
   scale_x_continuous,
   scale_y_continuous,
   theme,
-  theme_minimal
+  theme_bw,
+  theme_classic,
+  theme_minimal,
+  unit
 )
 importFrom(ggrepel,geom_text_repel)
 importFrom(golem,

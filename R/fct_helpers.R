@@ -1409,13 +1409,14 @@ render_ghost_plate_error <- function(error_msg, text_size = 12) {
 #'
 #' @noRd
 update_sidebar_buttons <- function(active_id) {
+  # Updated to match the exact IDs in active_dashboard_view
   buttons <- c(
     "get_db_info",
-    "show_gene_cord_btn",
-    "show_query_actions_btn",
-    "get_pcv_sidebar_btn",
-    "design_kasp_sidebar_btn"
+    "identify_variants_btn",
+    "design_kasp_sidebar_btn",
+    "pcil_selection_btn"
   )
+
   for (btn_id in buttons) {
     if (btn_id == active_id) {
       shinyjs::removeClass(btn_id, "btn-outline-primary")
@@ -1427,46 +1428,3 @@ update_sidebar_buttons <- function(active_id) {
   }
 }
 
-
-
-# FUTURE USE WHEN GENOTYPE CALLS BECOME INCREASINGLY HIGH
-# THIS WILL ALLOW US TO DO THE UNPACKING OF THE GENOTYPE CALLS ON LOCAL MACHINES.
-# #' Expand Compact Genotypes into a Wide Matrix
-# #'
-# #' This function takes a data frame with a compact 'calls' column
-# #' and expands it into a wide matrix using sample names from the metadata API.
-# #'
-# #' @param df A data frame returned from the API containing a 'calls' column.
-# #' @returns A wide data frame with sample names as columns.
-# #' @noRd
-# .expand_matrix <- function(df) {
-#   if (is.null(df) || nrow(df) == 0 || !"calls" %in% colnames(df)) {
-#     return(df)
-#   }
-
-#   # Fetch the sample names from your API
-#   # The API already orders them by array_index ASC natively
-#   meta_df <- .api_fetch("/db/metadata")
-#   sample_names <- meta_df$lib
-
-#   # Strip the Postgres array brackets if they exist
-#   clean_calls <- gsub("\\{|\\}", "", df$calls)
-
-#   # Split the comma-separated strings into a list
-#   calls_list <- strsplit(clean_calls, ",")
-
-#   # Bind the list into a highly optimized C-level matrix
-#   calls_mat <- do.call(rbind, calls_list)
-
-#   # Rename the columns to match the sample names
-#   colnames(calls_mat) <- sample_names[1:ncol(calls_mat)]
-
-#   # Drop the original 'calls' column and attach the new wide matrix
-#   meta_cols <- df[, setdiff(colnames(df), "calls"), drop = FALSE]
-#   wide_df <- cbind(
-#     meta_cols,
-#     as.data.frame(calls_mat, stringsAsFactors = FALSE)
-#   )
-
-#   return(wide_df)
-# }

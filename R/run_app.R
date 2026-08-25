@@ -17,7 +17,7 @@ run_app <- function(
     ...) {
   # Check all suggested packages at the start
   suggested_packages <- c(
-    "data.table", "DT", "fontawesome", "future", "ggrepel", "leaflet",
+    "colourpicker", "data.table", "DT", "fontawesome", "future", "ggrepel", "leaflet",
     "openxlsx", "promises", "reactable", "readxl", "RSQLite", "scales",
     "shinyalert", "shinybusy", "shinycssloaders", "shinyFiles", "shinyjs",
     "shinyWidgets", "tools", "UpSetR", "vcfR", "writexl"
