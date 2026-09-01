@@ -2305,7 +2305,7 @@ mod_variant_discovery_server <- function(id) {
           update_sidebar_buttons("design_kasp_sidebar_btn")
           updateTabsetPanel(inputId = 'param_header', selected = "mark_design")
           
-          updateSelectizeInput(session, inputId = "modal_marker_ID", choices = marker_candidates, selected = marker_candidates, server = TRUE)
+          updateSelectizeInput(session, inputId = "modal_marker_ID", choices = marker_candidates, server = TRUE)
           
           show_toast_success(paste("Loaded", length(marker_candidates), "variants for marker design."))
         },
@@ -2370,7 +2370,6 @@ mod_variant_discovery_server <- function(id) {
           session,
           inputId = "pcil_marker_ID",
           choices = marker_candidates,
-          selected = marker_candidates,
           server = TRUE
         )
 

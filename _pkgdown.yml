@@ -4,6 +4,11 @@ template:
   bootstrap: 5
   bootswatch: flatly
 
+figures:
+  fig.width: 10
+  fig.height: 6
+  dpi: 96
+
 home:
   title: "panGenomeBreedr"
   tagline: "Helpers for pangenome-enabled crop breeding"
