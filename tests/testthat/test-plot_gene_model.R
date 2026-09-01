@@ -1,23 +1,28 @@
 
 # --- Helper: Create mock gene data frames ---
-# Simulates the output of gene_coord_gff() for a positive strand gene
 mock_gene_pos <- data.frame(
-  ID = "Sobic.005G213600",
-  Feature = c("gene", "five_prime_UTR", "CDS", "three_prime_UTR"),
+  ID = c(
+    "Sobic.005G213600",
+    "Sobic.005G213600.1",
+    "Sobic.005G213600.1",
+    "Sobic.005G213600.1",
+    "Sobic.005G213600.1"
+  ),
+  Feature = c("gene", "mRNA", "five_prime_UTR", "CDS", "three_prime_UTR"),
   Chromosome = "Chr05",
-  Start = c(75104500, 75104500, 75104601, 75106001),
-  End = c(75106500, 75104600, 75106000, 75106500),
+  Start = c(75104500, 75104500, 75104500, 75104601, 75106001),
+  End = c(75106500, 75106500, 75104600, 75106000, 75106500),
   Strand = "+",
   stringsAsFactors = FALSE
 )
 
 # Simulates a negative strand gene to test the arrow direction logic
 mock_gene_neg <- data.frame(
-  ID = "Sobic.DUP",
-  Feature = c("gene", "CDS"),
+  ID = c("Sobic.DUP", "Sobic.DUP.1", "Sobic.DUP.1"),
+  Feature = c("gene", "mRNA", "CDS"),
   Chromosome = "Chr05",
-  Start = c(1000, 1200),
-  End = c(2000, 1800),
+  Start = c(1000, 1000, 1200),
+  End = c(2000, 2000, 1800),
   Strand = "-",
   stringsAsFactors = FALSE
 )
@@ -41,9 +46,46 @@ test_that("plot_gene_model returns a valid ggplot object with expected layers", 
 })
 
 
-test_that("plot_gene_model accurately calculates structural y-heights based on feature type", {
+test_that("plot_gene_model drops the gene summary row when a transcript is present", {
 
   p <- plot_gene_model(mock_gene_pos)
+  layer_data <- p$layers[[1]]$data
+
+  # The gene-level backbone should not be drawn as its own row...
+  expect_equal(nrow(layer_data[layer_data$Feature == "gene", ]), 0)
+  # ...only the transcript's own ID should appear as a row
+  expect_equal(unique(layer_data$ID), "Sobic.005G213600.1")
+
+})
+
+
+test_that("plot_gene_model falls back to the gene row when no transcripts exist", {
+
+  # A gene with no annotated mRNA/transcript children at all
+  gene_only <- data.frame(
+    ID = "Sobic.LONELY",
+    Feature = "gene",
+    Chromosome = "Chr01",
+    Start = 100,
+    End = 500,
+    Strand = "+",
+    stringsAsFactors = FALSE
+  )
+
+  expect_silent(p <- plot_gene_model(gene_only))
+
+  layer_data <- p$layers[[1]]$data
+  expect_equal(nrow(layer_data), 1)
+  expect_equal(layer_data$Feature, "gene")
+
+})
+
+
+test_that("plot_gene_model accurately calculates structural y-heights based on feature type", {
+
+  # row_height = 1 pins the base ratios (0.15 / 0.075 / 0.01) so the expected
+  # values below are exact, independent of whatever row_height defaults to
+  p <- plot_gene_model(mock_gene_pos, row_height = 1)
 
   # Extract the data specifically passed to the geom_rect layer
   # (Since ggplot() was called empty, p$data is empty, data lives in the layer)
@@ -59,10 +101,28 @@ test_that("plot_gene_model accurately calculates structural y-heights based on f
   expect_true(all(utr_data$ymin == -0.075))
   expect_true(all(utr_data$ymax == 0.075))
 
-  # Check backbone (gene) heights
-  gene_data <- layer_data[layer_data$Feature == "gene", ]
-  expect_equal(gene_data$ymin, -0.01)
-  expect_equal(gene_data$ymax, 0.01)
+  # Check transcript backbone (mRNA) heights, on its own row
+  mrna_data <- layer_data[layer_data$Feature == "mRNA", ]
+  expect_equal(mrna_data$ymin, -0.01)
+  expect_equal(mrna_data$ymax, 0.01)
+
+})
+
+
+test_that("plot_gene_model scales bar thickness proportionally with row_height", {
+
+  p_full <- plot_gene_model(mock_gene_pos, row_height = 1)
+  p_half <- plot_gene_model(mock_gene_pos, row_height = 0.5)
+
+  cds_full <- p_full$layers[[1]]$data
+  cds_half <- p_half$layers[[1]]$data
+  cds_full <- cds_full[cds_full$Feature == "CDS", ]
+  cds_half <- cds_half[cds_half$Feature == "CDS", ]
+
+  # Halving row_height should exactly halve bar thickness, so proportions
+  # (and thus visual chunkiness) stay constant as spacing is tuned
+  expect_equal(cds_half$ymax, cds_full$ymax * 0.5)
+  expect_equal(cds_half$ymin, cds_full$ymin * 0.5)
 
 })
 
@@ -97,11 +157,37 @@ test_that("plot_gene_model maps the arrow direction correctly based on strand (-
 
 test_that("plot_gene_model handles data frames with missing features gracefully", {
 
-  # Test with just a gene backbone and CDS, no UTRs
-  minimal_gene <- mock_gene_pos[mock_gene_pos$Feature %in% c("gene", "CDS"), ]
+  # Test with just the transcript backbone and CDS, no UTRs
+  minimal_gene <- mock_gene_pos[mock_gene_pos$Feature %in% c("mRNA", "CDS"), ]
 
   # Function should not fail
   expect_silent(p <- plot_gene_model(minimal_gene))
   expect_s3_class(p, "ggplot")
+
+})
+
+
+test_that("plot_gene_model stacks multiple transcripts on separate rows", {
+
+  mock_multi <- rbind(
+    mock_gene_pos,
+    data.frame(
+      ID = c("Sobic.005G213600.2", "Sobic.005G213600.2"),
+      Feature = c("mRNA", "CDS"),
+      Chromosome = "Chr05",
+      Start = c(75104550, 75104650),
+      End = c(75106500, 75106000),
+      Strand = "+",
+      stringsAsFactors = FALSE
+    )
+  )
+
+  p <- plot_gene_model(mock_multi)
+  layer_data <- p$layers[[1]]$data
+
+  # Two distinct transcripts should end up on two distinct rows
+  rows_by_id <- unique(layer_data[, c("ID", "y_row")])
+  expect_equal(nrow(rows_by_id), 2)
+  expect_equal(length(unique(rows_by_id$y_row)), 2)
 
 })

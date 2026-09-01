@@ -3449,9 +3449,14 @@ gene_coord_gff <- function(gene_name, gff_path) {
 #'
 #' @description Visualizes the gene structure with adjusted component heights,
 #' a cleaned legend, and a strand orientation arrow. Introns are implicitly
-#' represented by the exposed transcript backbone.
+#' represented by the exposed transcript backbone. Each transcript is drawn on
+#' its own row below the gene backbone (labeled on the y-axis), so alternative
+#' transcripts for the same gene are shown as separate tracks instead of being
+#' collapsed on top of one another.
 #' @param gene_df A data frame containing the genomic coordinates, expected to
 #' be the output from \code{gene_coord_gff}.
+#' @param row_height A numeric value controlling the vertical spacing between
+#' transcript rows. Default is 0.6.
 #' @returns A \code{ggplot} object representing the structural gene model.
 #' @examples
 #' \donttest{
@@ -3464,28 +3469,41 @@ gene_coord_gff <- function(gene_name, gff_path) {
 #' plot_gene_model(gene_df = gene_features)
 #' }
 #' @export
-#' @importFrom ggplot2 ggplot aes geom_rect geom_segment scale_fill_manual theme_minimal labs theme element_blank arrow
+#' @importFrom ggplot2 ggplot aes geom_rect geom_segment scale_fill_manual scale_y_continuous theme_minimal labs theme element_blank arrow
 #' @importFrom grid unit
-plot_gene_model <- function(gene_df) {
-  Start <- End <- ymin <- ymax <- Feature <- x_start <- x_end <- NULL
+plot_gene_model <- function(gene_df, row_height = 0.6) {
+  Start <- End <- ymin <- ymax <- Feature <- x_start <- x_end <- y_row <- NULL
 
-  # 1. Assign geometric heights based on Feature types
-  gene_df$ymin <- ifelse(
+  if (any(gene_df$Feature != "gene")) {
+    gene_df <- gene_df[gene_df$Feature != "gene", ]
+  }
+  id_levels <- sort(unique(gene_df$ID))
+
+  row_index <- match(gene_df$ID, id_levels) - 1
+  gene_df$y_row <- -row_index * row_height
+
+  # Define geometri heights
+  cds_half <- 0.15 * row_height
+  utr_half <- 0.075 * row_height
+  backbone_half <- 0.01 * row_height
+
+  local_ymin <- ifelse(
     gene_df$Feature == "CDS",
-    -0.15,
-    ifelse(grepl("UTR", gene_df$Feature), -0.075, -0.01)
+    -cds_half,
+    ifelse(grepl("UTR", gene_df$Feature), -utr_half, -backbone_half)
   )
-
-  gene_df$ymax <- ifelse(
+  local_ymax <- ifelse(
     gene_df$Feature == "CDS",
-    0.15,
-    ifelse(grepl("UTR", gene_df$Feature), 0.075, 0.01)
+    cds_half,
+    ifelse(grepl("UTR", gene_df$Feature), utr_half, backbone_half)
   )
+  gene_df$ymin <- local_ymin + gene_df$y_row
+  gene_df$ymax <- local_ymax + gene_df$y_row
 
-  # 2. Sort the data frame to ensure the backbone is drawn first (bottom layer)
+  # Sort the data frame to ensure the backbone is drawn first (bottom layer)
   gene_df <- gene_df[order(gene_df$ymax), ]
 
-  # 3. Extract the backbone to map the strand direction arrow
+  # Extract the backbone to map the strand direction arrow, one per row
   backbone <- gene_df[gene_df$Feature %in% c("gene", "mRNA", "transcript"), ]
 
   # Map arrow coordinates dynamically based on strand (+ points right, - points left)
@@ -3502,7 +3520,7 @@ plot_gene_model <- function(gene_df) {
     )
   }
 
-  # 4. Define the clean color palette
+  # 5. Define the clean color palette
   type_colors <- c(
     "five_prime_UTR" = "#0E77F0", # Light blue
     "CDS" = "#FFA500", # orange
@@ -3511,7 +3529,7 @@ plot_gene_model <- function(gene_df) {
     "mRNA" = "#999999"
   ) # Grey fallback
 
-  # 5. Plot the structure
+  # Plot the structure
   p <- ggplot2::ggplot() +
 
     # Draw rectangles for all features with a thin border
@@ -3529,10 +3547,10 @@ plot_gene_model <- function(gene_df) {
       linewidth = 0.3
     ) +
 
-    # Draw the orientation arrow running through the center of the backbone
+    # Draw the orientation arrow running through the center of each row's backbone
     ggplot2::geom_segment(
       data = backbone,
-      ggplot2::aes(x = x_start, xend = x_end, y = 0, yend = 0),
+      ggplot2::aes(x = x_start, xend = x_end, y = y_row, yend = y_row),
       arrow = ggplot2::arrow(
         length = grid::unit(0.1, "inches"),
         type = "closed"
@@ -3544,9 +3562,15 @@ plot_gene_model <- function(gene_df) {
     # Map colors AND refine legend
     ggplot2::scale_fill_manual(
       values = type_colors,
-      name = " ",
+      name = "Feature",
       breaks = c("five_prime_UTR", "CDS", "three_prime_UTR"),
       labels = c("5' UTR", "CDS", "3' UTR")
+    ) +
+
+    # Label each row with its gene/transcript ID
+    ggplot2::scale_y_continuous(
+      breaks = -(seq_along(id_levels) - 1) * row_height,
+      labels = id_levels
     ) +
 
     ggplot2::theme_classic() +
@@ -3555,7 +3579,7 @@ plot_gene_model <- function(gene_df) {
     # Clean up the y-axis
     ggplot2::theme(
       axis.line.y = ggplot2::element_blank(),
-      axis.text.y = ggplot2::element_blank(),
+      axis.text.y = ggplot2::element_text(size = 11, color = "black", face = "bold"),
       axis.line.x = ggplot2::element_blank(),
       axis.ticks.y = ggplot2::element_blank(),
       axis.text.x = ggplot2::element_text(size = 16, color = "black"),
@@ -3571,7 +3595,7 @@ plot_gene_model <- function(gene_df) {
         color = "#E5E5E5",
         linetype = "dashed"
       ),
-      legend.position = "bottom"
+      legend.position = "right"
     )
 
   return(p)
@@ -3871,13 +3895,16 @@ hotspot_overlay_plot <- function(
 
   chr <- gene_model$Chromosome[1] # Get chromosome number
 
-  # Get the start pos of the gene
-  start_pos <- min(gene_model$Start[gene_model$Feature == "gene"], na.rm = TRUE)
-
-  # Get the end pos of the gene
-  end_pos <- max(gene_model$End[gene_model$Feature == "gene"], na.rm = TRUE)
-
   var_df <- merge(annotations_df, genotypes_df, by = "variant_id")
+
+  # Bound the plot by the gene body AND the variant positions, not the gene
+  # body alone -- upstream/downstream_gene_variant annotations are expected
+  # to fall outside the gene's own Start-End, and a gene-only box would clip
+  # them off the plot (and warn "Removed N rows...") instead of drawing them.
+  gene_start <- min(gene_model$Start[gene_model$Feature == "gene"], na.rm = TRUE)
+  gene_end <- max(gene_model$End[gene_model$Feature == "gene"], na.rm = TRUE)
+  start_pos <- min(gene_start, var_df$pos.x, na.rm = TRUE)
+  end_pos <- max(gene_end, var_df$pos.x, na.rm = TRUE)
 
   # Generate the base hotspot plot
   hotspot_plot <- plot_variant_hotspot(
@@ -3989,9 +4016,21 @@ hotspot_overlay_plot <- function(
     }
   }
 
+  # Gene model panel grows with the number of rows it actually draws: one row
+  # per transcript, or the gene backbone alone when there are no transcripts
+  # (see plot_gene_model()). A single row keeps the plot's original 4:1
+  # share with the hotspot panel; each additional transcript row adds a
+  # smaller increment rather than doubling the panel's share outright.
+  gene_rows <- length(unique(gene_model$ID[gene_model$Feature != "gene"]))
+  if (gene_rows == 0) {
+    gene_rows <- length(unique(gene_model$ID[gene_model$Feature == "gene"]))
+  }
+  gene_rows <- max(gene_rows, 1)
+  gene_height <- 1 + (gene_rows - 1) * 0.6
+
   final_overlay <- hotspot_clean /
     gene_model_plot +
-    patchwork::plot_layout(heights = c(4, 1), axes = "collect")
+    patchwork::plot_layout(heights = c(4, gene_height), axes = "collect", guides = "collect")
 
   # View the final combined plot
   return(final_overlay)

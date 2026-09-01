@@ -4,11 +4,14 @@
 \alias{plot_gene_model}
 \title{Plot the gene model using genomic coordinates (local)}
 \usage{
-plot_gene_model(gene_df)
+plot_gene_model(gene_df, row_height = 0.6)
 }
 \arguments{
 \item{gene_df}{A data frame containing the genomic coordinates, expected to
 be the output from \code{gene_coord_gff}.}
+
+\item{row_height}{A numeric value controlling the vertical spacing between
+transcript rows. Default is 0.6.}
 }
 \value{
 A \code{ggplot} object representing the structural gene model.
@@ -16,7 +19,10 @@ A \code{ggplot} object representing the structural gene model.
 \description{
 Visualizes the gene structure with adjusted component heights,
 a cleaned legend, and a strand orientation arrow. Introns are implicitly
-represented by the exposed transcript backbone.
+represented by the exposed transcript backbone. Each transcript is drawn on
+its own row below the gene backbone (labeled on the y-axis), so alternative
+transcripts for the same gene are shown as separate tracks instead of being
+collapsed on top of one another.
 }
 \examples{
 \donttest{
