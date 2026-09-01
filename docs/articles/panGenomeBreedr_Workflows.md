@@ -205,36 +205,38 @@ If used correctly, the
 function returns a data frame containing the filtered records from the
 selected table.
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# Locate the package example database folder`\
-`mini_folder`` ``<-`` `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata"``, ``"pangenome_scale_db"``, `\
-`                           package ``=`` ``"panGenomeBreedr"``, `\
-`                           mustWork ``=`` ``TRUE``)`\
-\
-`# Establish a virtual connection to the offline database engine`\
-`con_demo`` ``<-`` `[`connect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/connect_local_db.md)`(``folder_path ``=`` ``mini_folder``)`\
-`#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.`\
-\
-`# Query VCF genotypes within the genomic range: Chr05:75,104,537 - 75,106,403`\
-`gt_region`` ``<-`` `[`fetch_table_region`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)`(``con ``=`` ``con_demo``,`\
-`                      table_name ``=`` ``"genotypes"``,`\
-`                      chrom ``=`` ``"Chr05"``,`\
-`                      start ``=`` ``75104537``,`\
-`                      end ``=`` ``75106403``)`\
-\
-`#  Query snpEff annotations within a candidate locus gene region`\
-`annota_region`` ``<-`` `[`fetch_table_region`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)`(``con ``=`` ``con_demo``,`\
-`                          table_name ``=`` ``"annotations"``,`\
-`                          chrom ``=`` ``"Chr05"``,`\
-`                          start ``=`` ``75104537``,`\
-`                          end ``=`` ``75106403``,`\
-`                          gene_name ``=`` ``"Sobic.005G213600"``)`\
-\
-`# Cleanly close the connection and release memory allocations`\
-[`disconnect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/disconnect_local_db.md)`(``con_demo``)`\
-`#> Successfully disconnected from the local database. Memory cleared.`
+``` r
+
+library(panGenomeBreedr)
+
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "pangenome_scale_db", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
+
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+
+# Query VCF genotypes within the genomic range: Chr05:75,104,537 - 75,106,403
+gt_region <- fetch_table_region(con = con_demo,
+                      table_name = "genotypes",
+                      chrom = "Chr05",
+                      start = 75104537,
+                      end = 75106403)
+
+#  Query snpEff annotations within a candidate locus gene region
+annota_region <- fetch_table_region(con = con_demo,
+                          table_name = "annotations",
+                          chrom = "Chr05",
+                          start = 75104537,
+                          end = 75106403,
+                          gene_name = "Sobic.005G213600")
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
+```
 
 | variant_id | chrom | pos | ref | alt | variant_type | major_allele | minor_allele | major_allele_freq | minor_allele_freq | IDMM | ISGC | ISGK | ISHC |
 |:---|:---|---:|:---|:---|:---|:---|:---|---:|---:|:---|:---|:---|:---|
@@ -258,25 +260,27 @@ Table 1: Queried genotypes for variants from the local database.
 Table 2: Queried annotations for variants from the local database.
 {.table}
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# Extract genotypes within a genomic range from the online database`\
-`test_gt_region`` ``<-`` `[`fetch_table_region`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)`(`\
-`  table_name ``=`` ``"genotypes"``,`\
-`  chrom ``=`` ``"Chr05"``,`\
-`  start ``=`` ``75104537``,`\
-`  end ``=`` ``75106403``,`\
-`  connect_db_mode ``=``'online'`\
-`)`\
-\
-`# Extract annotations for a specific candidate gene`\
-`test_annota_region`` ``<-`` `[`fetch_table_region`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)`(`\
-`  table_name ``=`` ``"annotations"``,`\
-`  chrom ``=`` ``"Chr05"``,`\
-`  gene_name ``=`` ``"Sobic.005G213600"``,`\
-`  connect_db_mode ``=`` ``'online'`\
-`)`
+``` r
+
+library(panGenomeBreedr)
+
+# Extract genotypes within a genomic range from the online database
+test_gt_region <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403,
+  connect_db_mode ='online'
+)
+
+# Extract annotations for a specific candidate gene
+test_annota_region <- fetch_table_region(
+  table_name = "annotations",
+  chrom = "Chr05",
+  gene_name = "Sobic.005G213600",
+  connect_db_mode = 'online'
+)
+```
 
 ### Connecting to Online Database with a Custom API Endpoint
 
@@ -291,23 +295,25 @@ function.
 the same schema as the public **Curated Sorghum Pangenome-Scale Variant
 Resource**.
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# 1. Point the package to your custom API endpoint`\
-[`set_api_url`](https://awkena.github.io/panGenomeBreedr/reference/set_api_url.md)`(``"http://132.145.61.28:8000"``)`\
-`#> panGenomeBreedr API endpoint successfully set to: http://132.145.61.28:8000`\
-`#> panGenomeBreedr API endpoint successfully set to: http://132.145.61.28:8000`\
-\
-`# 2. Query your private database exactly as you normally would`\
-`test_gt_private`` ``<-`` `[`fetch_table_region`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)`(`\
-`  table_name ``=`` ``"genotypes"``,`\
-`  chrom ``=`` ``"Chr05"``,`\
-`  start ``=`` ``75104537``,`\
-`  end ``=`` ``75106403``,`\
-`  connect_db_mode ``=`` ``'online'`\
-\
-`)`
+``` r
+
+library(panGenomeBreedr)
+
+# 1. Point the package to your custom API endpoint
+set_api_url("http://132.145.61.28:8000")
+#> panGenomeBreedr API endpoint successfully set to: http://132.145.61.28:8000
+#> panGenomeBreedr API endpoint successfully set to: http://132.145.61.28:8000
+
+# 2. Query your private database exactly as you normally would
+test_gt_private <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403,
+  connect_db_mode = 'online'
+
+)
+```
 
 ### Visualizing Variant Hotspots and Gene Models with panGB
 
@@ -348,59 +354,63 @@ function constructs a layered visualization. It maps the gene structure
 annotations, allowing you to rapidly visually pinpoint regions of high
 functional variation within the candidate gene.
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# 1. Define the path to the reference GFF3 file`\
-`gff_path`` ``<-`` ``"https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"`\
-\
-`# Define the candidate gene of interest`\
-`cand_gene`` ``<-`` ``"Sobic.005G213600"`\
-\
-`# 2. Extract the candidate gene coordinates from the GFF3 file`\
-`gene_coord`` ``<-`` `[`gene_coord_gff`](https://awkena.github.io/panGenomeBreedr/reference/gene_coord_gff.md)`(``gene_name ``=`` ``cand_gene``, gff_path ``=`` ``gff_path``)`\
-\
-`# View the extracted boundaries`\
-[`head`](https://rdrr.io/r/utils/head.html)`(``gene_coord``)`\
-`#>                        ID         Feature Chromosome    Start      End Strand`\
-`#> 1 Sobic.005G213600.1.v5.1            mRNA      Chr05 75104537 75106403      -`\
-`#> 2 Sobic.005G213600.1.v5.1 three_prime_UTR      Chr05 75104537 75104865      -`\
-`#> 3 Sobic.005G213600.1.v5.1             CDS      Chr05 75104866 75106168      -`\
-`#> 4 Sobic.005G213600.1.v5.1             CDS      Chr05 75106279 75106334      -`\
-`#> 5 Sobic.005G213600.1.v5.1  five_prime_UTR      Chr05 75106335 75106403      -`\
-`#> 6   Sobic.005G213600.v5.1            gene      Chr05 75104537 75106403      -`\
-\
-`# 3. Fetch variant annotation data for the candidate gene region`\
-`ann_df`` ``<-`` `[`fetch_table_region`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)`(`\
-`  table_name ``=`` ``"annotations"``,`\
-`  chrom ``=`` ``gene_coord``$``Chromosome``[``1``]``,`\
-`  start ``=`` `[`min`](https://rdrr.io/r/base/Extremes.html)`(``gene_coord``$``Start``)``,`\
-`  end ``=`` `[`max`](https://rdrr.io/r/base/Extremes.html)`(``gene_coord``$``End``)``,`\
-`  connect_db_mode ``=`` ``'online'`\
-`)`\
-\
-`# 4. Fetch the genotype calls for the identified variants`\
-`geno_df`` ``<-`` `[`fetch_table_region`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)`(`\
-`  table_name ``=`` ``"genotypes"``,`\
-`  chrom ``=`` ``gene_coord``$``Chromosome``[``1``]``,`\
-`  start ``=`` `[`min`](https://rdrr.io/r/base/Extremes.html)`(``gene_coord``$``Start``)``,`\
-`  end ``=`` `[`max`](https://rdrr.io/r/base/Extremes.html)`(``gene_coord``$``End``)``,`\
-`  connect_db_mode ``=`` ``'online'`\
-`)`
+``` r
 
-\
-\
-`# 5. Generate and display a variant hotspot aligned to the gene model`\
-`if`` ``(`[`nrow`](https://rdrr.io/r/base/nrow.html)`(``ann_df``)`` ``>`` ``0`` ``&&`` `[`nrow`](https://rdrr.io/r/base/nrow.html)`(``geno_df``)`` ``>`` ``0``)`` ``{`\
-`  `[`hotspot_overlay_plot`](https://awkena.github.io/panGenomeBreedr/reference/hotspot_overlay_plot.md)`(`\
-`    gene_name ``=`` ``cand_gene``, `\
-`    gff_path ``=`` ``gff_path``,`\
-`    annotations_df ``=`` ``ann_df``, `\
-`    genotypes_df ``=`` ``geno_df`\
-`  ``)`\
-`}`` ``else`` ``{`\
-`  `[`message`](https://rdrr.io/r/base/message.html)`(``"Insufficient data retrieved to generate the hotspot plot."``)`\
-`}`
+library(panGenomeBreedr)
+
+# 1. Define the path to the reference GFF3 file
+gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+
+# Define the candidate gene of interest
+cand_gene <- "Sobic.005G213600"
+
+# 2. Extract the candidate gene coordinates from the GFF3 file
+gene_coord <- gene_coord_gff(gene_name = cand_gene, gff_path = gff_path)
+
+# View the extracted boundaries
+head(gene_coord)
+#>                        ID         Feature Chromosome    Start      End Strand
+#> 1 Sobic.005G213600.1.v5.1            mRNA      Chr05 75104537 75106403      -
+#> 2 Sobic.005G213600.1.v5.1 three_prime_UTR      Chr05 75104537 75104865      -
+#> 3 Sobic.005G213600.1.v5.1             CDS      Chr05 75104866 75106168      -
+#> 4 Sobic.005G213600.1.v5.1             CDS      Chr05 75106279 75106334      -
+#> 5 Sobic.005G213600.1.v5.1  five_prime_UTR      Chr05 75106335 75106403      -
+#> 6   Sobic.005G213600.v5.1            gene      Chr05 75104537 75106403      -
+
+# 3. Fetch variant annotation data for the candidate gene region
+ann_df <- fetch_table_region(
+  table_name = "annotations",
+  chrom = gene_coord$Chromosome[1],
+  start = min(gene_coord$Start),
+  end = max(gene_coord$End),
+  connect_db_mode = 'online'
+)
+
+# 4. Fetch the genotype calls for the identified variants
+geno_df <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = gene_coord$Chromosome[1],
+  start = min(gene_coord$Start),
+  end = max(gene_coord$End),
+  connect_db_mode = 'online'
+)
+```
+
+``` r
+
+
+# 5. Generate and display a variant hotspot aligned to the gene model
+if (nrow(ann_df) > 0 && nrow(geno_df) > 0) {
+  hotspot_overlay_plot(
+    gene_name = cand_gene, 
+    gff_path = gff_path,
+    annotations_df = ann_df, 
+    genotypes_df = geno_df
+  )
+} else {
+  message("Insufficient data retrieved to generate the hotspot plot.")
+}
+```
 
 ![Fig. 1. Genomic distribution and functional annotation of candidate
 gene, Sobic.005G213600, generated by panGB. The plot visualizes the
@@ -432,27 +442,29 @@ This function enables users to quickly assess the types and functional
 implications of variants located within candidate genes or genomic
 intervals of interest.
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# Locate the package example database folder`\
-`mini_folder`` ``<-`` `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata"``, ``"pangenome_scale_db"``, `\
-`                           package ``=`` ``"panGenomeBreedr"``, `\
-`                           mustWork ``=`` ``TRUE``)`\
-\
-`# Establish a virtual connection to the offline database engine`\
-`con_demo`` ``<-`` `[`connect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/connect_local_db.md)`(``folder_path ``=`` ``mini_folder``)`\
-`#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.`\
-\
-`# Run functional annotation summary for region Chr05:75,104,537 - 75,106,403`\
-`ann_summary`` ``<-`` `[`summarize_annotations`](https://awkena.github.io/panGenomeBreedr/reference/summarize_annotations.md)`(``con ``=`` ``con_demo``,`\
-`                                 chrom ``=`` ``"Chr05"``,`\
-`                                 start ``=`` ``75104537``,`\
-`                                 end ``=`` ``75106403``)`\
-\
-`# Cleanly close the connection and release memory allocations`\
-[`disconnect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/disconnect_local_db.md)`(``con_demo``)`\
-`#> Successfully disconnected from the local database. Memory cleared.`
+``` r
+
+library(panGenomeBreedr)
+
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "pangenome_scale_db", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
+
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+
+# Run functional annotation summary for region Chr05:75,104,537 - 75,106,403
+ann_summary <- summarize_annotations(con = con_demo,
+                                 chrom = "Chr05",
+                                 start = 75104537,
+                                 end = 75106403)
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
+```
 
 | annotation              | variant_type | count |
 |:------------------------|:-------------|------:|
@@ -496,29 +508,31 @@ to use the
 [`fetch_variants_by_impact()`](https://awkena.github.io/panGenomeBreedr/reference/fetch_variants_by_impact.md)
 function, as shown below:
 
-\
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# Locate the package example database folder`\
-`mini_folder`` ``<-`` `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata"``, ``"pangenome_scale_db"``, `\
-`                           package ``=`` ``"panGenomeBreedr"``, `\
-`                           mustWork ``=`` ``TRUE``)`\
-\
-`# Establish a virtual connection to the offline database engine`\
-`con_demo`` ``<-`` `[`connect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/connect_local_db.md)`(``folder_path ``=`` ``mini_folder``)`\
-`#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.`\
-\
-`# Extract HIGH impact functional variants within the target Chr05 window`\
-`high_variants`` ``<-`` `[`fetch_variants_by_impact`](https://awkena.github.io/panGenomeBreedr/reference/fetch_variants_by_impact.md)`(``con ``=`` ``con_demo``,`\
-`                                 impact_level ``=`` ``"HIGH"``,`\
-`                                 chrom ``=`` ``"Chr05"``,`\
-`                                 start ``=`` ``75104537``,`\
-`                                 end ``=`` ``75106403``)`\
-\
-`# Cleanly close the connection and release memory allocations`\
-[`disconnect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/disconnect_local_db.md)`(``con_demo``)`\
-`#> Successfully disconnected from the local database. Memory cleared.`
+``` r
+
+
+library(panGenomeBreedr)
+
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "pangenome_scale_db", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
+
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+
+# Extract HIGH impact functional variants within the target Chr05 window
+high_variants <- fetch_variants_by_impact(con = con_demo,
+                                 impact_level = "HIGH",
+                                 chrom = "Chr05",
+                                 start = 75104537,
+                                 end = 75106403)
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
+```
 
 | variant_id | chrom | pos | ref | alt | qual | filter | variant_type | allele | annotation | impact | gene_name | gene_id | feature_type | feature_id | transcript_biotype | rank | hgvs_c | hgvs_p |
 |:---|:---|---:|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|
@@ -548,29 +562,31 @@ An example usage for the
 [`filter_by_allele_frequency()`](https://awkena.github.io/panGenomeBreedr/reference/filter_by_allele_frequency.md)
 function is shown in the code snippet below:
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# Locate the package example database folder`\
-`mini_folder`` ``<-`` `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata"``, ``"pangenome_scale_db"``, `\
-`                           package ``=`` ``"panGenomeBreedr"``, `\
-`                           mustWork ``=`` ``TRUE``)`\
-\
-`# Establish a virtual connection to the offline database engine`\
-`con_demo`` ``<-`` `[`connect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/connect_local_db.md)`(``folder_path ``=`` ``mini_folder``)`\
-`#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.`\
-\
-`# Extract genotype data for all HIGH impact variants and filter by alternate allele frequency`\
-`geno_high_filtered`` ``<-`` `[`fetch_genotypes_by_id`](https://awkena.github.io/panGenomeBreedr/reference/fetch_genotypes_by_id.md)`(`\
-`  con ``=`` ``con_demo``,`\
-`  variant_ids ``=`` ``high_variants``$``variant_id``,`\
-`  meta_data ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"chrom"``, ``"pos"``, ``"ref"``, ``"alt"``, ``"variant_type"``)`\
-`)`` ``|>`\
-`  `[`filter_by_allele_frequency`](https://awkena.github.io/panGenomeBreedr/reference/filter_by_allele_frequency.md)`(``min_af ``=`` ``0.05``)`\
-\
-`# Cleanly close the connection and release memory allocations`\
-[`disconnect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/disconnect_local_db.md)`(``con_demo``)`\
-`#> Successfully disconnected from the local database. Memory cleared.`
+``` r
+
+library(panGenomeBreedr)
+
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "pangenome_scale_db", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
+
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+
+# Extract genotype data for all HIGH impact variants and filter by alternate allele frequency
+geno_high_filtered <- fetch_genotypes_by_id(
+  con = con_demo,
+  variant_ids = high_variants$variant_id,
+  meta_data = c("chrom", "pos", "ref", "alt", "variant_type")
+) |>
+  filter_by_allele_frequency(min_af = 0.05)
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
+```
 
 |     | variant_id           | chrom |      pos |    ref_af |    alt_af |
 |:----|:---------------------|:------|---------:|----------:|----------:|
@@ -580,26 +596,28 @@ function is shown in the code snippet below:
 
 Table 3: Filtered variants from the local database. {.table}
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# Locate the package example database folder`\
-`mini_folder`` ``<-`` `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata"``, ``"pangenome_scale_db"``, `\
-`                           package ``=`` ``"panGenomeBreedr"``, `\
-`                           mustWork ``=`` ``TRUE``)`\
-`                           `\
-`# Establish a virtual connection to the offline database engine`\
-`con_demo`` ``<-`` `[`connect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/connect_local_db.md)`(``folder_path ``=`` ``mini_folder``)`\
-`#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.`\
-\
-`# Get genotype data for HIGH impact variants that passed allele filter`\
-`geno_high_filtered`` ``<-`` `[`fetch_genotypes_by_id`](https://awkena.github.io/panGenomeBreedr/reference/fetch_genotypes_by_id.md)`(``con ``=`` ``con_demo``,`\
-`                                      variant_ids ``=`` ``geno_high_filtered``$``variant_id``,`\
-`                                      meta_data ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"chrom"``, ``"pos"``, ``"ref"``, ``"alt"``, ``"variant_type"``)``)`\
-\
-`# Cleanly close the connection and release memory allocations`\
-[`disconnect_local_db`](https://awkena.github.io/panGenomeBreedr/reference/disconnect_local_db.md)`(``con_demo``)`\
-`#> Successfully disconnected from the local database. Memory cleared.`
+``` r
+
+library(panGenomeBreedr)
+
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "pangenome_scale_db", 
+                           package = "panGenomeBreedr", 
+                           mustWork = TRUE)
+                           
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+
+# Get genotype data for HIGH impact variants that passed allele filter
+geno_high_filtered <- fetch_genotypes_by_id(con = con_demo,
+                                      variant_ids = geno_high_filtered$variant_id,
+                                      meta_data = c("chrom", "pos", "ref", "alt", "variant_type"))
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
+#> Successfully disconnected from the local database. Memory cleared.
+```
 
 ### Evaluating Linkage Disequilibrium for Marker Design
 
@@ -627,13 +645,15 @@ The `panGenomeBreedr` package simplifies this analysis. First, we
 compute the pairwise LD metrics for our filtered variants across the
 target region:
 
-\
-`# Compute LD around our causal variants`\
-`ld_result`` ``<-`` `[`calculate_LD`](https://awkena.github.io/panGenomeBreedr/reference/calculate_LD.md)`(`\
-`  df ``=`` ``gt_region``,`\
-`  target_variant_ids ``=`` ``geno_high_filtered``$``variant_id``,`\
-`  genotype_start_col ``=`` ``11`\
-`)`
+``` r
+
+# Compute LD around our causal variants
+ld_result <- calculate_LD(
+  df = gt_region,
+  target_variant_ids = geno_high_filtered$variant_id,
+  genotype_start_col = 11
+)
+```
 
 | variant_1 | position_1 | variant_type_1 | variant_2 | position_2 | variant_type_2 | distance_bp | R2 | D_prime |
 |:---|---:|:---|:---|---:|:---|---:|---:|---:|
@@ -656,19 +676,21 @@ highly intuitive to spot tightly linked variant clusters.
 exhibiting very strong, but realistic, linkage into our output
 haploblock table.
 
-\
-`# Visualize the LD and extract haploblock tables`\
-`ld_haplo_plot`` ``<-`` `[`plot_ld_geodesic`](https://awkena.github.io/panGenomeBreedr/reference/plot_ld_geodesic.md)`(`\
-`  ld_df ``=`` ``ld_result``,`\
-`  query_db_geno ``=`` ``gt_region``,`\
-`  query_db_annot ``=`` ``annota_region``,`\
-`  threshold ``=`` ``0.95``, ``# Minimum R² to draw an arc`\
-`  block_threshold ``=`` ``0.95``, ``# Minimum R² to define a haploblock in the table`\
-`  target_variant_ids ``=`` ``geno_high_filtered``$``variant_id`\
-`)`\
-\
-`# Render the plot`\
-`ld_haplo_plot``$``plot`
+``` r
+
+# Visualize the LD and extract haploblock tables
+ld_haplo_plot <- plot_ld_geodesic(
+  ld_df = ld_result,
+  query_db_geno = gt_region,
+  query_db_annot = annota_region,
+  threshold = 0.95, # Minimum R² to draw an arc
+  block_threshold = 0.95, # Minimum R² to define a haploblock in the table
+  target_variant_ids = geno_high_filtered$variant_id
+)
+
+# Render the plot
+ld_haplo_plot$plot
+```
 
 ![](figures/ld_plot-1.png)
 
@@ -732,16 +754,18 @@ retrieves six related tables in a single call:
 with the variant discovery functions, set `connect_db_mode = 'online'`
 to query it directly.
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# Fetch all PCIL data tables from the remote database`\
-`pcil_data`` ``<-`` `[`fetch_pcil_data`](https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_data.md)`(``connect_db_mode ``=`` ``'online'``)`\
-\
-[`names`](https://rdrr.io/r/base/names.html)`(``pcil_data``)`\
-`#> [1] "pcil_metadata"                  "pcil_gene_regions"             `\
-`#> [3] "pcil_introgressions"            "pcil_genomewide_introgressions"`\
-`#> [5] "pcil_inbreeding_coefficient"    "pcil_IBS_dis"`
+``` r
+
+library(panGenomeBreedr)
+
+# Fetch all PCIL data tables from the remote database
+pcil_data <- fetch_pcil_data(connect_db_mode = 'online')
+
+names(pcil_data)
+#> [1] "pcil_metadata"                  "pcil_gene_regions"             
+#> [3] "pcil_introgressions"            "pcil_genomewide_introgressions"
+#> [5] "pcil_inbreeding_coefficient"    "pcil_IBS_dis"
+```
 
 ### Identifying Candidate Variants for PCIL Screening
 
@@ -750,31 +774,33 @@ its annotated variants for HIGH and MODERATE impact effects, exactly as
 demonstrated earlier in [Summarize SnpEff Annotation and
 Impact](#summarize-snpeff-annotation-and-impact).
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# Fetch annotations for the candidate gene`\
-`pg_ann_region`` ``<-`` `[`fetch_table_region`](https://awkena.github.io/panGenomeBreedr/reference/fetch_table_region.md)`(`\
-`  table_name ``=`` ``"annotations"``,`\
-`  chrom ``=`` ``'Chr03'``,`\
-`  gene_name ``=`` ``'Sobic.003G421300'``,`\
-`  connect_db_mode ``=`` ``'online'`\
-`)`\
-\
-`# Distribution of predicted impacts`\
-[`table`](https://rdrr.io/r/base/table.html)`(``pg_ann_region``$``impact``)`\
-`#> `\
-`#>     HIGH      LOW MODERATE MODIFIER `\
-`#>        1       15        8     1051`\
-\
-`# Keep HIGH and MODERATE impact annotations only`\
-`pg_ann_region_mod`` ``<-`` ``pg_ann_region``[``pg_ann_region``$``impact`` `[`%in%`](https://rdrr.io/r/base/match.html)` `[`c`](https://rdrr.io/r/base/c.html)`(``"HIGH"``, ``"MODERATE"``)``, ``]`\
-\
-`# Extract genotypes for the selected variants`\
-`variant_geno`` ``<-`` `[`fetch_genotypes_by_id`](https://awkena.github.io/panGenomeBreedr/reference/fetch_genotypes_by_id.md)`(`\
-`  variant_ids ``=`` ``pg_ann_region_mod``$``variant_id``,`\
-`  connect_db_mode ``=`` ``'online'`\
-`)`
+``` r
+
+library(panGenomeBreedr)
+
+# Fetch annotations for the candidate gene
+pg_ann_region <- fetch_table_region(
+  table_name = "annotations",
+  chrom = 'Chr03',
+  gene_name = 'Sobic.003G421300',
+  connect_db_mode = 'online'
+)
+
+# Distribution of predicted impacts
+table(pg_ann_region$impact)
+#> 
+#>     HIGH      LOW MODERATE MODIFIER 
+#>        1       15        8     1051
+
+# Keep HIGH and MODERATE impact annotations only
+pg_ann_region_mod <- pg_ann_region[pg_ann_region$impact %in% c("HIGH", "MODERATE"), ]
+
+# Extract genotypes for the selected variants
+variant_geno <- fetch_genotypes_by_id(
+  variant_ids = pg_ann_region_mod$variant_id,
+  connect_db_mode = 'online'
+)
+```
 
 | variant_id | annotation | impact | gene_name | hgvs_p |
 |:---|:---|:---|:---|:---|
@@ -794,11 +820,13 @@ Of the nine HIGH/MODERATE impact variants annotated for this gene, we
 settle on two tightly linked missense variants as our putative causal
 variants for KASP marker design:
 
-\
-`# Putative causal variants selected for downstream PCIL screening and KASP design`\
-`selection`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(``"INDEL_Chr03_79037889"``, ``"SNP_Chr03_79037855"``)`\
-\
-`variant_geno_sel`` ``<-`` ``variant_geno``[``variant_geno``$``variant_id`` `[`%in%`](https://rdrr.io/r/base/match.html)` ``selection``, ``]`
+``` r
+
+# Putative causal variants selected for downstream PCIL screening and KASP design
+selection <- c("INDEL_Chr03_79037889", "SNP_Chr03_79037855")
+
+variant_geno_sel <- variant_geno[variant_geno$variant_id %in% selection, ]
+```
 
 ### Identifying PCIL Donor Families
 
@@ -808,15 +836,17 @@ which clans/families actually segregate for the alternate allele at the
 selected variant(s), and therefore carry candidate donor material worth
 screening.
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# Identify PCIL families acting as putative donors for the selected variants`\
-`results`` ``<-`` `[`fetch_pcil_families_by_variant`](https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_families_by_variant.md)`(`\
-`  selection ``=`` ``selection``,`\
-`  pcil_data ``=`` ``pcil_data``,`\
-`  connect_db_mode ``=`` ``'online'`\
-`)`
+``` r
+
+library(panGenomeBreedr)
+
+# Identify PCIL families acting as putative donors for the selected variants
+results <- fetch_pcil_families_by_variant(
+  selection = selection,
+  pcil_data = pcil_data,
+  connect_db_mode = 'online'
+)
+```
 
 | clan        | families | lines | rp_genotype | selection            | recurrent_allele |
 |:------------|---------:|------:|:------------|:---------------------|:-----------------|
@@ -844,36 +874,40 @@ fully spans the target locus, then ranks candidates by mean donor
 fraction, introgression block size, and inbreeding coefficient to
 surface the cleanest, most informative carriers.
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# Select PCIL positive lines by exact variant position`\
-`pcil_pos_pcv`` ``<-`` `[`fetch_pcil_positive`](https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_positive.md)`(`\
-`  pcil_data ``=`` ``pcil_data``,`\
-`  variants_select_geno ``=`` ``variant_geno_sel``,`\
-`  type ``=`` ``"position"``,`\
-`  sel ``=`` ``15``,`\
-`  available_ids ``=`` ``results``$``pcil_summary``[`[`c`](https://rdrr.io/r/base/c.html)`(``"sample_id"``, ``"selection"``)``]``,`\
-`  result_pcil_families ``=`` ``results``,`\
-`  window ``=`` ``0`\
-`)`\
-`#> Using +/- 0 bp window around positions`
+``` r
+
+library(panGenomeBreedr)
+
+# Select PCIL positive lines by exact variant position
+pcil_pos_pcv <- fetch_pcil_positive(
+  pcil_data = pcil_data,
+  variants_select_geno = variant_geno_sel,
+  type = "position",
+  sel = 15,
+  available_ids = results$pcil_summary[c("sample_id", "selection")],
+  result_pcil_families = results,
+  window = 0
+)
+#> Using +/- 0 bp window around positions
+```
 
 | SampleID | Region | Family | mean_donor_frac | total_Mb | total_blocks | F | Rank |
 |:---|:---|:---|---:|---:|---:|---:|---:|
-| 25ALM_BC1F3s1_2186 | SNP_Chr03_79037855 | Mota Maradi/SC49 | 0.9087747 | 68.25 | 12 | 0.8433 | 1 |
-| 25ALM_BC1F3s1_0416 | SNP_Chr03_79037855 | Mota Maradi/SC49 | 0.9929687 | 88.50 | 13 | 0.8250 | 2 |
-| 25ALM_BC1F3s1_1552 | SNP_Chr03_79037855 | IRAT204/SC1439 | 0.9712524 | 101.25 | 8 | 0.7697 | 3 |
-| GMS_MN2025_114058 | SNP_Chr03_79037855 | Mota Maradi/SC49 | 0.9106486 | 139.50 | 15 | 0.8615 | 4 |
-| 25ALM_BC1F3s1_0534 | SNP_Chr03_79037855 | IRAT204/SC1439 | 0.9120370 | 141.75 | 11 | 0.7582 | 5 |
-| 25ALM_BC1F3s1_1580 | SNP_Chr03_79037855 | Mota Maradi/SC49 | 0.8922930 | 162.75 | 17 | 0.8516 | 6 |
+| 25ALM_BC1F3s1_2186 | INDEL_Chr03_79037889 | Mota Maradi/SC49 | 0.9087747 | 68.25 | 12 | 0.8433 | 1 |
+| 25ALM_BC1F3s1_0416 | INDEL_Chr03_79037889 | Mota Maradi/SC49 | 0.9929687 | 88.50 | 13 | 0.8250 | 2 |
+| 25ALM_BC1F3s1_1552 | INDEL_Chr03_79037889 | IRAT204/SC1439 | 0.9712524 | 101.25 | 8 | 0.7697 | 3 |
+| GMS_MN2025_114058 | INDEL_Chr03_79037889 | Mota Maradi/SC49 | 0.9106486 | 139.50 | 15 | 0.8615 | 4 |
+| 25ALM_BC1F3s1_0534 | INDEL_Chr03_79037889 | IRAT204/SC1439 | 0.9120370 | 141.75 | 11 | 0.7582 | 5 |
+| 25ALM_BC1F3s1_1580 | INDEL_Chr03_79037889 | Mota Maradi/SC49 | 0.8922930 | 162.75 | 17 | 0.8516 | 6 |
 
 Table 8: Top-ranked PCIL positive (carrier) lines per target region.
 {.table}
 
-\
-`positive_plots`` ``<-`` `[`plot_pcil_positive`](https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_positive.md)`(``pcil_positive_result ``=`` ``pcil_pos_pcv``)`\
-[`print`](https://rdrr.io/r/base/print.html)`(``positive_plots``[[``"SNP_Chr03_79037855"``]``]``)`
+``` r
+
+positive_plots <- plot_pcil_positive(pcil_positive_result = pcil_pos_pcv)
+print(positive_plots[["SNP_Chr03_79037855"]])
+```
 
 ![Fig. 2. Introgression blocks (grey bars) for all PCIL lines carrying
 the target region on SNP_Chr03_79037855. The red line marks the exact
@@ -883,9 +917,11 @@ Fig. 2. Introgression blocks (grey bars) for all PCIL lines carrying the
 target region on SNP_Chr03_79037855. The red line marks the exact
 variant position.
 
-\
-`best_line_plots`` ``<-`` `[`plot_pcil_best_lines`](https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_best_lines.md)`(``pcil_positive_result ``=`` ``pcil_pos_pcv``, pcil_data ``=`` ``pcil_data``)`\
-[`print`](https://rdrr.io/r/base/print.html)`(``best_line_plots``[[``"SNP_Chr03_79037855"``]``]``)`
+``` r
+
+best_line_plots <- plot_pcil_best_lines(pcil_positive_result = pcil_pos_pcv, pcil_data = pcil_data)
+print(best_line_plots[["SNP_Chr03_79037855"]])
+```
 
 ![Fig. 3. Genome-wide introgression pattern for the top-ranked PCIL
 positive lines. The rank-1 candidate is highlighted in blue; a clean
@@ -906,32 +942,36 @@ candidates, ranks them by genetic similarity (IBS distance) to the
 positive line, and breaks ties using the same genome-wide cleanliness
 criteria used for positive selection.
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# Identify the top 10 negative control PCILs for each positive line`\
-`pcil_neg_pcv`` ``<-`` `[`fetch_pcil_negative`](https://awkena.github.io/panGenomeBreedr/reference/fetch_pcil_negative.md)`(`\
-`  n_neg ``=`` ``10``,`\
-`  pcil_positive_result ``=`` ``pcil_pos_pcv``,`\
-`  pcil_data ``=`` ``pcil_data``,`\
-`  result_pcil_families ``=`` ``results`\
-`)`
+``` r
+
+library(panGenomeBreedr)
+
+# Identify the top 10 negative control PCILs for each positive line
+pcil_neg_pcv <- fetch_pcil_negative(
+  n_neg = 10,
+  pcil_positive_result = pcil_pos_pcv,
+  pcil_data = pcil_data,
+  result_pcil_families = results
+)
+```
 
 | SampleID_Positive | SampleID_Negative | Region | IBS_dis | total_Mb_neg | F_neg |
 |:---|:---|:---|:---|---:|---:|
-| 25ALM_BC1F3s1_2186 | GMS_MN2025_132056 | SNP_Chr03_79037855 | 0.0870820 | 69.75 | 0.8332 |
-| 25ALM_BC1F3s1_0416 | GMS_MN2025_132056 | SNP_Chr03_79037855 | 0.1251400 | 69.75 | 0.8332 |
-| 25ALM_BC1F3s1_1552 | 25ALM_BC1F3s1_0095 | SNP_Chr03_79037855 | 0.0910448 | 42.75 | 0.8706 |
-| GMS_MN2025_114058 | GMS_MN2025_132056 | SNP_Chr03_79037855 | 0.0737892 | 69.75 | 0.8332 |
-| 25ALM_BC1F3s1_0534 | 25ALM_BC1F3s1_0095 | SNP_Chr03_79037855 | 0.0917089 | 42.75 | 0.8706 |
-| 25ALM_BC1F3s1_1580 | GMS_MN2025_132056 | SNP_Chr03_79037855 | 0.0906915 | 69.75 | 0.8332 |
+| 25ALM_BC1F3s1_2186 | GMS_MN2025_132056 | INDEL_Chr03_79037889 | 0.0870820 | 69.75 | 0.8332 |
+| 25ALM_BC1F3s1_0416 | GMS_MN2025_132056 | INDEL_Chr03_79037889 | 0.1251400 | 69.75 | 0.8332 |
+| 25ALM_BC1F3s1_1552 | 25ALM_BC1F3s1_0095 | INDEL_Chr03_79037889 | 0.0910448 | 42.75 | 0.8706 |
+| GMS_MN2025_114058 | GMS_MN2025_132056 | INDEL_Chr03_79037889 | 0.0737892 | 69.75 | 0.8332 |
+| 25ALM_BC1F3s1_0534 | 25ALM_BC1F3s1_0095 | INDEL_Chr03_79037889 | 0.0917089 | 42.75 | 0.8706 |
+| 25ALM_BC1F3s1_1580 | GMS_MN2025_132056 | INDEL_Chr03_79037889 | 0.0906915 | 69.75 | 0.8332 |
 
 Table 9: Best-matched PCIL negative control for each positive line.
 {.table}
 
-\
-`pair_plots`` ``<-`` `[`plot_pcil_pairs`](https://awkena.github.io/panGenomeBreedr/reference/plot_pcil_pairs.md)`(``pcil_neg_results ``=`` ``pcil_neg_pcv``, pcil_data ``=`` ``pcil_data``)`\
-[`print`](https://rdrr.io/r/base/print.html)`(``pair_plots``[[``1``]``]``)`
+``` r
+
+pair_plots <- plot_pcil_pairs(pcil_neg_results = pcil_neg_pcv, pcil_data = pcil_data)
+print(pair_plots[[1]])
+```
 
 ![Fig. 4. Genome-wide comparison of a PCIL positive line (magenta)
 against its ranked negative controls (blue = best match, black =
@@ -978,44 +1018,46 @@ Table 10:
 
 Table 10: Filtered HIGH impact variants for marker development. {.table}
 
-\
-`# Example to design a KASP marker on a HIGH impact Deletion variant`\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-`path`` ``<-`` `[`tempdir`](https://rdrr.io/r/base/tempfile.html)`(``)`` ``# (default directory for saving alignment outputs)`\
-\
-`# Path to import sorghum genome sequence for Chromosome 5`\
-`path1`` ``<-`` ``"https://raw.githubusercontent.com/awkena/panGB/main/Chr05.fa.gz"`\
-\
-`# KASP marker design for variant ID: INDEL_Chr05_75106156 in Table 10`\
-`lgs1`` ``<-`` `[`kasp_marker_design`](https://awkena.github.io/panGenomeBreedr/reference/kasp_marker_design.md)`(``gt_df ``=`` ``geno_high_filtered``,`\
-`                           variant_id_col ``=`` ``'variant_id'``,`\
-`                           chrom_col ``=`` ``'chrom'``,`\
-`                           pos_col ``=`` ``'pos'``,`\
-`                           ref_al_col ``=`` ``'ref'``,`\
-`                           alt_al_col ``=`` ``'alt'``,`\
-`                           genome_file ``=`` ``path1``,`\
-`                           geno_start ``=`` ``11``,`\
-`                           marker_ID ``=`` ``"INDEL_Chr05_75106156"``,`\
-`                           chr ``=`` ``"Chr05"``,`\
-`                           save_alignment ``=`` ``TRUE``,`\
-`                           plot_file ``=`` ``path``,`\
-`                           region_name ``=`` ``"lgs1"``)`\
-\
-`# Create the Intertek-formatted table.`\
-`intertek_table`` ``<-`` `[`make_intertek_table`](https://awkena.github.io/panGenomeBreedr/reference/make_intertek_table.md)`(`\
-`  marker_data ``=`` ``lgs1``,`\
-`  genome_version ``=`` ``"Sbv5.1"``,`\
-`  region_name ``=`` ``"lgs1"``,`\
-`  trait ``=`` ``"Stay-green"``,`\
-`  owner ``=`` ``"Green Evolution"`\
-`)`\
-\
-\
-`# View marker alignment output from temp folder`\
-`path3`` ``<-`` `[`file.path`](https://rdrr.io/r/base/file.path.html)`(``path``, `[`list.files`](https://rdrr.io/r/base/list.files.html)`(``path ``=`` ``path``, ``"alignment_"``)``)`\
-[`system`](https://rdrr.io/r/base/system.html)`(`[`paste0`](https://rdrr.io/r/base/paste.html)`(``'open "'``, ``path3``, ``'"'``)``)`` ``# Open PDF file from R`\
-\
-[`on.exit`](https://rdrr.io/r/base/on.exit.html)`(`[`unlink`](https://rdrr.io/r/base/unlink.html)`(``path``)``)`` ``# Clear the temp directory on exit`
+``` r
+
+# Example to design a KASP marker on a HIGH impact Deletion variant
+library(panGenomeBreedr)
+path <- tempdir() # (default directory for saving alignment outputs)
+
+# Path to import sorghum genome sequence for Chromosome 5
+path1 <- "https://raw.githubusercontent.com/awkena/panGB/main/Chr05.fa.gz"
+
+# KASP marker design for variant ID: INDEL_Chr05_75106156 in Table 10
+lgs1 <- kasp_marker_design(gt_df = geno_high_filtered,
+                           variant_id_col = 'variant_id',
+                           chrom_col = 'chrom',
+                           pos_col = 'pos',
+                           ref_al_col = 'ref',
+                           alt_al_col = 'alt',
+                           genome_file = path1,
+                           geno_start = 11,
+                           marker_ID = "INDEL_Chr05_75106156",
+                           chr = "Chr05",
+                           save_alignment = TRUE,
+                           plot_file = path,
+                           region_name = "lgs1")
+
+# Create the Intertek-formatted table.
+intertek_table <- make_intertek_table(
+  marker_data = lgs1,
+  genome_version = "Sbv5.1",
+  region_name = "lgs1",
+  trait = "Stay-green",
+  owner = "Green Evolution"
+)
+
+
+# View marker alignment output from temp folder
+path3 <- file.path(path, list.files(path = path, "alignment_"))
+system(paste0('open "', path3, '"')) # Open PDF file from R
+
+on.exit(unlink(path)) # Clear the temp directory on exit
+```
 
 The
 [`kasp_marker_design()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_marker_design.md)
@@ -1054,7 +1096,7 @@ KASP marker QC and validation.
 
 `panGB` offers customizable functions for KASP marker validation through
 hypothesis testing. These functions allow users to easily perform the
-following tasks:\
+following tasks:  
 - Import raw or polished KASP genotyping results files (.csv) into R.
 
 - Process imported data and assign FAM and HEX fluorescence colors for
@@ -1088,23 +1130,25 @@ The raw file is imported as a list object in R. Thus, all components in
 the imported data can be extracted using the row tag ID as shown in the
 code snippet below:
 
-\
-`# Import raw KASP genotyping file (.csv) using the read_kasp_csv() function`\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# Set path to the directory where your data is located`\
-`# path1 <-  "inst/extdata/Genotyping_141.010_01.csv"`\
-`path1`` ``<-``  `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata"``, ``"Genotyping_141.010_01.csv"``,`\
-`                       package ``=`` ``"panGenomeBreedr"``,`\
-`                      mustWork ``=`` ``TRUE``)`\
-\
-`# Import raw data file`\
-`file1`` ``<-`` `[`read_kasp_csv`](https://awkena.github.io/panGenomeBreedr/reference/read_kasp_csv.md)`(``file ``=`` ``path1``, `\
-`                       row_tags ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"Statistics"``, ``"DNA"``, ``"SNPs"``, ``"Scaling"``, ``"Data"``)``,`\
-`                       data_type ``=`` ``'raw'``)`\
-\
-`# Get KASP genotyping data for plotting`\
-`kasp_dat`` ``<-`` ``file1``$``Data`
+``` r
+
+# Import raw KASP genotyping file (.csv) using the read_kasp_csv() function
+library(panGenomeBreedr)
+
+# Set path to the directory where your data is located
+# path1 <-  "inst/extdata/Genotyping_141.010_01.csv"
+path1 <-  system.file("extdata", "Genotyping_141.010_01.csv",
+                       package = "panGenomeBreedr",
+                      mustWork = TRUE)
+
+# Import raw data file
+file1 <- read_kasp_csv(file = path1, 
+                       row_tags = c("Statistics", "DNA", "SNPs", "Scaling", "Data"),
+                       data_type = 'raw')
+
+# Get KASP genotyping data for plotting
+kasp_dat <- file1$Data
+```
 
 ### Assigning colors and PCH symbols for KASP cluster plotting
 
@@ -1114,21 +1158,23 @@ accomplished using the
 [`kasp_color()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_color.md)
 function in `panGB` as shown in the code snippet below:
 
-\
-`# Assign KASP fluorescence colors using the kasp_color() function`\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-`# Create a subet variable called plates: masterplate x snpid`\
-`  ``kasp_dat``$``plates`` ``<-`` `[`paste0`](https://rdrr.io/r/base/paste.html)`(``kasp_dat``$``MasterPlate``, ``'_'``,`\
-`                                 ``kasp_dat``$``SNPID``)`\
-`dat1`` ``<-`` `[`kasp_color`](https://awkena.github.io/panGenomeBreedr/reference/kasp_color.md)`(``x ``=`` ``kasp_dat``,`\
-`                    subset ``=`` ``'plates'``,`\
-`                    sep ``=`` ``':'``,`\
-`                    geno_call ``=`` ``'Call'``,`\
-`                    uncallable ``=`` ``'Uncallable'``,`\
-`                    unused ``=`` ``'?'``,`\
-`                    blank ``=`` ``'NTC'``,`\
-`                   assign_cols ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``FAM ``=`` ``"blue"``, HEX ``=`` ``"gold"`` , `\
-`                                   het ``=`` ``"forestgreen"``)``)`
+``` r
+
+# Assign KASP fluorescence colors using the kasp_color() function
+library(panGenomeBreedr)
+# Create a subet variable called plates: masterplate x snpid
+  kasp_dat$plates <- paste0(kasp_dat$MasterPlate, '_',
+                                 kasp_dat$SNPID)
+dat1 <- kasp_color(x = kasp_dat,
+                    subset = 'plates',
+                    sep = ':',
+                    geno_call = 'Call',
+                    uncallable = 'Uncallable',
+                    unused = '?',
+                    blank = 'NTC',
+                   assign_cols = c(FAM = "blue", HEX = "gold" , 
+                                   het = "forestgreen"))
+```
 
 The
 [`kasp_color()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_color.md)
@@ -1173,18 +1219,20 @@ and
 in `panGB` can be used to make the cluster plots for each plate and KASP
 marker as shown below:
 
-\
-`# KASP QC plot for Plate 05`\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-[`kasp_qc_ggplot2`](https://awkena.github.io/panGenomeBreedr/reference/kasp_qc_ggplot2.md)`(``x ``=`` ``dat1``[``5``]``,`\
-`                    pdf ``=`` ``FALSE``,`\
-`                    Group_id ``=`` ``NULL``,`\
-`                    scale ``=`` ``TRUE``,`\
-`                    expand_axis ``=`` ``0.6``,`\
-`                    alpha ``=`` ``0.9``,`\
-`                    legend.pos.x ``=`` ``0.6``,`\
-`                    legend.pos.y ``=`` ``0.75``)`\
-`` #> $`SE-24-1088_P01_d1_snpSB00804` ``
+``` r
+
+# KASP QC plot for Plate 05
+library(panGenomeBreedr)
+kasp_qc_ggplot2(x = dat1[5],
+                    pdf = FALSE,
+                    Group_id = NULL,
+                    scale = TRUE,
+                    expand_axis = 0.6,
+                    alpha = 0.9,
+                    legend.pos.x = 0.6,
+                    legend.pos.y = 0.75)
+#> $`SE-24-1088_P01_d1_snpSB00804`
+```
 
 ![Fig. 6. Cluster plot for Plate 5 using FAM and HEX colors for grouping
 observed genotypes.](figures/plate_05_qc_1-1.png)
@@ -1192,21 +1240,23 @@ observed genotypes.](figures/plate_05_qc_1-1.png)
 Fig. 6. Cluster plot for Plate 5 using FAM and HEX colors for grouping
 observed genotypes.
 
-\
-`# KASP QC plot for Plate 05`\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-` `[`kasp_qc_ggplot2`](https://awkena.github.io/panGenomeBreedr/reference/kasp_qc_ggplot2.md)`(``x ``=`` ``dat1``[``5``]``,`\
-`                  pdf ``=`` ``FALSE``,`\
-`                  Group_id ``=`` ``'Group'``,`\
-`                  Group_unknown ``=`` ``'?'``,`\
-`                  scale ``=`` ``TRUE``,`\
-`                  pred_cols ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``'Blank'`` ``=`` ``'black'``, ``'False'`` ``=`` ``'firebrick3'``,`\
-`                              ``'True'`` ``=`` ``'cornflowerblue'``, ``'Unverified'`` ``=`` ``'beige'``)``,`\
-`                  expand_axis ``=`` ``0.6``,`\
-`                  alpha ``=`` ``0.9``,`\
-`                  legend.pos.x ``=`` ``0.6``,`\
-`                  legend.pos.y ``=`` ``0.75``)`\
-`` #> $`SE-24-1088_P01_d1_snpSB00804` ``
+``` r
+
+# KASP QC plot for Plate 05
+library(panGenomeBreedr)
+ kasp_qc_ggplot2(x = dat1[5],
+                  pdf = FALSE,
+                  Group_id = 'Group',
+                  Group_unknown = '?',
+                  scale = TRUE,
+                  pred_cols = c('Blank' = 'black', 'False' = 'firebrick3',
+                              'True' = 'cornflowerblue', 'Unverified' = 'beige'),
+                  expand_axis = 0.6,
+                  alpha = 0.9,
+                  legend.pos.x = 0.6,
+                  legend.pos.y = 0.75)
+#> $`SE-24-1088_P01_d1_snpSB00804`
+```
 
 ![Fig. 7. Cluster plot for Plate 5 with an overlay of predictions for
 positive controls.](figures/plate_05_qc_2-1.png)
@@ -1256,15 +1306,17 @@ function produces a summary of predicted genotypes for positive controls
 in each reaction plate after verification (Table 12), as shown in the
 code snippet below:
 
-\
-`# Get prediction summary for all plates`\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-`my_sum`` ``<-`` `[`pred_summary`](https://awkena.github.io/panGenomeBreedr/reference/pred_summary.md)`(``x ``=`` ``dat1``,`\
-`                       snp_id ``=`` ``'SNPID'``,`\
-`                       Group_id ``=`` ``'Group'``,`\
-`                       Group_unknown ``=`` ``'?'``,`\
-`                       geno_call ``=`` ``'Call'``,`\
-`                       rate_out ``=`` ``TRUE``)`
+``` r
+
+# Get prediction summary for all plates
+library(panGenomeBreedr)
+my_sum <- pred_summary(x = dat1,
+                       snp_id = 'SNPID',
+                       Group_id = 'Group',
+                       Group_unknown = '?',
+                       geno_call = 'Call',
+                       rate_out = TRUE)
+```
 
 | plate                        | snp_id     | false | true | unverified |
 |:-----------------------------|:-----------|------:|-----:|-----------:|
@@ -1286,22 +1338,24 @@ function can be visualized as bar plots using the
 [`pred_summary_plot()`](https://awkena.github.io/panGenomeBreedr/reference/pred_summary_plot.md)
 function as shown in the code snippet below:
 
-\
-`# Get prediction summary for snp:snpSB00804`\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-`my_sum`` ``<-`` ``my_sum``$``summ`\
-`my_sum`` ``<-`` ``my_sum``[``my_sum``$``snp_id`` ``==`` ``'snpSB00804'``,``]`\
-\
-` `[`pred_summary_plot`](https://awkena.github.io/panGenomeBreedr/reference/pred_summary_plot.md)`(``x ``=`` ``my_sum``,`\
-`                    pdf ``=`` ``FALSE``,`\
-`                    pred_cols ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``'false'`` ``=`` ``'firebrick3'``, ``'true'`` ``=`` ``'cornflowerblue'``,`\
-`                                  ``'unverified'`` ``=`` ``'beige'``)``,`\
-`                    alpha ``=`` ``1``,`\
-`                    text_size ``=`` ``12``,`\
-`                    width ``=`` ``6``,`\
-`                    height ``=`` ``6``,`\
-`                    angle ``=`` ``45``)`\
-`#> $snpSB00804`
+``` r
+
+# Get prediction summary for snp:snpSB00804
+library(panGenomeBreedr)
+my_sum <- my_sum$summ
+my_sum <- my_sum[my_sum$snp_id == 'snpSB00804',]
+
+ pred_summary_plot(x = my_sum,
+                    pdf = FALSE,
+                    pred_cols = c('false' = 'firebrick3', 'true' = 'cornflowerblue',
+                                  'unverified' = 'beige'),
+                    alpha = 1,
+                    text_size = 12,
+                    width = 6,
+                    height = 6,
+                    angle = 45)
+#> $snpSB00804
+```
 
 ![Fig. 8. Match/Mismatch rate of predictions for snp:
 snpSB00804.](figures/barplot-1.png)
@@ -1315,9 +1369,11 @@ using the
 [`plot_plate()`](https://awkena.github.io/panGenomeBreedr/reference/plot_plate.md)
 function as depicted in Figure 9, using the code snippet below:
 
-\
-[`plot_plate`](https://awkena.github.io/panGenomeBreedr/reference/plot_plate.md)`(``dat1``[``5``]``, pdf ``=`` ``FALSE``)`\
-`` #> $`SE-24-1088_P01_d1_snpSB00804` ``
+``` r
+
+plot_plate(dat1[5], pdf = FALSE)
+#> $`SE-24-1088_P01_d1_snpSB00804`
+```
 
 ![Fig. 9. Observed genotype calls for samples in Plate 5 in a plate
 design format.](figures/plate_05_design-1.png)
@@ -1361,18 +1417,20 @@ as rows. It comes with some meta data about the samples. Marker names
 are informative: chromosome number and position coordinates are embedded
 in the marker names (`Eg. S1_778962: chr = 1, pos = 779862`).
 
-\
-\
-`# Set path to the directory where your data is located`\
-`path1`` ``<-``  `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata"``, ``"agriplex_dat.csv"``,`\
-`                       package ``=`` ``"panGenomeBreedr"``,`\
-`                      mustWork ``=`` ``TRUE``)`\
-\
-`# Import raw Agriplex data file`\
-`geno`` ``<-`` `[`read.csv`](https://rdrr.io/r/utils/read.table.html)`(``file ``=`` ``path1``, header ``=`` ``TRUE``, colClasses ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"character"``)``)`` ``# genotype calls`\
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`knitr`](https://yihui.org/knitr/)`)`\
-`knitr``::`[`kable`](https://rdrr.io/pkg/knitr/man/kable.html)`(``geno``[``1``:``6``, ``1``:``10``]``, caption ``=`` ``'Table 13: Agriplex data format'``, format ``=`` ``'html'``, booktabs ``=`` ``TRUE``)`
+``` r
+
+
+# Set path to the directory where your data is located
+path1 <-  system.file("extdata", "agriplex_dat.csv",
+                       package = "panGenomeBreedr",
+                      mustWork = TRUE)
+
+# Import raw Agriplex data file
+geno <- read.csv(file = path1, header = TRUE, colClasses = c("character")) # genotype calls
+
+library(knitr)
+knitr::kable(geno[1:6, 1:10], caption = 'Table 13: Agriplex data format', format = 'html', booktabs = TRUE)
+```
 
 | Plate.name | Well | Sample_ID | Batch | Genotype | Status | S1_778962 | S1_1019896 | S1_1613105 | S1_1954298 |
 |:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|
@@ -1416,24 +1474,26 @@ format is done as follows:
 - Loci with a suspected genotype error = -2.
 - Loci with at least one missing parental or any other genotype = -5.
 
-\
-\
-`# Parse snp ids to generate a map file`\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# Data for stg5 NILs`\
-`stg5`` ``<-`` ``geno``[``geno``$``Batch`` ``==`` ``3``, ``-`[`c`](https://rdrr.io/r/base/c.html)`(``1``:``6``)``]`` `\
-[`rownames`](https://rdrr.io/r/base/colnames.html)`(``stg5``)`` ``<-`` ``geno``$``Genotype``[``17``:``25``]`\
-\
-`# Remove monomorphic loci from data`\
-`stg5`` ``<-`` `[`rm_mono`](https://awkena.github.io/panGenomeBreedr/reference/rm_mono.md)`(``stg5``)`\
-\
-`# Parse snp ids to generate a map file`\
-`snps`` ``<-`` `[`colnames`](https://rdrr.io/r/base/colnames.html)`(``stg5``)`` ``# Get snp ids`\
-`map_file`` ``<-`` `[`parse_marker_ns`](https://awkena.github.io/panGenomeBreedr/reference/parse_marker_ns.md)`(``x ``=`` ``snps``, sep ``=`` ``'_'``, prefix ``=`` ``'S'``)`\
-\
-`# order markers in map file`\
-`map_file`` ``<-`` `[`order_markers`](https://awkena.github.io/panGenomeBreedr/reference/order_markers.md)`(``x ``=`` ``map_file``)`
+``` r
+
+
+# Parse snp ids to generate a map file
+library(panGenomeBreedr)
+
+# Data for stg5 NILs
+stg5 <- geno[geno$Batch == 3, -c(1:6)] 
+rownames(stg5) <- geno$Genotype[17:25]
+
+# Remove monomorphic loci from data
+stg5 <- rm_mono(stg5)
+
+# Parse snp ids to generate a map file
+snps <- colnames(stg5) # Get snp ids
+map_file <- parse_marker_ns(x = snps, sep = '_', prefix = 'S')
+
+# order markers in map file
+map_file <- order_markers(x = map_file)
+```
 
 |       | snpid      | chr |     pos |
 |:------|:-----------|----:|--------:|
@@ -1448,22 +1508,24 @@ format is done as follows:
 
 Table 14: Map file for the imported Agriplex data. {.table}
 
-\
-`# Process genotype data to re-order SNPs based on chromosome and positions`\
-`stg5`` ``<-`` `[`proc_kasp`](https://awkena.github.io/panGenomeBreedr/reference/proc_kasp.md)`(``x ``=`` ``stg5``,`\
-`                  kasp_map ``=`` ``map_file``,`\
-`                  map_snp_id ``=`` ``"snpid"``,`\
-`                  sample_id ``=`` ``"Genotype"``,`\
-`                  marker_start ``=`` ``1``,`\
-`                  chr ``=`` ``'chr'``,`\
-`                  chr_pos ``=`` ``'pos'``)`\
-\
-`# Convert to numeric format for plotting`\
-`num_geno`` ``<-`` `[`kasp_numeric`](https://awkena.github.io/panGenomeBreedr/reference/kasp_numeric.md)`(``x ``=`` ``stg5``,`\
-`                         rp_row ``=`` ``1``,`\
-`                         dp_row ``=`` ``3``,`\
-`                         sep ``=`` ``' / '``,`\
-`                         data_type ``=`` ``'agriplex'``)`
+``` r
+
+# Process genotype data to re-order SNPs based on chromosome and positions
+stg5 <- proc_kasp(x = stg5,
+                  kasp_map = map_file,
+                  map_snp_id = "snpid",
+                  sample_id = "Genotype",
+                  marker_start = 1,
+                  chr = 'chr',
+                  chr_pos = 'pos')
+
+# Convert to numeric format for plotting
+num_geno <- kasp_numeric(x = stg5,
+                         rp_row = 1,
+                         dp_row = 3,
+                         sep = ' / ',
+                         data_type = 'agriplex')
+```
 
 |  | S1_402592 | S1_778962 | S1_825853 | S1_1218846 | S1_1613105 | S1_1727150 | S1_1954298 | S1_1985365 |
 |:---|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -1483,23 +1545,25 @@ All is now set to generate the heatmap (Figure 10) using the
 [`cross_qc_ggplot()`](https://awkena.github.io/panGenomeBreedr/reference/cross_qc_ggplot.md)
 function, as shown in the code snippet below:
 
-\
-\
-`# Get prediction summary for snp:snpSB00804`\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-`# Create a heatmap that compares the parents to progenies`\
-[`cross_qc_heatmap`](https://awkena.github.io/panGenomeBreedr/reference/cross_qc_heatmap.md)`(``x ``=`` ``num_geno``,`\
-`                map_file ``=`` ``map_file``,`\
-`                snp_ids ``=`` ``'snpid'``,`\
-`                chr ``=`` ``'chr'``,`\
-`                chr_pos ``=`` ``'pos'``,`\
-`                parents ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"BTx623a"``, ``"BTx642a"``)``,`\
-`                pdf ``=`` ``FALSE``,`\
-`                filename ``=`` ``'background_heatmap'``,`\
-`                legend_title ``=`` ``'stg5_NILs'``,`\
-`                alpha ``=`` ``0.9``,`\
-`                text_size ``=`` ``15``)`\
-`#> $Batch1`
+``` r
+
+
+# Get prediction summary for snp:snpSB00804
+library(panGenomeBreedr)
+# Create a heatmap that compares the parents to progenies
+cross_qc_heatmap(x = num_geno,
+                map_file = map_file,
+                snp_ids = 'snpid',
+                chr = 'chr',
+                chr_pos = 'pos',
+                parents = c("BTx623a", "BTx642a"),
+                pdf = FALSE,
+                filename = 'background_heatmap',
+                legend_title = 'stg5_NILs',
+                alpha = 0.9,
+                text_size = 15)
+#> $Batch1
+```
 
 ![Fig. 10. A heatmap that compares the genetic background of parents and
 stg5 NIL progenies across all markers.](figures/heatmap1-1.png)
@@ -1529,30 +1593,32 @@ can use the
 function to generate a heatmap (Figure 11) with an annotation of the
 position of the *stg5* locus on Chr 1, as shown below:
 
-\
-\
-`###########################################################################`\
-`# Subset data for the first 30 markers on Chr 1`\
-`stg5_ch1`` ``<-`` ``num_geno``[``, ``map_file``$``chr`` ``==`` ``1``]``[``,``1``:``20``]`` `\
-\
-`# Get the map file for subset data`\
-`stg5_ch1_map`` ``<-`` `[`parse_marker_ns`](https://awkena.github.io/panGenomeBreedr/reference/parse_marker_ns.md)`(`[`colnames`](https://rdrr.io/r/base/colnames.html)`(``stg5_ch1``)``)`\
-\
-`# Annotate a heatmap to show the stg5 locus on Chr 1`\
-`# The locus is between positions 1e6 - 1.4 Mbp on Chr 1`\
-[`cross_qc_heatmap`](https://awkena.github.io/panGenomeBreedr/reference/cross_qc_heatmap.md)`(``x ``=`` ``stg5_ch1``,`\
-`                  map_file ``=`` ``stg5_ch1_map``,`\
-`                  snp_ids ``=`` ``'snpid'``,`\
-`                  chr ``=`` ``'chr'``,`\
-`                  chr_pos ``=`` ``'pos'``,`\
-`                  parents ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"BTx623a"``, ``"BTx642a"``)``,`\
-`                  trait_pos ``=`` `[`list`](https://rdrr.io/r/base/list.html)`(``stg5 ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``chr ``=`` ``1``, start ``=`` ``1e6``, end ``=`` ``1.4e6``)``)``,`\
-`                  text_scale_fct ``=`` ``0.18``,`\
-`                  pdf ``=`` ``FALSE``,`\
-`                  legend_title ``=`` ``'Stg5_NILs'``,`\
-`                  alpha ``=`` ``0.9``,`\
-`                  text_size ``=`` ``15``)`\
-`#> $Batch1`
+``` r
+
+
+###########################################################################
+# Subset data for the first 30 markers on Chr 1
+stg5_ch1 <- num_geno[, map_file$chr == 1][,1:20] 
+
+# Get the map file for subset data
+stg5_ch1_map <- parse_marker_ns(colnames(stg5_ch1))
+
+# Annotate a heatmap to show the stg5 locus on Chr 1
+# The locus is between positions 1e6 - 1.4 Mbp on Chr 1
+cross_qc_heatmap(x = stg5_ch1,
+                  map_file = stg5_ch1_map,
+                  snp_ids = 'snpid',
+                  chr = 'chr',
+                  chr_pos = 'pos',
+                  parents = c("BTx623a", "BTx642a"),
+                  trait_pos = list(stg5 = c(chr = 1, start = 1e6, end = 1.4e6)),
+                  text_scale_fct = 0.18,
+                  pdf = FALSE,
+                  legend_title = 'Stg5_NILs',
+                  alpha = 0.9,
+                  text_size = 15)
+#> $Batch1
+```
 
 ![Fig. 11. Heatmap annotation of the stg5 locus on Chr
 1.](figures/heatmap2-1.png)
@@ -1567,7 +1633,7 @@ argument.
 
 The `snp_ids, chr, and chr_pos` arguments can be used to specify the
 column names for marker IDs, chromosome number and positions in the
-attached map file.\
+attached map file.  
 The `trait_pos` argument was used to specify the position of the target
 locus (*stg5*) on chromosome one. Users can specify the positions of
 multiple target loci as components of a list object for annotation.
@@ -1600,28 +1666,30 @@ plot.
 We can compute and visualize the observed RPP values for the *stg5* NILs
 across all polymorphic loci as shown in the code snippet below:
 
-\
-\
-`# Calculate weighted RPP`\
-`rpp`` ``<-`` `[`calc_rpp_bc`](https://awkena.github.io/panGenomeBreedr/reference/calc_rpp_bc.md)`(``x ``=`` ``num_geno``,`\
-`                   map_file ``=`` ``map_file``,`\
-`                   map_chr ``=`` ``'chr'``,`\
-`                   map_pos ``=`` ``'pos'``,`\
-`                   map_snp_ids ``=`` ``'snpid'``,`\
-`                   rp ``=`` ``1``,`\
-`                   rp_num_code ``=`` ``1``,`\
-`                   na_code ``=`` ``-``5``,`\
-`                   weighted ``=`` ``TRUE``)`\
-\
-`# Generate bar plot for RPP values`\
-[`rpp_barplot`](https://awkena.github.io/panGenomeBreedr/reference/rpp_barplot.md)`(``rpp_df ``=`` ``rpp``,`\
-`            rpp_threshold ``=`` ``0.93``,`\
-`            text_size ``=`` ``18``,`\
-`            text_scale_fct ``=`` ``0.1``,`\
-`            alpha ``=`` ``0.9``,`\
-`            bar_width ``=`` ``0.5``,`\
-`            aspect_ratio ``=`` ``0.5``,`\
-`            pdf ``=`` ``FALSE``)`
+``` r
+
+
+# Calculate weighted RPP
+rpp <- calc_rpp_bc(x = num_geno,
+                   map_file = map_file,
+                   map_chr = 'chr',
+                   map_pos = 'pos',
+                   map_snp_ids = 'snpid',
+                   rp = 1,
+                   rp_num_code = 1,
+                   na_code = -5,
+                   weighted = TRUE)
+
+# Generate bar plot for RPP values
+rpp_barplot(rpp_df = rpp,
+            rpp_threshold = 0.93,
+            text_size = 18,
+            text_scale_fct = 0.1,
+            alpha = 0.9,
+            bar_width = 0.5,
+            aspect_ratio = 0.5,
+            pdf = FALSE)
+```
 
 ![Fig. 12. Computed RPP values for the stg5
 NILs.](figures/barplot_rpp1-1.png)
@@ -1734,29 +1802,31 @@ marker genotype data into a binary matrix (1 = favorable allele present,
 [`foreground_select()`](https://awkena.github.io/panGenomeBreedr/reference/foreground_select.md)
 function is shown in the code snippet below:
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# Marker genotype data`\
-`geno`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``SNP1 ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"A:A"``, ``"A:G"``, ``"G:G"``, ``"A:A"``)``,`\
-`                   SNP2 ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"C:C"``, ``"C:T"``, ``"T:T"``, ``"C:T"``)``,`\
-`                   SNP3 ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"G:G"``, ``"G:G"``, ``"A:G"``, ``"A:A"``)``,`\
-`                   row.names ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"Line1"``, ``"Line2"``, ``"Line3"``, ``"Line4"``)``)`\
-\
-`# Trait-predictive marker metadata`\
-`marker_info`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``qtl_markers ``=`` `[`paste0`](https://rdrr.io/r/base/paste.html)`(``"SNP"``, ``1``:``3``)``,`\
-`                           locus_name ``=`` `[`paste0`](https://rdrr.io/r/base/paste.html)`(``'loc'``, ``1``:``3``)``,`\
-`                          fav_alleles ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"A"``, ``"C"``, ``"G"``)``,`\
-`                         `\
-`                          alt_alleles ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"G"``, ``"T"``, ``"A"``)``)`\
-\
-`# Convert raw genotypes to binary (foreground profile)`\
-`foreground_matrix`` ``<-`` `[`foreground_select`](https://awkena.github.io/panGenomeBreedr/reference/foreground_select.md)`(``geno_data ``=`` ``geno``,`\
-`                                       fore_marker_info ``=`` ``marker_info``,`\
-`                                       fore_marker_col ``=`` ``"qtl_markers"``,`\
-`                                       fav_allele_col ``=`` ``"fav_alleles"``,`\
-`                                       alt_allele_col ``=`` ``"alt_alleles"``,`\
-`                                       select_type ``=`` ``"homo"``)`
+``` r
+
+library(panGenomeBreedr)
+
+# Marker genotype data
+geno <- data.frame(SNP1 = c("A:A", "A:G", "G:G", "A:A"),
+                   SNP2 = c("C:C", "C:T", "T:T", "C:T"),
+                   SNP3 = c("G:G", "G:G", "A:G", "A:A"),
+                   row.names = c("Line1", "Line2", "Line3", "Line4"))
+
+# Trait-predictive marker metadata
+marker_info <- data.frame(qtl_markers = paste0("SNP", 1:3),
+                           locus_name = paste0('loc', 1:3),
+                          fav_alleles = c("A", "C", "G"),
+                         
+                          alt_alleles = c("G", "T", "A"))
+
+# Convert raw genotypes to binary (foreground profile)
+foreground_matrix <- foreground_select(geno_data = geno,
+                                       fore_marker_info = marker_info,
+                                       fore_marker_col = "qtl_markers",
+                                       fav_allele_col = "fav_alleles",
+                                       alt_allele_col = "alt_alleles",
+                                       select_type = "homo")
+```
 
 |       | SNP1 | SNP2 | SNP3 |
 |:------|-----:|-----:|-----:|
@@ -1805,45 +1875,47 @@ users to quickly determine:
 - **Left bar plot:** shows how many lines have the favorable allele for
   each individual target locus.
 
-\
-`# Make an Upset plot and overlay with trait loci names`\
-`metadata`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``sets ``=`` ``marker_info``$``qtl_markers``,`\
-`                      locus ``=`` ``marker_info``$``locus_name``)`\
-\
-`nl`` ``<-`` `[`ncol`](https://rdrr.io/r/base/nrow.html)`(``foreground_matrix``)`` ``# Number of markers`\
-\
-`UpSetR``::`[`upset`](https://rdrr.io/pkg/UpSetR/man/upset.html)`(``foreground_matrix``,`\
-`              nsets ``=`` ``nl``,`\
-`              mainbar.y.label ``=`` ``"Locus Intersection Size"``,`\
-`              sets.x.label ``=`` ``"Locus Size"``,`\
-`              text.scale ``=`` ``1.2``,`\
-`              set.metadata ``=`` `[`list`](https://rdrr.io/r/base/list.html)`(``data ``=`` ``metadata``,`\
-`                          plots ``=`` `[`list`](https://rdrr.io/r/base/list.html)`(`[`list`](https://rdrr.io/r/base/list.html)`(``type ``=`` ``'text'``, `\
-`                                            assign ``=`` ``8``,`\
-`                                            column ``=`` ``'locus'``,`\
-`                                            colors ``=`` `[`rep`](https://rdrr.io/r/base/rep.html)`(``'firebrick2'``, ``nl``)``)``)``)``)`\
-`` #> Warning: `aes_string()` was deprecated in ggplot2 3.0.0. ``\
-`#> ``ℹ```  Please use tidy evaluation idioms with `aes()`. ``\
-`#> ``ℹ```  See also `vignette("ggplot2-in-packages")` for more information. ``\
-`#> ``ℹ`` The deprecated feature was likely used in the ``UpSetR`` package.`\
-`#>   Please report the issue at ``<https://github.com/hms-dbmi/UpSetR/issues>``.`\
-`#> ``This warning is displayed once per session.`\
-`#> ``` Call `lifecycle::last_lifecycle_warnings()` to see where this warning was ``\
-`#> ``generated.`\
-`` #> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0. ``\
-`#> ``ℹ```  Please use `linewidth` instead. ``\
-`#> ``ℹ`` The deprecated feature was likely used in the ``UpSetR`` package.`\
-`#>   Please report the issue at ``<https://github.com/hms-dbmi/UpSetR/issues>``.`\
-`#> ``This warning is displayed once per session.`\
-`#> ``` Call `lifecycle::last_lifecycle_warnings()` to see where this warning was ``\
-`#> ``generated.`\
-`` #> Warning: The `size` argument of `element_line()` is deprecated as of ggplot2 3.4.0. ``\
-`#> ``ℹ```  Please use the `linewidth` argument instead. ``\
-`#> ``ℹ`` The deprecated feature was likely used in the ``UpSetR`` package.`\
-`#>   Please report the issue at ``<https://github.com/hms-dbmi/UpSetR/issues>``.`\
-`#> ``This warning is displayed once per session.`\
-`#> ``` Call `lifecycle::last_lifecycle_warnings()` to see where this warning was ``\
-`#> ``generated.`
+``` r
+
+# Make an Upset plot and overlay with trait loci names
+metadata <- data.frame(sets = marker_info$qtl_markers,
+                      locus = marker_info$locus_name)
+
+nl <- ncol(foreground_matrix) # Number of markers
+
+UpSetR::upset(foreground_matrix,
+              nsets = nl,
+              mainbar.y.label = "Locus Intersection Size",
+              sets.x.label = "Locus Size",
+              text.scale = 1.2,
+              set.metadata = list(data = metadata,
+                          plots = list(list(type = 'text', 
+                                            assign = 8,
+                                            column = 'locus',
+                                            colors = rep('firebrick2', nl)))))
+#> Warning: `aes_string()` was deprecated in ggplot2 3.0.0.
+#> ℹ Please use tidy evaluation idioms with `aes()`.
+#> ℹ See also `vignette("ggplot2-in-packages")` for more information.
+#> ℹ The deprecated feature was likely used in the UpSetR package.
+#>   Please report the issue at <https://github.com/hms-dbmi/UpSetR/issues>.
+#> This warning is displayed once per session.
+#> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+#> generated.
+#> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+#> ℹ Please use `linewidth` instead.
+#> ℹ The deprecated feature was likely used in the UpSetR package.
+#>   Please report the issue at <https://github.com/hms-dbmi/UpSetR/issues>.
+#> This warning is displayed once per session.
+#> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+#> generated.
+#> Warning: The `size` argument of `element_line()` is deprecated as of ggplot2 3.4.0.
+#> ℹ Please use the `linewidth` argument instead.
+#> ℹ The deprecated feature was likely used in the UpSetR package.
+#>   Please report the issue at <https://github.com/hms-dbmi/UpSetR/issues>.
+#> This warning is displayed once per session.
+#> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+#> generated.
+```
 
 ![Fig. 13. Visualizing the co-occurrence of favorable alleles across
 lines.](figures/upset_plot1-1.png)
@@ -1863,15 +1935,17 @@ profile across loci. Using the binary matrix, users can extract line IDs
 corresponding to any intersection (i.e., specific combinations of
 favorable alleles revealed by the UpSet plot).
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
-\
-`# Find lines with favorable alleles at all target loci`\
-`selected_lines`` ``<-`` `[`find_lines`](https://awkena.github.io/panGenomeBreedr/reference/find_lines.md)`(``mat ``=`` ``foreground_matrix``,`\
-`                             present ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``'SNP1'``, ``'SNP2'``, ``'SNP3'``)``)`\
-\
-[`print`](https://rdrr.io/r/base/print.html)`(``selected_lines``)`\
-`#> [1] "Line1"`
+``` r
+
+library(panGenomeBreedr)
+
+# Find lines with favorable alleles at all target loci
+selected_lines <- find_lines(mat = foreground_matrix,
+                             present = c('SNP1', 'SNP2', 'SNP3'))
+
+print(selected_lines)
+#> [1] "Line1"
+```
 
 The
 [`find_lines()`](https://awkena.github.io/panGenomeBreedr/reference/find_lines.md)

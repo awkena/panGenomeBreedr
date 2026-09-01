@@ -90,11 +90,11 @@ online_genotypes <- fetch_genotypes_by_id(
 )
 print(head(online_genotypes[,1:9]))
 #>             variant_id chrom      pos ref  alt minor_allele_freq chrom_1
-#> 1 INDEL_Chr05_75104541 Chr05 75104541   T TGAC           0.00119   Chr05
-#> 2   SNP_Chr05_75104557 Chr05 75104557   C    T           0.10949   Chr05
+#> 1   SNP_Chr05_75104557 Chr05 75104557   C    T           0.10949   Chr05
+#> 2 INDEL_Chr05_75104541 Chr05 75104541   T TGAC           0.00119   Chr05
 #>      pos_1 IDMM
-#> 1 75104541  0|0
-#> 2 75104557  0|0
+#> 1 75104557  0|0
+#> 2 75104541  0|0
 
 # --- Offline Mode ---
 # Locate the package example database folder
