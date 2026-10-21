@@ -1288,8 +1288,21 @@ mod_variant_discovery_server <- function(id) {
 
     output$accession_map <- leaflet::renderLeaflet({
       req(rv$sample_metadata, input$color_by_col)
+
+      # Keep the user's chosen basemap when the map redraws (e.g. on recolor)
+      visible_groups <- isolate(input$accession_map_groups)
+      basemap <- if ("Satellite" %in% visible_groups) {
+        "satellite"
+      } else if ("Street" %in% visible_groups) {
+        "street"
+      } else {
+        "grey"
+      }
+
       plot_accession_map(
-        metadata = rv$sample_metadata, color_by = input$color_by_col
+        metadata = rv$sample_metadata,
+        color_by = input$color_by_col,
+        basemap = basemap
       )
     })
 
@@ -2584,7 +2597,8 @@ mod_variant_discovery_server <- function(id) {
                   "Define Target By:",
                   choices = c(
                     "Variant Position" = "position",
-                    "Gene ID" = "gene"
+                    "Gene ID" = "gene",
+                    "Genomic Region" = "region"
                   ),
                   selected = "position",
                   inline = TRUE
@@ -2623,6 +2637,42 @@ mod_variant_discovery_server <- function(id) {
                     placeholder = "e.g. Sobic.003G421300"
                   ),
                   width = "100%"
+                )
+              ),
+              conditionalPanel(
+                condition = paste0(
+                  "input['",
+                  ns("pcil_pos_type"),
+                  "'] === 'region'"
+                ),
+                bslib::layout_columns(
+                  col_widths = c(4, 4, 4),
+                  selectizeInput(
+                    ns("pcil_region_chr"),
+                    "Chromosome",
+                    choices = isolate({
+                      chr_labels <- unique(rv$pcil_data$pcil_introgressions$ChrLabel)
+                      if (length(chr_labels) == 0) sprintf("Chr%02d", 1:10) else sort(chr_labels)
+                    }),
+                    options = list(create = TRUE),
+                    width = "100%"
+                  ),
+                  numericInput(
+                    ns("pcil_region_start"),
+                    "Start (bp)",
+                    value = NA,
+                    min = 0,
+                    step = 1000,
+                    width = "100%"
+                  ),
+                  numericInput(
+                    ns("pcil_region_end"),
+                    "End (bp)",
+                    value = NA,
+                    min = 0,
+                    step = 1000,
+                    width = "100%"
+                  )
                 )
               ),
 
@@ -2664,6 +2714,15 @@ mod_variant_discovery_server <- function(id) {
                 )
               ),
 
+              # Optional: restrict all PCIL searches to available lines
+              textAreaInput(
+                ns("pcil_available_ids"),
+                "Restrict to available lines (optional)",
+                placeholder = "Paste sample IDs separated by commas, spaces or new lines. Leave empty to search all lines. Also applied when finding negative controls.",
+                rows = 3,
+                width = "100%"
+              ),
+
               # Action Button
               div(
                 class = "d-grid mt-4",
@@ -2685,10 +2744,27 @@ mod_variant_discovery_server <- function(id) {
 
 
 
+  # Sample IDs pasted into "Restrict to available lines"; NULL when empty
+    pcil_global_ids <- reactive({
+      txt <- input$pcil_available_ids
+      if (is.null(txt) || !nzchar(trimws(txt))) {
+        return(NULL)
+      }
+      ids <- trimws(unlist(strsplit(txt, "[,;[:space:]]+")))
+      ids <- unique(ids[nzchar(ids)])
+      if (length(ids) == 0) NULL else ids
+    })
+
   # PCIL STEP 2 SERVER SIDE LOGIC
     observeEvent(input$find_pcil_positive_btn, {
       pos_type_fields <- if (identical(input$pcil_pos_type, "gene")) {
         list("Gene ID(s)" = input$pcil_gene_ids)
+      } else if (identical(input$pcil_pos_type, "region")) {
+        list(
+          "Chromosome" = input$pcil_region_chr,
+          "Start (bp)" = input$pcil_region_start,
+          "End (bp)" = input$pcil_region_end
+        )
       } else {
         list(
           "Variant ID(s)" = input$pcil_marker_ID,
@@ -2696,7 +2772,7 @@ mod_variant_discovery_server <- function(id) {
         )
       }
       if (!validate_required_inputs(c(
-        list("Search Type (Gene/Position)" = input$pcil_pos_type),
+        list("Search Type (Position/Gene/Region)" = input$pcil_pos_type),
         pos_type_fields
       ))) {
         return()
@@ -2705,6 +2781,19 @@ mod_variant_discovery_server <- function(id) {
       # 1. Determine variants_select_geno based on user's radio button choice
       variants_select_geno <- if (input$pcil_pos_type == "gene") {
         input$pcil_gene_ids # Passes the character vector of Sobic IDs
+      } else if (input$pcil_pos_type == "region") {
+        data.frame(
+          Region = sprintf(
+            "%s:%s-%s",
+            input$pcil_region_chr,
+            format(input$pcil_region_start, scientific = FALSE, trim = TRUE),
+            format(input$pcil_region_end, scientific = FALSE, trim = TRUE)
+          ),
+          Chr = input$pcil_region_chr,
+          Start = input$pcil_region_start,
+          End = input$pcil_region_end,
+          stringsAsFactors = FALSE
+        )
       } else {
         # Passes the filtered dataframe with Chr, Pos, etc.
         values$data_for_pcil_selection[
@@ -2741,7 +2830,8 @@ mod_variant_discovery_server <- function(id) {
             } else {
               NULL
             },
-            result_pcil_families = pcil$family_results
+            result_pcil_families = pcil$family_results,
+            global_available_ids = pcil_global_ids()
           )
 
           # 3. Handle Empty Results
@@ -3042,7 +3132,8 @@ mod_variant_discovery_server <- function(id) {
             } else {
               NULL
             },
-            result_pcil_families = pcil$family_results
+            result_pcil_families = pcil$family_results,
+            global_available_ids = pcil_global_ids()
           )
 
           if (is.null(res$pairs_best) || nrow(res$pairs_best) == 0) {

@@ -75,6 +75,87 @@ test_that("fetch_pcil_positive filters correct overlapping lines", {
 })
 
 
+test_that("fetch_pcil_positive supports type = 'region'", {
+  target_region <- data.frame(
+    Region = "Region_1",
+    Chr = "Chr03",
+    Start = 1520,
+    End = 1580,
+    stringsAsFactors = FALSE
+  )
+
+  res <- fetch_pcil_positive(
+    pcil_data = mock_pcil_data,
+    variants_select_geno = target_region,
+    type = "region"
+  )
+
+  expect_equal(res$regions$Region, "Region_1")
+  expect_equal(res$pcil_positive$SampleID, "LineA")
+
+  expect_error(
+    fetch_pcil_positive(
+      pcil_data = mock_pcil_data,
+      variants_select_geno = target_region[, c("Region", "Chr", "Start")],
+      type = "region"
+    ),
+    "Region, Chr, Start, End"
+  )
+
+  bad_region <- target_region
+  bad_region$Start <- 2000
+  expect_error(
+    fetch_pcil_positive(
+      pcil_data = mock_pcil_data,
+      variants_select_geno = bad_region,
+      type = "region"
+    ),
+    "Start must be less than or equal to End"
+  )
+})
+
+test_that("fetch_pcil_positive restricts lines with global_available_ids", {
+  # LineA is the only carrier; excluding it leaves no PCIL (+)
+  res <- suppressWarnings(fetch_pcil_positive(
+    pcil_data = mock_pcil_data,
+    variants_select_geno = mock_variants_geno,
+    type = "position",
+    window = 0,
+    global_available_ids = c("LineB", "LineC")
+  ))
+  expect_equal(nrow(res$pcil_positive), 0)
+
+  res <- fetch_pcil_positive(
+    pcil_data = mock_pcil_data,
+    variants_select_geno = mock_variants_geno,
+    type = "position",
+    window = 0,
+    global_available_ids = c("LineA", "LineB")
+  )
+  expect_equal(res$pcil_positive$SampleID, "LineA")
+
+  expect_error(
+    fetch_pcil_positive(
+      pcil_data = mock_pcil_data,
+      variants_select_geno = mock_variants_geno,
+      type = "position",
+      global_available_ids = c("NotALine")
+    ),
+    "None of the available sample IDs"
+  )
+
+  expect_error(
+    fetch_pcil_positive(
+      pcil_data = mock_pcil_data,
+      variants_select_geno = mock_variants_geno,
+      type = "position",
+      global_available_ids = data.frame(id = "LineA")
+    ),
+    "must be a vector of sample IDs"
+  )
+})
+
+
 # ==============================================================================
 #  TEST fetch_pcil_negative()
 # ==============================================================================
@@ -113,6 +194,50 @@ test_that("fetch_pcil_negative identifies genetically similar non-carriers", {
   expect_equal(res_neg$pairs_best$SampleID_Negative[1], "LineB")
   expect_equal(res_neg$pairs_best$IBS_dis[1], 0.1)
   expect_equal(res_neg$pairs_best$Family[1], "Fam1")
+})
+
+test_that("fetch_pcil_negative restricts negatives with global_available_ids", {
+  mock_pos_result <- list(
+    best_lines = data.frame(
+      SampleID = "LineA", Region = "SNP_Test", Chr = "Chr03",
+      Start = 1550, End = 1550, stringsAsFactors = FALSE
+    ),
+    regions = data.frame(
+      Region = "SNP_Test", Chr = "Chr03",
+      Start = 1550, End = 1550, stringsAsFactors = FALSE
+    )
+  )
+
+  # Excluding LineB (the closest match) falls back to LineC
+  res_neg <- fetch_pcil_negative(
+    pcil_data = mock_pcil_data,
+    pcil_positive_result = mock_pos_result,
+    n_neg = 1,
+    global_available_ids = c("LineC")
+  )
+  expect_equal(res_neg$pairs_best$SampleID_Negative[1], "LineC")
+  expect_equal(res_neg$pairs_best$IBS_dis[1], 0.4)
+
+  # No allowed negatives left: warn and return no pairs
+  expect_warning(
+    res_none <- fetch_pcil_negative(
+      pcil_data = mock_pcil_data,
+      pcil_positive_result = mock_pos_result,
+      n_neg = 1,
+      global_available_ids = c("NotALine")
+    ),
+    "after global_available_ids"
+  )
+  expect_equal(nrow(res_none$pairs_best), 0)
+
+  expect_error(
+    fetch_pcil_negative(
+      pcil_data = mock_pcil_data,
+      pcil_positive_result = mock_pos_result,
+      global_available_ids = list("LineC")
+    ),
+    "must be a vector of sample IDs"
+  )
 })
 
 

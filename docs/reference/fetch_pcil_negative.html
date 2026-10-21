@@ -50,7 +50,8 @@ positive line but lacks the specific introgression of interest.</p>
 <span>  <span class="va">pcil_positive_result</span>,</span>
 <span>  n_neg <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  available_ids <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  result_pcil_families <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  result_pcil_families <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  global_available_ids <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -80,6 +81,15 @@ columns to restrict the search space for negative controls.</p></dd>
 <dt id="arg-result-pcil-families">result_pcil_families<a class="anchor" aria-label="anchor" href="#arg-result-pcil-families"></a></dt>
 <dd><p>An optional list object from `fetch_pcil_families_by_variant()`
 to globally restrict the search space.</p></dd>
+
+
+<dt id="arg-global-available-ids">global_available_ids<a class="anchor" aria-label="anchor" href="#arg-global-available-ids"></a></dt>
+<dd><p>An optional character vector of sample IDs allowed as
+negative controls for every region (for example, lines available in a seed bank).
+Only the negative candidates are filtered; which lines count as carriers of the
+introgression is always decided on the complete PCIL population. If
+`result_pcil_families` is also supplied, only sample IDs present in both are used.
+Defaults to `NULL` (no restriction).</p></dd>
 
 </dl></div>
     <div class="section level2">

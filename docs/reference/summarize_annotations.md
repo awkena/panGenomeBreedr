@@ -98,15 +98,15 @@ print(local_summary)
 #> 6             3_prime_UTR_variant          SNP    18
 #> 7             3_prime_UTR_variant        INDEL    13
 #> 8         downstream_gene_variant        INDEL    13
-#> 9                  intron_variant          SNP     6
-#> 10             frameshift_variant        INDEL     6
+#> 9              frameshift_variant        INDEL     6
+#> 10                 intron_variant          SNP     6
 #> 11    disruptive_inframe_deletion        INDEL     2
 #> 12                 intron_variant        INDEL     2
 #> 13            5_prime_UTR_variant        INDEL     1
 #> 14  conservative_inframe_deletion        INDEL     1
-#> 15            5_prime_UTR_variant          SNP     1
-#> 16   disruptive_inframe_insertion        INDEL     1
-#> 17 conservative_inframe_insertion        INDEL     1
+#> 15   disruptive_inframe_insertion        INDEL     1
+#> 16 conservative_inframe_insertion        INDEL     1
+#> 17            5_prime_UTR_variant          SNP     1
 #> 
 #> $impact_summary
 #>     impact variant_type count

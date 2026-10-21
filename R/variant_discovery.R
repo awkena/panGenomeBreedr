@@ -850,6 +850,18 @@ fetch_table_region <- function(
     )
   }
   
+  # check that start and end positions are provided for genotypes & variants table.
+  if (table_name %in% c("genotypes", "variants") &&
+      (is.null(start) || is.null(end))) {
+    stop(
+      sprintf(
+        "'start' and 'end' are required when querying the '%s' table. A whole-chromosome query spans millions of records and cannot be returned in one call.",
+        table_name
+      ),
+      call. = FALSE
+    )
+  }
+  
   if (connect_db_mode == 'online') {
     query_params <- list(
       table_name = table_name,
@@ -2393,6 +2405,10 @@ filter_genotypes_by_metadata <- function(
 #'   numeric \code{"lat"} and \code{"lon"} columns alongside the column specified in \code{color_by}.
 #' @param color_by Character. The specific metadata column name used to group and assign discrete 
 #'   color palette attributes to markers. Defaults to \code{"countryorigin"}.
+#' @param basemap Character. The background map shown first: \code{"grey"} (Esri World Gray
+#'   Canvas, default), \code{"street"} (OpenStreetMap) or \code{"satellite"} (Esri World
+#'   Imagery). All three need no API key, and users can switch between them with the
+#'   layer control in the top-right corner of the map.
 #'
 #' @return A \code{leaflet} map object (htmlwidget) displaying interactive geographic coordinate plots.
 #'
@@ -2415,13 +2431,20 @@ filter_genotypes_by_metadata <- function(
 #' # Generate an interactive geographic distribution plot colored by countryorigin
 #' plot_accession_map_result <- plot_accession_map(sample_metadata, color_by = "countryorigin")
 #' print(plot_accession_map_result)
+#'
+#' # Start on the satellite basemap instead
+#' plot_accession_map(sample_metadata, color_by = "countryorigin", basemap = "satellite")
 #' 
 #' # Disconnect at the end of your session
 #' disconnect_local_db(con)
 #' }
 #'
 #' @export
-plot_accession_map <- function(metadata, color_by = "countryorigin") {
+plot_accession_map <- function(metadata,
+                               color_by = "countryorigin",
+                               basemap = c("grey", "street", "satellite")) {
+  basemap <- match.arg(basemap)
+
   # Check if required external packages (leaflet and tools) exist 
   if (!requireNamespace("leaflet", quietly = TRUE)) {
     stop(
@@ -2493,9 +2516,28 @@ plot_accession_map <- function(metadata, color_by = "countryorigin") {
 
   plot_data$color_col <- pal(plot_data[[color_by]])
 
+  # Keyless basemaps; the layer control lists the chosen one first and shows it
+  basemap_groups <- c(grey = "Grey", street = "Street", satellite = "Satellite")
+  base_groups <- c(
+    basemap_groups[[basemap]],
+    setdiff(unname(basemap_groups), basemap_groups[[basemap]])
+  )
+
   # Construct the Leaflet map
   map <- leaflet::leaflet(data = plot_data) |>
-    leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
+    leaflet::addProviderTiles(
+      leaflet::providers$Esri.WorldGrayCanvas,
+      group = "Grey"
+    ) |>
+    leaflet::addTiles(group = "Street") |>
+    leaflet::addProviderTiles(
+      leaflet::providers$Esri.WorldImagery,
+      group = "Satellite"
+    ) |>
+    leaflet::addLayersControl(
+      baseGroups = base_groups,
+      options = leaflet::layersControlOptions(collapsed = TRUE)
+    ) |>
     leaflet::addCircleMarkers(
       lng = ~lon,
       lat = ~lat,

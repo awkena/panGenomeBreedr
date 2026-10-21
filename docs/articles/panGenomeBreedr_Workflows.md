@@ -1095,7 +1095,7 @@ KASP marker QC and validation.
 `panGB` offers customizable functions for KASP marker validation through
 hypothesis testing. These functions allow users to easily perform the
 following tasks:\
-- Import raw or polished KASP genotyping results files (.csv) into R.
+\- Import raw or polished KASP genotyping results files (.csv) into R.
 
 - Process imported data and assign FAM and HEX fluorescence colors for
   multiple plates.

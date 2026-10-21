@@ -18,7 +18,11 @@ run_app(
 This is only needed for \code{shinyAppObj}, since in the \code{shinyAppDir}
 case, a \code{global.R} file can be used for this purpose.}
 
-\item{auto_install}{installs used packages not found in namespace.
+\item{auto_install}{Logical. If `TRUE` (default) and the session is
+  interactive, offers to install missing packages the app needs, after
+  asking for confirmation. Nothing is installed without consent. If `FALSE`,
+  or in a non-interactive session, missing packages stop the app with
+  install instructions instead.
 See `?golem::get_golem_options` for more details.}
 
 \item{options}{Named options that should be passed to the \code{runApp} call

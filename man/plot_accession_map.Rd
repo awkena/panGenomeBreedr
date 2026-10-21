@@ -4,7 +4,11 @@
 \alias{plot_accession_map}
 \title{Interactive geographic exploration of the samples}
 \usage{
-plot_accession_map(metadata, color_by = "countryorigin")
+plot_accession_map(
+  metadata,
+  color_by = "countryorigin",
+  basemap = c("grey", "street", "satellite")
+)
 }
 \arguments{
 \item{metadata}{A data frame containing sample metadata tracking information. Must include explicit 
@@ -12,6 +16,11 @@ numeric \code{"lat"} and \code{"lon"} columns alongside the column specified in 
 
 \item{color_by}{Character. The specific metadata column name used to group and assign discrete 
 color palette attributes to markers. Defaults to \code{"countryorigin"}.}
+
+\item{basemap}{Character. The background map shown first: \code{"grey"} (Esri World Gray
+Canvas, default), \code{"street"} (OpenStreetMap) or \code{"satellite"} (Esri World
+Imagery). All three need no API key, and users can switch between them with the
+layer control in the top-right corner of the map.}
 }
 \value{
 A \code{leaflet} map object (htmlwidget) displaying interactive geographic coordinate plots.
@@ -38,6 +47,9 @@ sample_metadata <- fetch_accession_metadata(con = con)
 # Generate an interactive geographic distribution plot colored by countryorigin
 plot_accession_map_result <- plot_accession_map(sample_metadata, color_by = "countryorigin")
 print(plot_accession_map_result)
+
+# Start on the satellite basemap instead
+plot_accession_map(sample_metadata, color_by = "countryorigin", basemap = "satellite")
 
 # Disconnect at the end of your session
 disconnect_local_db(con)

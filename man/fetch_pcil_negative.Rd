@@ -9,7 +9,8 @@ fetch_pcil_negative(
   pcil_positive_result,
   n_neg = 10,
   available_ids = NULL,
-  result_pcil_families = NULL
+  result_pcil_families = NULL,
+  global_available_ids = NULL
 )
 }
 \arguments{
@@ -26,6 +27,13 @@ columns to restrict the search space for negative controls.}
 
 \item{result_pcil_families}{An optional list object from `fetch_pcil_families_by_variant()`
 to globally restrict the search space.}
+
+\item{global_available_ids}{An optional character vector of sample IDs allowed as
+negative controls for every region (for example, lines available in a seed bank).
+Only the negative candidates are filtered; which lines count as carriers of the
+introgression is always decided on the complete PCIL population. If
+`result_pcil_families` is also supplied, only sample IDs present in both are used.
+Defaults to `NULL` (no restriction).}
 }
 \value{
 A list containing:

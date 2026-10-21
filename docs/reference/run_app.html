@@ -57,7 +57,11 @@ case, a <code>global.R</code> file can be used for this purpose.</p></dd>
 
 
 <dt id="arg-auto-install">auto_install<a class="anchor" aria-label="anchor" href="#arg-auto-install"></a></dt>
-<dd><p>installs used packages not found in namespace.
+<dd><p>Logical. If `TRUE` (default) and the session is
+  interactive, offers to install missing packages the app needs, after
+  asking for confirmation. Nothing is installed without consent. If `FALSE`,
+  or in a non-interactive session, missing packages stop the app with
+  install instructions instead.
 See `?golem::get_golem_options` for more details.</p></dd>
 
 
