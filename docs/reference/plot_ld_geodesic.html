@@ -108,22 +108,31 @@ mapping LD values these include: "magma", "plasma", "inferno", "viridis", "mako"
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{ </span></span></span>
-<span class="r-in"><span><span class="va">query_annot</span> <span class="op">&lt;-</span> <span class="fu">panGenomeBreedr</span><span class="fu">::</span><span class="fu"><a href="fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span></span>
-<span class="r-in"><span>chrom <span class="op">=</span> <span class="st">"Chr03"</span>,</span></span>
-<span class="r-in"><span>gene_name <span class="op">=</span> <span class="st">"Sobic.003G421300"</span>,</span></span>
-<span class="r-in"><span>start <span class="op">=</span> <span class="fl">79037682</span>,</span></span>
-<span class="r-in"><span>end <span class="op">=</span> <span class="fl">79039091</span>,</span></span>
-<span class="r-in"><span>connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Locate the package example database folder</span></span></span>
+<span class="r-in"><span><span class="va">my_db_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pangenome_scale_db"</span>,</span></span>
+<span class="r-in"><span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>,</span></span>
+<span class="r-in"><span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">con_local</span> <span class="op">&lt;-</span> <span class="fu"><a href="connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">my_db_folder</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">query_annot</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  con <span class="op">=</span> <span class="va">con_local</span>,</span></span>
+<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span></span>
+<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr03"</span>,</span></span>
+<span class="r-in"><span>  gene_name <span class="op">=</span> <span class="st">"Sobic.003G421300"</span>,</span></span>
+<span class="r-in"><span>  start <span class="op">=</span> <span class="fl">79037682</span>,</span></span>
+<span class="r-in"><span>  end <span class="op">=</span> <span class="fl">79039091</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">query_geno</span> <span class="op">&lt;-</span> <span class="fu">panGenomeBreedr</span><span class="fu">::</span><span class="fu"><a href="fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span></span>
-<span class="r-in"><span>chrom <span class="op">=</span> <span class="st">"Chr03"</span>,</span></span>
-<span class="r-in"><span>start <span class="op">=</span> <span class="fl">79037682</span>,</span></span>
-<span class="r-in"><span>end <span class="op">=</span> <span class="fl">79039091</span>,</span></span>
-<span class="r-in"><span>connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
+<span class="r-in"><span><span class="va">query_geno</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  con <span class="op">=</span> <span class="va">con_local</span>,</span></span>
+<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span></span>
+<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr03"</span>,</span></span>
+<span class="r-in"><span>  start <span class="op">=</span> <span class="fl">79037682</span>,</span></span>
+<span class="r-in"><span>  end <span class="op">=</span> <span class="fl">79039091</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Compute your updated wide data containing distance tracking columns</span></span></span>
@@ -135,12 +144,12 @@ mapping LD values these include: "magma", "plasma", "inferno", "viridis", "mako"
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Generate the plot and table package</span></span></span>
 <span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">plot_ld_geodesic</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  ld_df <span class="op">=</span> <span class="va">ld_results</span>, </span></span>
-<span class="r-in"><span>  query_db_geno <span class="op">=</span> <span class="va">query_geno</span>, </span></span>
+<span class="r-in"><span>  ld_df <span class="op">=</span> <span class="va">ld_results</span>,</span></span>
+<span class="r-in"><span>  query_db_geno <span class="op">=</span> <span class="va">query_geno</span>,</span></span>
 <span class="r-in"><span>  query_db_annot <span class="op">=</span> <span class="va">query_annot</span>,</span></span>
 <span class="r-in"><span>  metric <span class="op">=</span> <span class="st">"R2"</span>,</span></span>
 <span class="r-in"><span>  target_variant_ids <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"INDEL_Chr03_79037889"</span>, <span class="st">"SNP_Chr03_79037855"</span>,<span class="st">"SNP_Chr03_79037944"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  threshold <span class="op">=</span> <span class="fl">0.8</span>, </span></span>
+<span class="r-in"><span>  threshold <span class="op">=</span> <span class="fl">0.8</span>,</span></span>
 <span class="r-in"><span>  block_threshold <span class="op">=</span> <span class="fl">0.8</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
@@ -151,14 +160,48 @@ mapping LD values these include: "magma", "plasma", "inferno", "viridis", "mako"
 <span class="r-in"><span><span class="co"># Access the haploblock table</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">table</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>              Block_1 Block_1_Impact_Level            Block_2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 SNP_Chr03_79037855  MODIFIER | MODERATE SNP_Chr03_79038788</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 SNP_Chr03_79037855  MODERATE | MODIFIER SNP_Chr03_79038788</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2 SNP_Chr03_79037944                  LOW SNP_Chr03_79038796</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3               &lt;NA&gt;                 &lt;NA&gt; SNP_Chr03_79038799</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Block_2_Impact_Level</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1             MODIFIER</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2             MODIFIER</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3             MODIFIER</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_local</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Successfully disconnected from the local database. Memory cleared.</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co"># To query the public online resource instead:</span></span></span>
+<span class="r-in"><span><span class="va">query_annot_online</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span></span>
+<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr03"</span>,</span></span>
+<span class="r-in"><span>  gene_name <span class="op">=</span> <span class="st">"Sobic.003G421300"</span>,</span></span>
+<span class="r-in"><span>  start <span class="op">=</span> <span class="fl">79037682</span>,</span></span>
+<span class="r-in"><span>  end <span class="op">=</span> <span class="fl">79039091</span>,</span></span>
+<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">query_geno_online</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span></span>
+<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr03"</span>,</span></span>
+<span class="r-in"><span>  start <span class="op">=</span> <span class="fl">79037682</span>,</span></span>
+<span class="r-in"><span>  end <span class="op">=</span> <span class="fl">79039091</span>,</span></span>
+<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ld_results_online</span> <span class="op">&lt;-</span> <span class="fu"><a href="calculate_LD.html">calculate_LD</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  df <span class="op">=</span> <span class="va">query_geno_online</span>, target_variant_ids <span class="op">=</span> <span class="cn">NULL</span>, genotype_start_col <span class="op">=</span> <span class="fl">11</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result_online</span> <span class="op">&lt;-</span> <span class="fu">plot_ld_geodesic</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  ld_df <span class="op">=</span> <span class="va">ld_results_online</span>,</span></span>
+<span class="r-in"><span>  query_db_geno <span class="op">=</span> <span class="va">query_geno_online</span>,</span></span>
+<span class="r-in"><span>  query_db_annot <span class="op">=</span> <span class="va">query_annot_online</span>,</span></span>
+<span class="r-in"><span>  metric <span class="op">=</span> <span class="st">"R2"</span>,</span></span>
+<span class="r-in"><span>  threshold <span class="op">=</span> <span class="fl">0.8</span>,</span></span>
+<span class="r-in"><span>  block_threshold <span class="op">=</span> <span class="fl">0.8</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">result_online</span><span class="op">$</span><span class="va">plot</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

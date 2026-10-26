@@ -34,12 +34,23 @@ A `ggplot` object representing the structural gene model.
 ``` r
 # \donttest{
 library(panGenomeBreedr)
-# Path to GFF3 file
-gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
-gene_features <- gene_coord_gff(gene_name = "Sobic.005G213600",
+# Small local GFF3 slice bundled with the package
+gff_path <- system.file("extdata", "pangenome_scale_db", "gene_models.gff3.gz",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+# Sobic.003G421300 has two annotated transcripts, so this also shows the
+# per-transcript row stacking described above
+gene_features <- gene_coord_gff(gene_name = "Sobic.003G421300",
                                 gff_path = gff_path)
-# Plot gene model for Sobic.005G213600
 plot_gene_model(gene_df = gene_features)
 
 # }
+
+if (FALSE) { # \dontrun{
+# To use the full, public reference GFF3 instead:
+gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+gene_features_online <- gene_coord_gff(gene_name = "Sobic.005G213600",
+                                gff_path = gff_path)
+plot_gene_model(gene_df = gene_features_online)
+} # }
 ```

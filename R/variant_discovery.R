@@ -347,15 +347,9 @@ get_api_url <- function() {
 #'
 #' @examples
 #' \donttest{
-#' # --- Online Mode ---
 #' # Load the package
 #' library(panGenomeBreedr)
 #'
-#' # List all tables in the online database
-#' online_tables <- list_tables(connect_db_mode = 'online')
-#' print(online_tables)
-#'
-#' # --- Offline Mode ---
 #' # Locate the package example database folder
 #' my_db_folder <- system.file("extdata", "pangenome_scale_db",
 #'                            package = "panGenomeBreedr",
@@ -366,10 +360,16 @@ get_api_url <- function() {
 #'
 #' # List tables from the local connection (default mode is 'local')
 #' local_tables <- list_tables(con = con_local)
-#' # print(local_tables)
+#' print(local_tables)
 #'
 #' # Disconnect at the end of your session
 #' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' online_tables <- list_tables(connect_db_mode = 'online')
+#' print(online_tables)
 #' }
 #'
 #' @import DBI
@@ -419,15 +419,9 @@ list_tables <- function(
 #'
 #' @examples
 #' \donttest{
-#' # --- Online Mode ---
 #' # Load the package
 #' library(panGenomeBreedr)
 #'
-#' # Get variant statistics from the online database, including annotation counts
-#' online_stats <- summarize_variants(connect_db_mode = 'online', include_annotations = TRUE)
-#' print(online_stats)
-#'
-#' # --- Offline Mode ---
 #' # Locate the package example database folder
 #' my_db_folder <- system.file("extdata", "pangenome_scale_db",
 #'                            package = "panGenomeBreedr",
@@ -438,10 +432,16 @@ list_tables <- function(
 #'
 #' # Get variant statistics across all chromosomes
 #' local_stats <- summarize_variants(con = con_local, include_annotations = TRUE)
-#' # print(local_stats)
+#' print(local_stats)
 #'
 #' # Disconnect at the end of your session
 #' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' online_stats <- summarize_variants(connect_db_mode = 'online', include_annotations = TRUE)
+#' print(online_stats)
 #' }
 #'
 #' @import DBI
@@ -528,15 +528,9 @@ summarize_variants <- function(
 #'
 #' @examples
 #' \donttest{
-#' # --- Online Mode ---
 #' # Load the package
 #' library(panGenomeBreedr)
 #'
-#' # Get variant impact summary from the online database
-#' online_impact <- summarize_variant_impacts(connect_db_mode = 'online')
-#' print(online_impact)
-#'
-#' # --- Offline Mode ---
 #' # Locate the package example database folder
 #' my_db_folder <- system.file("extdata", "pangenome_scale_db",
 #'                            package = "panGenomeBreedr",
@@ -547,10 +541,16 @@ summarize_variants <- function(
 #'
 #' # Generate the wide-format impact profile matrix
 #' local_impact <- summarize_variant_impacts(con = con_local)
-#' # print(local_impact)
+#' print(local_impact)
 #'
 #' # Disconnect at the end of your session
 #' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' online_impact <- summarize_variant_impacts(connect_db_mode = 'online')
+#' print(online_impact)
 #' }
 #'
 #' @import DBI
@@ -617,15 +617,9 @@ summarize_variant_impacts <- function(
 #'
 #' @examples
 #' \donttest{
-#' # --- Online Mode ---
 #' # Load the package
 #' library(panGenomeBreedr)
 #'
-#' # Summarize all tables in the online database
-#' online_summary <- summarize_database(connect_db_mode = 'online')
-#' print(online_summary)
-#'
-#' # --- Offline Mode ---
 #' # Locate the package example database folder
 #' my_db_folder <- system.file("extdata", "pangenome_scale_db",
 #'                            package = "panGenomeBreedr",
@@ -636,10 +630,16 @@ summarize_variant_impacts <- function(
 #'
 #' # Get row counts for all mounted Parquet views
 #' local_summary <- summarize_database(con = con_local)
-#' # print(local_summary)
+#' print(local_summary)
 #'
 #' # Disconnect at the end of your session
 #' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' online_summary <- summarize_database(connect_db_mode = 'online')
+#' print(online_summary)
 #' }
 #'
 #' @import DBI
@@ -692,15 +692,9 @@ summarize_database <- function(
 #'
 #' @examples
 #' \donttest{
-#' # --- Online Mode ---
 #' # Load the package
 #' library(panGenomeBreedr)
 #'
-#' # Get schema for the "variants" table from the online database
-#' online_schema <- list_columns(table_name = "variants", connect_db_mode = 'online')
-#' print(online_schema)
-#'
-#' # --- Offline Mode ---
 #' # Locate the package example database folder
 #' my_db_folder <- system.file("extdata", "pangenome_scale_db",
 #'                            package = "panGenomeBreedr",
@@ -711,10 +705,16 @@ summarize_database <- function(
 #'
 #' # Inspect the schema of the local "variants" table
 #' local_schema <- list_columns(con = con_local, table_name = "variants")
-#' # print(local_schema)
+#' print(local_schema)
 #'
 #' # Disconnect at the end of your session
 #' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' online_schema <- list_columns(table_name = "variants", connect_db_mode = 'online')
+#' print(online_schema)
 #' }
 #'
 #' @import DBI
@@ -774,28 +774,6 @@ list_columns <- function(
 #' # Load the package
 #' library(panGenomeBreedr)
 #'
-#' # --- Online Mode ---
-#' # Query variants table for a specific genomic region from the online database
-#' online_variants_data <- fetch_table_region(
-#'   table_name = "variants",
-#'   chrom = "Chr05",
-#'   start = 75104537,
-#'   end = 75106403,
-#'   connect_db_mode = 'online'
-#' )
-#' print(head(online_variants_data))
-#'
-#' # Query genotypes table for the same region from the online database
-#' online_genotypes_data <- fetch_table_region(
-#'   table_name = "genotypes",
-#'   chrom = "Chr05",
-#'   start = 75104537,
-#'   end = 75106403,
-#'   connect_db_mode = 'online'
-#' )
-#' print(online_genotypes_data[1:6, 1:12])
-#'
-#' # --- Offline Mode ---
 #' # Locate the package example database folder
 #' my_db_folder <- system.file("extdata", "pangenome_scale_db",
 #'                            package = "panGenomeBreedr",
@@ -811,10 +789,9 @@ list_columns <- function(
 #'   chrom = "Chr05",
 #'   start = 75104537,
 #'   end = 75106403,
-#'   gene_name = "Sobic.005G213600",
-#'   connect_db_mode = 'local'
+#'   gene_name = "Sobic.005G213600"
 #' )
-#' # print(head(local_annota_region))
+#' print(head(local_annota_region))
 #'
 #' # Extract matrix genotypes within the exact same coordinates window from local DB
 #' local_gt_region <- fetch_table_region(
@@ -822,13 +799,33 @@ list_columns <- function(
 #'   table_name = "genotypes",
 #'   chrom = "Chr05",
 #'   start = 75104537,
-#'   end = 75106403,
-#'   connect_db_mode = 'local'
+#'   end = 75106403
 #' )
-#' # print(local_gt_region[1:6, 1:12])
+#' print(local_gt_region[1:6, 1:12])
 #'
 #' # Disconnect at the end of your session
 #' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' online_variants_data <- fetch_table_region(
+#'   table_name = "variants",
+#'   chrom = "Chr05",
+#'   start = 75104537,
+#'   end = 75106403,
+#'   connect_db_mode = 'online'
+#' )
+#' print(head(online_variants_data))
+#'
+#' online_genotypes_data <- fetch_table_region(
+#'   table_name = "genotypes",
+#'   chrom = "Chr05",
+#'   start = 75104537,
+#'   end = 75106403,
+#'   connect_db_mode = 'online'
+#' )
+#' print(online_genotypes_data[1:6, 1:12])
 #' }
 #'
 #' @import DBI
@@ -849,6 +846,18 @@ fetch_table_region <- function(
   if (missing(chrom) || is.null(chrom)) {
     stop(
       "A valid chromosome ('chrom') is required to query locus data.",
+      call. = FALSE
+    )
+  }
+  
+  # check that start and end positions are provided for genotypes & variants table.
+  if (table_name %in% c("genotypes", "variants") &&
+      (is.null(start) || is.null(end))) {
+    stop(
+      sprintf(
+        "'start' and 'end' are required when querying the '%s' table. A whole-chromosome query spans millions of records and cannot be returned in one call.",
+        table_name
+      ),
       call. = FALSE
     )
   }
@@ -1036,18 +1045,6 @@ fetch_table_region <- function(
 #' # Load the package
 #' library(panGenomeBreedr)
 #'
-#' # --- Online Mode ---
-#' # Query for high-impact variants in a specific genomic region from the online database
-#' online_high_impact_vars <- fetch_variants_by_impact(
-#'   impact_level = "HIGH",
-#'   chrom = "Chr05",
-#'   start = 75104537,
-#'   end = 75106403,
-#'   connect_db_mode = 'online'
-#' )
-#' print(head(online_high_impact_vars))
-#'
-#' # --- Offline Mode ---
 #' # Locate the package example database folder
 #' my_db_folder <- system.file("extdata", "pangenome_scale_db",
 #'                            package = "panGenomeBreedr",
@@ -1062,13 +1059,24 @@ fetch_table_region <- function(
 #'   impact_level = "HIGH",
 #'   chrom = "Chr05",
 #'   start = 75104537,
-#'   end = 75106403,
-#'   connect_db_mode = 'local'
+#'   end = 75106403
 #' )
-#' # print(head(local_high_impact_vars))
+#' print(head(local_high_impact_vars))
 #'
 #' # Disconnect at the end of your session
 #' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' online_high_impact_vars <- fetch_variants_by_impact(
+#'   impact_level = "HIGH",
+#'   chrom = "Chr05",
+#'   start = 75104537,
+#'   end = 75106403,
+#'   connect_db_mode = 'online'
+#' )
+#' print(head(online_high_impact_vars))
 #' }
 #'
 #' @import DBI
@@ -1333,19 +1341,6 @@ filter_by_allele_frequency <- function(gt,
 #' # Load the package
 #' library(panGenomeBreedr)
 #'
-#' # --- Online Mode ---
-#' # Query for common variants (MAF >= 5%) in a specific region from the online database
-#' online_common_vars <- fetch_variants_by_allele_frequency(
-#'   min_af = 0.05,
-#'   max_af = 0.95,
-#'   chrom = "Chr05",
-#'   start = 75104537,
-#'   end = 75106403,
-#'   connect_db_mode = 'online'
-#' )
-#' print(head(online_common_vars))
-#'
-#' # --- Offline Mode ---
 #' # Locate the package example database folder
 #' my_db_folder <- system.file("extdata", "pangenome_scale_db",
 #'                            package = "panGenomeBreedr",
@@ -1361,10 +1356,23 @@ filter_by_allele_frequency <- function(gt,
 #'                                 chrom = "Chr05",
 #'                                 start = 75104537,
 #'                                 end = 75106403)
-#' # print(head(local_common_vars))
+#' print(head(local_common_vars))
 #'
 #' # Disconnect at the end of your session
 #' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' online_common_vars <- fetch_variants_by_allele_frequency(
+#'   min_af = 0.05,
+#'   max_af = 0.95,
+#'   chrom = "Chr05",
+#'   start = 75104537,
+#'   end = 75106403,
+#'   connect_db_mode = 'online'
+#' )
+#' print(head(online_common_vars))
 #' }
 #' @export
 fetch_variants_by_allele_frequency <- function(
@@ -1458,16 +1466,6 @@ fetch_variants_by_allele_frequency <- function(
 #' # Define a list of target variant IDs
 #' target_markers <- c("INDEL_Chr05_75104541", "SNP_Chr05_75104557")
 #'
-#' # --- Online Mode ---.
-#' # Query genotypes from the online database
-#' online_genotypes <- fetch_genotypes_by_id(
-#'   variant_ids = target_markers, 
-#'   meta_data = c("chrom", "pos", "ref", "alt", "minor_allele_freq"),
-#'   connect_db_mode = 'online'
-#' )
-#' print(head(online_genotypes[,1:9]))
-#'
-#' # --- Offline Mode ---
 #' # Locate the package example database folder
 #' my_db_folder <- system.file("extdata", "pangenome_scale_db",
 #'                            package = "panGenomeBreedr",
@@ -1482,10 +1480,20 @@ fetch_variants_by_allele_frequency <- function(
 #'   variant_ids = target_markers,
 #'   meta_data = c('chrom', 'minor_allele_freq')
 #' )
-#' # print(local_genotypes[,1:6])
+#' print(local_genotypes[,1:6])
 #'
 #' # Disconnect at the end of your session
 #' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' online_genotypes <- fetch_genotypes_by_id(
+#'   variant_ids = target_markers,
+#'   meta_data = c("chrom", "pos", "ref", "alt", "minor_allele_freq"),
+#'   connect_db_mode = 'online'
+#' )
+#' print(head(online_genotypes[,1:9]))
 #' }
 #'
 #' @import DBI
@@ -1795,18 +1803,12 @@ fetch_genotypes_by_id <- function(
 #'
 #' @examples
 #' \donttest{
-#' # --- Online Mode ---
 #' # Load the package
 #' library(panGenomeBreedr)
 #'
-#' # Count variant types from the online database
-#' online_counts <- count_variant_types(connect_db_mode = 'online')
-#' print(online_counts)
-#'
-#' # --- Offline Mode ---
 #' # Locate the package example database folder
-#' my_db_folder <- system.file("extdata", "pangenome_scale_db", 
-#'                            package = "panGenomeBreedr", 
+#' my_db_folder <- system.file("extdata", "pangenome_scale_db",
+#'                            package = "panGenomeBreedr",
 #'                            mustWork = TRUE)
 #'
 #' # Establish a virtual connection to the offline database engine
@@ -1814,10 +1816,16 @@ fetch_genotypes_by_id <- function(
 #'
 #' # Get the breakdown counts of SNPs vs INDELs
 #' local_counts <- count_variant_types(con = con_local)
-#' # print(local_counts)
+#' print(local_counts)
 #'
 #' # Disconnnect at the end of the session.
 #' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' online_counts <- count_variant_types(connect_db_mode = 'online')
+#' print(online_counts)
 #' }
 #'
 #' @import DBI
@@ -1880,23 +1888,12 @@ count_variant_types <- function(con = NULL, variants_table = "variants", connect
 #'
 #' @examples
 #' \donttest{
-#' # --- Online Mode ---
 #' # Load the package
 #' library(panGenomeBreedr)
 #'
-#' # Get annotation summary from the online database
-#' online_summary <- summarize_annotations(
-#'   chrom = "Chr05",
-#'   start = 75104537,
-#'   end = 75106403,
-#'   connect_db_mode = 'online'
-#' )
-#' print(online_summary)
-#'
-#' # --- Offline Mode ---
 #' # Locate the package example database folder
-#' my_db_folder <- system.file("extdata", "pangenome_scale_db", 
-#'                            package = "panGenomeBreedr", 
+#' my_db_folder <- system.file("extdata", "pangenome_scale_db",
+#'                            package = "panGenomeBreedr",
 #'                            mustWork = TRUE)
 #'
 #' # Establish a virtual connection
@@ -1909,10 +1906,21 @@ count_variant_types <- function(con = NULL, variants_table = "variants", connect
 #'   start = 75104537,
 #'   end = 75106403
 #' )
-#' # print(local_summary)
+#' print(local_summary)
 #'
 #' # Disconnect at the end of your session
 #' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' online_summary <- summarize_annotations(
+#'   chrom = "Chr05",
+#'   start = 75104537,
+#'   end = 75106403,
+#'   connect_db_mode = 'online'
+#' )
+#' print(online_summary)
 #' }
 #' @import DBI
 #' @importFrom httr GET content http_error
@@ -2017,23 +2025,9 @@ summarize_annotations <- function(
 #' # Load the package
 #' library(panGenomeBreedr)
 #'
-#' # --- Online Mode ---
-#' # Retrieve all sample metadata from the online database
-#' all_metadata_online <- fetch_accession_metadata(connect_db_mode = 'online')
-#' print(all_metadata_online[1:3, 1:5])
-#'
-#' # Retrieve metadata for samples from Ghana from the online database
-#' ghana_metadata_online <- fetch_accession_metadata(
-#'   query_col = "countryorigin",
-#'   query_value = "Ghana",
-#'   connect_db_mode = 'online'
-#' )
-#' print(ghana_metadata_online[1:3, 1:5])
-#'
-#' # --- Offline Mode ---
 #' # Locate the package example database folder
-#' my_db_folder <- system.file("extdata", "pangenome_scale_db", 
-#'                            package = "panGenomeBreedr", 
+#' my_db_folder <- system.file("extdata", "pangenome_scale_db",
+#'                            package = "panGenomeBreedr",
 #'                            mustWork = TRUE)
 #'
 #' # Establish a virtual connection
@@ -2045,10 +2039,23 @@ summarize_annotations <- function(
 #'   query_col = "countryorigin",
 #'   query_value = "Ethiopia"
 #' )
-#' # print(ethiopia_metadata_local[1:3, 1:5])
+#' print(ethiopia_metadata_local[1:3, 1:5])
 #'
 #' # Disconnect at the end of your session
 #' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' all_metadata_online <- fetch_accession_metadata(connect_db_mode = 'online')
+#' print(all_metadata_online[1:3, 1:5])
+#'
+#' ghana_metadata_online <- fetch_accession_metadata(
+#'   query_col = "countryorigin",
+#'   query_value = "Ghana",
+#'   connect_db_mode = 'online'
+#' )
+#' print(ghana_metadata_online[1:3, 1:5])
 #' }
 #'
 #' @import DBI
@@ -2126,42 +2133,22 @@ fetch_accession_metadata <- function(
 #' @return A data frame containing the filtered genotype matrix with recalculated
 #'   allele metrics for the sub-population. Returns an empty data frame if no
 #'   samples match all combined criteria.
-#' @examples 
+#' @examples
 #' \donttest{
 #' # Load the package
 #' library(panGenomeBreedr)
-#' 
+#'
 #' # Define filtering criteria
 #' my_filters <- list(
 #'   population = "Gates",
 #'   countryorigin = c("Ethiopia", "Ghana", "Togo")
 #' )
 #'
-#' # --- Online Mode ---
-#' # Extract the full genotype matrix first for a genomic region from the online database
-#' online_genotype_data_region <- fetch_table_region(
-#'   table_name = "genotypes",
-#'   chrom = "Chr05",
-#'   start = 75104537,
-#'   end = 75106403,
-#'   connect_db_mode = 'online'
-#' )
-#'
-#' # Get filtered genotypes matrix from online data
-#' online_filtered_genotypes <- filter_genotypes_by_metadata(
-#'   genotype_matrix = online_genotype_data_region,
-#'   genotype_start_col = 11, # Assuming 11 is the correct start column for this data
-#'   filters = my_filters,
-#'   connect_db_mode = 'online'
-#' )
-#' print(head(online_filtered_genotypes))
-#'
-#' # --- Offline Mode ---
 #' # Locate the package example database folder
-#' my_db_folder <- system.file("extdata", "pangenome_scale_db", 
-#'                            package = "panGenomeBreedr", 
+#' my_db_folder <- system.file("extdata", "pangenome_scale_db",
+#'                            package = "panGenomeBreedr",
 #'                            mustWork = TRUE)
-#' 
+#'
 #' # Establish a virtual connection to the offline database engine
 #' con_local <- connect_local_db(folder_path = my_db_folder)
 #'
@@ -2181,10 +2168,29 @@ fetch_accession_metadata <- function(
 #'   genotype_start_col = 11,
 #'   filters = my_filters
 #' )
-#' # print(head(local_filtered_genotypes))
+#' print(head(local_filtered_genotypes))
 #'
 #' # Disconnect at the end of your session
 #' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' online_genotype_data_region <- fetch_table_region(
+#'   table_name = "genotypes",
+#'   chrom = "Chr05",
+#'   start = 75104537,
+#'   end = 75106403,
+#'   connect_db_mode = 'online'
+#' )
+#'
+#' online_filtered_genotypes <- filter_genotypes_by_metadata(
+#'   genotype_matrix = online_genotype_data_region,
+#'   genotype_start_col = 11, # Assuming 11 is the correct start column for this data
+#'   filters = my_filters,
+#'   connect_db_mode = 'online'
+#' )
+#' print(head(online_filtered_genotypes))
 #' }
 #'
 #' @export
@@ -2399,6 +2405,10 @@ filter_genotypes_by_metadata <- function(
 #'   numeric \code{"lat"} and \code{"lon"} columns alongside the column specified in \code{color_by}.
 #' @param color_by Character. The specific metadata column name used to group and assign discrete 
 #'   color palette attributes to markers. Defaults to \code{"countryorigin"}.
+#' @param basemap Character. The background map shown first: \code{"grey"} (Esri World Gray
+#'   Canvas, default), \code{"street"} (OpenStreetMap) or \code{"satellite"} (Esri World
+#'   Imagery). All three need no API key, and users can switch between them with the
+#'   layer control in the top-right corner of the map.
 #'
 #' @return A \code{leaflet} map object (htmlwidget) displaying interactive geographic coordinate plots.
 #'
@@ -2421,13 +2431,20 @@ filter_genotypes_by_metadata <- function(
 #' # Generate an interactive geographic distribution plot colored by countryorigin
 #' plot_accession_map_result <- plot_accession_map(sample_metadata, color_by = "countryorigin")
 #' print(plot_accession_map_result)
+#'
+#' # Start on the satellite basemap instead
+#' plot_accession_map(sample_metadata, color_by = "countryorigin", basemap = "satellite")
 #' 
 #' # Disconnect at the end of your session
 #' disconnect_local_db(con)
 #' }
 #'
 #' @export
-plot_accession_map <- function(metadata, color_by = "countryorigin") {
+plot_accession_map <- function(metadata,
+                               color_by = "countryorigin",
+                               basemap = c("grey", "street", "satellite")) {
+  basemap <- match.arg(basemap)
+
   # Check if required external packages (leaflet and tools) exist 
   if (!requireNamespace("leaflet", quietly = TRUE)) {
     stop(
@@ -2499,9 +2516,28 @@ plot_accession_map <- function(metadata, color_by = "countryorigin") {
 
   plot_data$color_col <- pal(plot_data[[color_by]])
 
+  # Keyless basemaps; the layer control lists the chosen one first and shows it
+  basemap_groups <- c(grey = "Grey", street = "Street", satellite = "Satellite")
+  base_groups <- c(
+    basemap_groups[[basemap]],
+    setdiff(unname(basemap_groups), basemap_groups[[basemap]])
+  )
+
   # Construct the Leaflet map
   map <- leaflet::leaflet(data = plot_data) |>
-    leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
+    leaflet::addProviderTiles(
+      leaflet::providers$Esri.WorldGrayCanvas,
+      group = "Grey"
+    ) |>
+    leaflet::addTiles(group = "Street") |>
+    leaflet::addProviderTiles(
+      leaflet::providers$Esri.WorldImagery,
+      group = "Satellite"
+    ) |>
+    leaflet::addLayersControl(
+      baseGroups = base_groups,
+      options = leaflet::layersControlOptions(collapsed = TRUE)
+    ) |>
     leaflet::addCircleMarkers(
       lng = ~lon,
       lat = ~lat,
@@ -2543,28 +2579,51 @@ plot_accession_map <- function(metadata, color_by = "countryorigin") {
 #' @export
 #' @examples
 #' \donttest{
-#' # Mode 1: Compute full pairwise matrix landscape
-#' 
-#' # Get genotype matrix from the online database
-#' query_geno <- panGenomeBreedr::fetch_table_region(
-#' table_name = "genotypes",
-#' chrom = "Chr03",
-#' start = 79037682,
-#' end = 79039091,
-#' connect_db_mode = 'online'
+#' library(panGenomeBreedr)
+#'
+#' # Locate the package example database folder
+#' my_db_folder <- system.file("extdata", "pangenome_scale_db",
+#'                            package = "panGenomeBreedr",
+#'                            mustWork = TRUE)
+#' con_local <- connect_local_db(folder_path = my_db_folder)
+#'
+#' # Get genotype matrix for the region from the local database
+#' query_geno <- fetch_table_region(
+#'   con = con_local,
+#'   table_name = "genotypes",
+#'   chrom = "Chr03",
+#'   start = 79037682,
+#'   end = 79039091
 #' )
-#' 
+#'
+#' # Mode 1: Compute full pairwise matrix landscape
 #' full_ld <- calculate_LD(df = query_geno, target_variant_ids = NULL, genotype_start_col = 11)
 #' print(head(full_ld))
-#' 
+#'
 #' # Mode 2: Targeted calculation panel for KASP marker vetting
-#' target_variants <- c("INDEL_Chr03_79037682", "INDEL_Chr03_79037750", "SNP_Chr03_79039022")
+#' target_variants <- c("INDEL_Chr03_79037889", "SNP_Chr03_79037855")
 #' targeted_panel <- calculate_LD(
-#'   df = query_geno, 
-#'   target_variant_ids = target_variants, 
+#'   df = query_geno,
+#'   target_variant_ids = target_variants,
 #'   genotype_start_col = 11
 #' )
 #' print(head(targeted_panel))
+#'
+#' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' query_geno_online <- fetch_table_region(
+#'   table_name = "genotypes",
+#'   chrom = "Chr03",
+#'   start = 79037682,
+#'   end = 79039091,
+#'   connect_db_mode = 'online'
+#' )
+#' full_ld_online <- calculate_LD(df = query_geno_online, target_variant_ids = NULL,
+#'                                 genotype_start_col = 11)
+#' print(head(full_ld_online))
 #' }
 calculate_LD <- function(
   df,
@@ -2792,39 +2851,47 @@ calculate_LD <- function(
 #' 
 #' @export
 #' @examples
-#' \donttest{ 
-#' query_annot <- panGenomeBreedr::fetch_table_region(
-#' table_name = "annotations",
-#' chrom = "Chr03",
-#' gene_name = "Sobic.003G421300",
-#' start = 79037682,
-#' end = 79039091,
-#' connect_db_mode = 'online'
+#' \donttest{
+#' library(panGenomeBreedr)
+#'
+#' # Locate the package example database folder
+#' my_db_folder <- system.file("extdata", "pangenome_scale_db",
+#'                            package = "panGenomeBreedr",
+#'                            mustWork = TRUE)
+#' con_local <- connect_local_db(folder_path = my_db_folder)
+#'
+#' query_annot <- fetch_table_region(
+#'   con = con_local,
+#'   table_name = "annotations",
+#'   chrom = "Chr03",
+#'   gene_name = "Sobic.003G421300",
+#'   start = 79037682,
+#'   end = 79039091
 #' )
-#' 
-#' query_geno <- panGenomeBreedr::fetch_table_region(
-#' table_name = "genotypes",
-#' chrom = "Chr03",
-#' start = 79037682,
-#' end = 79039091,
-#' connect_db_mode = 'online'
+#'
+#' query_geno <- fetch_table_region(
+#'   con = con_local,
+#'   table_name = "genotypes",
+#'   chrom = "Chr03",
+#'   start = 79037682,
+#'   end = 79039091
 #' )
-#' 
+#'
 #' # Compute your updated wide data containing distance tracking columns
 #' ld_results <- calculate_LD(
 #' df = query_geno,
 #' target_variant_ids = NULL,
 #' genotype_start_col = 11
 #' )
-#' 
+#'
 #' # Generate the plot and table package
 #' result <- plot_ld_geodesic(
-#'   ld_df = ld_results, 
-#'   query_db_geno = query_geno, 
+#'   ld_df = ld_results,
+#'   query_db_geno = query_geno,
 #'   query_db_annot = query_annot,
 #'   metric = "R2",
 #'   target_variant_ids = c("INDEL_Chr03_79037889", "SNP_Chr03_79037855","SNP_Chr03_79037944"),
-#'   threshold = 0.8, 
+#'   threshold = 0.8,
 #'   block_threshold = 0.8
 #' )
 #'
@@ -2833,6 +2900,39 @@ calculate_LD <- function(
 #'
 #' # Access the haploblock table
 #' print(result$table)
+#'
+#' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' query_annot_online <- fetch_table_region(
+#'   table_name = "annotations",
+#'   chrom = "Chr03",
+#'   gene_name = "Sobic.003G421300",
+#'   start = 79037682,
+#'   end = 79039091,
+#'   connect_db_mode = 'online'
+#' )
+#' query_geno_online <- fetch_table_region(
+#'   table_name = "genotypes",
+#'   chrom = "Chr03",
+#'   start = 79037682,
+#'   end = 79039091,
+#'   connect_db_mode = 'online'
+#' )
+#' ld_results_online <- calculate_LD(
+#'   df = query_geno_online, target_variant_ids = NULL, genotype_start_col = 11
+#' )
+#' result_online <- plot_ld_geodesic(
+#'   ld_df = ld_results_online,
+#'   query_db_geno = query_geno_online,
+#'   query_db_annot = query_annot_online,
+#'   metric = "R2",
+#'   threshold = 0.8,
+#'   block_threshold = 0.8
+#' )
+#' result_online$plot
 #' }
 plot_ld_geodesic <- function(
   ld_df,
@@ -3267,13 +3367,22 @@ append_locus_allele_metrics <- function(
 #' of the gene, transcripts, 5'-UTR, CDS, and 3'-UTR.
 #' @examples
 #' \donttest{
-#' # example code
 #' library(panGenomeBreedr)
-#' # Path to GFF3 file
-#' gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+#' # Small local GFF3 slice bundled with the package
+#' gff_path <- system.file("extdata", "pangenome_scale_db", "gene_models.gff3.gz",
+#'                            package = "panGenomeBreedr",
+#'                            mustWork = TRUE)
 #' gene_features <- gene_coord_gff(gene_name = "Sobic.005G213600",
 #'                                 gff_path = gff_path)
 #' head(gene_features)
+#' }
+#'
+#' \dontrun{
+#' # To use the full, public reference GFF3 instead:
+#' gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+#' gene_features_online <- gene_coord_gff(gene_name = "Sobic.005G213600",
+#'                                 gff_path = gff_path)
+#' head(gene_features_online)
 #' }
 #' @export
 #' @importFrom R.utils isUrl isGzipped gunzip
@@ -3461,12 +3570,23 @@ gene_coord_gff <- function(gene_name, gff_path) {
 #' @examples
 #' \donttest{
 #' library(panGenomeBreedr)
-#' # Path to GFF3 file
-#' gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
-#' gene_features <- gene_coord_gff(gene_name = "Sobic.005G213600",
+#' # Small local GFF3 slice bundled with the package
+#' gff_path <- system.file("extdata", "pangenome_scale_db", "gene_models.gff3.gz",
+#'                            package = "panGenomeBreedr",
+#'                            mustWork = TRUE)
+#' # Sobic.003G421300 has two annotated transcripts, so this also shows the
+#' # per-transcript row stacking described above
+#' gene_features <- gene_coord_gff(gene_name = "Sobic.003G421300",
 #'                                 gff_path = gff_path)
-#' # Plot gene model for Sobic.005G213600
 #' plot_gene_model(gene_df = gene_features)
+#' }
+#'
+#' \dontrun{
+#' # To use the full, public reference GFF3 instead:
+#' gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+#' gene_features_online <- gene_coord_gff(gene_name = "Sobic.005G213600",
+#'                                 gff_path = gff_path)
+#' plot_gene_model(gene_df = gene_features_online)
 #' }
 #' @export
 #' @importFrom ggplot2 ggplot aes geom_rect geom_segment scale_fill_manual scale_y_continuous theme_minimal labs theme element_blank arrow
@@ -3622,26 +3742,52 @@ plot_gene_model <- function(gene_df, row_height = 0.6) {
 #' @examples
 #' \donttest{
 #' library(panGenomeBreedr)
+#'
+#' # Locate the package example database folder
+#' my_db_folder <- system.file("extdata", "pangenome_scale_db",
+#'                            package = "panGenomeBreedr",
+#'                            mustWork = TRUE)
+#' con_local <- connect_local_db(folder_path = my_db_folder)
+#'
 #' # Extract genotypes within the candidate gene: Sobic.005G213600
-#' gt_region <- fetch_table_region(table_name = "genotypes",
+#' gt_region <- fetch_table_region(con = con_local, table_name = "genotypes",
+#'                                 chrom = "Chr05",
+#'                                 start = 75104537,
+#'                                 end = 75106403
+#'                                 )
+#'
+#' # Extract annotations for the candidate gene
+#' annota_region <- fetch_table_region(con = con_local, table_name = "annotations",
+#'                                     chrom = "Chr05",
+#'                                     start = 75104537,
+#'                                     end = 75106403,
+#'                                     gene_name = "Sobic.005G213600"
+#'                                     )
+#'
+#' var_df <- merge(annota_region, gt_region, by = "variant_id")
+#'
+#' plot_variant_hotspot(var_df)
+#'
+#' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To query the public online resource instead:
+#' gt_region_online <- fetch_table_region(table_name = "genotypes",
 #'                                 chrom = "Chr05",
 #'                                 start = 75104537,
 #'                                 end = 75106403,
 #'                                 connect_db_mode = "online"
 #'                                 )
-#'
-#' # Extract annotations for the candidate gene
-#' annota_region <- fetch_table_region(table_name = "annotations",
+#' annota_region_online <- fetch_table_region(table_name = "annotations",
 #'                                     chrom = "Chr05",
 #'                                     start = 75104537,
 #'                                     end = 75106403,
 #'                                     gene_name = "Sobic.005G213600",
 #'                                     connect_db_mode = "online"
 #'                                     )
-#'
-#' var_df <- merge(annota_region, gt_region, by = "variant_id")
-#'
-#' plot_variant_hotspot(var_df)
+#' var_df_online <- merge(annota_region_online, gt_region_online, by = "variant_id")
+#' plot_variant_hotspot(var_df_online)
 #' }
 #' @export
 #' @importFrom ggplot2 ggplot aes geom_hline geom_segment geom_point scale_fill_manual scale_shape_manual scale_size_continuous scale_x_continuous scale_y_continuous theme_minimal labs theme element_blank element_text element_line guides guide_legend margin
@@ -3850,20 +3996,25 @@ plot_variant_hotspot <- function(
 #' \donttest{
 #' library(panGenomeBreedr)
 #'
-#' # 1. Define parameters
-#' gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+#' # 1. Define parameters using the package's bundled example database and
+#' # a small GFF3 slice for the same gene
+#' my_db_folder <- system.file("extdata", "pangenome_scale_db",
+#'                            package = "panGenomeBreedr",
+#'                            mustWork = TRUE)
+#' gff_path <- system.file("extdata", "pangenome_scale_db", "gene_models.gff3.gz",
+#'                            package = "panGenomeBreedr",
+#'                            mustWork = TRUE)
+#' con_local <- connect_local_db(folder_path = my_db_folder)
 #' gene <- "Sobic.005G213600"
 #'
 #' # Fetch data for the gene region
 #' ann_df <- fetch_table_region(
-#'   table_name = "annotations",
-#'   chrom = "Chr05", start = 75104537, end = 75106403,
-#'   connect_db_mode = 'online'
+#'   con = con_local, table_name = "annotations",
+#'   chrom = "Chr05", start = 75104537, end = 75106403
 #' )
 #' geno_df <- fetch_table_region(
-#'   table_name = "genotypes",
-#'   chrom = "Chr05", start = 75104537, end = 75106403,
-#'   connect_db_mode = 'online'
+#'   con = con_local, table_name = "genotypes",
+#'   chrom = "Chr05", start = 75104537, end = 75106403
 #' )
 #'
 #' #  Generate and display the plot
@@ -3871,6 +4022,30 @@ plot_variant_hotspot <- function(
 #'   hotspot_overlay_plot(
 #'     gene_name = gene, gff_path = gff_path,
 #'     annotations_df = ann_df, genotypes_df = geno_df
+#'   )
+#' }
+#'
+#' disconnect_local_db(con_local)
+#' }
+#'
+#' \dontrun{
+#' # To use the full, public reference GFF3 and query the online resource instead:
+#' gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+#' gene <- "Sobic.005G213600"
+#' ann_df_online <- fetch_table_region(
+#'   table_name = "annotations",
+#'   chrom = "Chr05", start = 75104537, end = 75106403,
+#'   connect_db_mode = 'online'
+#' )
+#' geno_df_online <- fetch_table_region(
+#'   table_name = "genotypes",
+#'   chrom = "Chr05", start = 75104537, end = 75106403,
+#'   connect_db_mode = 'online'
+#' )
+#' if (nrow(ann_df_online) > 0 && nrow(geno_df_online) > 0) {
+#'   hotspot_overlay_plot(
+#'     gene_name = gene, gff_path = gff_path,
+#'     annotations_df = ann_df_online, genotypes_df = geno_df_online
 #'   )
 #' }
 #' }

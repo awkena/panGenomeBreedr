@@ -22,15 +22,9 @@ or the online database, depending on the selected mode.
 }
 \examples{
 \donttest{
-# --- Online Mode ---
 # Load the package
 library(panGenomeBreedr)
 
-# List all tables in the online database
-online_tables <- list_tables(connect_db_mode = 'online')
-print(online_tables)
-
-# --- Offline Mode ---
 # Locate the package example database folder
 my_db_folder <- system.file("extdata", "pangenome_scale_db",
                            package = "panGenomeBreedr",
@@ -41,10 +35,16 @@ con_local <- connect_local_db(folder_path = my_db_folder)
 
 # List tables from the local connection (default mode is 'local')
 local_tables <- list_tables(con = con_local)
-# print(local_tables)
+print(local_tables)
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
+}
+
+\dontrun{
+# To query the public online resource instead:
+online_tables <- list_tables(connect_db_mode = 'online')
+print(online_tables)
 }
 
 }

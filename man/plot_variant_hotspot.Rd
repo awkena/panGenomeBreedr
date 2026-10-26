@@ -42,25 +42,51 @@ minor allele frequencies (MAF) mapped to point size.
 \examples{
 \donttest{
 library(panGenomeBreedr)
+
+# Locate the package example database folder
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+con_local <- connect_local_db(folder_path = my_db_folder)
+
 # Extract genotypes within the candidate gene: Sobic.005G213600
-gt_region <- fetch_table_region(table_name = "genotypes",
+gt_region <- fetch_table_region(con = con_local, table_name = "genotypes",
+                                chrom = "Chr05",
+                                start = 75104537,
+                                end = 75106403
+                                )
+
+# Extract annotations for the candidate gene
+annota_region <- fetch_table_region(con = con_local, table_name = "annotations",
+                                    chrom = "Chr05",
+                                    start = 75104537,
+                                    end = 75106403,
+                                    gene_name = "Sobic.005G213600"
+                                    )
+
+var_df <- merge(annota_region, gt_region, by = "variant_id")
+
+plot_variant_hotspot(var_df)
+
+disconnect_local_db(con_local)
+}
+
+\dontrun{
+# To query the public online resource instead:
+gt_region_online <- fetch_table_region(table_name = "genotypes",
                                 chrom = "Chr05",
                                 start = 75104537,
                                 end = 75106403,
                                 connect_db_mode = "online"
                                 )
-
-# Extract annotations for the candidate gene
-annota_region <- fetch_table_region(table_name = "annotations",
+annota_region_online <- fetch_table_region(table_name = "annotations",
                                     chrom = "Chr05",
                                     start = 75104537,
                                     end = 75106403,
                                     gene_name = "Sobic.005G213600",
                                     connect_db_mode = "online"
                                     )
-
-var_df <- merge(annota_region, gt_region, by = "variant_id")
-
-plot_variant_hotspot(var_df)
+var_df_online <- merge(annota_region_online, gt_region_online, by = "variant_id")
+plot_variant_hotspot(var_df_online)
 }
 }

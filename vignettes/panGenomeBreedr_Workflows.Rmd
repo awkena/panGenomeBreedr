@@ -614,15 +614,26 @@ The hierarchy in the PCIL metadata reflects this design: `clan` (the RP backgrou
 | `pcil_inbreeding_coefficient` | Per-sample inbreeding coefficient (F) |
 | `pcil_IBS_dis` | Pairwise Identity-By-State (IBS) genetic distance between every sample pair |
 
-`panGB` is configured to automatically connect to the same public **Curated Sorghum Pangenome-Scale Variant Resource** for PCIL data. As with the variant discovery functions, set `connect_db_mode = 'online'` to query it directly.
+The package's bundled example database (the same `pangenome_scale_db` used throughout this vignette) includes a small PCIL data slice, so the walkthrough below runs entirely offline. Set `connect_db_mode = 'online'` instead to query the full public **Curated Sorghum Pangenome-Scale Variant Resource**.
 
 ```{r}
 library(panGenomeBreedr)
 
-# Fetch all PCIL data tables from the remote database
-pcil_data <- fetch_pcil_data(connect_db_mode = 'online')
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+
+# Fetch all PCIL data tables from the local database
+pcil_data <- fetch_pcil_data(con = con_demo)
 
 names(pcil_data)
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
 ```
 
 ## Identifying Candidate Variants for PCIL Screening
@@ -632,12 +643,20 @@ We continue with a new candidate gene, `Sobic.003G421300`, and screen its annota
 ```{r}
 library(panGenomeBreedr)
 
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+
 # Fetch annotations for the candidate gene
 pg_ann_region <- fetch_table_region(
+  con = con_demo,
   table_name = "annotations",
   chrom = 'Chr03',
-  gene_name = 'Sobic.003G421300',
-  connect_db_mode = 'online'
+  gene_name = 'Sobic.003G421300'
 )
 
 # Distribution of predicted impacts
@@ -648,9 +667,12 @@ pg_ann_region_mod <- pg_ann_region[pg_ann_region$impact %in% c("HIGH", "MODERATE
 
 # Extract genotypes for the selected variants
 variant_geno <- fetch_genotypes_by_id(
-  variant_ids = pg_ann_region_mod$variant_id,
-  connect_db_mode = 'online'
+  con = con_demo,
+  variant_ids = pg_ann_region_mod$variant_id
 )
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
 ```
 
 ```{r, echo = FALSE}
@@ -663,7 +685,7 @@ knitr::kable(pg_ann_region_mod[, c("variant_id", "annotation", "impact", "gene_n
              row.names = FALSE)
 ```
 
-Of the nine HIGH/MODERATE impact variants annotated for this gene, we settle on two tightly linked missense variants as our putative causal variants for KASP marker design:
+Of the six HIGH/MODERATE impact variants annotated for this gene, we settle on two tightly linked missense variants as our putative causal variants for KASP marker design:
 
 ```{r}
 # Putative causal variants selected for downstream PCIL screening and KASP design
@@ -679,12 +701,23 @@ variant_geno_sel <- variant_geno[variant_geno$variant_id %in% selection, ]
 ```{r}
 library(panGenomeBreedr)
 
+# Locate the package example database folder
+mini_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+
+# Establish a virtual connection to the offline database engine
+con_demo <- connect_local_db(folder_path = mini_folder)
+
 # Identify PCIL families acting as putative donors for the selected variants
 results <- fetch_pcil_families_by_variant(
+  con = con_demo,
   selection = selection,
-  pcil_data = pcil_data,
-  connect_db_mode = 'online'
+  pcil_data = pcil_data
 )
+
+# Cleanly close the connection and release memory allocations
+disconnect_local_db(con_demo)
 ```
 
 ```{r, echo = FALSE}

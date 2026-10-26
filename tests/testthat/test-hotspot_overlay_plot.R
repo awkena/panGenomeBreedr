@@ -1,47 +1,61 @@
 
 # --- Helper: Create Mock Data ---
+# Shaped like the real gene_coord_gff() output: a gene backbone row plus a
+# transcript row (with its own ID) and that transcript's CDS/UTR children.
 mock_gene_df <- data.frame(
-  ID = "Sobic.005G213600",
-  Feature = c("gene", "five_prime_UTR", "CDS", "three_prime_UTR"),
+  ID = c(
+    "Sobic.005G213600",
+    "Sobic.005G213600.1",
+    "Sobic.005G213600.1",
+    "Sobic.005G213600.1",
+    "Sobic.005G213600.1"
+  ),
+  Feature = c("gene", "mRNA", "five_prime_UTR", "CDS", "three_prime_UTR"),
   Chromosome = "Chr05",
-  Start = c(75104500, 75104500, 75104601, 75106001),
-  End = c(75106500, 75104600, 75106000, 75106500),
+  Start = c(75104500, 75104500, 75104500, 75104601, 75106001),
+  End = c(75106500, 75106500, 75104600, 75106000, 75106500),
   Strand = "+",
   stringsAsFactors = FALSE
 )
 
-mock_pg_annota <- data.frame(
+# annotations_df and genotypes_df as hotspot_overlay_plot() merges them
+# itself (by variant_id); chrom/pos overlap between the two, so the merge
+# suffixes them to chrom.x/pos.x -- matching plot_variant_hotspot()'s
+# defaults.
+mock_annota_df <- data.frame(
   variant_id = c("INDEL_Chr05_75104881", "SNP_Chr05_75105000"),
+  chrom = c("Chr05", "Chr05"),
+  pos = c(75104881, 75105000),
   impact = c("HIGH", "LOW"),
   stringsAsFactors = FALSE
 )
 
-mock_pg_gt <- data.frame(
+mock_geno_df <- data.frame(
   variant_id = c("INDEL_Chr05_75104881", "SNP_Chr05_75105000"),
-  chrom.x = c("Chr05", "Chr05"),
-  pos.x = c(75104881, 75105000),
+  chrom = c("Chr05", "Chr05"),
+  pos = c(75104881, 75105000),
   variant_type = c("INDEL", "SNP"),
+  minor_allele_freq = c(0.12, 0.2),
   stringsAsFactors = FALSE
 )
 
 
 # --- Tests ---
 
-test_that("hotspot_overlay_plot generates a patchwork object in online mode", {
+test_that("hotspot_overlay_plot generates a patchwork object", {
 
-  # Mock the internal dependencies to isolate the wrapper's logic
+  # Mock gene_coord_gff() to isolate the wrapper's own logic from the GFF
+  # parser; annotations_df/genotypes_df are passed directly, as the real
+  # caller (mod_variant_discovery.R) already fetches them beforehand.
   local_mocked_bindings(
-    gene_coord_gff = function(gene_name, gff_path) mock_gene_df,
-    pg_query_db = function(table_name, chrom, start, end, gene_name = NULL) {
-      if (table_name == "annotations") return(mock_pg_annota)
-      if (table_name == "variants") return(mock_pg_gt)
-    }
+    gene_coord_gff = function(gene_name, gff_path) mock_gene_df
   )
 
   p <- hotspot_overlay_plot(
     gene_name = "Sobic.005G213600",
     gff_path = "dummy.gff3",
-    connect_db_mode = "online"
+    annotations_df = mock_annota_df,
+    genotypes_df = mock_geno_df
   )
 
   # 1. Check if the output is successfully built as a patchwork object
@@ -54,44 +68,18 @@ test_that("hotspot_overlay_plot generates a patchwork object in online mode", {
 })
 
 
-test_that("hotspot_overlay_plot processes local DB mode correctly", {
-
-  # Mock the local database connection and query functions
-  local_mocked_bindings(
-    gene_coord_gff = function(gene_name, gff_path) mock_gene_df,
-    connect_local_db = function(folder_path) return("mock_connection"),
-    query_db = function(con, table_name, chrom, start, end, gene_name = NULL) {
-      if (table_name == "annotations") return(mock_pg_annota)
-      if (table_name == "variants") return(mock_pg_gt)
-    }
-  )
-
-  p <- hotspot_overlay_plot(
-    gene_name = "Sobic.005G213600",
-    gff_path = "dummy.gff3",
-    connect_db_mode = "local",
-    local_db_path = "fake/path/to/db"
-  )
-
-  expect_s3_class(p, c("patchwork", "gg", "ggplot"))
-})
-
-
 test_that("hotspot_overlay_plot successfully adds selected_variants annotation layers", {
 
   local_mocked_bindings(
-    gene_coord_gff = function(gene_name, gff_path) mock_gene_df,
-    pg_query_db = function(table_name, chrom, start, end, gene_name = NULL) {
-      if (table_name == "annotations") return(mock_pg_annota)
-      if (table_name == "variants") return(mock_pg_gt)
-    }
+    gene_coord_gff = function(gene_name, gff_path) mock_gene_df
   )
 
   # Generate annotated plot
   p_annotated <- hotspot_overlay_plot(
     gene_name = "Sobic.005G213600",
     gff_path = "dummy.gff3",
-    connect_db_mode = "online",
+    annotations_df = mock_annota_df,
+    genotypes_df = mock_geno_df,
     selected_variants = c("INDEL_Chr05_75104881")
   )
 
@@ -103,20 +91,4 @@ test_that("hotspot_overlay_plot successfully adds selected_variants annotation l
 
   expect_true("GeomTextRepel" %in% all_geoms)
   expect_true("GeomVline" %in% all_geoms)
-})
-
-
-test_that("hotspot_overlay_plot throws an error if local mode is selected without a path", {
-
-  # Because the wrapper now fails fast, we do not need to mock gene_coord_gff here
-  expect_error(
-    hotspot_overlay_plot(
-      gene_name = "Sobic.005G213600",
-      gff_path = "dummy.gff3",
-      connect_db_mode = "local",
-      local_db_path = NULL
-    ),
-    "Please provide the path to the local DB."
-  )
-
 })

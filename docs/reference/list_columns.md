@@ -39,24 +39,9 @@ A data frame containing the schema details of the target table.
 
 ``` r
 # \donttest{
-# --- Online Mode ---
 # Load the package
 library(panGenomeBreedr)
 
-# Get schema for the "variants" table from the online database
-online_schema <- list_columns(table_name = "variants", connect_db_mode = 'online')
-print(online_schema)
-#>    column_name data_type
-#> 1   variant_id   VARCHAR
-#> 2        chrom   VARCHAR
-#> 3          pos    BIGINT
-#> 4          ref   VARCHAR
-#> 5          alt   VARCHAR
-#> 6         qual   VARCHAR
-#> 7       filter   VARCHAR
-#> 8 variant_type   VARCHAR
-
-# --- Offline Mode ---
 # Locate the package example database folder
 my_db_folder <- system.file("extdata", "pangenome_scale_db",
                            package = "panGenomeBreedr",
@@ -64,14 +49,29 @@ my_db_folder <- system.file("extdata", "pangenome_scale_db",
 
 # Establish a virtual connection to the offline database engine
 con_local <- connect_local_db(folder_path = my_db_folder)
-#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
 
 # Inspect the schema of the local "variants" table
 local_schema <- list_columns(con = con_local, table_name = "variants")
-# print(local_schema)
+print(local_schema)
+#>    column_name column_type null  key default extra
+#> 1   variant_id     VARCHAR  YES <NA>    <NA>  <NA>
+#> 2        chrom     VARCHAR  YES <NA>    <NA>  <NA>
+#> 3          pos      DOUBLE  YES <NA>    <NA>  <NA>
+#> 4          ref     VARCHAR  YES <NA>    <NA>  <NA>
+#> 5          alt     VARCHAR  YES <NA>    <NA>  <NA>
+#> 6         qual     VARCHAR  YES <NA>    <NA>  <NA>
+#> 7       filter     VARCHAR  YES <NA>    <NA>  <NA>
+#> 8 variant_type     VARCHAR  YES <NA>    <NA>  <NA>
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
 #> Successfully disconnected from the local database. Memory cleared.
 # }
+
+if (FALSE) { # \dontrun{
+# To query the public online resource instead:
+online_schema <- list_columns(table_name = "variants", connect_db_mode = 'online')
+print(online_schema)
+} # }
 ```

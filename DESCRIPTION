@@ -36,6 +36,7 @@ Imports:
     DBI,
     ggplot2,
     golem,
+    grid,
     gridExtra,
     R.utils,
     reshape2,
@@ -88,6 +89,8 @@ Suggests:
     httptest,
     GenomeInfoDb,
     GenomicAlignments,
+    BiocManager,
+    withr
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.1.0

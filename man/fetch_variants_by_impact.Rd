@@ -44,18 +44,6 @@ or 'online' mode (fetching data from a remote API endpoint).
 # Load the package
 library(panGenomeBreedr)
 
-# --- Online Mode ---
-# Query for high-impact variants in a specific genomic region from the online database
-online_high_impact_vars <- fetch_variants_by_impact(
-  impact_level = "HIGH",
-  chrom = "Chr05",
-  start = 75104537,
-  end = 75106403,
-  connect_db_mode = 'online'
-)
-print(head(online_high_impact_vars))
-
-# --- Offline Mode ---
 # Locate the package example database folder
 my_db_folder <- system.file("extdata", "pangenome_scale_db",
                            package = "panGenomeBreedr",
@@ -70,13 +58,24 @@ local_high_impact_vars <- fetch_variants_by_impact(
   impact_level = "HIGH",
   chrom = "Chr05",
   start = 75104537,
-  end = 75106403,
-  connect_db_mode = 'local'
+  end = 75106403
 )
-# print(head(local_high_impact_vars))
+print(head(local_high_impact_vars))
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
+}
+
+\dontrun{
+# To query the public online resource instead:
+online_high_impact_vars <- fetch_variants_by_impact(
+  impact_level = "HIGH",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403,
+  connect_db_mode = 'online'
+)
+print(head(online_high_impact_vars))
 }
 
 }

@@ -29,19 +29,9 @@ A character vector of table names in the database.
 
 ``` r
 # \donttest{
-# --- Online Mode ---
 # Load the package
 library(panGenomeBreedr)
 
-# List all tables in the online database
-online_tables <- list_tables(connect_db_mode = 'online')
-print(online_tables)
-#>  [1] "annotations"          "genotypes"            "metadata"            
-#>  [4] "pcil_genes"           "pcil_genomewide"      "pcil_ibs"            
-#>  [7] "pcil_introgressions"  "pcil_metadata"        "pcil_sample_metadata"
-#> [10] "variants"            
-
-# --- Offline Mode ---
 # Locate the package example database folder
 my_db_folder <- system.file("extdata", "pangenome_scale_db",
                            package = "panGenomeBreedr",
@@ -49,14 +39,24 @@ my_db_folder <- system.file("extdata", "pangenome_scale_db",
 
 # Establish a virtual connection to the offline database engine
 con_local <- connect_local_db(folder_path = my_db_folder)
-#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
 
 # List tables from the local connection (default mode is 'local')
 local_tables <- list_tables(con = con_local)
-# print(local_tables)
+print(local_tables)
+#>  [1] "annotations"          "genotypes"            "metadata"            
+#>  [4] "pcil_genes"           "pcil_genomewide"      "pcil_ibs"            
+#>  [7] "pcil_introgressions"  "pcil_metadata"        "pcil_sample_metadata"
+#> [10] "variants"            
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
 #> Successfully disconnected from the local database. Memory cleared.
 # }
+
+if (FALSE) { # \dontrun{
+# To query the public online resource instead:
+online_tables <- list_tables(connect_db_mode = 'online')
+print(online_tables)
+} # }
 ```

@@ -46,23 +46,12 @@ variant type. It can operate in 'local' or 'online' mode.
 }
 \examples{
 \donttest{
-# --- Online Mode ---
 # Load the package
 library(panGenomeBreedr)
 
-# Get annotation summary from the online database
-online_summary <- summarize_annotations(
-  chrom = "Chr05",
-  start = 75104537,
-  end = 75106403,
-  connect_db_mode = 'online'
-)
-print(online_summary)
-
-# --- Offline Mode ---
 # Locate the package example database folder
-my_db_folder <- system.file("extdata", "pangenome_scale_db", 
-                           package = "panGenomeBreedr", 
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
                            mustWork = TRUE)
 
 # Establish a virtual connection
@@ -75,9 +64,20 @@ local_summary <- summarize_annotations(
   start = 75104537,
   end = 75106403
 )
-# print(local_summary)
+print(local_summary)
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
+}
+
+\dontrun{
+# To query the public online resource instead:
+online_summary <- summarize_annotations(
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403,
+  connect_db_mode = 'online'
+)
+print(online_summary)
 }
 }

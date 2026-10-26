@@ -34,27 +34,50 @@ Compute Linkage Disequilibrium (LD) Metrics (R2 and D')
 }
 \examples{
 \donttest{
-# Mode 1: Compute full pairwise matrix landscape
+library(panGenomeBreedr)
 
-# Get genotype matrix from the online database
-query_geno <- panGenomeBreedr::fetch_table_region(
-table_name = "genotypes",
-chrom = "Chr03",
-start = 79037682,
-end = 79039091,
-connect_db_mode = 'online'
+# Locate the package example database folder
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+con_local <- connect_local_db(folder_path = my_db_folder)
+
+# Get genotype matrix for the region from the local database
+query_geno <- fetch_table_region(
+  con = con_local,
+  table_name = "genotypes",
+  chrom = "Chr03",
+  start = 79037682,
+  end = 79039091
 )
 
+# Mode 1: Compute full pairwise matrix landscape
 full_ld <- calculate_LD(df = query_geno, target_variant_ids = NULL, genotype_start_col = 11)
 print(head(full_ld))
 
 # Mode 2: Targeted calculation panel for KASP marker vetting
-target_variants <- c("INDEL_Chr03_79037682", "INDEL_Chr03_79037750", "SNP_Chr03_79039022")
+target_variants <- c("INDEL_Chr03_79037889", "SNP_Chr03_79037855")
 targeted_panel <- calculate_LD(
-  df = query_geno, 
-  target_variant_ids = target_variants, 
+  df = query_geno,
+  target_variant_ids = target_variants,
   genotype_start_col = 11
 )
 print(head(targeted_panel))
+
+disconnect_local_db(con_local)
+}
+
+\dontrun{
+# To query the public online resource instead:
+query_geno_online <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = "Chr03",
+  start = 79037682,
+  end = 79039091,
+  connect_db_mode = 'online'
+)
+full_ld_online <- calculate_LD(df = query_geno_online, target_variant_ids = NULL,
+                                genotype_start_col = 11)
+print(head(full_ld_online))
 }
 }

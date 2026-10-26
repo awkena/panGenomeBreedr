@@ -56,7 +56,7 @@ my_db_folder <- system.file("extdata", "pangenome_scale_db",
 
 # Establish a virtual connection to the offline database engine
 con <- connect_local_db(folder_path = my_db_folder)
-#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
 
 # Pull wide genotype records for a locus window range
 gt_region <- fetch_table_region(con = con, chrom = "Chr05", start = 75104537, 

@@ -98,8 +98,60 @@ Can be either `'local'` (default) or `'online'`.</p></dd>
 <span class="r-in"><span><span class="co"># Load the package</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># --- Online Mode ---</span></span></span>
-<span class="r-in"><span><span class="co"># Query for high-impact variants in a specific genomic region from the online database</span></span></span>
+<span class="r-in"><span><span class="co"># Locate the package example database folder</span></span></span>
+<span class="r-in"><span><span class="va">my_db_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pangenome_scale_db"</span>,</span></span>
+<span class="r-in"><span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>,</span></span>
+<span class="r-in"><span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Establish a virtual connection to the offline database engine</span></span></span>
+<span class="r-in"><span><span class="va">con_local</span> <span class="op">&lt;-</span> <span class="fu"><a href="connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">my_db_folder</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Extract high-impact variant lines inside a targeted coordinates locus window from local DB</span></span></span>
+<span class="r-in"><span><span class="va">local_high_impact_vars</span> <span class="op">&lt;-</span> <span class="fu">fetch_variants_by_impact</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  con <span class="op">=</span> <span class="va">con_local</span>,</span></span>
+<span class="r-in"><span>  impact_level <span class="op">=</span> <span class="st">"HIGH"</span>,</span></span>
+<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span></span>
+<span class="r-in"><span>  start <span class="op">=</span> <span class="fl">75104537</span>,</span></span>
+<span class="r-in"><span>  end <span class="op">=</span> <span class="fl">75106403</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">local_high_impact_vars</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             variant_id chrom      pos   ref   alt qual filter variant_type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 INDEL_Chr05_75104881 Chr05 75104881     G GTCGA    .   PASS        INDEL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 INDEL_Chr05_75105587 Chr05 75105587    GC     G    .   PASS        INDEL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 INDEL_Chr05_75105598 Chr05 75105598    GT     G    .   PASS        INDEL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 INDEL_Chr05_75106156 Chr05 75106156 CGTAT     C    .   PASS        INDEL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 INDEL_Chr05_75106295 Chr05 75106295     A   ATC    .   PASS        INDEL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 INDEL_Chr05_75106325 Chr05 75106325     G   GTA    .   PASS        INDEL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   allele         annotation impact        gene_name               gene_id</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  GTCGA frameshift_variant   HIGH Sobic.005G213600 Sobic.005G213600.v5.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2      G frameshift_variant   HIGH Sobic.005G213600 Sobic.005G213600.v5.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3      G frameshift_variant   HIGH Sobic.005G213600 Sobic.005G213600.v5.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4      C frameshift_variant   HIGH Sobic.005G213600 Sobic.005G213600.v5.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5    ATC frameshift_variant   HIGH Sobic.005G213600 Sobic.005G213600.v5.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6    GTA frameshift_variant   HIGH Sobic.005G213600 Sobic.005G213600.v5.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   feature_type              feature_id transcript_biotype rank</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   transcript Sobic.005G213600.1.v5.1     protein_coding  2/2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   transcript Sobic.005G213600.1.v5.1     protein_coding  2/2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   transcript Sobic.005G213600.1.v5.1     protein_coding  2/2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   transcript Sobic.005G213600.1.v5.1     protein_coding  2/2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5   transcript Sobic.005G213600.1.v5.1     protein_coding  1/2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6   transcript Sobic.005G213600.1.v5.1     protein_coding  1/2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               hgvs_c     hgvs_p</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 c.1343_1344insTCGA p.Ser449fs</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2          c.637delG p.Ala213fs</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3          c.626delA p.Asp209fs</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4     c.65_68delATAC  p.His22fs</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5       c.38_39dupGA  p.Ser14fs</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6         c.8_9dupTA   p.Gln4fs</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Disconnect at the end of your session</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_local</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Successfully disconnected from the local database. Memory cleared.</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co"># To query the public online resource instead:</span></span></span>
 <span class="r-in"><span><span class="va">online_high_impact_vars</span> <span class="op">&lt;-</span> <span class="fu">fetch_variants_by_impact</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  impact_level <span class="op">=</span> <span class="st">"HIGH"</span>,</span></span>
 <span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span></span>
@@ -108,60 +160,7 @@ Can be either `'local'` (default) or `'online'`.</p></dd>
 <span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">online_high_impact_vars</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             variant_id chrom      pos   ref   alt qual filter variant_type</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 INDEL_Chr05_75104881 Chr05 75104881     G GTCGA    .   PASS        INDEL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 INDEL_Chr05_75105587 Chr05 75105587    GC     G    .   PASS        INDEL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 INDEL_Chr05_75105598 Chr05 75105598    GT     G    .   PASS        INDEL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 INDEL_Chr05_75106156 Chr05 75106156 CGTAT     C    .   PASS        INDEL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 INDEL_Chr05_75106295 Chr05 75106295     A   ATC    .   PASS        INDEL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 INDEL_Chr05_75106325 Chr05 75106325     G   GTA    .   PASS        INDEL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           variant_id_1 allele         annotation impact        gene_name</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 INDEL_Chr05_75104881  GTCGA frameshift_variant   HIGH Sobic.005G213600</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 INDEL_Chr05_75105587      G frameshift_variant   HIGH Sobic.005G213600</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 INDEL_Chr05_75105598      G frameshift_variant   HIGH Sobic.005G213600</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 INDEL_Chr05_75106156      C frameshift_variant   HIGH Sobic.005G213600</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 INDEL_Chr05_75106295    ATC frameshift_variant   HIGH Sobic.005G213600</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 INDEL_Chr05_75106325    GTA frameshift_variant   HIGH Sobic.005G213600</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                 gene_id feature_type              feature_id transcript_biotype</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   rank             hgvs_c     hgvs_p</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  2/2 c.1343_1344insTCGA p.Ser449fs</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  2/2          c.637delG p.Ala213fs</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  2/2          c.626delA p.Asp209fs</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  2/2     c.65_68delATAC  p.His22fs</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5  1/2       c.38_39dupGA  p.Ser14fs</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6  1/2         c.8_9dupTA   p.Gln4fs</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># --- Offline Mode ---</span></span></span>
-<span class="r-in"><span><span class="co"># Locate the package example database folder</span></span></span>
-<span class="r-in"><span><span class="va">my_db_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pangenome_scale_db"</span>,</span></span>
-<span class="r-in"><span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>,</span></span>
-<span class="r-in"><span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Establish a virtual connection to the offline database engine</span></span></span>
-<span class="r-in"><span><span class="va">con_local</span> <span class="op">&lt;-</span> <span class="fu"><a href="connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">my_db_folder</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Extract high-impact variant lines inside a targeted coordinates locus window from local DB</span></span></span>
-<span class="r-in"><span><span class="va">local_high_impact_vars</span> <span class="op">&lt;-</span> <span class="fu">fetch_variants_by_impact</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  con <span class="op">=</span> <span class="va">con_local</span>,</span></span>
-<span class="r-in"><span>  impact_level <span class="op">=</span> <span class="st">"HIGH"</span>,</span></span>
-<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span></span>
-<span class="r-in"><span>  start <span class="op">=</span> <span class="fl">75104537</span>,</span></span>
-<span class="r-in"><span>  end <span class="op">=</span> <span class="fl">75106403</span>,</span></span>
-<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'local'</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># print(head(local_high_impact_vars))</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Disconnect at the end of your session</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_local</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Successfully disconnected from the local database. Memory cleared.</span>
-<span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

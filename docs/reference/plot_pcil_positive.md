@@ -29,20 +29,27 @@ region and visualizes the introgression segments of the positive PCILs.
 # \donttest{
 library(panGenomeBreedr)
 
-# 1. Fetch PCIL data and variant genotypes
-pcil_data <- fetch_pcil_data(connect_db_mode = "online")
+# 1. Connect to the package's bundled example database and fetch data
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+con <- connect_local_db(folder_path = my_db_folder)
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
+pcil_data <- fetch_pcil_data(con = con, connect_db_mode = "local")
 selection <- c("INDEL_Chr03_79037889", "SNP_Chr03_79037855")
 
 variant_geno_sel <- fetch_genotypes_by_id(
-  variant_ids = selection, 
-  connect_db_mode = "online"
+  con = con,
+  variant_ids = selection,
+  connect_db_mode = "local"
 )
 
 # 2. Fetch relevant families
 fam_results <- fetch_pcil_families_by_variant(
+  con = con,
   selection = selection,
   pcil_data = pcil_data,
-  connect_db_mode = "online"
+  connect_db_mode = "local"
 )
 
 # 3. Select positive lines
@@ -64,5 +71,8 @@ if (length(positive_plots) > 0) {
   print(positive_plots[[1]])
 }
 
+
+disconnect_local_db(con)
+#> Successfully disconnected from the local database. Memory cleared.
 # }
 ```

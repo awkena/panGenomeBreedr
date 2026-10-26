@@ -170,6 +170,8 @@ If the package does not run as expected, check the following:
 
 -   [Cruet Burgos](https://www.morrislab.org/people/clara-cruet-burgos)
 
+-   [Gaia Cortinovis](https://www.morrislab.org/people)
+
 -   [Fanna Maina](https://www.morrislab.org/people/fanna-maina)
 
 -   [Linly Banda](https://www.biofortificationlab.org/people/linly-banda)

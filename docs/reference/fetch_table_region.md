@@ -67,49 +67,6 @@ into intuitive wide columns, along with calculated allele metrics.
 # Load the package
 library(panGenomeBreedr)
 
-# --- Online Mode ---
-# Query variants table for a specific genomic region from the online database
-online_variants_data <- fetch_table_region(
-  table_name = "variants",
-  chrom = "Chr05",
-  start = 75104537,
-  end = 75106403,
-  connect_db_mode = 'online'
-)
-print(head(online_variants_data))
-#>           variant_id chrom      pos ref alt qual filter variant_type
-#> 1 SNP_Chr05_75104557 Chr05 75104557   C   T    .   PASS          SNP
-#> 2 SNP_Chr05_75104560 Chr05 75104560   C   T    .   PASS          SNP
-#> 3 SNP_Chr05_75104568 Chr05 75104568   G   T    .   PASS          SNP
-#> 4 SNP_Chr05_75104569 Chr05 75104569   C   A    .   PASS          SNP
-#> 5 SNP_Chr05_75104574 Chr05 75104574   C   T    .   PASS          SNP
-#> 6 SNP_Chr05_75104591 Chr05 75104591   A   G    .   PASS          SNP
-
-# Query genotypes table for the same region from the online database
-online_genotypes_data <- fetch_table_region(
-  table_name = "genotypes",
-  chrom = "Chr05",
-  start = 75104537,
-  end = 75106403,
-  connect_db_mode = 'online'
-)
-print(online_genotypes_data[1:6, 1:12])
-#>             variant_id chrom      pos ref  alt variant_type major_allele
-#> 1 INDEL_Chr05_75104541 Chr05 75104541   T TGAC        INDEL            T
-#> 2 INDEL_Chr05_75104564 Chr05 75104564   C   CA        INDEL            C
-#> 3 INDEL_Chr05_75104573 Chr05 75104573  TC    T        INDEL           TC
-#> 4 INDEL_Chr05_75104585 Chr05 75104585   A  AAT        INDEL            A
-#> 5 INDEL_Chr05_75104618 Chr05 75104618   G   GC        INDEL            G
-#> 6 INDEL_Chr05_75104703 Chr05 75104703   C  CTG        INDEL            C
-#>   minor_allele major_allele_freq minor_allele_freq IDMM ISGC
-#> 1         TGAC           0.99881           0.00119  0|0  0|0
-#> 2           CA           0.88544           0.11456  0|0  0|0
-#> 3            T           0.88484           0.11516  0|0  0|0
-#> 4          AAT           0.88365           0.11635  0|0  0|0
-#> 5           GC           0.88455           0.11545  0|0  0|0
-#> 6          CTG           0.99821           0.00179  0|0  0|0
-
-# --- Offline Mode ---
 # Locate the package example database folder
 my_db_folder <- system.file("extdata", "pangenome_scale_db",
                            package = "panGenomeBreedr",
@@ -117,7 +74,7 @@ my_db_folder <- system.file("extdata", "pangenome_scale_db",
 
 # Establish a virtual connection to the offline database engine
 con_local <- connect_local_db(folder_path = my_db_folder)
-#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
 
 # Extract functional annotations inside a candidate locus region from local DB
 local_annota_region <- fetch_table_region(
@@ -126,10 +83,30 @@ local_annota_region <- fetch_table_region(
   chrom = "Chr05",
   start = 75104537,
   end = 75106403,
-  gene_name = "Sobic.005G213600",
-  connect_db_mode = 'local'
+  gene_name = "Sobic.005G213600"
 )
-# print(head(local_annota_region))
+print(head(local_annota_region))
+#>             variant_id allele          annotation   impact        gene_name
+#> 1 INDEL_Chr05_75104541   TGAC 3_prime_UTR_variant MODIFIER Sobic.005G213600
+#> 2   SNP_Chr05_75104557      T 3_prime_UTR_variant MODIFIER Sobic.005G213600
+#> 3   SNP_Chr05_75104560      T 3_prime_UTR_variant MODIFIER Sobic.005G213600
+#> 4 INDEL_Chr05_75104564     CA 3_prime_UTR_variant MODIFIER Sobic.005G213600
+#> 5   SNP_Chr05_75104568      T 3_prime_UTR_variant MODIFIER Sobic.005G213600
+#> 6   SNP_Chr05_75104569      A 3_prime_UTR_variant MODIFIER Sobic.005G213600
+#>                 gene_id feature_type              feature_id transcript_biotype
+#> 1 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding
+#> 2 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding
+#> 3 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding
+#> 4 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding
+#> 5 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding
+#> 6 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding
+#>   rank            hgvs_c hgvs_p chrom      pos
+#> 1  2/2 c.*322_*324dupGTC        Chr05 75104541
+#> 2  2/2         c.*309G>A        Chr05 75104557
+#> 3  2/2         c.*306G>A        Chr05 75104560
+#> 4  2/2        c.*301dupT        Chr05 75104564
+#> 5  2/2         c.*298C>A        Chr05 75104568
+#> 6  2/2         c.*297G>T        Chr05 75104569
 
 # Extract matrix genotypes within the exact same coordinates window from local DB
 local_gt_region <- fetch_table_region(
@@ -137,13 +114,47 @@ local_gt_region <- fetch_table_region(
   table_name = "genotypes",
   chrom = "Chr05",
   start = 75104537,
-  end = 75106403,
-  connect_db_mode = 'local'
+  end = 75106403
 )
-# print(local_gt_region[1:6, 1:12])
+print(local_gt_region[1:6, 1:12])
+#>             variant_id chrom      pos ref  alt variant_type major_allele
+#> 1 INDEL_Chr05_75104541 Chr05 75104541   T TGAC        INDEL            T
+#> 2   SNP_Chr05_75104557 Chr05 75104557   C    T          SNP            C
+#> 3   SNP_Chr05_75104560 Chr05 75104560   C    T          SNP            C
+#> 4 INDEL_Chr05_75104564 Chr05 75104564   C   CA        INDEL            C
+#> 5   SNP_Chr05_75104568 Chr05 75104568   G    T          SNP            G
+#> 6   SNP_Chr05_75104569 Chr05 75104569   C    A          SNP            C
+#>   minor_allele major_allele_freq minor_allele_freq IDMM ISGC
+#> 1         TGAC           0.99881           0.00119  0|0  0|0
+#> 2            T           0.89051           0.10949  0|0  0|0
+#> 3            T           0.88962           0.11038  0|0  0|0
+#> 4           CA           0.88544           0.11456  0|0  0|0
+#> 5            T           0.99791           0.00209  0|0  0|0
+#> 6            A           0.99791           0.00209  0|0  0|0
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
 #> Successfully disconnected from the local database. Memory cleared.
 # }
+
+if (FALSE) { # \dontrun{
+# To query the public online resource instead:
+online_variants_data <- fetch_table_region(
+  table_name = "variants",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403,
+  connect_db_mode = 'online'
+)
+print(head(online_variants_data))
+
+online_genotypes_data <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403,
+  connect_db_mode = 'online'
+)
+print(online_genotypes_data[1:6, 1:12])
+} # }
 ```

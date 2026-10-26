@@ -27,15 +27,24 @@ Lines (PCILs) identified by `fetch_pcil_positive()`.
 \donttest{
 library(panGenomeBreedr)
 
-# 1. Fetch data and find positive lines
-pcil_data <- fetch_pcil_data(connect_db_mode = "online")
+# 1. Connect to the package's bundled example database and find positive lines
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+con <- connect_local_db(folder_path = my_db_folder)
+pcil_data <- fetch_pcil_data(con = con, connect_db_mode = "local")
 selection <- c("INDEL_Chr03_79037889", "SNP_Chr03_79037855")
 
-variant_geno_sel <- fetch_genotypes_by_id(variant_ids = selection, connect_db_mode = "online")
+variant_geno_sel <- fetch_genotypes_by_id(
+  con = con,
+  variant_ids = selection,
+  connect_db_mode = "local"
+)
 fam_results <- fetch_pcil_families_by_variant(
+  con = con,
   selection = selection,
   pcil_data = pcil_data,
-  connect_db_mode = "online"
+  connect_db_mode = "local"
 )
 
 pcil_pos_pcv <- fetch_pcil_positive(
@@ -50,12 +59,14 @@ pcil_pos_pcv <- fetch_pcil_positive(
 
 # 2. Plot the best candidate lines genome-wide
 best_line_plots <- plot_pcil_best_lines(
-  pcil_positive_result = pcil_pos_pcv, 
+  pcil_positive_result = pcil_pos_pcv,
   pcil_data = pcil_data
 )
 
 if (length(best_line_plots) > 0) {
   print(best_line_plots[[1]])
 }
+
+disconnect_local_db(con)
 }
 }

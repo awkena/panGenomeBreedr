@@ -65,69 +65,14 @@ my_filters <- list(
   countryorigin = c("Ethiopia", "Ghana", "Togo")
 )
 
-# --- Online Mode ---
-# Extract the full genotype matrix first for a genomic region from the online database
-online_genotype_data_region <- fetch_table_region(
-  table_name = "genotypes",
-  chrom = "Chr05",
-  start = 75104537,
-  end = 75106403,
-  connect_db_mode = 'online'
-)
-
-# Get filtered genotypes matrix from online data
-online_filtered_genotypes <- filter_genotypes_by_metadata(
-  genotype_matrix = online_genotype_data_region,
-  genotype_start_col = 11, # Assuming 11 is the correct start column for this data
-  filters = my_filters,
-  connect_db_mode = 'online'
-)
-print(head(online_filtered_genotypes))
-#>             variant_id chrom      pos variant_type ref  alt major_allele
-#> 1 INDEL_Chr05_75104541 Chr05 75104541        INDEL   T TGAC            T
-#> 2 INDEL_Chr05_75104564 Chr05 75104564        INDEL   C   CA            C
-#> 3 INDEL_Chr05_75104573 Chr05 75104573        INDEL  TC    T           TC
-#> 4 INDEL_Chr05_75104585 Chr05 75104585        INDEL   A  AAT            A
-#> 5 INDEL_Chr05_75104618 Chr05 75104618        INDEL   G   GC            G
-#> 6 INDEL_Chr05_75104703 Chr05 75104703        INDEL   C  CTG            C
-#>   minor_allele major_allele_freq minor_allele_freq JHGC ISGD IQSD ISHD JBSS
-#> 1         TGAC            1.0000            0.0000  0|0  0|0  0|0  0|0  0|0
-#> 2           CA            0.7234            0.2766  0|0  0|0  0|0  1|1  0|0
-#> 3            T            0.7234            0.2766  0|0  0|0  0|0  1|1  0|0
-#> 4          AAT            0.7234            0.2766  0|0  0|0  0|0  1|1  0|0
-#> 5           GC            0.7234            0.2766  0|0  0|0  0|0  1|1  0|0
-#> 6          CTG            1.0000            0.0000  0|0  0|0  0|0  0|0  0|0
-#>   JBST IZJQ IZJR IZJS IZJT IZJU IZJW IZJX IZJY IZJZ IZKA INUQ INUT IQSU IQSW
-#> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-#> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1
-#> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1
-#> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1
-#> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1
-#> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-#>   IQST INUX INXE INXF JHGT IXPJ IXNM INXH INXI IXML IXPK INXJ IZKP IXNN IXNP
-#> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-#> 2  0|0  1|1  0|0  0|0  1|1  1|1  0|0  0|0  0|0  1|1  1|1  0|0  0|0  1|1  1|1
-#> 3  0|0  1|1  0|0  0|0  1|1  1|1  0|0  0|0  0|0  1|1  1|1  0|0  0|0  1|1  1|1
-#> 4  0|0  1|1  0|0  0|0  1|1  1|1  0|0  0|0  0|0  1|1  1|1  0|0  0|0  1|1  1|1
-#> 5  0|0  1|1  0|0  0|0  1|1  1|1  0|0  0|0  0|0  1|1  1|1  0|0  0|0  1|1  1|1
-#> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-#>   IPCI IPCJ ISHX ISIF ISIN ISIX ISJF ISHY JBPS JHHC IXNH JHHD
-#> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-#> 2  0|0  0|0  0|0  0|0  1|1  0|0  1|1  1|1  0|0  0|0  0|0  0|0
-#> 3  0|0  0|0  0|0  0|0  1|1  0|0  1|1  1|1  0|0  0|0  0|0  0|0
-#> 4  0|0  0|0  0|0  0|0  1|1  0|0  1|1  1|1  0|0  0|0  0|0  0|0
-#> 5  0|0  0|0  0|0  0|0  1|1  0|0  1|1  1|1  0|0  0|0  0|0  0|0
-#> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
-
-# --- Offline Mode ---
 # Locate the package example database folder
-my_db_folder <- system.file("extdata", "pangenome_scale_db", 
-                           package = "panGenomeBreedr", 
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
                            mustWork = TRUE)
 
 # Establish a virtual connection to the offline database engine
 con_local <- connect_local_db(folder_path = my_db_folder)
-#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
 
 # Extract the full genotype matrix first for the genomic region from local DB
 local_genotype_data_region <- fetch_table_region(
@@ -145,10 +90,64 @@ local_filtered_genotypes <- filter_genotypes_by_metadata(
   genotype_start_col = 11,
   filters = my_filters
 )
-# print(head(local_filtered_genotypes))
+print(head(local_filtered_genotypes))
+#>             variant_id chrom      pos variant_type ref  alt major_allele
+#> 1 INDEL_Chr05_75104541 Chr05 75104541        INDEL   T TGAC            T
+#> 2   SNP_Chr05_75104557 Chr05 75104557          SNP   C    T            C
+#> 3   SNP_Chr05_75104560 Chr05 75104560          SNP   C    T            C
+#> 4 INDEL_Chr05_75104564 Chr05 75104564        INDEL   C   CA            C
+#> 5   SNP_Chr05_75104568 Chr05 75104568          SNP   G    T            G
+#> 6   SNP_Chr05_75104569 Chr05 75104569          SNP   C    A            C
+#>   minor_allele major_allele_freq minor_allele_freq JHGC ISGD IQSD ISHD JBSS
+#> 1         TGAC            1.0000            0.0000  0|0  0|0  0|0  0|0  0|0
+#> 2            T            0.7234            0.2766  0|0  0|0  0|0  1|1  0|0
+#> 3            T            0.7234            0.2766  0|0  0|0  0|0  1|1  0|0
+#> 4           CA            0.7234            0.2766  0|0  0|0  0|0  1|1  0|0
+#> 5            T            1.0000            0.0000  0|0  0|0  0|0  0|0  0|0
+#> 6            A            1.0000            0.0000  0|0  0|0  0|0  0|0  0|0
+#>   JBST IZJQ IZJR IZJS IZJT IZJU IZJW IZJX IZJY IZJZ IZKA INUQ INUT IQSU IQSW
+#> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
+#> 2  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1
+#> 3  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1
+#> 4  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  1|1  1|1
+#> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
+#> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
+#>   IQST INUX INXE INXF JHGT IXPJ IXNM INXH INXI IXML IXPK INXJ IZKP IXNN IXNP
+#> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
+#> 2  0|0  1|1  0|0  0|0  1|1  1|1  0|0  0|0  0|0  1|1  1|1  0|0  0|0  1|1  1|1
+#> 3  0|0  1|1  0|0  0|0  1|1  1|1  0|0  0|0  0|0  1|1  1|1  0|0  0|0  1|1  1|1
+#> 4  0|0  1|1  0|0  0|0  1|1  1|1  0|0  0|0  0|0  1|1  1|1  0|0  0|0  1|1  1|1
+#> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
+#> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
+#>   IPCI IPCJ ISHX ISIF ISIN ISIX ISJF ISHY JBPS JHHC IXNH JHHD
+#> 1  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
+#> 2  0|0  0|0  0|0  0|0  1|1  0|0  1|1  1|1  0|0  0|0  0|0  0|0
+#> 3  0|0  0|0  0|0  0|0  1|1  0|0  1|1  1|1  0|0  0|0  0|0  0|0
+#> 4  0|0  0|0  0|0  0|0  1|1  0|0  1|1  1|1  0|0  0|0  0|0  0|0
+#> 5  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
+#> 6  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0  0|0
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
 #> Successfully disconnected from the local database. Memory cleared.
 # }
+
+if (FALSE) { # \dontrun{
+# To query the public online resource instead:
+online_genotype_data_region <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403,
+  connect_db_mode = 'online'
+)
+
+online_filtered_genotypes <- filter_genotypes_by_metadata(
+  genotype_matrix = online_genotype_data_region,
+  genotype_start_col = 11, # Assuming 11 is the correct start column for this data
+  filters = my_filters,
+  connect_db_mode = 'online'
+)
+print(head(online_filtered_genotypes))
+} # }
 ```

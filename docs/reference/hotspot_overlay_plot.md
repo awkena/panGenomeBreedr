@@ -58,20 +58,26 @@ genotypes.
 # \donttest{
 library(panGenomeBreedr)
 
-# 1. Define parameters
-gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+# 1. Define parameters using the package's bundled example database and
+# a small GFF3 slice for the same gene
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+gff_path <- system.file("extdata", "pangenome_scale_db", "gene_models.gff3.gz",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+con_local <- connect_local_db(folder_path = my_db_folder)
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
 gene <- "Sobic.005G213600"
 
 # Fetch data for the gene region
 ann_df <- fetch_table_region(
-  table_name = "annotations",
-  chrom = "Chr05", start = 75104537, end = 75106403,
-  connect_db_mode = 'online'
+  con = con_local, table_name = "annotations",
+  chrom = "Chr05", start = 75104537, end = 75106403
 )
 geno_df <- fetch_table_region(
-  table_name = "genotypes",
-  chrom = "Chr05", start = 75104537, end = 75106403,
-  connect_db_mode = 'online'
+  con = con_local, table_name = "genotypes",
+  chrom = "Chr05", start = 75104537, end = 75106403
 )
 
 #  Generate and display the plot
@@ -82,5 +88,30 @@ if (nrow(ann_df) > 0 && nrow(geno_df) > 0) {
   )
 }
 
+
+disconnect_local_db(con_local)
+#> Successfully disconnected from the local database. Memory cleared.
 # }
+
+if (FALSE) { # \dontrun{
+# To use the full, public reference GFF3 and query the online resource instead:
+gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+gene <- "Sobic.005G213600"
+ann_df_online <- fetch_table_region(
+  table_name = "annotations",
+  chrom = "Chr05", start = 75104537, end = 75106403,
+  connect_db_mode = 'online'
+)
+geno_df_online <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = "Chr05", start = 75104537, end = 75106403,
+  connect_db_mode = 'online'
+)
+if (nrow(ann_df_online) > 0 && nrow(geno_df_online) > 0) {
+  hotspot_overlay_plot(
+    gene_name = gene, gff_path = gff_path,
+    annotations_df = ann_df_online, genotypes_df = geno_df_online
+  )
+}
+} # }
 ```

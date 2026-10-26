@@ -51,29 +51,9 @@ my_filters <- list(
   countryorigin = c("Ethiopia", "Ghana", "Togo")
 )
 
-# --- Online Mode ---
-# Extract the full genotype matrix first for a genomic region from the online database
-online_genotype_data_region <- fetch_table_region(
-  table_name = "genotypes",
-  chrom = "Chr05",
-  start = 75104537,
-  end = 75106403,
-  connect_db_mode = 'online'
-)
-
-# Get filtered genotypes matrix from online data
-online_filtered_genotypes <- filter_genotypes_by_metadata(
-  genotype_matrix = online_genotype_data_region,
-  genotype_start_col = 11, # Assuming 11 is the correct start column for this data
-  filters = my_filters,
-  connect_db_mode = 'online'
-)
-print(head(online_filtered_genotypes))
-
-# --- Offline Mode ---
 # Locate the package example database folder
-my_db_folder <- system.file("extdata", "pangenome_scale_db", 
-                           package = "panGenomeBreedr", 
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
                            mustWork = TRUE)
 
 # Establish a virtual connection to the offline database engine
@@ -95,10 +75,29 @@ local_filtered_genotypes <- filter_genotypes_by_metadata(
   genotype_start_col = 11,
   filters = my_filters
 )
-# print(head(local_filtered_genotypes))
+print(head(local_filtered_genotypes))
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
+}
+
+\dontrun{
+# To query the public online resource instead:
+online_genotype_data_region <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403,
+  connect_db_mode = 'online'
+)
+
+online_filtered_genotypes <- filter_genotypes_by_metadata(
+  genotype_matrix = online_genotype_data_region,
+  genotype_start_col = 11, # Assuming 11 is the correct start column for this data
+  filters = my_filters,
+  connect_db_mode = 'online'
+)
+print(head(online_filtered_genotypes))
 }
 
 }

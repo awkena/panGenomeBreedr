@@ -14,7 +14,8 @@ fetch_pcil_negative(
   pcil_positive_result,
   n_neg = 10,
   available_ids = NULL,
-  result_pcil_families = NULL
+  result_pcil_families = NULL,
+  global_available_ids = NULL
 )
 ```
 
@@ -45,6 +46,15 @@ fetch_pcil_negative(
   An optional list object from \`fetch_pcil_families_by_variant()\` to
   globally restrict the search space.
 
+- global_available_ids:
+
+  An optional character vector of sample IDs allowed as negative
+  controls for every region (for example, lines available in a seed
+  bank). Only the negative candidates are filtered; which lines count as
+  carriers of the introgression is always decided on the complete PCIL
+  population. If \`result_pcil_families\` is also supplied, only sample
+  IDs present in both are used. Defaults to \`NULL\` (no restriction).
+
 ## Value
 
 A list containing:
@@ -61,15 +71,25 @@ A list containing:
 # \donttest{
 library(panGenomeBreedr)
 
-# 1. Fetch data and establish positive lines
-pcil_data <- fetch_pcil_data(connect_db_mode = "online")
+# 1. Connect to the package's bundled example database and establish positive lines
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+con <- connect_local_db(folder_path = my_db_folder)
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
+pcil_data <- fetch_pcil_data(con = con, connect_db_mode = "local")
 selection <- c("INDEL_Chr03_79037889", "SNP_Chr03_79037855")
 
-variant_geno_sel <- fetch_genotypes_by_id(variant_ids = selection, connect_db_mode = "online")
+variant_geno_sel <- fetch_genotypes_by_id(
+  con = con,
+  variant_ids = selection,
+  connect_db_mode = "local"
+)
 fam_results <- fetch_pcil_families_by_variant(
+  con = con,
   selection = selection,
   pcil_data = pcil_data,
-  connect_db_mode = "online"
+  connect_db_mode = "local"
 )
 
 pcil_pos_pcv <- fetch_pcil_positive(
@@ -88,7 +108,7 @@ pcil_neg_pcv <- fetch_pcil_negative(
   pcil_data = pcil_data,
   pcil_positive_result = pcil_pos_pcv,
   n_neg = 10
-) 
+)
 
 print(head(pcil_neg_pcv$pairs_best))
 #>                      SampleID_Positive  SampleID_Negative             Region
@@ -112,5 +132,8 @@ print(head(pcil_neg_pcv$pairs_best))
 #> GMS_MN2025_1320562                 8 0.8332   SC49         1
 #> 25ALM_BC1F3s1_00951                6 0.8706 SC1439         1
 #> GMS_MN2025_1320563                 8 0.8332   SC49         1
+
+disconnect_local_db(con)
+#> Successfully disconnected from the local database. Memory cleared.
 # }
 ```

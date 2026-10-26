@@ -39,26 +39,9 @@ A data frame of variant statistics grouped by chromosome.
 
 ``` r
 # \donttest{
-# --- Online Mode ---
 # Load the package
 library(panGenomeBreedr)
 
-# Get variant statistics from the online database, including annotation counts
-online_stats <- summarize_variants(connect_db_mode = 'online', include_annotations = TRUE)
-print(online_stats)
-#>    chrom n_variants min_pos  max_pos n_unique_ids n_annotated
-#> 1  Chr01    4179737     120 85112733      4179737     4179737
-#> 2  Chr02    4197282      97 79114142      4197282     4197282
-#> 3  Chr03    4067064     851 80862807      4067064     4067064
-#> 4  Chr04    3921469     399 71213527      3921469     3921469
-#> 5  Chr05    4503569     544 77058027      4503569     4503569
-#> 6  Chr06    3362692     142 62713669      3362692     3362692
-#> 7  Chr07    3709045     665 68910894      3709045     3709045
-#> 8  Chr08    3540234     324 65779151      3540234     3540234
-#> 9  Chr09    3265682   16102 63277331      3265682     3265682
-#> 10 Chr10    3484137     424 62863324      3484137     3484137
-
-# --- Offline Mode ---
 # Locate the package example database folder
 my_db_folder <- system.file("extdata", "pangenome_scale_db",
                            package = "panGenomeBreedr",
@@ -66,14 +49,23 @@ my_db_folder <- system.file("extdata", "pangenome_scale_db",
 
 # Establish a virtual connection to the offline database engine
 con_local <- connect_local_db(folder_path = my_db_folder)
-#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
 
 # Get variant statistics across all chromosomes
 local_stats <- summarize_variants(con = con_local, include_annotations = TRUE)
-# print(local_stats)
+print(local_stats)
+#>   chrom n_variants  min_pos  max_pos n_unique_ids n_annotated
+#> 1 Chr03         28 79037682 79039059           28          28
+#> 2 Chr05        102 75104541 75106383          102         102
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
 #> Successfully disconnected from the local database. Memory cleared.
 # }
+
+if (FALSE) { # \dontrun{
+# To query the public online resource instead:
+online_stats <- summarize_variants(connect_db_mode = 'online', include_annotations = TRUE)
+print(online_stats)
+} # }
 ```

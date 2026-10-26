@@ -81,22 +81,6 @@ library(panGenomeBreedr)
 # Define a list of target variant IDs
 target_markers <- c("INDEL_Chr05_75104541", "SNP_Chr05_75104557")
 
-# --- Online Mode ---.
-# Query genotypes from the online database
-online_genotypes <- fetch_genotypes_by_id(
-  variant_ids = target_markers, 
-  meta_data = c("chrom", "pos", "ref", "alt", "minor_allele_freq"),
-  connect_db_mode = 'online'
-)
-print(head(online_genotypes[,1:9]))
-#>             variant_id chrom      pos ref  alt minor_allele_freq chrom_1
-#> 1   SNP_Chr05_75104557 Chr05 75104557   C    T           0.10949   Chr05
-#> 2 INDEL_Chr05_75104541 Chr05 75104541   T TGAC           0.00119   Chr05
-#>      pos_1 IDMM
-#> 1 75104557  0|0
-#> 2 75104541  0|0
-
-# --- Offline Mode ---
 # Locate the package example database folder
 my_db_folder <- system.file("extdata", "pangenome_scale_db",
                            package = "panGenomeBreedr",
@@ -104,7 +88,7 @@ my_db_folder <- system.file("extdata", "pangenome_scale_db",
 
 # Establish a virtual connection
 con_local <- connect_local_db(folder_path = my_db_folder)
-#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
 
 # Query genotypes from the local database
 local_genotypes <- fetch_genotypes_by_id(
@@ -112,10 +96,23 @@ local_genotypes <- fetch_genotypes_by_id(
   variant_ids = target_markers,
   meta_data = c('chrom', 'minor_allele_freq')
 )
-# print(local_genotypes[,1:6])
+print(local_genotypes[,1:6])
+#>             variant_id chrom minor_allele_freq IDMM ISGC ISGK
+#> 1 INDEL_Chr05_75104541 Chr05           0.00119  0|0  0|0  0|0
+#> 2   SNP_Chr05_75104557 Chr05           0.10949  0|0  0|0  0|0
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
 #> Successfully disconnected from the local database. Memory cleared.
 # }
+
+if (FALSE) { # \dontrun{
+# To query the public online resource instead:
+online_genotypes <- fetch_genotypes_by_id(
+  variant_ids = target_markers,
+  meta_data = c("chrom", "pos", "ref", "alt", "minor_allele_freq"),
+  connect_db_mode = 'online'
+)
+print(head(online_genotypes[,1:9]))
+} # }
 ```

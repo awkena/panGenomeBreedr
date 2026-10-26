@@ -60,16 +60,6 @@ library(panGenomeBreedr)
 # Define a list of target variant IDs
 target_markers <- c("INDEL_Chr05_75104541", "SNP_Chr05_75104557")
 
-# --- Online Mode ---.
-# Query genotypes from the online database
-online_genotypes <- fetch_genotypes_by_id(
-  variant_ids = target_markers, 
-  meta_data = c("chrom", "pos", "ref", "alt", "minor_allele_freq"),
-  connect_db_mode = 'online'
-)
-print(head(online_genotypes[,1:9]))
-
-# --- Offline Mode ---
 # Locate the package example database folder
 my_db_folder <- system.file("extdata", "pangenome_scale_db",
                            package = "panGenomeBreedr",
@@ -84,10 +74,20 @@ local_genotypes <- fetch_genotypes_by_id(
   variant_ids = target_markers,
   meta_data = c('chrom', 'minor_allele_freq')
 )
-# print(local_genotypes[,1:6])
+print(local_genotypes[,1:6])
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
+}
+
+\dontrun{
+# To query the public online resource instead:
+online_genotypes <- fetch_genotypes_by_id(
+  variant_ids = target_markers,
+  meta_data = c("chrom", "pos", "ref", "alt", "minor_allele_freq"),
+  connect_db_mode = 'online'
+)
+print(head(online_genotypes[,1:9]))
 }
 
 }

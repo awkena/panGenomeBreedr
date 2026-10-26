@@ -25,15 +25,9 @@ wide-format data frame. It can operate in 'local' or 'online' mode.
 }
 \examples{
 \donttest{
-# --- Online Mode ---
 # Load the package
 library(panGenomeBreedr)
 
-# Get variant impact summary from the online database
-online_impact <- summarize_variant_impacts(connect_db_mode = 'online')
-print(online_impact)
-
-# --- Offline Mode ---
 # Locate the package example database folder
 my_db_folder <- system.file("extdata", "pangenome_scale_db",
                            package = "panGenomeBreedr",
@@ -44,10 +38,16 @@ con_local <- connect_local_db(folder_path = my_db_folder)
 
 # Generate the wide-format impact profile matrix
 local_impact <- summarize_variant_impacts(con = con_local)
-# print(local_impact)
+print(local_impact)
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
+}
+
+\dontrun{
+# To query the public online resource instead:
+online_impact <- summarize_variant_impacts(connect_db_mode = 'online')
+print(online_impact)
 }
 
 }

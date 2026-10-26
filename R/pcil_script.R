@@ -24,17 +24,15 @@
 #' \donttest{
 #' library(panGenomeBreedr)
 #'
-#' # --- Online Mode ---
-#' # Fetch all PCIL data tables from the remote database
-#' pcil_data <- fetch_pcil_data(connect_db_mode = 'online')
-#' }
+#' # Locate the package's bundled example database
+#' my_db_folder <- system.file("extdata", "pangenome_scale_db",
+#'                            package = "panGenomeBreedr",
+#'                            mustWork = TRUE)
+#' con <- connect_local_db(folder_path = my_db_folder)
 #'
-#' \dontrun{
-#' # --- Offline Mode ---
-#' # Requires a local database folder that contains a "pcil" subfolder;
-#' # the sample dataset shipped with this package does not include one.
-#' con <- connect_local_db(folder_path = "path/to/your/local_db")
-#' pcil_data_local <- fetch_pcil_data(con = con, connect_db_mode = "local")
+#' # Fetch all PCIL data tables
+#' pcil_data <- fetch_pcil_data(con = con, connect_db_mode = "local")
+#'
 #' disconnect_local_db(con)
 #' }
 fetch_pcil_data <- function(
@@ -109,21 +107,28 @@ fetch_pcil_data <- function(
 #' @examples
 #' \donttest{
 #' library(panGenomeBreedr)
-#' 
-#' # 1. Fetch PCIL Data
-#' pcil_data <- fetch_pcil_data(connect_db_mode = 'online')
-#' 
+#'
+#' # 1. Connect to the package's bundled example database and load PCIL data
+#' my_db_folder <- system.file("extdata", "pangenome_scale_db",
+#'                            package = "panGenomeBreedr",
+#'                            mustWork = TRUE)
+#' con <- connect_local_db(folder_path = my_db_folder)
+#' pcil_data <- fetch_pcil_data(con = con, connect_db_mode = "local")
+#'
 #' # 2. Define variants of interest
 #' selection <- c("INDEL_Chr03_79037889", "SNP_Chr03_79037855")
-#' 
+#'
 #' # 3. Fetch PCIL families acting as putative donors for these variants
 #' results <- fetch_pcil_families_by_variant(
+#'   con = con,
 #'   selection = selection,
 #'   pcil_data = pcil_data,
-#'   connect_db_mode = 'online'
+#'   connect_db_mode = "local"
 #' )
-#' 
+#'
 #' print(results$pcil_family_summary)
+#'
+#' disconnect_local_db(con)
 #' }
 fetch_pcil_families_by_variant <- function(
   con = NULL,
@@ -266,14 +271,20 @@ fetch_pcil_families_by_variant <- function(
 #'
 #' @description
 #' Identifies and filters Pangenome-Characterized Introgression Lines (PCIL)
-#' containing introgressions in a target gene or position window.
+#' containing introgressions in a target gene, genomic region, or position window.
 #' Supports multi-criteria ranking based on mean donor fraction, haploblock size,
 #' and inbreeding coefficients ($F$).
 #'
 #' @param pcil_data A list object containing all required PCIL data tables,
 #'   typically from `fetch_pcil_data()`.
-#' @param variants_select_geno A character vector (gene IDs) or a data frame containing position definitions.
-#' @param type Character string specifying the target type: `"gene"` or `"position"`.
+#' @param variants_select_geno The targets to search, in a form that depends on `type`:
+#'   \itemize{
+#'     \item \code{"gene"}: a character vector of gene IDs, or a data frame with a `Region` column of gene IDs.
+#'     \item \code{"region"}: a data frame with columns `Region` (a label), `Chr`, `Start` and `End`.
+#'     \item \code{"position"}: a data frame with `variant_id`, `chrom` and `pos` (as returned by
+#'       `fetch_genotypes_by_id()`), or with `Region`, `Chr` and `pos`.
+#'   }
+#' @param type Character string specifying the target type: `"gene"`, `"region"` or `"position"`.
 #' @param sel Integer. Number of top-ranked candidate lines to select per region. Defaults to `NULL` (returns all).
 #' @param donor_thresh Numeric. Minimum mean donor fraction required. Defaults to `0.75`.
 #' @param block_quantile Numeric. Upper quantile threshold to exclude large introgressions. Defaults to `0.75`.
@@ -281,6 +292,11 @@ fetch_pcil_families_by_variant <- function(
 #' @param window Integer. Symmetric base pair window ($+/-$) around targets when `type = "position"`. Defaults to `100`.
 #' @param available_ids Data frame with columns `sample_id` and `selection` to restrict line searches per target.
 #' @param result_pcil_families list object of results obtained from `fetch_pcil_families_by_variant`.
+#'   When supplied, the search is restricted to sample IDs found in its `pcil_summary`.
+#' @param global_available_ids Character vector of sample IDs. Restricts the search for every
+#'   target to these lines only (for example, lines available in a seed bank). Applied to all
+#'   targets, unlike `available_ids`, which is per target. If `result_pcil_families` is also
+#'   supplied, only sample IDs present in both are used. Defaults to `NULL` (no restriction).
 #'
 #' @return A list containing:
 #' \itemize{
@@ -294,23 +310,29 @@ fetch_pcil_families_by_variant <- function(
 #' @examples
 #' \donttest{
 #' library(panGenomeBreedr)
-#' 
-#' # 1. Fetch data and families
-#' pcil_data <- fetch_pcil_data(connect_db_mode = 'online')
+#'
+#' # 1. Connect to the package's bundled example database and fetch data/families
+#' my_db_folder <- system.file("extdata", "pangenome_scale_db",
+#'                            package = "panGenomeBreedr",
+#'                            mustWork = TRUE)
+#' con <- connect_local_db(folder_path = my_db_folder)
+#' pcil_data <- fetch_pcil_data(con = con, connect_db_mode = "local")
 #' selection <- c("INDEL_Chr03_79037889", "SNP_Chr03_79037855")
-#' 
+#'
 #' results <- fetch_pcil_families_by_variant(
+#'   con = con,
 #'   selection = selection,
 #'   pcil_data = pcil_data,
-#'   connect_db_mode = 'online'
+#'   connect_db_mode = "local"
 #' )
-#' 
+#'
 #' # 2. Get genotypes for the selected variants
 #' variant_geno_sel <- fetch_genotypes_by_id(
-#'   variant_ids = selection, 
-#'   connect_db_mode = 'online'
+#'   con = con,
+#'   variant_ids = selection,
+#'   connect_db_mode = "local"
 #' )
-#' 
+#'
 #' # 3. Select PCIL positives by variant positions
 #' pcil_pos_pcv <- fetch_pcil_positive(
 #'   pcil_data = pcil_data,
@@ -321,18 +343,34 @@ fetch_pcil_families_by_variant <- function(
 #'   result_pcil_families = results,
 #'   window = 0
 #' )
+#'
+#' # 4. Select PCIL positives for an explicit genomic region
+#' target_region <- data.frame(
+#'   Region = "Chr03_target",
+#'   Chr = "Chr03",
+#'   Start = 79037800,
+#'   End = 79037900
+#' )
+#' pcil_pos_region <- fetch_pcil_positive(
+#'   pcil_data = pcil_data,
+#'   variants_select_geno = target_region,
+#'   type = "region"
+#' )
+#'
+#' disconnect_local_db(con)
 #' }
 fetch_pcil_positive <- function(
   pcil_data,
   variants_select_geno,
-  type = c("gene", "position"),
+  type = c("gene", "region", "position"),
   sel = NULL,
   donor_thresh = 0.75,
   block_quantile = 0.75,
   F_quantile = 0.25,
   window = 0,
   available_ids = NULL,
-  result_pcil_families = NULL
+  result_pcil_families = NULL,
+  global_available_ids = NULL
 ) {
   type <- match.arg(type)
 
@@ -346,19 +384,40 @@ fetch_pcil_positive <- function(
     }
   }
 
-  global_available_ids <- NULL
+  user_ids_supplied <- !is.null(global_available_ids)
+  if (user_ids_supplied) {
+    if (!is.atomic(global_available_ids) || !is.null(dim(global_available_ids))) {
+      stop("global_available_ids must be a vector of sample IDs", call. = FALSE)
+    }
+    global_available_ids <- unique(as.character(global_available_ids))
+  }
+
   if (!is.null(result_pcil_families)) {
-    global_available_ids <- result_pcil_families$pcil_summary$sample_id[duplicated(
+    family_ids <- result_pcil_families$pcil_summary$sample_id[duplicated(
       result_pcil_families$pcil_summary$sample_id
     )]
     if (
-      !is.vector(global_available_ids) && !is.character(global_available_ids)
+      !is.vector(family_ids) && !is.character(family_ids)
     ) {
       stop(
         "result_pcil_families must be a list object from fetch_pcil_families_by_variant",
         call. = FALSE
       )
     }
+
+    # Combine with user-supplied IDs: keep only lines present in both
+    global_available_ids <- if (is.null(global_available_ids)) {
+      family_ids
+    } else {
+      intersect(global_available_ids, family_ids)
+    }
+  }
+
+  if (user_ids_supplied && length(global_available_ids) == 0) {
+    stop(
+      "None of the global_available_ids are among the lines returned by fetch_pcil_families_by_variant",
+      call. = FALSE
+    )
   }
 
   introgressions <- pcil_data$pcil_introgressions
@@ -366,13 +425,35 @@ fetch_pcil_positive <- function(
   gene_regions <- pcil_data$pcil_gene_regions
   inbreeding_coefficient <- pcil_data$pcil_inbreeding_coefficient
 
+  if (type == "region") {
+    required <- c("Region", "Chr", "Start", "End")
+    if (
+      !is.data.frame(variants_select_geno) ||
+        !all(required %in% colnames(variants_select_geno))
+    ) {
+      stop(
+        "For type='region', variants_select_geno must be a data frame with: Region, Chr, Start, End",
+        call. = FALSE
+      )
+    }
+    regions <- variants_select_geno[, required]
+    if (!is.numeric(regions$Start) || !is.numeric(regions$End)) {
+      stop("For type='region', Start and End must be numeric", call. = FALSE)
+    }
+    if (any(regions$Start > regions$End, na.rm = TRUE)) {
+      stop("For type='region', Start must be less than or equal to End", call. = FALSE)
+    }
+  }
+
   if (type == "position") {
-    variants_select_geno <- variants_select_geno[, c(
-      "variant_id",
-      "chrom",
-      "pos"
-    )]
-    names(variants_select_geno) <- c("Region", "Chr", "pos")
+    if (all(c("variant_id", "chrom", "pos") %in% colnames(variants_select_geno))) {
+      variants_select_geno <- variants_select_geno[, c(
+        "variant_id",
+        "chrom",
+        "pos"
+      )]
+      names(variants_select_geno) <- c("Region", "Chr", "pos")
+    }
     required <- c("Region", "Chr", "pos")
     if (!all(required %in% colnames(variants_select_geno))) {
       stop(
@@ -433,7 +514,7 @@ fetch_pcil_positive <- function(
       ]
       if (nrow(active_introgressions) == 0) {
         stop(
-          "None of the Sample IDs from fetch_pcil_families_by_variant are present in the introgressions table",
+          "None of the available sample IDs (global_available_ids / result_pcil_families) are present in the introgressions table",
           call. = FALSE
         )
       }
@@ -569,6 +650,12 @@ fetch_pcil_positive <- function(
 #'   columns to restrict the search space for negative controls.
 #' @param result_pcil_families An optional list object from `fetch_pcil_families_by_variant()`
 #'   to globally restrict the search space.
+#' @param global_available_ids An optional character vector of sample IDs allowed as
+#'   negative controls for every region (for example, lines available in a seed bank).
+#'   Only the negative candidates are filtered; which lines count as carriers of the
+#'   introgression is always decided on the complete PCIL population. If
+#'   `result_pcil_families` is also supplied, only sample IDs present in both are used.
+#'   Defaults to `NULL` (no restriction).
 #'
 #' @return A list containing:
 #' \itemize{
@@ -583,16 +670,25 @@ fetch_pcil_positive <- function(
 #' @examples
 #' \donttest{
 #' library(panGenomeBreedr)
-#' 
-#' # 1. Fetch data and establish positive lines
-#' pcil_data <- fetch_pcil_data(connect_db_mode = "online")
+#'
+#' # 1. Connect to the package's bundled example database and establish positive lines
+#' my_db_folder <- system.file("extdata", "pangenome_scale_db",
+#'                            package = "panGenomeBreedr",
+#'                            mustWork = TRUE)
+#' con <- connect_local_db(folder_path = my_db_folder)
+#' pcil_data <- fetch_pcil_data(con = con, connect_db_mode = "local")
 #' selection <- c("INDEL_Chr03_79037889", "SNP_Chr03_79037855")
-#' 
-#' variant_geno_sel <- fetch_genotypes_by_id(variant_ids = selection, connect_db_mode = "online")
+#'
+#' variant_geno_sel <- fetch_genotypes_by_id(
+#'   con = con,
+#'   variant_ids = selection,
+#'   connect_db_mode = "local"
+#' )
 #' fam_results <- fetch_pcil_families_by_variant(
+#'   con = con,
 #'   selection = selection,
 #'   pcil_data = pcil_data,
-#'   connect_db_mode = "online"
+#'   connect_db_mode = "local"
 #' )
 #'
 #' pcil_pos_pcv <- fetch_pcil_positive(
@@ -610,16 +706,19 @@ fetch_pcil_positive <- function(
 #'   pcil_data = pcil_data,
 #'   pcil_positive_result = pcil_pos_pcv,
 #'   n_neg = 10
-#' ) 
-#' 
+#' )
+#'
 #' print(head(pcil_neg_pcv$pairs_best))
+#'
+#' disconnect_local_db(con)
 #' }
 fetch_pcil_negative <- function(
   pcil_data,
   pcil_positive_result,
   n_neg = 10,
   available_ids = NULL,
-  result_pcil_families = NULL
+  result_pcil_families = NULL,
+  global_available_ids = NULL
 ) {
   # Extract tables from pre-loaded PCIL data 
   if (missing(pcil_data) || !is.list(pcil_data)) {
@@ -678,6 +777,37 @@ fetch_pcil_negative <- function(
     "family"
   }
 
+  if (!is.null(available_ids)) {
+    if (!all(c("sample_id", "selection") %in% colnames(available_ids))) {
+      stop(
+        "available_ids must contain columns: 'sample_id', 'selection'",
+        call. = FALSE
+      )
+    }
+  }
+
+  # Lines allowed as negatives across ALL regions
+  user_ids_supplied <- !is.null(global_available_ids)
+  if (user_ids_supplied) {
+    if (!is.atomic(global_available_ids) || !is.null(dim(global_available_ids))) {
+      stop("global_available_ids must be a vector of sample IDs", call. = FALSE)
+    }
+    global_available_ids <- unique(as.character(global_available_ids))
+  }
+
+  if (!is.null(result_pcil_families)) {
+    family_ids <- result_pcil_families$pcil_summary$sample_id[
+      duplicated(result_pcil_families$pcil_summary$sample_id)
+    ]
+    if (length(family_ids) > 0) {
+      global_available_ids <- if (user_ids_supplied) {
+        intersect(global_available_ids, family_ids)
+      } else {
+        family_ids
+      }
+    }
+  }
+
   all_pcil_pairs_extended <- list()
   all_sample_ids <- unique(pcil_metadata[[id_col_meta]])
 
@@ -699,21 +829,44 @@ fetch_pcil_negative <- function(
 
     candidate_pool <- setdiff(all_sample_ids, lines_with_introgression)
 
-    # Global constraint logic
-    if (!is.null(result_pcil_families)) {
-      global_available_ids <- result_pcil_families$pcil_summary$sample_id[
-        duplicated(result_pcil_families$pcil_summary$sample_id)
-      ]
-      if (length(global_available_ids) > 0) {
-        candidate_pool <- intersect(candidate_pool, global_available_ids)
+    # Global constraint: restricts negatives only, never the carrier set
+    if (!is.null(global_available_ids)) {
+      candidate_pool <- intersect(candidate_pool, global_available_ids)
+      if (length(candidate_pool) == 0) {
+        warning(
+          paste(
+            "No PCIL (-) candidates remain after global_available_ids for:",
+            region_i
+          ),
+          call. = FALSE
+        )
+        next
       }
     }
 
+    # Region-specific constraint
     if (!is.null(available_ids)) {
       available_for_region <- unique(available_ids$sample_id[
         available_ids$selection == region_i
       ])
+      if (length(available_for_region) == 0) {
+        warning(
+          paste("No available IDs provided for:", region_i),
+          call. = FALSE
+        )
+        next
+      }
       candidate_pool <- intersect(candidate_pool, available_for_region)
+      if (length(candidate_pool) == 0) {
+        warning(
+          paste(
+            "No PCIL (-) candidates remain after available_ids filter for:",
+            region_i
+          ),
+          call. = FALSE
+        )
+        next
+      }
     }
 
     if (length(candidate_pool) == 0) {
@@ -929,23 +1082,29 @@ fetch_pcil_negative <- function(
 #' @examples
 #' \donttest{
 #' library(panGenomeBreedr)
-#' 
-#' # 1. Fetch PCIL data and variant genotypes
-#' pcil_data <- fetch_pcil_data(connect_db_mode = "online")
+#'
+#' # 1. Connect to the package's bundled example database and fetch data
+#' my_db_folder <- system.file("extdata", "pangenome_scale_db",
+#'                            package = "panGenomeBreedr",
+#'                            mustWork = TRUE)
+#' con <- connect_local_db(folder_path = my_db_folder)
+#' pcil_data <- fetch_pcil_data(con = con, connect_db_mode = "local")
 #' selection <- c("INDEL_Chr03_79037889", "SNP_Chr03_79037855")
-#' 
+#'
 #' variant_geno_sel <- fetch_genotypes_by_id(
-#'   variant_ids = selection, 
-#'   connect_db_mode = "online"
+#'   con = con,
+#'   variant_ids = selection,
+#'   connect_db_mode = "local"
 #' )
-#' 
+#'
 #' # 2. Fetch relevant families
 #' fam_results <- fetch_pcil_families_by_variant(
+#'   con = con,
 #'   selection = selection,
 #'   pcil_data = pcil_data,
-#'   connect_db_mode = "online"
+#'   connect_db_mode = "local"
 #' )
-#' 
+#'
 #' # 3. Select positive lines
 #' pcil_pos_pcv <- fetch_pcil_positive(
 #'   pcil_data = pcil_data,
@@ -956,13 +1115,15 @@ fetch_pcil_negative <- function(
 #'   result_pcil_families = fam_results,
 #'   window = 0
 #' )
-#' 
+#'
 #' # 4. Generate and display the plot
 #' positive_plots <- plot_pcil_positive(pcil_positive_result = pcil_pos_pcv)
-#' 
+#'
 #' if (length(positive_plots) > 0) {
 #'   print(positive_plots[[1]])
 #' }
+#'
+#' disconnect_local_db(con)
 #' }
 plot_pcil_positive <- function(pcil_positive_result) {
   Region <- block_start_bp <- block_end_bp <- SampleID <- NULL
@@ -1032,16 +1193,25 @@ plot_pcil_positive <- function(pcil_positive_result) {
 #' @examples
 #' \donttest{
 #' library(panGenomeBreedr)
-#' 
-#' # 1. Fetch data and find positive lines
-#' pcil_data <- fetch_pcil_data(connect_db_mode = "online")
+#'
+#' # 1. Connect to the package's bundled example database and find positive lines
+#' my_db_folder <- system.file("extdata", "pangenome_scale_db",
+#'                            package = "panGenomeBreedr",
+#'                            mustWork = TRUE)
+#' con <- connect_local_db(folder_path = my_db_folder)
+#' pcil_data <- fetch_pcil_data(con = con, connect_db_mode = "local")
 #' selection <- c("INDEL_Chr03_79037889", "SNP_Chr03_79037855")
-#' 
-#' variant_geno_sel <- fetch_genotypes_by_id(variant_ids = selection, connect_db_mode = "online")
+#'
+#' variant_geno_sel <- fetch_genotypes_by_id(
+#'   con = con,
+#'   variant_ids = selection,
+#'   connect_db_mode = "local"
+#' )
 #' fam_results <- fetch_pcil_families_by_variant(
+#'   con = con,
 #'   selection = selection,
 #'   pcil_data = pcil_data,
-#'   connect_db_mode = "online"
+#'   connect_db_mode = "local"
 #' )
 #'
 #' pcil_pos_pcv <- fetch_pcil_positive(
@@ -1056,13 +1226,15 @@ plot_pcil_positive <- function(pcil_positive_result) {
 #'
 #' # 2. Plot the best candidate lines genome-wide
 #' best_line_plots <- plot_pcil_best_lines(
-#'   pcil_positive_result = pcil_pos_pcv, 
+#'   pcil_positive_result = pcil_pos_pcv,
 #'   pcil_data = pcil_data
 #' )
-#' 
+#'
 #' if (length(best_line_plots) > 0) {
 #'   print(best_line_plots[[1]])
 #' }
+#'
+#' disconnect_local_db(con)
 #' }
 plot_pcil_best_lines <- function(
   pcil_positive_result,
@@ -1099,7 +1271,18 @@ plot_pcil_best_lines <- function(
   chr_levels <- sprintf("Chr%02d", 1:10)
   chr_lengths <- data.frame(
     ChrLabel = factor(chr_levels, levels = chr_levels),
-    chr_endMb = c(74, 78, 74, 68, 62, 62, 64, 55, 60, 61)
+    chr_endMb = c(
+      85.1129,
+      79.1150,
+      80.8733,
+      71.2156,
+      77.0581,
+      62.7139,
+      68.9119,
+      65.7793,
+      63.2776,
+      62.8707
+    )
   )
 
   #  Loop Through Each Region
@@ -1289,16 +1472,26 @@ plot_pcil_best_lines <- function(
 #' @examples
 #' \donttest{
 #' library(panGenomeBreedr)
-#' 
-#' # 1. Run the full pipeline to identify positive and negative pairs
-#' pcil_data <- fetch_pcil_data(connect_db_mode = "online")
+#'
+#' # 1. Connect to the package's bundled example database and run the full
+#' # pipeline to identify positive and negative pairs
+#' my_db_folder <- system.file("extdata", "pangenome_scale_db",
+#'                            package = "panGenomeBreedr",
+#'                            mustWork = TRUE)
+#' con <- connect_local_db(folder_path = my_db_folder)
+#' pcil_data <- fetch_pcil_data(con = con, connect_db_mode = "local")
 #' selection <- c("INDEL_Chr03_79037889", "SNP_Chr03_79037855")
-#' 
-#' variant_geno_sel <- fetch_genotypes_by_id(variant_ids = selection, connect_db_mode = "online")
+#'
+#' variant_geno_sel <- fetch_genotypes_by_id(
+#'   con = con,
+#'   variant_ids = selection,
+#'   connect_db_mode = "local"
+#' )
 #' fam_results <- fetch_pcil_families_by_variant(
+#'   con = con,
 #'   selection = selection,
 #'   pcil_data = pcil_data,
-#'   connect_db_mode = "online"
+#'   connect_db_mode = "local"
 #' )
 #'
 #' pcil_pos_pcv <- fetch_pcil_positive(
@@ -1316,16 +1509,18 @@ plot_pcil_best_lines <- function(
 #'   pcil_positive_result = pcil_pos_pcv,
 #'   n_neg = 10
 #' )
-#' 
+#'
 #' # 2. Generate side-by-side visual comparisons
 #' pair_plots <- plot_pcil_pairs(
 #'   pcil_neg_results = pcil_neg_pcv,
 #'   pcil_data = pcil_data
 #' )
-#' 
+#'
 #' if (length(pair_plots) > 0) {
 #'   print(pair_plots[[1]])
 #' }
+#'
+#' disconnect_local_db(con)
 #' }
 plot_pcil_pairs <- function(pcil_neg_results, pcil_data) {
 

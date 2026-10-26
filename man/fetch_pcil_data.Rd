@@ -31,17 +31,15 @@ for PCIL data, supporting both local and online database modes.
 \donttest{
 library(panGenomeBreedr)
 
-# --- Online Mode ---
-# Fetch all PCIL data tables from the remote database
-pcil_data <- fetch_pcil_data(connect_db_mode = 'online')
-}
+# Locate the package's bundled example database
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+con <- connect_local_db(folder_path = my_db_folder)
 
-\dontrun{
-# --- Offline Mode ---
-# Requires a local database folder that contains a "pcil" subfolder;
-# the sample dataset shipped with this package does not include one.
-con <- connect_local_db(folder_path = "path/to/your/local_db")
-pcil_data_local <- fetch_pcil_data(con = con, connect_db_mode = "local")
+# Fetch all PCIL data tables
+pcil_data <- fetch_pcil_data(con = con, connect_db_mode = "local")
+
 disconnect_local_db(con)
 }
 }

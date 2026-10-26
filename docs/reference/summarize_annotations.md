@@ -68,62 +68,17 @@ A list object containing three summarized summary data frames:
 
 ``` r
 # \donttest{
-# --- Online Mode ---
 # Load the package
 library(panGenomeBreedr)
 
-# Get annotation summary from the online database
-online_summary <- summarize_annotations(
-  chrom = "Chr05",
-  start = 75104537,
-  end = 75106403,
-  connect_db_mode = 'online'
-)
-print(online_summary)
-#> $annotation_summary
-#>                        annotation variant_type count
-#> 1    disruptive_inframe_insertion        INDEL     1
-#> 2  conservative_inframe_insertion        INDEL     1
-#> 3         downstream_gene_variant        INDEL    13
-#> 4         downstream_gene_variant          SNP    46
-#> 5   conservative_inframe_deletion        INDEL     1
-#> 6                  intron_variant        INDEL     2
-#> 7             5_prime_UTR_variant          SNP     1
-#> 8           upstream_gene_variant          SNP   149
-#> 9                missense_variant          SNP    29
-#> 10          upstream_gene_variant        INDEL    53
-#> 11             synonymous_variant          SNP    21
-#> 12            5_prime_UTR_variant        INDEL     1
-#> 13                 intron_variant          SNP     6
-#> 14             frameshift_variant        INDEL     6
-#> 15            3_prime_UTR_variant          SNP    18
-#> 16            3_prime_UTR_variant        INDEL    13
-#> 17    disruptive_inframe_deletion        INDEL     2
-#> 
-#> $impact_summary
-#>     impact variant_type count
-#> 1 MODIFIER        INDEL    82
-#> 2 MODIFIER          SNP   220
-#> 3     HIGH        INDEL     6
-#> 4      LOW          SNP    21
-#> 5 MODERATE        INDEL     5
-#> 6 MODERATE          SNP    29
-#> 
-#> $variant_type_totals
-#>   variant_type total_variants
-#> 1        INDEL             27
-#> 2          SNP             75
-#> 
-
-# --- Offline Mode ---
 # Locate the package example database folder
-my_db_folder <- system.file("extdata", "pangenome_scale_db", 
-                           package = "panGenomeBreedr", 
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
                            mustWork = TRUE)
 
 # Establish a virtual connection
 con_local <- connect_local_db(folder_path = my_db_folder)
-#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
 
 # Extract functional distribution summaries across a specific gene locus window
 local_summary <- summarize_annotations(
@@ -132,10 +87,55 @@ local_summary <- summarize_annotations(
   start = 75104537,
   end = 75106403
 )
-# print(local_summary)
+print(local_summary)
+#> $annotation_summary
+#>                        annotation variant_type count
+#> 1           upstream_gene_variant          SNP   149
+#> 2           upstream_gene_variant        INDEL    53
+#> 3         downstream_gene_variant          SNP    46
+#> 4                missense_variant          SNP    29
+#> 5              synonymous_variant          SNP    21
+#> 6             3_prime_UTR_variant          SNP    18
+#> 7             3_prime_UTR_variant        INDEL    13
+#> 8         downstream_gene_variant        INDEL    13
+#> 9              frameshift_variant        INDEL     6
+#> 10                 intron_variant          SNP     6
+#> 11    disruptive_inframe_deletion        INDEL     2
+#> 12                 intron_variant        INDEL     2
+#> 13            5_prime_UTR_variant        INDEL     1
+#> 14  conservative_inframe_deletion        INDEL     1
+#> 15   disruptive_inframe_insertion        INDEL     1
+#> 16 conservative_inframe_insertion        INDEL     1
+#> 17            5_prime_UTR_variant          SNP     1
+#> 
+#> $impact_summary
+#>     impact variant_type count
+#> 1 MODIFIER          SNP   220
+#> 2 MODIFIER        INDEL    82
+#> 3 MODERATE          SNP    29
+#> 4      LOW          SNP    21
+#> 5     HIGH        INDEL     6
+#> 6 MODERATE        INDEL     5
+#> 
+#> $variant_type_totals
+#>   variant_type total_variants
+#> 1        INDEL             27
+#> 2          SNP             75
+#> 
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
 #> Successfully disconnected from the local database. Memory cleared.
 # }
+
+if (FALSE) { # \dontrun{
+# To query the public online resource instead:
+online_summary <- summarize_annotations(
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403,
+  connect_db_mode = 'online'
+)
+print(online_summary)
+} # }
 ```

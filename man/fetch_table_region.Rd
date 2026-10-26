@@ -49,28 +49,6 @@ or 'online' mode (fetching data from a remote API endpoint).
 # Load the package
 library(panGenomeBreedr)
 
-# --- Online Mode ---
-# Query variants table for a specific genomic region from the online database
-online_variants_data <- fetch_table_region(
-  table_name = "variants",
-  chrom = "Chr05",
-  start = 75104537,
-  end = 75106403,
-  connect_db_mode = 'online'
-)
-print(head(online_variants_data))
-
-# Query genotypes table for the same region from the online database
-online_genotypes_data <- fetch_table_region(
-  table_name = "genotypes",
-  chrom = "Chr05",
-  start = 75104537,
-  end = 75106403,
-  connect_db_mode = 'online'
-)
-print(online_genotypes_data[1:6, 1:12])
-
-# --- Offline Mode ---
 # Locate the package example database folder
 my_db_folder <- system.file("extdata", "pangenome_scale_db",
                            package = "panGenomeBreedr",
@@ -86,10 +64,9 @@ local_annota_region <- fetch_table_region(
   chrom = "Chr05",
   start = 75104537,
   end = 75106403,
-  gene_name = "Sobic.005G213600",
-  connect_db_mode = 'local'
+  gene_name = "Sobic.005G213600"
 )
-# print(head(local_annota_region))
+print(head(local_annota_region))
 
 # Extract matrix genotypes within the exact same coordinates window from local DB
 local_gt_region <- fetch_table_region(
@@ -97,13 +74,33 @@ local_gt_region <- fetch_table_region(
   table_name = "genotypes",
   chrom = "Chr05",
   start = 75104537,
-  end = 75106403,
-  connect_db_mode = 'local'
+  end = 75106403
 )
-# print(local_gt_region[1:6, 1:12])
+print(local_gt_region[1:6, 1:12])
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
+}
+
+\dontrun{
+# To query the public online resource instead:
+online_variants_data <- fetch_table_region(
+  table_name = "variants",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403,
+  connect_db_mode = 'online'
+)
+print(head(online_variants_data))
+
+online_genotypes_data <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403,
+  connect_db_mode = 'online'
+)
+print(online_genotypes_data[1:6, 1:12])
 }
 
 }

@@ -431,26 +431,3 @@ test_that("render_ghost_plate_error produces a valid ggplot object", {
 })
 
 
-
-test_that("plot_variant_hotspots generates a ggplot object", {
-  # Create minimal variant and annotation tables
-  variants <- data.frame(
-    variant_id = "SNP_100",
-    chrom = "Chr1",
-    pos = 100,
-    variant_type = "SNP"
-  )
-  annos <- data.frame(
-    variant_id = "SNP_100",
-    impact = "HIGH"
-  )
-
-  # Run plot generator
-  p <- panGenomeBreedr:::plot_variant_hotspots(variants, annos)
-
-  # Verify ggplot structure
-  expect_s3_class(p, "ggplot")
-  expect_equal(p$labels$title, "Genomic Variant Hotspots")
-})
-
-

@@ -29,10 +29,11 @@ strand) of the gene, transcripts, 5'-UTR, CDS, and 3'-UTR.
 
 ``` r
 # \donttest{
-# example code
 library(panGenomeBreedr)
-# Path to GFF3 file
-gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+# Small local GFF3 slice bundled with the package
+gff_path <- system.file("extdata", "pangenome_scale_db", "gene_models.gff3.gz",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
 gene_features <- gene_coord_gff(gene_name = "Sobic.005G213600",
                                 gff_path = gff_path)
 head(gene_features)
@@ -44,4 +45,12 @@ head(gene_features)
 #> 5 Sobic.005G213600.1.v5.1  five_prime_UTR      Chr05 75106335 75106403      -
 #> 6   Sobic.005G213600.v5.1            gene      Chr05 75104537 75106403      -
 # }
+
+if (FALSE) { # \dontrun{
+# To use the full, public reference GFF3 instead:
+gff_path <- "https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"
+gene_features_online <- gene_coord_gff(gene_name = "Sobic.005G213600",
+                                gff_path = gff_path)
+head(gene_features_online)
+} # }
 ```

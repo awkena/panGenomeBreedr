@@ -25,8 +25,12 @@ run_app(
 
 - auto_install:
 
-  installs used packages not found in namespace. See
-  \`?golem::get_golem_options\` for more details.
+  Logical. If \`TRUE\` (default) and the session is interactive, offers
+  to install missing packages the app needs, after asking for
+  confirmation. Nothing is installed without consent. If \`FALSE\`, or
+  in a non-interactive session, missing packages stop the app with
+  install instructions instead. See \`?golem::get_golem_options\` for
+  more details.
 
 - options:
 

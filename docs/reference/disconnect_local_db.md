@@ -37,7 +37,7 @@ my_db_folder <- system.file("extdata", "pangenome_scale_db",
 
 # Establish a virtual connection to the offline database engine
 con <- connect_local_db(folder_path = my_db_folder, max_memory = "8GB")
-#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
 
 # Disconnect at the end of your session
 disconnect_local_db(con)

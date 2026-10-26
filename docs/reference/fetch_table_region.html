@@ -105,49 +105,6 @@ Can be either `'local'` (default) or `'online'`.</p></dd>
 <span class="r-in"><span><span class="co"># Load the package</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># --- Online Mode ---</span></span></span>
-<span class="r-in"><span><span class="co"># Query variants table for a specific genomic region from the online database</span></span></span>
-<span class="r-in"><span><span class="va">online_variants_data</span> <span class="op">&lt;-</span> <span class="fu">fetch_table_region</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"variants"</span>,</span></span>
-<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span></span>
-<span class="r-in"><span>  start <span class="op">=</span> <span class="fl">75104537</span>,</span></span>
-<span class="r-in"><span>  end <span class="op">=</span> <span class="fl">75106403</span>,</span></span>
-<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">online_variants_data</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           variant_id chrom      pos ref alt qual filter variant_type</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 SNP_Chr05_75104557 Chr05 75104557   C   T    .   PASS          SNP</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 SNP_Chr05_75104560 Chr05 75104560   C   T    .   PASS          SNP</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 SNP_Chr05_75104568 Chr05 75104568   G   T    .   PASS          SNP</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 SNP_Chr05_75104569 Chr05 75104569   C   A    .   PASS          SNP</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 SNP_Chr05_75104574 Chr05 75104574   C   T    .   PASS          SNP</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 SNP_Chr05_75104591 Chr05 75104591   A   G    .   PASS          SNP</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Query genotypes table for the same region from the online database</span></span></span>
-<span class="r-in"><span><span class="va">online_genotypes_data</span> <span class="op">&lt;-</span> <span class="fu">fetch_table_region</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span></span>
-<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span></span>
-<span class="r-in"><span>  start <span class="op">=</span> <span class="fl">75104537</span>,</span></span>
-<span class="r-in"><span>  end <span class="op">=</span> <span class="fl">75106403</span>,</span></span>
-<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">online_genotypes_data</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">]</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             variant_id chrom      pos ref  alt variant_type major_allele</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 INDEL_Chr05_75104541 Chr05 75104541   T TGAC        INDEL            T</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 INDEL_Chr05_75104564 Chr05 75104564   C   CA        INDEL            C</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 INDEL_Chr05_75104573 Chr05 75104573  TC    T        INDEL           TC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 INDEL_Chr05_75104585 Chr05 75104585   A  AAT        INDEL            A</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 INDEL_Chr05_75104618 Chr05 75104618   G   GC        INDEL            G</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 INDEL_Chr05_75104703 Chr05 75104703   C  CTG        INDEL            C</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   minor_allele major_allele_freq minor_allele_freq IDMM ISGC</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1         TGAC           0.99881           0.00119  0|0  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2           CA           0.88544           0.11456  0|0  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3            T           0.88484           0.11516  0|0  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4          AAT           0.88365           0.11635  0|0  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5           GC           0.88455           0.11545  0|0  0|0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6          CTG           0.99821           0.00179  0|0  0|0</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># --- Offline Mode ---</span></span></span>
 <span class="r-in"><span><span class="co"># Locate the package example database folder</span></span></span>
 <span class="r-in"><span><span class="va">my_db_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pangenome_scale_db"</span>,</span></span>
 <span class="r-in"><span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>,</span></span>
@@ -155,7 +112,7 @@ Can be either `'local'` (default) or `'online'`.</p></dd>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Establish a virtual connection to the offline database engine</span></span></span>
 <span class="r-in"><span><span class="va">con_local</span> <span class="op">&lt;-</span> <span class="fu"><a href="connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">my_db_folder</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Extract functional annotations inside a candidate locus region from local DB</span></span></span>
 <span class="r-in"><span><span class="va">local_annota_region</span> <span class="op">&lt;-</span> <span class="fu">fetch_table_region</span><span class="op">(</span></span></span>
@@ -164,10 +121,30 @@ Can be either `'local'` (default) or `'online'`.</p></dd>
 <span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span></span>
 <span class="r-in"><span>  start <span class="op">=</span> <span class="fl">75104537</span>,</span></span>
 <span class="r-in"><span>  end <span class="op">=</span> <span class="fl">75106403</span>,</span></span>
-<span class="r-in"><span>  gene_name <span class="op">=</span> <span class="st">"Sobic.005G213600"</span>,</span></span>
-<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'local'</span></span></span>
+<span class="r-in"><span>  gene_name <span class="op">=</span> <span class="st">"Sobic.005G213600"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># print(head(local_annota_region))</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">local_annota_region</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             variant_id allele          annotation   impact        gene_name</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 INDEL_Chr05_75104541   TGAC 3_prime_UTR_variant MODIFIER Sobic.005G213600</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   SNP_Chr05_75104557      T 3_prime_UTR_variant MODIFIER Sobic.005G213600</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   SNP_Chr05_75104560      T 3_prime_UTR_variant MODIFIER Sobic.005G213600</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 INDEL_Chr05_75104564     CA 3_prime_UTR_variant MODIFIER Sobic.005G213600</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5   SNP_Chr05_75104568      T 3_prime_UTR_variant MODIFIER Sobic.005G213600</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6   SNP_Chr05_75104569      A 3_prime_UTR_variant MODIFIER Sobic.005G213600</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 gene_id feature_type              feature_id transcript_biotype</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 Sobic.005G213600.v5.1   transcript Sobic.005G213600.1.v5.1     protein_coding</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   rank            hgvs_c hgvs_p chrom      pos</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  2/2 c.*322_*324dupGTC        Chr05 75104541</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  2/2         c.*309G&gt;A        Chr05 75104557</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  2/2         c.*306G&gt;A        Chr05 75104560</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  2/2        c.*301dupT        Chr05 75104564</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  2/2         c.*298C&gt;A        Chr05 75104568</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  2/2         c.*297G&gt;T        Chr05 75104569</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Extract matrix genotypes within the exact same coordinates window from local DB</span></span></span>
 <span class="r-in"><span><span class="va">local_gt_region</span> <span class="op">&lt;-</span> <span class="fu">fetch_table_region</span><span class="op">(</span></span></span>
@@ -175,15 +152,49 @@ Can be either `'local'` (default) or `'online'`.</p></dd>
 <span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span></span>
 <span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span></span>
 <span class="r-in"><span>  start <span class="op">=</span> <span class="fl">75104537</span>,</span></span>
-<span class="r-in"><span>  end <span class="op">=</span> <span class="fl">75106403</span>,</span></span>
-<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'local'</span></span></span>
+<span class="r-in"><span>  end <span class="op">=</span> <span class="fl">75106403</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># print(local_gt_region[1:6, 1:12])</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">local_gt_region</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             variant_id chrom      pos ref  alt variant_type major_allele</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 INDEL_Chr05_75104541 Chr05 75104541   T TGAC        INDEL            T</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   SNP_Chr05_75104557 Chr05 75104557   C    T          SNP            C</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   SNP_Chr05_75104560 Chr05 75104560   C    T          SNP            C</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 INDEL_Chr05_75104564 Chr05 75104564   C   CA        INDEL            C</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5   SNP_Chr05_75104568 Chr05 75104568   G    T          SNP            G</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6   SNP_Chr05_75104569 Chr05 75104569   C    A          SNP            C</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   minor_allele major_allele_freq minor_allele_freq IDMM ISGC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1         TGAC           0.99881           0.00119  0|0  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2            T           0.89051           0.10949  0|0  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3            T           0.88962           0.11038  0|0  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4           CA           0.88544           0.11456  0|0  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5            T           0.99791           0.00209  0|0  0|0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6            A           0.99791           0.00209  0|0  0|0</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Disconnect at the end of your session</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_local</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Successfully disconnected from the local database. Memory cleared.</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co"># To query the public online resource instead:</span></span></span>
+<span class="r-in"><span><span class="va">online_variants_data</span> <span class="op">&lt;-</span> <span class="fu">fetch_table_region</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"variants"</span>,</span></span>
+<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span></span>
+<span class="r-in"><span>  start <span class="op">=</span> <span class="fl">75104537</span>,</span></span>
+<span class="r-in"><span>  end <span class="op">=</span> <span class="fl">75106403</span>,</span></span>
+<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">online_variants_data</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">online_genotypes_data</span> <span class="op">&lt;-</span> <span class="fu">fetch_table_region</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span></span>
+<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>,</span></span>
+<span class="r-in"><span>  start <span class="op">=</span> <span class="fl">75104537</span>,</span></span>
+<span class="r-in"><span>  end <span class="op">=</span> <span class="fl">75106403</span>,</span></span>
+<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">online_genotypes_data</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

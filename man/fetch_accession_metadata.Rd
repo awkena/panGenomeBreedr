@@ -36,23 +36,9 @@ the API. The function can return all metadata or filter by a specific column-val
 # Load the package
 library(panGenomeBreedr)
 
-# --- Online Mode ---
-# Retrieve all sample metadata from the online database
-all_metadata_online <- fetch_accession_metadata(connect_db_mode = 'online')
-print(all_metadata_online[1:3, 1:5])
-
-# Retrieve metadata for samples from Ghana from the online database
-ghana_metadata_online <- fetch_accession_metadata(
-  query_col = "countryorigin",
-  query_value = "Ghana",
-  connect_db_mode = 'online'
-)
-print(ghana_metadata_online[1:3, 1:5])
-
-# --- Offline Mode ---
 # Locate the package example database folder
-my_db_folder <- system.file("extdata", "pangenome_scale_db", 
-                           package = "panGenomeBreedr", 
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
                            mustWork = TRUE)
 
 # Establish a virtual connection
@@ -64,10 +50,23 @@ ethiopia_metadata_local <- fetch_accession_metadata(
   query_col = "countryorigin",
   query_value = "Ethiopia"
 )
-# print(ethiopia_metadata_local[1:3, 1:5])
+print(ethiopia_metadata_local[1:3, 1:5])
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
+}
+
+\dontrun{
+# To query the public online resource instead:
+all_metadata_online <- fetch_accession_metadata(connect_db_mode = 'online')
+print(all_metadata_online[1:3, 1:5])
+
+ghana_metadata_online <- fetch_accession_metadata(
+  query_col = "countryorigin",
+  query_value = "Ghana",
+  connect_db_mode = 'online'
+)
+print(ghana_metadata_online[1:3, 1:5])
 }
 
 }

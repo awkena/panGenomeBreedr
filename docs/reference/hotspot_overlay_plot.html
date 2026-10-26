@@ -92,20 +92,26 @@ highlight on the plot with vertical lines, enlarged points, and labels.</p></dd>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># 1. Define parameters</span></span></span>
-<span class="r-in"><span><span class="va">gff_path</span> <span class="op">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"</span></span></span>
+<span class="r-in"><span><span class="co"># 1. Define parameters using the package's bundled example database and</span></span></span>
+<span class="r-in"><span><span class="co"># a small GFF3 slice for the same gene</span></span></span>
+<span class="r-in"><span><span class="va">my_db_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pangenome_scale_db"</span>,</span></span>
+<span class="r-in"><span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>,</span></span>
+<span class="r-in"><span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">gff_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pangenome_scale_db"</span>, <span class="st">"gene_models.gff3.gz"</span>,</span></span>
+<span class="r-in"><span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>,</span></span>
+<span class="r-in"><span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">con_local</span> <span class="op">&lt;-</span> <span class="fu"><a href="connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">my_db_folder</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.</span>
 <span class="r-in"><span><span class="va">gene</span> <span class="op">&lt;-</span> <span class="st">"Sobic.005G213600"</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Fetch data for the gene region</span></span></span>
 <span class="r-in"><span><span class="va">ann_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span></span>
-<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>, start <span class="op">=</span> <span class="fl">75104537</span>, end <span class="op">=</span> <span class="fl">75106403</span>,</span></span>
-<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
+<span class="r-in"><span>  con <span class="op">=</span> <span class="va">con_local</span>, table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span></span>
+<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>, start <span class="op">=</span> <span class="fl">75104537</span>, end <span class="op">=</span> <span class="fl">75106403</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">geno_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span></span>
-<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>, start <span class="op">=</span> <span class="fl">75104537</span>, end <span class="op">=</span> <span class="fl">75106403</span>,</span></span>
-<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
+<span class="r-in"><span>  con <span class="op">=</span> <span class="va">con_local</span>, table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span></span>
+<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>, start <span class="op">=</span> <span class="fl">75104537</span>, end <span class="op">=</span> <span class="fl">75106403</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">#  Generate and display the plot</span></span></span>
@@ -116,7 +122,32 @@ highlight on the plot with vertical lines, enlarged points, and labels.</p></dd>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-plt img"><img src="hotspot_overlay_plot-1.png" alt="" width="960" height="576"></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_local</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Successfully disconnected from the local database. Memory cleared.</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co"># To use the full, public reference GFF3 and query the online resource instead:</span></span></span>
+<span class="r-in"><span><span class="va">gff_path</span> <span class="op">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/awkena/panGB/main/Sbicolor_730_v5.1.gene.gff3.gz"</span></span></span>
+<span class="r-in"><span><span class="va">gene</span> <span class="op">&lt;-</span> <span class="st">"Sobic.005G213600"</span></span></span>
+<span class="r-in"><span><span class="va">ann_df_online</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span></span>
+<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>, start <span class="op">=</span> <span class="fl">75104537</span>, end <span class="op">=</span> <span class="fl">75106403</span>,</span></span>
+<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">geno_df_online</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"genotypes"</span>,</span></span>
+<span class="r-in"><span>  chrom <span class="op">=</span> <span class="st">"Chr05"</span>, start <span class="op">=</span> <span class="fl">75104537</span>, end <span class="op">=</span> <span class="fl">75106403</span>,</span></span>
+<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">ann_df_online</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">geno_df_online</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu">hotspot_overlay_plot</span><span class="op">(</span></span></span>
+<span class="r-in"><span>    gene_name <span class="op">=</span> <span class="va">gene</span>, gff_path <span class="op">=</span> <span class="va">gff_path</span>,</span></span>
+<span class="r-in"><span>    annotations_df <span class="op">=</span> <span class="va">ann_df_online</span>, genotypes_df <span class="op">=</span> <span class="va">geno_df_online</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

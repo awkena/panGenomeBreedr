@@ -29,15 +29,9 @@ It can operate in 'local' or 'online' mode.
 }
 \examples{
 \donttest{
-# --- Online Mode ---
 # Load the package
 library(panGenomeBreedr)
 
-# Get schema for the "variants" table from the online database
-online_schema <- list_columns(table_name = "variants", connect_db_mode = 'online')
-print(online_schema)
-
-# --- Offline Mode ---
 # Locate the package example database folder
 my_db_folder <- system.file("extdata", "pangenome_scale_db",
                            package = "panGenomeBreedr",
@@ -48,10 +42,16 @@ con_local <- connect_local_db(folder_path = my_db_folder)
 
 # Inspect the schema of the local "variants" table
 local_schema <- list_columns(con = con_local, table_name = "variants")
-# print(local_schema)
+print(local_schema)
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
+}
+
+\dontrun{
+# To query the public online resource instead:
+online_schema <- list_columns(table_name = "variants", connect_db_mode = 'online')
+print(online_schema)
 }
 
 }

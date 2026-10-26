@@ -71,55 +71,80 @@ A long-format data frame with the following columns:
 
 ``` r
 # \donttest{
-# Mode 1: Compute full pairwise matrix landscape
+library(panGenomeBreedr)
 
-# Get genotype matrix from the online database
-query_geno <- panGenomeBreedr::fetch_table_region(
-table_name = "genotypes",
-chrom = "Chr03",
-start = 79037682,
-end = 79039091,
-connect_db_mode = 'online'
+# Locate the package example database folder
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+con_local <- connect_local_db(folder_path = my_db_folder)
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
+
+# Get genotype matrix for the region from the local database
+query_geno <- fetch_table_region(
+  con = con_local,
+  table_name = "genotypes",
+  chrom = "Chr03",
+  start = 79037682,
+  end = 79039091
 )
 
+# Mode 1: Compute full pairwise matrix landscape
 full_ld <- calculate_LD(df = query_geno, target_variant_ids = NULL, genotype_start_col = 11)
 print(head(full_ld))
-#>            variant_1 position_1 variant_type_1          variant_2 position_2
-#> 1 SNP_Chr03_79037693   79037693            SNP SNP_Chr03_79037699   79037699
-#> 2 SNP_Chr03_79037693   79037693            SNP SNP_Chr03_79037706   79037706
-#> 3 SNP_Chr03_79037693   79037693            SNP SNP_Chr03_79037716   79037716
-#> 4 SNP_Chr03_79037693   79037693            SNP SNP_Chr03_79037855   79037855
-#> 5 SNP_Chr03_79037693   79037693            SNP SNP_Chr03_79037876   79037876
-#> 6 SNP_Chr03_79037693   79037693            SNP SNP_Chr03_79037944   79037944
-#>   variant_type_2 distance_bp    R2 D_prime
-#> 1            SNP           6 2e-05       1
-#> 2            SNP          13 0e+00       1
-#> 3            SNP          23 0e+00       1
-#> 4            SNP         162 5e-05       1
-#> 5            SNP         183 1e-05       1
-#> 6            SNP         251 5e-05       1
+#>              variant_1 position_1 variant_type_1            variant_2
+#> 1 INDEL_Chr03_79037682   79037682          INDEL   SNP_Chr03_79037693
+#> 2 INDEL_Chr03_79037682   79037682          INDEL   SNP_Chr03_79037699
+#> 3 INDEL_Chr03_79037682   79037682          INDEL   SNP_Chr03_79037706
+#> 4 INDEL_Chr03_79037682   79037682          INDEL   SNP_Chr03_79037716
+#> 5 INDEL_Chr03_79037682   79037682          INDEL INDEL_Chr03_79037750
+#> 6 INDEL_Chr03_79037682   79037682          INDEL   SNP_Chr03_79037855
+#>   position_2 variant_type_2 distance_bp      R2 D_prime
+#> 1   79037693            SNP          11 0.00001 1.00000
+#> 2   79037699            SNP          17 0.00048 1.00000
+#> 3   79037706            SNP          24 0.00001 1.00000
+#> 4   79037716            SNP          34 0.00002 1.00000
+#> 5   79037750          INDEL          68 0.00010 1.00000
+#> 6   79037855            SNP         173 0.00010 0.02111
 
 # Mode 2: Targeted calculation panel for KASP marker vetting
-target_variants <- c("INDEL_Chr03_79037682", "INDEL_Chr03_79037750", "SNP_Chr03_79039022")
+target_variants <- c("INDEL_Chr03_79037889", "SNP_Chr03_79037855")
 targeted_panel <- calculate_LD(
-  df = query_geno, 
-  target_variant_ids = target_variants, 
+  df = query_geno,
+  target_variant_ids = target_variants,
   genotype_start_col = 11
 )
 print(head(targeted_panel))
-#>              variant_1 position_1 variant_type_1          variant_2 position_2
-#> 1 INDEL_Chr03_79037682   79037682          INDEL SNP_Chr03_79037693   79037693
-#> 2 INDEL_Chr03_79037682   79037682          INDEL SNP_Chr03_79037699   79037699
-#> 3 INDEL_Chr03_79037682   79037682          INDEL SNP_Chr03_79037706   79037706
-#> 4 INDEL_Chr03_79037682   79037682          INDEL SNP_Chr03_79037716   79037716
-#> 5 INDEL_Chr03_79037682   79037682          INDEL SNP_Chr03_79037855   79037855
-#> 6 INDEL_Chr03_79037682   79037682          INDEL SNP_Chr03_79037876   79037876
-#>   variant_type_2 distance_bp      R2 D_prime
-#> 1            SNP          11 0.00001 1.00000
-#> 2            SNP          17 0.00048 1.00000
-#> 3            SNP          24 0.00001 1.00000
-#> 4            SNP          34 0.00002 1.00000
-#> 5            SNP         173 0.00010 0.02111
-#> 6            SNP         194 0.00035 1.00000
+#>              variant_1 position_1 variant_type_1            variant_2
+#> 1 INDEL_Chr03_79037889   79037889          INDEL INDEL_Chr03_79037682
+#> 2 INDEL_Chr03_79037889   79037889          INDEL   SNP_Chr03_79037693
+#> 3 INDEL_Chr03_79037889   79037889          INDEL   SNP_Chr03_79037699
+#> 4 INDEL_Chr03_79037889   79037889          INDEL   SNP_Chr03_79037706
+#> 5 INDEL_Chr03_79037889   79037889          INDEL   SNP_Chr03_79037716
+#> 6 INDEL_Chr03_79037889   79037889          INDEL INDEL_Chr03_79037750
+#>   position_2 variant_type_2 distance_bp      R2 D_prime
+#> 1   79037682          INDEL         207 0.00007 0.02088
+#> 2   79037693            SNP         196 0.00006 1.00000
+#> 3   79037699            SNP         190 0.00283 1.00000
+#> 4   79037706            SNP         183 0.00006 1.00000
+#> 5   79037716            SNP         173 0.00012 1.00000
+#> 6   79037750          INDEL         139 0.00002 0.01667
+
+disconnect_local_db(con_local)
+#> Successfully disconnected from the local database. Memory cleared.
 # }
+
+if (FALSE) { # \dontrun{
+# To query the public online resource instead:
+query_geno_online <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = "Chr03",
+  start = 79037682,
+  end = 79039091,
+  connect_db_mode = 'online'
+)
+full_ld_online <- calculate_LD(df = query_geno_online, target_variant_ids = NULL,
+                                genotype_start_col = 11)
+print(head(full_ld_online))
+} # }
 ```

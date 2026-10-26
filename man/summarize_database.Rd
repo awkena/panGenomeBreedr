@@ -23,15 +23,9 @@ with their respective total row counts. It can operate in 'local' or 'online' mo
 }
 \examples{
 \donttest{
-# --- Online Mode ---
 # Load the package
 library(panGenomeBreedr)
 
-# Summarize all tables in the online database
-online_summary <- summarize_database(connect_db_mode = 'online')
-print(online_summary)
-
-# --- Offline Mode ---
 # Locate the package example database folder
 my_db_folder <- system.file("extdata", "pangenome_scale_db",
                            package = "panGenomeBreedr",
@@ -42,10 +36,16 @@ con_local <- connect_local_db(folder_path = my_db_folder)
 
 # Get row counts for all mounted Parquet views
 local_summary <- summarize_database(con = con_local)
-# print(local_summary)
+print(local_summary)
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
+}
+
+\dontrun{
+# To query the public online resource instead:
+online_summary <- summarize_database(connect_db_mode = 'online')
+print(online_summary)
 }
 
 }

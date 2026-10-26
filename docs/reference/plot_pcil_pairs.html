@@ -71,15 +71,26 @@ all necessary PCIL data tables.</p></dd>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># 1. Run the full pipeline to identify positive and negative pairs</span></span></span>
-<span class="r-in"><span><span class="va">pcil_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_pcil_data.html">fetch_pcil_data</a></span><span class="op">(</span>connect_db_mode <span class="op">=</span> <span class="st">"online"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># 1. Connect to the package's bundled example database and run the full</span></span></span>
+<span class="r-in"><span><span class="co"># pipeline to identify positive and negative pairs</span></span></span>
+<span class="r-in"><span><span class="va">my_db_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pangenome_scale_db"</span>,</span></span>
+<span class="r-in"><span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>,</span></span>
+<span class="r-in"><span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu"><a href="connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">my_db_folder</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.</span>
+<span class="r-in"><span><span class="va">pcil_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_pcil_data.html">fetch_pcil_data</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con</span>, connect_db_mode <span class="op">=</span> <span class="st">"local"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">selection</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"INDEL_Chr03_79037889"</span>, <span class="st">"SNP_Chr03_79037855"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">variant_geno_sel</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_genotypes_by_id.html">fetch_genotypes_by_id</a></span><span class="op">(</span>variant_ids <span class="op">=</span> <span class="va">selection</span>, connect_db_mode <span class="op">=</span> <span class="st">"online"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">variant_geno_sel</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_genotypes_by_id.html">fetch_genotypes_by_id</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  con <span class="op">=</span> <span class="va">con</span>,</span></span>
+<span class="r-in"><span>  variant_ids <span class="op">=</span> <span class="va">selection</span>,</span></span>
+<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">"local"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">fam_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_pcil_families_by_variant.html">fetch_pcil_families_by_variant</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  con <span class="op">=</span> <span class="va">con</span>,</span></span>
 <span class="r-in"><span>  selection <span class="op">=</span> <span class="va">selection</span>,</span></span>
 <span class="r-in"><span>  pcil_data <span class="op">=</span> <span class="va">pcil_data</span>,</span></span>
-<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">"online"</span></span></span>
+<span class="r-in"><span>  connect_db_mode <span class="op">=</span> <span class="st">"local"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">pcil_pos_pcv</span> <span class="op">&lt;-</span> <span class="fu"><a href="fetch_pcil_positive.html">fetch_pcil_positive</a></span><span class="op">(</span></span></span>
@@ -109,6 +120,9 @@ all necessary PCIL data tables.</p></dd>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">pair_plots</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-plt img"><img src="plot_pcil_pairs-1.png" alt="" width="960" height="576"></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Successfully disconnected from the local database. Memory cleared.</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

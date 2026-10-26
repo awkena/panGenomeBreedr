@@ -42,33 +42,33 @@ group).
 
 ``` r
 # \donttest{
-# --- Online Mode ---
 # Load the package
 library(panGenomeBreedr)
 
-# Count variant types from the online database
-online_counts <- count_variant_types(connect_db_mode = 'online')
-print(online_counts)
-#>   variant_type        n
-#> 1          SNP 35877217
-#> 2        INDEL  2353694
-
-# --- Offline Mode ---
 # Locate the package example database folder
-my_db_folder <- system.file("extdata", "pangenome_scale_db", 
-                           package = "panGenomeBreedr", 
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
                            mustWork = TRUE)
 
 # Establish a virtual connection to the offline database engine
 con_local <- connect_local_db(folder_path = my_db_folder)
-#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
 
 # Get the breakdown counts of SNPs vs INDELs
 local_counts <- count_variant_types(con = con_local)
-# print(local_counts)
+print(local_counts)
+#>   variant_type  n
+#> 1        INDEL 31
+#> 2          SNP 99
 
 # Disconnnect at the end of the session.
 disconnect_local_db(con_local)
 #> Successfully disconnected from the local database. Memory cleared.
 # }
+
+if (FALSE) { # \dontrun{
+# To query the public online resource instead:
+online_counts <- count_variant_types(connect_db_mode = 'online')
+print(online_counts)
+} # }
 ```

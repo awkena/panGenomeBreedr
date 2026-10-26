@@ -414,7 +414,7 @@ table.</p>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Pangenome-scale database  mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Query VCF genotypes within the genomic range: Chr05:75,104,537 - 75,106,403</span></span>
 <span><span class="va">gt_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
@@ -1135,7 +1135,7 @@ genomic intervals of interest.</p>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Pangenome-scale database  mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Run functional annotation summary for region Chr05:75,104,537 - 75,106,403</span></span>
 <span><span class="va">ann_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_annotations.html">summarize_annotations</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
@@ -1340,7 +1340,7 @@ function, as shown below:</p>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Pangenome-scale database  mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Extract HIGH impact functional variants within the target Chr05 window</span></span>
 <span><span class="va">high_variants</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_variants_by_impact.html">fetch_variants_by_impact</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
@@ -1796,7 +1796,7 @@ function is shown in the code snippet below:</p>
 <span></span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Pangenome-scale database  mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Extract genotype data for all HIGH impact variants and filter by alternate allele frequency</span></span>
 <span><span class="va">geno_high_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_genotypes_by_id.html">fetch_genotypes_by_id</a></span><span class="op">(</span></span>
@@ -1905,7 +1905,7 @@ Chr05
 <span>                           </span>
 <span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
 <span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Pangenome-scale database  mounted safely.</span></span>
 <span></span>
 <span><span class="co"># Get genotype data for HIGH impact variants that passed allele filter</span></span>
 <span><span class="va">geno_high_filtered</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_genotypes_by_id.html">fetch_genotypes_by_id</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span>,</span>
@@ -2334,20 +2334,35 @@ sample pair</td>
 </tr>
 </tbody>
 </table>
-<p><code>panGB</code> is configured to automatically connect to the same
-public <strong>Curated Sorghum Pangenome-Scale Variant Resource</strong>
-for PCIL data. As with the variant discovery functions, set
-<code>connect_db_mode = 'online'</code> to query it directly.</p>
+<p>The package’s bundled example database (the same
+<code>pangenome_scale_db</code> used throughout this vignette) includes
+a small PCIL data slice, so the walkthrough below runs entirely offline.
+Set <code>connect_db_mode = 'online'</code> instead to query the full
+public <strong>Curated Sorghum Pangenome-Scale Variant
+Resource</strong>.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Fetch all PCIL data tables from the remote database</span></span>
-<span><span class="va">pcil_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_pcil_data.html">fetch_pcil_data</a></span><span class="op">(</span>connect_db_mode <span class="op">=</span> <span class="st">'online'</span><span class="op">)</span></span>
+<span><span class="co"># Locate the package example database folder</span></span>
+<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pangenome_scale_db"</span>,</span>
+<span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>,</span>
+<span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
+<span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Pangenome-scale database  mounted safely.</span></span>
+<span></span>
+<span><span class="co"># Fetch all PCIL data tables from the local database</span></span>
+<span><span class="va">pcil_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_pcil_data.html">fetch_pcil_data</a></span><span class="op">(</span>con <span class="op">=</span> <span class="va">con_demo</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">pcil_data</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "pcil_metadata"                  "pcil_gene_regions"             </span></span>
 <span><span class="co">#&gt; [3] "pcil_introgressions"            "pcil_genomewide_introgressions"</span></span>
-<span><span class="co">#&gt; [5] "pcil_inbreeding_coefficient"    "pcil_IBS_dis"</span></span></code></pre></div>
+<span><span class="co">#&gt; [5] "pcil_inbreeding_coefficient"    "pcil_IBS_dis"</span></span>
+<span></span>
+<span><span class="co"># Cleanly close the connection and release memory allocations</span></span>
+<span><span class="fu"><a href="../reference/disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_demo</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully disconnected from the local database. Memory cleared.</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="identifying-candidate-variants-for-pcil-screening">Identifying Candidate Variants for PCIL Screening<a class="anchor" aria-label="anchor" href="#identifying-candidate-variants-for-pcil-screening"></a>
@@ -2359,28 +2374,41 @@ Annotation and Impact</a>.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># Locate the package example database folder</span></span>
+<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pangenome_scale_db"</span>,</span>
+<span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>,</span>
+<span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
+<span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Pangenome-scale database  mounted safely.</span></span>
+<span></span>
 <span><span class="co"># Fetch annotations for the candidate gene</span></span>
 <span><span class="va">pg_ann_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_table_region.html">fetch_table_region</a></span><span class="op">(</span></span>
+<span>  con <span class="op">=</span> <span class="va">con_demo</span>,</span>
 <span>  table_name <span class="op">=</span> <span class="st">"annotations"</span>,</span>
 <span>  chrom <span class="op">=</span> <span class="st">'Chr03'</span>,</span>
-<span>  gene_name <span class="op">=</span> <span class="st">'Sobic.003G421300'</span>,</span>
-<span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span>
+<span>  gene_name <span class="op">=</span> <span class="st">'Sobic.003G421300'</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Distribution of predicted impacts</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">pg_ann_region</span><span class="op">$</span><span class="va">impact</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     HIGH      LOW MODERATE MODIFIER </span></span>
-<span><span class="co">#&gt;        1       15        8     1051</span></span>
+<span><span class="co">#&gt;        1       15        8       34</span></span>
 <span></span>
 <span><span class="co"># Keep HIGH and MODERATE impact annotations only</span></span>
 <span><span class="va">pg_ann_region_mod</span> <span class="op">&lt;-</span> <span class="va">pg_ann_region</span><span class="op">[</span><span class="va">pg_ann_region</span><span class="op">$</span><span class="va">impact</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"HIGH"</span>, <span class="st">"MODERATE"</span><span class="op">)</span>, <span class="op">]</span></span>
 <span></span>
 <span><span class="co"># Extract genotypes for the selected variants</span></span>
 <span><span class="va">variant_geno</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_genotypes_by_id.html">fetch_genotypes_by_id</a></span><span class="op">(</span></span>
-<span>  variant_ids <span class="op">=</span> <span class="va">pg_ann_region_mod</span><span class="op">$</span><span class="va">variant_id</span>,</span>
-<span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span>  con <span class="op">=</span> <span class="va">con_demo</span>,</span>
+<span>  variant_ids <span class="op">=</span> <span class="va">pg_ann_region_mod</span><span class="op">$</span><span class="va">variant_id</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Cleanly close the connection and release memory allocations</span></span>
+<span><span class="fu"><a href="../reference/disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_demo</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully disconnected from the local database. Memory cleared.</span></span></code></pre></div>
 <table class="table">
 <caption>
 Table 6: HIGH/MODERATE impact annotations for Sobic.003G421300.
@@ -2403,57 +2431,6 @@ hgvs_p
 </th>
 </tr></thead>
 <tbody>
-<tr>
-<td style="text-align:left;">
-SNP_Chr03_79038300
-</td>
-<td style="text-align:left;">
-missense_variant
-</td>
-<td style="text-align:left;">
-MODERATE
-</td>
-<td style="text-align:left;">
-Sobic.003G421300
-</td>
-<td style="text-align:left;">
-p.Ala125Val
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-SNP_Chr03_79038599
-</td>
-<td style="text-align:left;">
-missense_variant
-</td>
-<td style="text-align:left;">
-MODERATE
-</td>
-<td style="text-align:left;">
-Sobic.003G421300
-</td>
-<td style="text-align:left;">
-p.His225Asp
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-SNP_Chr03_79038668
-</td>
-<td style="text-align:left;">
-missense_variant
-</td>
-<td style="text-align:left;">
-MODERATE
-</td>
-<td style="text-align:left;">
-Sobic.003G421300
-</td>
-<td style="text-align:left;">
-p.Ser248Arg
-</td>
-</tr>
 <tr>
 <td style="text-align:left;">
 SNP_Chr03_79037855
@@ -2490,6 +2467,23 @@ p.Asn22Asp
 </tr>
 <tr>
 <td style="text-align:left;">
+INDEL_Chr03_79037889
+</td>
+<td style="text-align:left;">
+frameshift_variant
+</td>
+<td style="text-align:left;">
+HIGH
+</td>
+<td style="text-align:left;">
+Sobic.003G421300
+</td>
+<td style="text-align:left;">
+p.Leu26fs
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 SNP_Chr03_79038300
 </td>
 <td style="text-align:left;">
@@ -2503,6 +2497,40 @@ Sobic.003G421300
 </td>
 <td style="text-align:left;">
 p.Ala163Val
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SNP_Chr03_79038300
+</td>
+<td style="text-align:left;">
+missense_variant
+</td>
+<td style="text-align:left;">
+MODERATE
+</td>
+<td style="text-align:left;">
+Sobic.003G421300
+</td>
+<td style="text-align:left;">
+p.Ala125Val
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SNP_Chr03_79038599
+</td>
+<td style="text-align:left;">
+missense_variant
+</td>
+<td style="text-align:left;">
+MODERATE
+</td>
+<td style="text-align:left;">
+Sobic.003G421300
+</td>
+<td style="text-align:left;">
+p.His225Asp
 </td>
 </tr>
 <tr>
@@ -2536,29 +2564,29 @@ MODERATE
 Sobic.003G421300
 </td>
 <td style="text-align:left;">
-p.Ser286Arg
+p.Ser248Arg
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-INDEL_Chr03_79037889
+SNP_Chr03_79038668
 </td>
 <td style="text-align:left;">
-frameshift_variant
+missense_variant
 </td>
 <td style="text-align:left;">
-HIGH
+MODERATE
 </td>
 <td style="text-align:left;">
 Sobic.003G421300
 </td>
 <td style="text-align:left;">
-p.Leu26fs
+p.Ser286Arg
 </td>
 </tr>
 </tbody>
 </table>
-<p>Of the nine HIGH/MODERATE impact variants annotated for this gene, we
+<p>Of the six HIGH/MODERATE impact variants annotated for this gene, we
 settle on two tightly linked missense variants as our putative causal
 variants for KASP marker design:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
@@ -2578,12 +2606,25 @@ screening.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># Locate the package example database folder</span></span>
+<span><span class="va">mini_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pangenome_scale_db"</span>,</span>
+<span>                           package <span class="op">=</span> <span class="st">"panGenomeBreedr"</span>,</span>
+<span>                           mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Establish a virtual connection to the offline database engine</span></span>
+<span><span class="va">con_demo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_local_db.html">connect_local_db</a></span><span class="op">(</span>folder_path <span class="op">=</span> <span class="va">mini_folder</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully connected to the local offline database! Pangenome-scale database  mounted safely.</span></span>
+<span></span>
 <span><span class="co"># Identify PCIL families acting as putative donors for the selected variants</span></span>
 <span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_pcil_families_by_variant.html">fetch_pcil_families_by_variant</a></span><span class="op">(</span></span>
+<span>  con <span class="op">=</span> <span class="va">con_demo</span>,</span>
 <span>  selection <span class="op">=</span> <span class="va">selection</span>,</span>
-<span>  pcil_data <span class="op">=</span> <span class="va">pcil_data</span>,</span>
-<span>  connect_db_mode <span class="op">=</span> <span class="st">'online'</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span>  pcil_data <span class="op">=</span> <span class="va">pcil_data</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Cleanly close the connection and release memory allocations</span></span>
+<span><span class="fu"><a href="../reference/disconnect_local_db.html">disconnect_local_db</a></span><span class="op">(</span><span class="va">con_demo</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Successfully disconnected from the local database. Memory cleared.</span></span></code></pre></div>
 <table class="table">
 <caption>
 Table 7: PCIL donor family summary for the selected variants.
@@ -2759,7 +2800,7 @@ Rank
 25ALM_BC1F3s1_2186
 </td>
 <td style="text-align:left;">
-INDEL_Chr03_79037889
+SNP_Chr03_79037855
 </td>
 <td style="text-align:left;">
 Mota Maradi/SC49
@@ -2785,7 +2826,7 @@ Mota Maradi/SC49
 25ALM_BC1F3s1_0416
 </td>
 <td style="text-align:left;">
-INDEL_Chr03_79037889
+SNP_Chr03_79037855
 </td>
 <td style="text-align:left;">
 Mota Maradi/SC49
@@ -2811,7 +2852,7 @@ Mota Maradi/SC49
 25ALM_BC1F3s1_1552
 </td>
 <td style="text-align:left;">
-INDEL_Chr03_79037889
+SNP_Chr03_79037855
 </td>
 <td style="text-align:left;">
 IRAT204/SC1439
@@ -2837,7 +2878,7 @@ IRAT204/SC1439
 GMS_MN2025_114058
 </td>
 <td style="text-align:left;">
-INDEL_Chr03_79037889
+SNP_Chr03_79037855
 </td>
 <td style="text-align:left;">
 Mota Maradi/SC49
@@ -2863,7 +2904,7 @@ Mota Maradi/SC49
 25ALM_BC1F3s1_0534
 </td>
 <td style="text-align:left;">
-INDEL_Chr03_79037889
+SNP_Chr03_79037855
 </td>
 <td style="text-align:left;">
 IRAT204/SC1439
@@ -2889,7 +2930,7 @@ IRAT204/SC1439
 25ALM_BC1F3s1_1580
 </td>
 <td style="text-align:left;">
-INDEL_Chr03_79037889
+SNP_Chr03_79037855
 </td>
 <td style="text-align:left;">
 Mota Maradi/SC49
@@ -2985,7 +3026,7 @@ F_neg
 GMS_MN2025_132056
 </td>
 <td style="text-align:left;">
-INDEL_Chr03_79037889
+SNP_Chr03_79037855
 </td>
 <td style="text-align:left;">
 0.0870820
@@ -3005,7 +3046,7 @@ INDEL_Chr03_79037889
 GMS_MN2025_132056
 </td>
 <td style="text-align:left;">
-INDEL_Chr03_79037889
+SNP_Chr03_79037855
 </td>
 <td style="text-align:left;">
 0.1251400
@@ -3025,7 +3066,7 @@ INDEL_Chr03_79037889
 25ALM_BC1F3s1_0095
 </td>
 <td style="text-align:left;">
-INDEL_Chr03_79037889
+SNP_Chr03_79037855
 </td>
 <td style="text-align:left;">
 0.0910448
@@ -3045,7 +3086,7 @@ GMS_MN2025_114058
 GMS_MN2025_132056
 </td>
 <td style="text-align:left;">
-INDEL_Chr03_79037889
+SNP_Chr03_79037855
 </td>
 <td style="text-align:left;">
 0.0737892
@@ -3065,7 +3106,7 @@ INDEL_Chr03_79037889
 25ALM_BC1F3s1_0095
 </td>
 <td style="text-align:left;">
-INDEL_Chr03_79037889
+SNP_Chr03_79037855
 </td>
 <td style="text-align:left;">
 0.0917089
@@ -3085,7 +3126,7 @@ INDEL_Chr03_79037889
 GMS_MN2025_132056
 </td>
 <td style="text-align:left;">
-INDEL_Chr03_79037889
+SNP_Chr03_79037855
 </td>
 <td style="text-align:left;">
 0.0906915

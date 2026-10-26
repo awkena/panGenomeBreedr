@@ -43,19 +43,26 @@ donors to find families that carry the alternate allele.
 \donttest{
 library(panGenomeBreedr)
 
-# 1. Fetch PCIL Data
-pcil_data <- fetch_pcil_data(connect_db_mode = 'online')
+# 1. Connect to the package's bundled example database and load PCIL data
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+con <- connect_local_db(folder_path = my_db_folder)
+pcil_data <- fetch_pcil_data(con = con, connect_db_mode = "local")
 
 # 2. Define variants of interest
 selection <- c("INDEL_Chr03_79037889", "SNP_Chr03_79037855")
 
 # 3. Fetch PCIL families acting as putative donors for these variants
 results <- fetch_pcil_families_by_variant(
+  con = con,
   selection = selection,
   pcil_data = pcil_data,
-  connect_db_mode = 'online'
+  connect_db_mode = "local"
 )
 
 print(results$pcil_family_summary)
+
+disconnect_local_db(con)
 }
 }

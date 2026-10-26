@@ -48,36 +48,14 @@ A data frame containing the sample metadata records.
 # Load the package
 library(panGenomeBreedr)
 
-# --- Online Mode ---
-# Retrieve all sample metadata from the online database
-all_metadata_online <- fetch_accession_metadata(connect_db_mode = 'online')
-print(all_metadata_online[1:3, 1:5])
-#>   array_index  lib         sample pinumber isnum
-#> 1           1 IDMM           Juar     <NA>  <NA>
-#> 2           2 ISGC     00KOF5DT19     <NA>  <NA>
-#> 3           3 ISGK 02-SB-F4DT-275     <NA>  <NA>
-
-# Retrieve metadata for samples from Ghana from the online database
-ghana_metadata_online <- fetch_accession_metadata(
-  query_col = "countryorigin",
-  query_value = "Ghana",
-  connect_db_mode = 'online'
-)
-print(ghana_metadata_online[1:3, 1:5])
-#>   array_index  lib   sample pinumber   isnum
-#> 1         486 IQST IS_25055 Grif9991 IS25055
-#> 2        1234 ISMA PI585448 PI585448 IS25050
-#> 3        1235 ISMG PI585452 PI585452 IS25059
-
-# --- Offline Mode ---
 # Locate the package example database folder
-my_db_folder <- system.file("extdata", "pangenome_scale_db", 
-                           package = "panGenomeBreedr", 
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
                            mustWork = TRUE)
 
 # Establish a virtual connection
 con_local <- connect_local_db(folder_path = my_db_folder)
-#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
 
 # Fetch metadata for all sorghum accessions originating from Ethiopia
 ethiopia_metadata_local <- fetch_accession_metadata(
@@ -85,10 +63,27 @@ ethiopia_metadata_local <- fetch_accession_metadata(
   query_col = "countryorigin",
   query_value = "Ethiopia"
 )
-# print(ethiopia_metadata_local[1:3, 1:5])
+print(ethiopia_metadata_local[1:3, 1:5])
+#>   array_index  lib   sample pinumber   isnum
+#> 1         229 JHGC  IS18551     <NA> IS18551
+#> 2         259 ISGD IS_23540     <NA> IS23540
+#> 3         260 IQSD IS_23574     <NA> IS23574
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
 #> Successfully disconnected from the local database. Memory cleared.
 # }
+
+if (FALSE) { # \dontrun{
+# To query the public online resource instead:
+all_metadata_online <- fetch_accession_metadata(connect_db_mode = 'online')
+print(all_metadata_online[1:3, 1:5])
+
+ghana_metadata_online <- fetch_accession_metadata(
+  query_col = "countryorigin",
+  query_value = "Ghana",
+  connect_db_mode = 'online'
+)
+print(ghana_metadata_online[1:3, 1:5])
+} # }
 ```

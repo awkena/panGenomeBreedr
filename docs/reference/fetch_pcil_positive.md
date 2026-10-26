@@ -1,9 +1,9 @@
 # Fetch PCIL Positive Lines
 
 Identifies and filters Pangenome-Characterized Introgression Lines
-(PCIL) containing introgressions in a target gene or position window.
-Supports multi-criteria ranking based on mean donor fraction, haploblock
-size, and inbreeding coefficients (\$F\$).
+(PCIL) containing introgressions in a target gene, genomic region, or
+position window. Supports multi-criteria ranking based on mean donor
+fraction, haploblock size, and inbreeding coefficients (\$F\$).
 
 ## Usage
 
@@ -11,14 +11,15 @@ size, and inbreeding coefficients (\$F\$).
 fetch_pcil_positive(
   pcil_data,
   variants_select_geno,
-  type = c("gene", "position"),
+  type = c("gene", "region", "position"),
   sel = NULL,
   donor_thresh = 0.75,
   block_quantile = 0.75,
   F_quantile = 0.25,
   window = 0,
   available_ids = NULL,
-  result_pcil_families = NULL
+  result_pcil_families = NULL,
+  global_available_ids = NULL
 )
 ```
 
@@ -31,13 +32,22 @@ fetch_pcil_positive(
 
 - variants_select_geno:
 
-  A character vector (gene IDs) or a data frame containing position
-  definitions.
+  The targets to search, in a form that depends on \`type\`:
+
+  - `"gene"`: a character vector of gene IDs, or a data frame with a
+    \`Region\` column of gene IDs.
+
+  - `"region"`: a data frame with columns \`Region\` (a label), \`Chr\`,
+    \`Start\` and \`End\`.
+
+  - `"position"`: a data frame with \`variant_id\`, \`chrom\` and
+    \`pos\` (as returned by \`fetch_genotypes_by_id()\`), or with
+    \`Region\`, \`Chr\` and \`pos\`.
 
 - type:
 
-  Character string specifying the target type: \`"gene"\` or
-  \`"position"\`.
+  Character string specifying the target type: \`"gene"\`, \`"region"\`
+  or \`"position"\`.
 
 - sel:
 
@@ -71,7 +81,16 @@ fetch_pcil_positive(
 - result_pcil_families:
 
   list object of results obtained from
-  \`fetch_pcil_families_by_variant\`.
+  \`fetch_pcil_families_by_variant\`. When supplied, the search is
+  restricted to sample IDs found in its \`pcil_summary\`.
+
+- global_available_ids:
+
+  Character vector of sample IDs. Restricts the search for every target
+  to these lines only (for example, lines available in a seed bank).
+  Applied to all targets, unlike \`available_ids\`, which is per target.
+  If \`result_pcil_families\` is also supplied, only sample IDs present
+  in both are used. Defaults to \`NULL\` (no restriction).
 
 ## Value
 
@@ -92,20 +111,27 @@ A list containing:
 # \donttest{
 library(panGenomeBreedr)
 
-# 1. Fetch data and families
-pcil_data <- fetch_pcil_data(connect_db_mode = 'online')
+# 1. Connect to the package's bundled example database and fetch data/families
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+con <- connect_local_db(folder_path = my_db_folder)
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
+pcil_data <- fetch_pcil_data(con = con, connect_db_mode = "local")
 selection <- c("INDEL_Chr03_79037889", "SNP_Chr03_79037855")
 
 results <- fetch_pcil_families_by_variant(
+  con = con,
   selection = selection,
   pcil_data = pcil_data,
-  connect_db_mode = 'online'
+  connect_db_mode = "local"
 )
 
 # 2. Get genotypes for the selected variants
 variant_geno_sel <- fetch_genotypes_by_id(
-  variant_ids = selection, 
-  connect_db_mode = 'online'
+  con = con,
+  variant_ids = selection,
+  connect_db_mode = "local"
 )
 
 # 3. Select PCIL positives by variant positions
@@ -119,5 +145,21 @@ pcil_pos_pcv <- fetch_pcil_positive(
   window = 0
 )
 #> Using +/- 0 bp window around positions
+
+# 4. Select PCIL positives for an explicit genomic region
+target_region <- data.frame(
+  Region = "Chr03_target",
+  Chr = "Chr03",
+  Start = 79037800,
+  End = 79037900
+)
+pcil_pos_region <- fetch_pcil_positive(
+  pcil_data = pcil_data,
+  variants_select_geno = target_region,
+  type = "region"
+)
+
+disconnect_local_db(con)
+#> Successfully disconnected from the local database. Memory cleared.
 # }
 ```

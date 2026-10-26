@@ -26,12 +26,15 @@ authors:
     email: "israeltetteh715@gmail.com"
     orcid: "0009-0003-3204-004X"
     role: [aut]
+  - name: "Gaia Cortinovis"
+    email: "gaia.cortinovis@colostate.edu"
+    role: [ctb]   
   - name: "Joseph Pascal Sene"
     email: "joseph15.sene@gmail.com"
     role: [ctb]
   - name: "Fanna Maina"
     email: "fannamainaassane@gmail.com"
-    role: [ctb]
+    role: [ctb]  
   - name: "Geoffrey Preston Morris"
     email: "geoff.morris@colostate.edu"
     role: [ctb, fnd, rev]

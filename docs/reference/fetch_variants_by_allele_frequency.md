@@ -67,8 +67,38 @@ frequencies (`ref_af`), and alternate allele frequencies (`alt_af`).
 # Load the package
 library(panGenomeBreedr)
 
-# --- Online Mode ---
-# Query for common variants (MAF >= 5%) in a specific region from the online database
+# Locate the package example database folder
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+
+# Establish a virtual connection to the offline database engine
+con_local <- connect_local_db(folder_path = my_db_folder)
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
+
+# Query a specific locus window and filter for common variants (MAF >= 5%)
+local_common_vars <- fetch_variants_by_allele_frequency(con = con_local,
+                                min_af = 0.05,
+                                max_af = 0.95,
+                                chrom = "Chr05",
+                                start = 75104537,
+                                end = 75106403)
+print(head(local_common_vars))
+#>              variant_id chrom      pos    ref_af    alt_af
+#> 2    SNP_Chr05_75104557 Chr05 75104557 0.8905131 0.1094869
+#> 3    SNP_Chr05_75104560 Chr05 75104560 0.8896181 0.1103819
+#> 4  INDEL_Chr05_75104564 Chr05 75104564 0.8854415 0.1145585
+#> 7  INDEL_Chr05_75104573 Chr05 75104573 0.8848449 0.1151551
+#> 9  INDEL_Chr05_75104585 Chr05 75104585 0.8836516 0.1163484
+#> 11   SNP_Chr05_75104604 Chr05 75104604 0.8257757 0.1742243
+
+# Disconnect at the end of your session
+disconnect_local_db(con_local)
+#> Successfully disconnected from the local database. Memory cleared.
+# }
+
+if (FALSE) { # \dontrun{
+# To query the public online resource instead:
 online_common_vars <- fetch_variants_by_allele_frequency(
   min_af = 0.05,
   max_af = 0.95,
@@ -78,35 +108,5 @@ online_common_vars <- fetch_variants_by_allele_frequency(
   connect_db_mode = 'online'
 )
 print(head(online_common_vars))
-#>             variant_id chrom      pos    ref_af     alt_af
-#> 2 INDEL_Chr05_75104564 Chr05 75104564 0.8854415 0.11455847
-#> 3 INDEL_Chr05_75104573 Chr05 75104573 0.8848449 0.11515513
-#> 4 INDEL_Chr05_75104585 Chr05 75104585 0.8836516 0.11634845
-#> 5 INDEL_Chr05_75104618 Chr05 75104618 0.8845465 0.11545346
-#> 7 INDEL_Chr05_75104704 Chr05 75104704 0.9334726 0.06652745
-#> 9 INDEL_Chr05_75104800 Chr05 75104800 0.8135442 0.18645585
-
-# --- Offline Mode ---
-# Locate the package example database folder
-my_db_folder <- system.file("extdata", "pangenome_scale_db",
-                           package = "panGenomeBreedr",
-                           mustWork = TRUE)
-
-# Establish a virtual connection to the offline database engine
-con_local <- connect_local_db(folder_path = my_db_folder)
-#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
-
-# Query a specific locus window and filter for common variants (MAF >= 5%)
-local_common_vars <- fetch_variants_by_allele_frequency(con = con_local,
-                                min_af = 0.05,
-                                max_af = 0.95,
-                                chrom = "Chr05",
-                                start = 75104537,
-                                end = 75106403)
-# print(head(local_common_vars))
-
-# Disconnect at the end of your session
-disconnect_local_db(con_local)
-#> Successfully disconnected from the local database. Memory cleared.
-# }
+} # }
 ```

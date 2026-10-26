@@ -49,19 +49,6 @@ in either 'local' mode (querying a local DuckDB database) or 'online' mode
 # Load the package
 library(panGenomeBreedr)
 
-# --- Online Mode ---
-# Query for common variants (MAF >= 5\%) in a specific region from the online database
-online_common_vars <- fetch_variants_by_allele_frequency(
-  min_af = 0.05,
-  max_af = 0.95,
-  chrom = "Chr05",
-  start = 75104537,
-  end = 75106403,
-  connect_db_mode = 'online'
-)
-print(head(online_common_vars))
-
-# --- Offline Mode ---
 # Locate the package example database folder
 my_db_folder <- system.file("extdata", "pangenome_scale_db",
                            package = "panGenomeBreedr",
@@ -77,9 +64,22 @@ local_common_vars <- fetch_variants_by_allele_frequency(con = con_local,
                                 chrom = "Chr05",
                                 start = 75104537,
                                 end = 75106403)
-# print(head(local_common_vars))
+print(head(local_common_vars))
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
+}
+
+\dontrun{
+# To query the public online resource instead:
+online_common_vars <- fetch_variants_by_allele_frequency(
+  min_af = 0.05,
+  max_af = 0.95,
+  chrom = "Chr05",
+  start = 75104537,
+  end = 75106403,
+  connect_db_mode = 'online'
+)
+print(head(online_common_vars))
 }
 }

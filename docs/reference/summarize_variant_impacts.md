@@ -32,26 +32,9 @@ pivoted columns for each impact type (e.g., `impact_HIGH`,
 
 ``` r
 # \donttest{
-# --- Online Mode ---
 # Load the package
 library(panGenomeBreedr)
 
-# Get variant impact summary from the online database
-online_impact <- summarize_variant_impacts(connect_db_mode = 'online')
-print(online_impact)
-#>    chrom impact_HIGH impact_LOW impact_MODERATE impact_MODIFIER
-#> 1  Chr01        6965     100643           94242         7684401
-#> 2  Chr02        6455      80519           84276         6920733
-#> 3  Chr03        5733      78427           75675         6859442
-#> 4  Chr04        5137      73419           71810         6478860
-#> 5  Chr05        6372      71008           87243         6382307
-#> 6  Chr06        4091      53603           55277         5198904
-#> 7  Chr07        4094      47808           50546         5345799
-#> 8  Chr08        4449      53821           60643         5045650
-#> 9  Chr09        3628      49357           51485         5001667
-#> 10 Chr10        4248      54241           54677         5361457
-
-# --- Offline Mode ---
 # Locate the package example database folder
 my_db_folder <- system.file("extdata", "pangenome_scale_db",
                            package = "panGenomeBreedr",
@@ -59,14 +42,23 @@ my_db_folder <- system.file("extdata", "pangenome_scale_db",
 
 # Establish a virtual connection to the offline database engine
 con_local <- connect_local_db(folder_path = my_db_folder)
-#> Successfully connected to the local offline database!  Pangenome-scale database  mounted safely. No folder named pcil.
+#> Successfully connected to the local offline database! Pangenome-scale database  mounted safely.
 
 # Generate the wide-format impact profile matrix
 local_impact <- summarize_variant_impacts(con = con_local)
-# print(local_impact)
+print(local_impact)
+#>   chrom impact_HIGH impact_LOW impact_MODERATE impact_MODIFIER
+#> 1 Chr03           1         15               8              34
+#> 2 Chr05           6         21              34             302
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
 #> Successfully disconnected from the local database. Memory cleared.
 # }
+
+if (FALSE) { # \dontrun{
+# To query the public online resource instead:
+online_impact <- summarize_variant_impacts(connect_db_mode = 'online')
+print(online_impact)
+} # }
 ```

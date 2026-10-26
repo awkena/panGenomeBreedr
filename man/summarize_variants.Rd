@@ -30,15 +30,9 @@ local database connection, or 'online' to fetch data from the API.
 }
 \examples{
 \donttest{
-# --- Online Mode ---
 # Load the package
 library(panGenomeBreedr)
 
-# Get variant statistics from the online database, including annotation counts
-online_stats <- summarize_variants(connect_db_mode = 'online', include_annotations = TRUE)
-print(online_stats)
-
-# --- Offline Mode ---
 # Locate the package example database folder
 my_db_folder <- system.file("extdata", "pangenome_scale_db",
                            package = "panGenomeBreedr",
@@ -49,10 +43,16 @@ con_local <- connect_local_db(folder_path = my_db_folder)
 
 # Get variant statistics across all chromosomes
 local_stats <- summarize_variants(con = con_local, include_annotations = TRUE)
-# print(local_stats)
+print(local_stats)
 
 # Disconnect at the end of your session
 disconnect_local_db(con_local)
+}
+
+\dontrun{
+# To query the public online resource instead:
+online_stats <- summarize_variants(connect_db_mode = 'online', include_annotations = TRUE)
+print(online_stats)
 }
 
 }

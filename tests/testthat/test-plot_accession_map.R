@@ -54,3 +54,35 @@ test_that("plot_accession_map successfully builds a leaflet htmlwidget", {
   # Ensure the leaflet object contains the expected internal data structures
   expect_true("x" %in% names(map_obj))
 })
+test_that("plot_accession_map offers keyless basemaps with a layer switcher", {
+  skip_if_not_installed("leaflet")
+  skip_if_not_installed("tools")
+
+  valid_meta <- data.frame(
+    lib = c("S1", "S2"),
+    lat = c(5.6037, 9.4005),
+    lon = c(-0.1870, -0.8393),
+    countryorigin = c("Ghana", "Togo"),
+    stringsAsFactors = FALSE
+  )
+
+  get_base_groups <- function(map_obj) {
+    calls <- map_obj$x$calls
+    ctrl <- calls[vapply(calls, function(cl) cl$method == "addLayersControl", logical(1))]
+    unlist(ctrl[[1]]$args[[1]])
+  }
+
+  map_obj <- plot_accession_map(valid_meta, color_by = "countryorigin")
+  expect_equal(get_base_groups(map_obj), c("Grey", "Street", "Satellite"))
+
+  map_sat <- plot_accession_map(valid_meta, color_by = "countryorigin", basemap = "satellite")
+  expect_equal(get_base_groups(map_sat)[1], "Satellite")
+
+  # No CARTO tiles, which now require an API key
+  methods_args <- unlist(lapply(map_obj$x$calls, `[[`, "args"))
+  expect_false(any(grepl("carto", methods_args, ignore.case = TRUE)))
+
+  expect_error(
+    plot_accession_map(valid_meta, color_by = "countryorigin", basemap = "dark")
+  )
+})

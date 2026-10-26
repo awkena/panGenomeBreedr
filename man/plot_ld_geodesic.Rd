@@ -55,22 +55,30 @@ A structured \code{list} containing two named assets:
 Generate Geodesic Landscape Plot and Extract Haploblock Data
 }
 \examples{
-\donttest{ 
-query_annot <- panGenomeBreedr::fetch_table_region(
-table_name = "annotations",
-chrom = "Chr03",
-gene_name = "Sobic.003G421300",
-start = 79037682,
-end = 79039091,
-connect_db_mode = 'online'
+\donttest{
+library(panGenomeBreedr)
+
+# Locate the package example database folder
+my_db_folder <- system.file("extdata", "pangenome_scale_db",
+                           package = "panGenomeBreedr",
+                           mustWork = TRUE)
+con_local <- connect_local_db(folder_path = my_db_folder)
+
+query_annot <- fetch_table_region(
+  con = con_local,
+  table_name = "annotations",
+  chrom = "Chr03",
+  gene_name = "Sobic.003G421300",
+  start = 79037682,
+  end = 79039091
 )
 
-query_geno <- panGenomeBreedr::fetch_table_region(
-table_name = "genotypes",
-chrom = "Chr03",
-start = 79037682,
-end = 79039091,
-connect_db_mode = 'online'
+query_geno <- fetch_table_region(
+  con = con_local,
+  table_name = "genotypes",
+  chrom = "Chr03",
+  start = 79037682,
+  end = 79039091
 )
 
 # Compute your updated wide data containing distance tracking columns
@@ -82,12 +90,12 @@ genotype_start_col = 11
 
 # Generate the plot and table package
 result <- plot_ld_geodesic(
-  ld_df = ld_results, 
-  query_db_geno = query_geno, 
+  ld_df = ld_results,
+  query_db_geno = query_geno,
   query_db_annot = query_annot,
   metric = "R2",
   target_variant_ids = c("INDEL_Chr03_79037889", "SNP_Chr03_79037855","SNP_Chr03_79037944"),
-  threshold = 0.8, 
+  threshold = 0.8,
   block_threshold = 0.8
 )
 
@@ -96,5 +104,38 @@ result$plot
 
 # Access the haploblock table
 print(result$table)
+
+disconnect_local_db(con_local)
+}
+
+\dontrun{
+# To query the public online resource instead:
+query_annot_online <- fetch_table_region(
+  table_name = "annotations",
+  chrom = "Chr03",
+  gene_name = "Sobic.003G421300",
+  start = 79037682,
+  end = 79039091,
+  connect_db_mode = 'online'
+)
+query_geno_online <- fetch_table_region(
+  table_name = "genotypes",
+  chrom = "Chr03",
+  start = 79037682,
+  end = 79039091,
+  connect_db_mode = 'online'
+)
+ld_results_online <- calculate_LD(
+  df = query_geno_online, target_variant_ids = NULL, genotype_start_col = 11
+)
+result_online <- plot_ld_geodesic(
+  ld_df = ld_results_online,
+  query_db_geno = query_geno_online,
+  query_db_annot = query_annot_online,
+  metric = "R2",
+  threshold = 0.8,
+  block_threshold = 0.8
+)
+result_online$plot
 }
 }
