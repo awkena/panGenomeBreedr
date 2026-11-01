@@ -35,6 +35,8 @@ export(get_api_url)
 export(gg_dat)
 export(hapmap_ns_fmt)
 export(hotspot_overlay_plot)
+export(introgression_check)
+export(kasp_call_rate)
 export(kasp_color)
 export(kasp_marker_design)
 export(kasp_numeric)
@@ -192,6 +194,7 @@ importFrom(shiny,
   renderUI,
   req,
   selectInput,
+  selectizeInput,
   shinyApp,
   showModal,
   sidebarLayout,
@@ -205,11 +208,13 @@ importFrom(shiny,
   textInput,
   uiOutput,
   updateSelectInput,
+  updateSelectizeInput,
   validate,
   verbatimTextOutput
 )
 importFrom(stats,
   na.omit,
+  qnorm,
   quantile,
   reshape,
   rnorm,

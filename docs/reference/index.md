@@ -141,6 +141,8 @@
 - [`nsamples_plate()`](https://awkena.github.io/panGenomeBreedr/reference/nsamples_plate.md)
   : Get a summary of the number of samples per 96-well plate in a
   multi-plate KASP assay.
+- [`kasp_call_rate()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_call_rate.md)
+  : Compute and plot KASP marker call rates
 - [`kasp_reshape_wide()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_reshape_wide.md)
   : Reshape KASP data to wide format for same samples genotyped with
   multiple KASP markers.
@@ -182,6 +184,8 @@
   introgressed loci.
 - [`cross_qc_heatmap2()`](https://awkena.github.io/panGenomeBreedr/reference/cross_qc_heatmap2.md)
   : Visualize genotype backgrounds with optional QTL annotations.
+- [`introgression_check()`](https://awkena.github.io/panGenomeBreedr/reference/introgression_check.md)
+  : Check whether progenies carry the donor segment at target loci
 - [`sim_snp_dat()`](https://awkena.github.io/panGenomeBreedr/reference/sim_snp_dat.md)
   : Simulate raw SNP loci for any chromosome with or without LD.
 - [`order_markers()`](https://awkena.github.io/panGenomeBreedr/reference/order_markers.md)

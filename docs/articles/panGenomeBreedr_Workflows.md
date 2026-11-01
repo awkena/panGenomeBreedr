@@ -1146,6 +1146,75 @@ code snippet below:
 `# Get KASP genotyping data for plotting`\
 `kasp_dat`` ``<-`` ``file1``$``Data`
 
+### Marker call rates
+
+Before looking at cluster plots, it is useful to check how many wells
+were successfully genotyped by each marker. The
+[`kasp_call_rate()`](https://awkena.github.io/panGenomeBreedr/reference/kasp_call_rate.md)
+function computes the call rate of each marker overall and on each
+master plate. No Template Controls (NTC) are excluded from the
+denominator, and the overall call rate is reported with a 95% Wilson
+confidence interval. Wells that were not called are grouped by reason:
+no call (`?`), `Uncallable`, or any other label.
+
+The function returns a list with two summary tables (`marker_summary`
+and `plate_summary`) and three ggplot objects that can be accessed
+individually:
+
+\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`panGenomeBreedr`](https://awkena.github.io/panGenomeBreedr/)`)`\
+`call_rates`` ``<-`` `[`kasp_call_rate`](https://awkena.github.io/panGenomeBreedr/reference/kasp_call_rate.md)`(``x ``=`` ``kasp_dat``,`\
+`                             snp_id ``=`` ``'SNPID'``,`\
+`                             plate_id ``=`` ``'MasterPlate'``,`\
+`                             geno_call ``=`` ``'Call'``,`\
+`                             blank ``=`` ``'NTC'``,`\
+`                             no_call ``=`` ``'?'``,`\
+`                             uncallable ``=`` ``'Uncallable'``,`\
+`                             threshold ``=`` ``0.95``)`\
+\
+`# Overall call rate per marker`\
+`call_rates``$``marker_call_rate`
+
+![Call rate of each KASP marker with its 95% confidence interval. Open
+circles show the call rate on each master
+plate.](figures/call_rate-1.png)
+
+Call rate of each KASP marker with its 95% confidence interval. Open
+circles show the call rate on each master plate.
+
+\
+`knitr``::`[`kable`](https://rdrr.io/pkg/knitr/man/kable.html)`(``call_rates``$``marker_summary``, digits ``=`` ``3``,`\
+`             caption ``=`` ``'Call rate summary for each KASP marker.'``)`
+
+| SNPID | called | no_call | uncallable | other | n_wells | call_rate | ci_lower | ci_upper | pass |
+|:---|---:|---:|---:|---:|---:|---:|---:|---:|:---|
+| snpSB00800 | 54 | 118 | 16 | 0 | 188 | 0.287 | 0.227 | 0.356 | FALSE |
+| snpSB00805 | 159 | 28 | 1 | 0 | 188 | 0.846 | 0.787 | 0.890 | FALSE |
+| snpSB00803 | 183 | 5 | 0 | 0 | 188 | 0.973 | 0.939 | 0.989 | TRUE |
+| snpSB00804 | 184 | 4 | 0 | 0 | 188 | 0.979 | 0.947 | 0.992 | TRUE |
+
+Call rate summary for each KASP marker. {.table style="width:99%;"}
+
+\
+`call_rates``$``no_call_reason`
+
+![Reasons why wells were not called for each
+marker.](figures/no_call_reason-1.png)
+
+Reasons why wells were not called for each marker.
+
+\
+`call_rates``$``plate_call_rate`
+
+![Call rate of each marker on each master
+plate.](figures/plate_call_rate-1.png)
+
+Call rate of each marker on each master plate.
+
+Markers snpSB00803 and snpSB00804 pass the 95% threshold. snpSB00805
+falls below it on both plates, and snpSB00800 fails badly because most
+of its wells returned no call.
+
 ### Assigning colors and PCH symbols for KASP cluster plotting
 
 The next step after importing data is to assign FAM and HEX fluorescence
@@ -1942,14 +2011,18 @@ If the package does not run as expected, check the following:
 
 - [Israel Tawiah Tetteh](https://github.com/Israel-Tetteh)
 
-- [Cruet Burgos](https://www.morrislab.org/people/clara-cruet-burgos)
+- [Clara Cruet
+  Burgos](https://www.morrislab.org/people/clara-cruet-burgos)
 
-- [Linly Banda](https://www.biofortificationlab.org/people/linly-banda)
-
-- [Jacques
-  Faye](https://sites.google.com/site/morrislaboratory/people/jacques-faye)
+- [Gaia
+  Cortinovis](https://scholar.google.com/citations?user=A0P8PugAAAAJ&hl=en)
 
 - [Fanna Maina](https://www.morrislab.org/people/fanna-maina)
+
+- [Jacques Martin
+  Faye](https://sites.google.com/site/morrislaboratory/people/jacques-faye)
+
+- [Linly Banda](https://www.biofortificationlab.org/people/linly-banda)
 
 - [Terry
   Felderhoff](https://www.agronomy.k-state.edu/about/people/faculty/felderhoff-terry/)

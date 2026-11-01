@@ -111,44 +111,6 @@ test_that("uniq_plates throws an error if plates column cannot be generated", {
 })
 
 
-test_that("kasp_marker_map correctly extracts SNP details from SNPID strings", {
-  # Create a mock data frame with various ID formats
-  df_kasp <- data.frame(
-    SNPID = c("Chr01_100", "Chr02_500", "Chr01_100"), # Chr01_100 repeated
-    stringsAsFactors = FALSE
-  )
-
-  # Access internal function
-  result <- panGenomeBreedr:::kasp_marker_map(df_kasp)
-
-  # Assertions
-  expect_s3_class(result, "data.frame")
-  expect_equal(nrow(result), 2) # Should be unique SNPIDs (Chr01_100, Chr02_500)
-
-  # Verify data types and structure
-  expect_true(all(c("SNPID", "SNP_ID2", "chr", "pos") %in% colnames(result)))
-  expect_type(result$pos, "integer")
-
-  # Check one specific extraction logic
-  expect_equal(result$pos[1], 100L)
-  expect_equal(result$SNP_ID2[1], "Chr|01")
-})
-
-test_that("kasp_marker_map throws errors for invalid input", {
-  # Missing SNPID column
-  expect_error(
-    panGenomeBreedr:::kasp_marker_map(data.frame(OtherCol = 1)),
-    "Kasp_data must have column: SNPID"
-  )
-
-  # Not a data frame
-  expect_error(
-    panGenomeBreedr:::kasp_marker_map("not a dataframe"),
-    "Kasp_data must be a data frame"
-  )
-})
-
-
 test_that("get_calls extracts specific genotype calls for a given plate", {
   # Mock data with a 'plates' and 'Call' column
   df_kasp <- data.frame(
@@ -167,22 +129,6 @@ test_that("get_calls extracts specific genotype calls for a given plate", {
   # Check NULL return for non-existent plate
   null_result <- panGenomeBreedr:::get_calls(df_kasp, "NON_EXISTENT")
   expect_null(null_result)
-})
-
-
-test_that("col_names.data handles column name extraction and empty inputs", {
-  # Test with a standard data frame
-  df_data <- data.frame(SNPID = 1, Call = 2)
-  expect_equal(panGenomeBreedr:::col_names.data(df_data), c("SNPID", "Call"))
-
-  # Test with empty data frame
-  expect_equal(panGenomeBreedr:::col_names.data(data.frame()), character(0))
-
-  # Test error handling for invalid input
-  expect_error(
-    panGenomeBreedr:::col_names.data("not_a_df"),
-    "Input must be a data frame or matrix"
-  )
 })
 
 
@@ -249,45 +195,6 @@ test_that("kasp_color_stat.give handles invalid input gracefully", {
 })
 
 
-test_that("new_colnames_nsamples renames columns while preserving extra data", {
-  # Mock data frame with 4 columns
-  df_input <- data.frame(a = 1, b = 2, c = 3, d = 4)
-
-  result <- panGenomeBreedr:::new_colnames_nsamples(
-    "Plate",
-    "SNP",
-    "ID",
-    df_input
-  )
-
-  # Assertions
-  expect_equal(colnames(result), c("Plate", "SNP", "ID", "d"))
-  expect_error(panGenomeBreedr:::new_colnames_nsamples(
-    "P",
-    "S",
-    "I",
-    data.frame(a = 1)
-  ))
-})
-
-
-
-
-test_that("Genotypes_user extracts specified sample IDs", {
-  df_input <- data.frame(
-    Genotype = c("S1", "S2", "S3"),
-    Value = c(1, 2, 3),
-    stringsAsFactors = FALSE
-  )
-
-  # Extract IDs
-  result <- panGenomeBreedr:::Genotypes_user(df_input, sample_id = "Genotype")
-
-  expect_equal(result, c("S1", "S2", "S3"))
-  expect_type(result, "character")
-})
-
-
 test_that("read_mapfile handles CSV and Excel file types", {
   # Create a temporary CSV file
   tmp_csv <- tempfile(fileext = ".csv")
@@ -308,14 +215,12 @@ test_that("read_mapfile handles CSV and Excel file types", {
 })
 
 
-
 test_that("proc_nd_map_func stops if parents are identical", {
   expect_error(
     panGenomeBreedr:::proc_nd_map_func(rp = 1, dp = 1),
     "recurrent parent must not be the same"
   )
 })
-
 
 
 test_that("check_sep standardizes separators for different platforms", {
@@ -333,9 +238,6 @@ test_that("check_sep standardizes separators for different platforms", {
 })
 
 
-
-
-
 test_that("safe_grep_match returns expected column matches", {
   choices <- c("SNP_ID", "Chr", "Pos")
 
@@ -348,7 +250,6 @@ test_that("safe_grep_match returns expected column matches", {
   # Handle empty input
   expect_null(panGenomeBreedr:::safe_grep_match("snp", character(0)))
 })
-
 
 
 test_that("read_vcf_as_df reads standard VCF files", {
@@ -373,24 +274,6 @@ test_that("read_vcf_as_df reads standard VCF files", {
 })
 
 
-test_that("par_missing_dat calculates missingness correctly", {
-  # Create data with some NAs
-  df_miss <- data.frame(
-    S1 = c(NA, "A"),
-    S2 = c("B", NA),
-    row.names = c("Samp1", "Samp2")
-  )
-
-  result <- panGenomeBreedr:::par_missing_dat(df_miss)
-
-  expect_equal(result$Missing_Calls, c(1, 1))
-  expect_equal(result$Total_SNPs, c(2, 2))
-})
-
-
-
-
-
 test_that("run_upset_plot returns an upset object", {
   # Minimal mock inputs
   mat <- data.frame(S1 = c(1, 0), S2 = c(0, 1))
@@ -401,33 +284,3 @@ test_that("run_upset_plot returns an upset object", {
 
   expect_s3_class(plot, "upset")
 })
-
-
-test_that("makeTraitInput generates consistent Shiny tag structures", {
-  # Mock a Shiny namespace function
-  ns <- function(x) x
-
-  # Generate row for id 1 (should not have a trash button)
-  res_1 <- panGenomeBreedr:::makeTraitInput(1, ns)
-
-  # Generate row for id 2 (should have a trash button)
-  res_2 <- panGenomeBreedr:::makeTraitInput(2, ns)
-
-  # Verify structure
-  expect_s3_class(res_1, "shiny.tag")
-  expect_true(grepl("trait_1", as.character(res_1)))
-
-  # Ensure only ID > 1 has the actionButton (trash icon)
-  expect_false(grepl("remove_1", as.character(res_1)))
-  expect_true(grepl("remove_2", as.character(res_2)))
-})
-
-test_that("render_ghost_plate_error produces a valid ggplot object", {
-  plot <- panGenomeBreedr:::render_ghost_plate_error("Invalid file format")
-
-  # Verify ggplot integrity
-  expect_s3_class(plot, "ggplot")
-  expect_equal(plot$labels$title, "PLATE LAYOUT ERROR")
-})
-
-

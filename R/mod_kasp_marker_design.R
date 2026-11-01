@@ -13,304 +13,227 @@
 #'
 mod_kasp_marker_design_ui <- function(id) {
   ns <- NS(id)
+
+  # Accordion section title with an icon
+  section_title <- function(icon_name, text) {
+    div(icon(icon_name, class = "me-2"), tags$span(text, class = "fw-semibold"))
+  }
+
   tagList(
     bslib::layout_sidebar(
-      #-----------------------------------
-      # Sidebar Section for Inputs
-      #-----------------------------------
-      sidebar = bslib::sidebar(
-        width = 400,
-        class = "bg-light",
-        title = "",
 
-        ## Data Acquisition
+      # SIDEBAR ---------------------------------------------------------------
+
+      sidebar = bslib::sidebar(
+        id = ns("sidebar"),
+        width = 350,
+        class = "bg-light",
+
         bslib::accordion(
           id = "config_accordion",
           open = "files", # Only the first panel is open by default
 
+          # Upload files
           bslib::accordion_panel(
-            title = div(
-              icon("upload", class = "me-2"),
-              tags$span(
-                "Data Acquisition",
-                style = "font-weight: bold; font-size: 1.1rem;"
-              )
-            ),
+            title = section_title("upload", "Data Acquisition"),
             value = "files",
+
+            # Radio buttons for file type selection
+            radioButtons(
+              inputId = ns("upload_choice"),
+              label = label_help(
+                "Variant Data Type",
+                "snpEff annotated VCF: the VCF straight from variant calling and annotation. Genotype matrix: a table you have already processed, one row per variant."
+              ),
+              choices = c("snpEff Annotated VCF", "Genotype Matrix (Processed)"),
+              selected = "snpEff Annotated VCF"
+            ),
+            uiOutput(ns("choice_output")), # dynamic file input based on radio button selection
 
             # File input for genome reference
             fileInput(
               inputId = ns("genome_file"),
-              label = div(
-                icon("file-code", class = "me-2 text-success"),
-                tags$span(
-                  "Upload Genome Reference File",
-                  style = "font-weight: bold; font-size: 1.1rem;"
-                )
+              label = label_help(
+                "Reference Genome",
+                "FASTA file (.fa, .fasta or .fa.gz) of the reference the variants were called against. A file with only the target chromosome is enough and loads faster."
               ),
+              placeholder = ".fa, .fasta, .gz",
               accept = c(".fa", ".fasta", ".gz")
             ),
-            # Radio buttons for file type selection
-            radioButtons(
-              inputId = ns("upload_choice"),
-              label = "Variant Data Type",
-              choices = c("snpEff Annotated VCF", "Genotype Matrix (Processed)"),
-              selected = character(0)
-            ),
-            uiOutput(ns("choice_output")) # dynamic file input based on radio button selection
+            example_data_link(ns("load_example")),
+            uiOutput(ns("example_badge")),
+            tags$details(
+              class = "small text-muted mb-3",
+              tags$summary("Data format"),
+              tags$ul(
+                class = "ps-3 mt-2 mb-0",
+                tags$li("VCF: a standard VCF annotated with snpEff. Sample genotypes start at column 10."),
+                tags$li("Genotype matrix: one row per variant with ID, chromosome, position, reference and alternate allele columns, then one column per sample."),
+                tags$li("The chromosome names must match the names in the reference FASTA (e.g. Chr02).")
+              )
+            )
           ),
 
-          ## Feature Mapping
+          # Map columns
           bslib::accordion_panel(
-            title = div(
-              icon("project-diagram", class = "me-2"),
-              tags$span(
-                "Feature Mapping",
-                style = "font-weight: bold; font-size: 1.1rem;"
-              )
-            ),
+            title = section_title("project-diagram", "Map Columns"),
             value = "mapping",
-
-            # Help text for user to map columns
-            div(
-              class = "small text-muted mb-3",
-              icon("info-circle", class = "me-1"),
-              "Map your data columns to the required fields"
-            ),
-
-            # Select inputs for column mapping
             selectizeInput(
               inputId = ns("variant_id_col"),
-              label = "Variant IDs Column",
+              label = "Variant ID Column",
               choices = NULL
             ),
-            # Layout columns for better organization
             bslib::layout_columns(
-              col_widths = c(6, 6), # Two columns side by side thus chrom and pos
-              selectizeInput(
-                inputId = ns("chrom_col"),
-                label = "Chromosome:",
-                choices = NULL
-              ),
-              selectizeInput(
-                inputId = ns("pos_col"),
-                label = "Position:",
-                choices = NULL
-              )
+              col_widths = c(6, 6),
+              selectizeInput(inputId = ns("chrom_col"), label = "Chromosome", choices = NULL),
+              selectizeInput(inputId = ns("pos_col"), label = "Position", choices = NULL)
             ),
             bslib::layout_columns(
-              col_widths = c(6, 6), # Two columns side by side thus ref and alt
-              selectizeInput(
-                inputId = ns("ref_al_col"),
-                label = "Reference Allele:",
-                choices = NULL
-              ),
-              selectizeInput(
-                inputId = ns("alt_al_col"),
-                label = "Alternate Allele:",
-                choices = NULL
-              )
+              col_widths = c(6, 6),
+              selectizeInput(inputId = ns("ref_al_col"), label = "Reference Allele", choices = NULL),
+              selectizeInput(inputId = ns("alt_al_col"), label = "Alternate Allele", choices = NULL)
             ),
-            # Numeric input for genotype data start column
             numericInput(
               inputId = ns("geno_start"),
-              label = "Genotype Data Start:",
+              label = label_help(
+                "Genotypes Start at Column",
+                "Number of the first sample column. 10 for a standard VCF."
+              ),
               value = 10
             )
           ),
 
-          ## Target Definition
+          # Markers to design
           bslib::accordion_panel(
-            title = div(
-              icon("crosshairs", class = "me-2"),
-              tags$span(
-                "Target Definition",
-                style = "font-weight: bold; font-size: 1.1rem;"
-              )
-            ),
+            title = section_title("crosshairs", "Target Variants"),
             value = "markers",
-            # Select inputs for chromosome selection
             selectizeInput(
               inputId = ns("chr_ID"),
-              label = "Target Chromosome:",
+              label = "Target Chromosome",
               choices = NULL,
               options = list(placeholder = "Choose chromosome...")
             ),
-            # Marker ID select input allowing multiple selections
             selectizeInput(
               inputId = ns("marker_ID"),
-              label = "Marker Variants:",
+              label = label_help(
+                "Variants to Design",
+                "One KASP assay is designed for each variant you pick. All must be on the target chromosome."
+              ),
               choices = NULL,
               multiple = TRUE,
               options = list(placeholder = "Select one or more variants...")
             ),
-            # Text input for region name
-            textInput(
-              inputId = ns("reg_name"),
-              label = "Region Name:",
-              placeholder = "lgs1"
-            ),
-            # Genome Version
-            textInput(
-              inputId = ns("genome_version"),
-              label = "Genome Version:",
-              placeholder = "Sbicolor v5.1"
-            ),
-            # Trait
-            textInput(
-              inputId = ns("trait"),
-              label = "Trait:",
-              placeholder = "Stay-green"
-            ),
-            textInput(
-              inputId = ns("owner"), label = "Owner:", placeholder = "Green Evolution"
+            numericInput(
+              inputId = ns("maf"),
+              label = label_help(
+                "Minor Allele Frequency (0-1)",
+                "Other variants near the target whose minor allele frequency is at or above this are marked in the flanking sequence, so the primers can avoid them."
+              ),
+              value = 0.05, min = 0, max = 1, step = 0.01
             )
           ),
 
-          ## Filter Specifications
+          # Intertek order details
           bslib::accordion_panel(
-            title = div(
-              icon("filter", class = "me-2"),
-              tags$span(
-                "Filter Specifications",
-                style = "font-weight: bold; font-size: 1.1rem;"
-              )
-            ),
-            value = "params",
-            # Numeric input for minor allele frequency
-            numericInput(
-              inputId = ns("maf"),
-              label = "Minor Allele Frequency (MAF):",
-              value = 0.05, min = 0, max = 1
-            ),
-            # # Switch input for plot generation
-            # bslib::input_switch(
-            #   id = ns("draw_plot"),
-            #   label = "Generate Alignment Plot",
-            #   value = TRUE
-            # )
+            title = section_title("file-signature", "Order Details"),
+            value = "order",
+            tags$p(class = "small text-muted", "These fill the Intertek submission table."),
+            textInput(inputId = ns("reg_name"), label = "Region Name", placeholder = "lgs1"),
+            textInput(inputId = ns("genome_version"), label = "Genome Version", placeholder = "Sbicolor v5.1"),
+            textInput(inputId = ns("trait"), label = "Trait", placeholder = "Stay-green"),
+            textInput(inputId = ns("owner"), label = "Owner", placeholder = "Green Evolution")
           )
         ),
-        # Action button to run KASP marker design
-        div(
-          class = "mt-4 d-grid gap-2",
-          actionButton(
-            inputId = ns("run_but"),
-            label = "Design KASP Marker",
-            icon = icon("play", class = "me-2"),
-            class = "btn-success btn-lg",
-            style = "font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
-          )
+
+        run_button(ns("run_but"), "Design KASP Markers", icon_name = "dna")
+      ),
+
+      # PLACEHOLDER -----------------------------------------------------------
+
+      # Shown until markers have been designed
+      div(
+        id = ns("placeholder_ui"),
+        class = "text-center text-muted py-5",
+        div(class = "h1 mb-3", icon("dna")),
+        tags$p(
+          "Upload a variant file and the reference genome in the sidebar, or load the example data, pick the variants, then click",
+          tags$b("Design KASP Markers"), "."
+        ),
+        tags$p(
+          class = "small",
+          "You'll get the sequence for each assay, ready to send to Intertek, and a plot of each sequence aligned to the reference."
         )
       ),
 
-      #-----------------------------------
-      # Main panel Section for Results
-      #-----------------------------------
-      div(
-        class = "100",
-        navset_card_pill(
-          id = ns("results_tabs"),
-          full_screen = TRUE,
-          # Data Table tab
-          bslib::nav_panel(
-            title = "Marker Data",
-            icon = icon("table"),
-            value = "table_tab",
+      # RESULTS ---------------------------------------------------------------
 
-            # Card for displaying results table
-            bslib::card(
-              #   class = "h-100",
-              bslib::card_header(
-                class = "bg-light",
-                div(
-                  class = "d-flex justify-content-between align-items-center",
-                  div(
-                    icon("table", class = "me-2"),
-                    strong("KASP Marker Design Results & Sequence Alignment")
-                  )
-                )
-              ),
-              # Data table output
-              bslib::card_body(
-                class = "p-0",
-                DT::DTOutput(ns("kasp_table"), height = "500px"),
-              ),
-              # Footer with download options
-              bslib::card_footer(
-                class = "bg-light",
-                bslib::layout_columns(
-                  col_widths = c(3, 4, 2),
+      # Hidden until markers have been designed
+      shinyjs::hidden(
+        div(
+          id = ns("analysis_ui"),
+          bslib::navset_card_underline(
+            id = ns("results_tabs"),
+
+            # Marker table tab
+            bslib::nav_panel(
+              title = "Marker Table",
+              icon = icon("table"),
+              value = "table_tab",
+              ui_result_card(
+                "KASP assays for Intertek",
+                full_screen = TRUE,
+                actions = bslib::popover(
+                  tags$button(
+                    type = "button",
+                    class = "btn btn-sm btn-success",
+                    icon("download"), " Download"
+                  ),
+                  textInput(inputId = ns("file_name"), label = "File name", value = "KASP_markers_for_Intertek"),
                   selectInput(
                     inputId = ns("exten"),
-                    label = "Download file as?",
-                    choices = c(".csv", ".xlsx"),
-                    selected = ".xlsx",
-                    multiple = FALSE
+                    label = "Format",
+                    choices = c("Excel (.xlsx)" = ".xlsx", "CSV (.csv)" = ".csv"),
+                    selected = ".xlsx"
                   ),
-                  textInput(
-                    inputId = ns("file_name"),
-                    label = "Enter File Prefix",
-                    value = "Kasp M_D for Intertek"
-                  ),
-                  div(
-                    style = "display: flex; align-items: center; height: 100%; margin-top: 12px;",
-                    downloadButton(
-                      ns("download_table"),
-                      label = "Export",
-                      class = "btn-success w-100",
-                      icon = icon("download")
-                    )
-                  )
-                )
+                  downloadButton(ns("download_table"), "Save", class = "btn-success w-100"),
+                  title = "Download table",
+                  placement = "bottom"
+                ),
+                uiOutput(ns("table_summary")),
+                DT::DTOutput(ns("kasp_table"))
               )
-            )
-          ),
+            ),
 
-          # Plot alignment tab
-          bslib::nav_panel(
-            title = "Alignment Plot",
-            icon = icon("chart-bar"),
-            value = "plot_tab",
-            # Card for displaying alignment plot
-            bslib::card(
-              class = "h-100",
-              card_header(
-                class = "bg-light",
-                div(
-                  icon("chart-line", class = "me-2"),
-                  strong("Sequence Alignment Visualization")
-                )
-              ),
-              # Plot output container
-              bslib::card_body(
-                tagList(
-                  selectizeInput(
-                    inputId = ns("plot_choice"),
-                    label = "Select Marker ID",
-                    width = "30%",
-                    choices = NULL
-                  ), # drop down for plots
-                  uiOutput(ns("plot_container")), # Null plot container if user disables plot generation
-                  plotOutput(ns("plot"), height = "400px"),
+            # Alignment plot tab
+            bslib::nav_panel(
+              title = "Alignment Plot",
+              icon = icon("chart-bar"),
+              value = "plot_tab",
+              ui_result_card(
+                "Sequence alignment",
+                full_screen = TRUE,
+                actions = tagList(
+                  div(
+                    style = "min-width: 220px;",
+                    selectizeInput(
+                      inputId = ns("plot_choice"),
+                      label = NULL,
+                      choices = NULL,
+                      width = "100%"
+                    )
+                  ),
                   downloadButton(
                     outputId = ns("download_plot"),
-                    label = "Export All Plots (PDF)",
-                    class = "btn-success w-30 mt-4",
-                    width = "30%",
+                    label = "PDF (all)",
+                    class = "btn-sm btn-success",
                     icon = icon("download")
                   )
-                )
-              ),
-
-              # Footer with plot info
-              bslib::card_footer(
-                class = "bg-light",
-                div(
-                  class = "text-muted small",
-                  icon("info-circle", class = "me-1"),
-                  "Interactive alignment plot showing variant positions relative to reference genome"
-                )
+                ),
+                tags$p(
+                  class = "small text-muted",
+                  "The assay sequence for the selected variant aligned to the reference genome around it. Use the PDF button to save the plots for all designed variants."
+                ),
+                plotOutput(ns("plot"), height = "450px")
               )
             )
           )
@@ -334,8 +257,9 @@ mod_kasp_marker_design_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    # FILE UPLOAD -----------------------------------------------------------
 
-    # Dynamic rendering of file upload based on user choice
+    # VCF or genotype matrix: clear the other input when they switch
     observeEvent(input$upload_choice, {
       if (input$upload_choice == "snpEff Annotated VCF") {
         output$choice_output <- renderUI({
@@ -358,23 +282,70 @@ mod_kasp_marker_design_server <- function(id) {
       }
     })
 
-    # Read VCF file and extract unique markers and chromosome ID
-    vcf_data <- reactive({
-      req(input$vcf_file)
-      marker.chr_ID(input$vcf_file$datapath)
+    # VCF to read: the latest upload, or the bundled example
+    vcf_path <- reactiveVal(NULL)
+    example_active <- reactiveVal(FALSE)
+    example_vcf <- "Sobic.002G302700_SNP_snpeff.vcf"
+    example_genome_url <- "https://raw.githubusercontent.com/awkena/panGB/main/Chr02.fa.gz"
+
+    # New VCF upload
+    observeEvent(input$vcf_file, {
+      vcf_path(input$vcf_file$datapath)
+      example_active(FALSE)
     })
 
+    # EXAMPLE DATA ----------------------------------------------------------
+
+    # kasp_marker_design() help page example: a SNP in Sobic.002G302700 on
+    # Chr02. The Chr02 genome is not shipped, so we point them to the download
+    observeEvent(input$load_example, {
+      updateRadioButtons(session, "upload_choice", selected = "snpEff Annotated VCF")
+      updateNumericInput(session, "geno_start", value = 10)
+      updateNumericInput(session, "maf", value = 0.05)
+      updateTextInput(session, "reg_name", value = "ma1")
+      updateTextInput(session, "genome_version", value = "Sbv5.1")
+      updateTextInput(session, "trait", value = "Example trait")
+      updateTextInput(session, "owner", value = "panGenomeBreedr example")
+      vcf_path(example_file(example_vcf))
+      example_active(TRUE)
+    })
+
+    # Clear the example
+    observeEvent(input$clear_example, {
+      vcf_path(NULL)
+      example_active(FALSE)
+    })
+
+    # "Using example data" badge
+    output$example_badge <- renderUI({
+      req(example_active())
+      example_data_badge(
+        example_vcf,
+        clear_id = ns("clear_example"),
+        note = tagList(
+          tags$strong("One more step: "),
+          "the reference genome is not included. ",
+          tags$a(href = example_genome_url, target = "_blank", "Download Chr02.fa.gz"),
+          " (BTx623 v5.1, chromosome 2), upload it under Reference Genome, then click Design KASP Markers."
+        )
+      )
+    })
+
+    # READ DATA -------------------------------------------------------------
+
+    # Read the VCF
+    vcf_data <- reactive({
+      req(vcf_path())
+      marker.chr_ID(vcf_path())
+    })
 
     # Get column names of VCF file
     vcf_colnames <- reactive({
-      req(input$vcf_file)
-      colnames(read_vcf_as_df(input$vcf_file$datapath))
+      req(vcf_path())
+      colnames(read_vcf_as_df(vcf_path()))
     })
 
-
-
-    ## If user prefers to upload excel sheet containing genotype matrix
-    # Read either csv or excel file
+    # Read the genotype matrix (csv or excel)
     gt_data <- reactive({
       req(input$gt_df)
       tryCatch(
@@ -385,7 +356,8 @@ mod_kasp_marker_design_server <- function(id) {
         },
         error = function(e) {
           shinyWidgets::show_toast(
-            title = paste("Error reading Excel file:", e$message),
+            title = "Couldn't read the genotype matrix",
+            text = e$message,
             type = "error",
             timer = 2000,
             position = "bottom-end"
@@ -395,7 +367,7 @@ mod_kasp_marker_design_server <- function(id) {
       )
     })
 
-    ## Extract column names
+    # Column names of the genotype matrix
     gt_colnames <- reactive({
       req(gt_data())
       # Extract needed column names using safe_grep_match
@@ -404,7 +376,6 @@ mod_kasp_marker_design_server <- function(id) {
         choices = colnames(gt_data())
       )
     })
-
 
     # Extract unique chromosomes
     unique_chrom <- reactive({
@@ -418,7 +389,7 @@ mod_kasp_marker_design_server <- function(id) {
       if (length(chrm) == 0) {
         shinyWidgets::show_toast(
           title = "",
-          text = "No chromosome column found in genotype data",
+          text = "No chromosome column found. Name one column chrom or chromosome.",
           type = "error"
         )
         return(NULL)
@@ -439,7 +410,7 @@ mod_kasp_marker_design_server <- function(id) {
       if (length(mkr) == 0) {
         shinyWidgets::show_toast(
           title = "",
-          text = "No variant id column found in genotype data",
+          text = "No variant ID column found. Name one column variant_id or marker_id.",
           type = "error"
         )
         return(NULL)
@@ -448,9 +419,9 @@ mod_kasp_marker_design_server <- function(id) {
       unique(gt_data()[[mkr]])
     })
 
+    # COLUMN DROPDOWNS ------------------------------------------------------
 
-
-    # Update select inputs based on VCF upload
+    # Fill the dropdowns from the VCF
     observeEvent(vcf_data(), {
       req(vcf_data(), vcf_colnames())
 
@@ -504,18 +475,20 @@ mod_kasp_marker_design_server <- function(id) {
         server = TRUE,
         session = session,
         inputId = "marker_ID",
-        choices = vcf_data()$vcf_matrix_markerID
+        choices = vcf_data()$vcf_matrix_markerID,
+        selected = if (isTRUE(example_active())) "SNP_Chr02_69200443" else NULL
       )
       # Update chromosome ID select input
       updateSelectizeInput(
         server = TRUE,
         session = session,
         inputId = "chr_ID",
-        choices = vcf_data()$vcf_matrix_chromID
+        choices = vcf_data()$vcf_matrix_chromID,
+        selected = if (isTRUE(example_active())) "Chr02" else NULL
       )
     })
 
-    # Update select inputs based on genotype matrix upload
+    # Fill the dropdowns from the genotype matrix
     observeEvent(gt_data(), {
       req(unique_marker_id(), unique_chrom(), gt_colnames())
       # Update variable select inputs
@@ -581,15 +554,16 @@ mod_kasp_marker_design_server <- function(id) {
       )
     })
 
-    # Empty reactive objects
-    kasp_des.result <- reactiveVal(NULL) # store dataframes
-    kasp_des.plot <- reactiveVal(NULL) # store plots
+    # DESIGN MARKERS --------------------------------------------------------
 
+    # Designed markers and their alignment plots
+    kasp_des.result <- reactiveVal(NULL)
+    kasp_des.plot <- reactiveVal(NULL)
 
-    # Check which input is available and make use of it
+    # Design KASP Markers
     observeEvent(input$run_but, {
       data_source_field <- if (identical(input$upload_choice, "snpEff Annotated VCF")) {
-        list("snpEff Annotated VCF File" = input$vcf_file)
+        list("snpEff Annotated VCF File" = vcf_path())
       } else {
         list("Genotype Matrix File" = gt_data())
       }
@@ -623,8 +597,8 @@ mod_kasp_marker_design_server <- function(id) {
       )
 
       # Determine the data source based on user's choice
-      vcf_path <- if (input$upload_choice == "snpEff Annotated VCF") {
-        input$vcf_file$datapath
+      vcf_file_path <- if (input$upload_choice == "snpEff Annotated VCF") {
+        vcf_path()
       } else {
         NULL
       }
@@ -638,7 +612,7 @@ mod_kasp_marker_design_server <- function(id) {
       tryCatch({
         # Call the vectorized kasp_marker_design function once
         result_data <- kasp_marker_design(
-          vcf_file = vcf_path,
+          vcf_file = vcf_file_path,
           gt_df = genotype_df,
           variant_id_col = input$variant_id_col,
           chrom_col = input$chrom_col,
@@ -668,9 +642,15 @@ mod_kasp_marker_design_server <- function(id) {
         kasp_des.result(intertek_table)
         kasp_des.plot(result_data$plot)
 
+        # Reveal the results
+        shinyjs::hide("placeholder_ui")
+        shinyjs::show("analysis_ui")
+        bslib::nav_select("results_tabs", "table_tab")
+        bslib::toggle_sidebar(id = "sidebar", open = "closed")
+
         shinyWidgets::show_alert(
-          title = "Success!",
-          text = paste(nrow(intertek_table), "KASP marker(s) designed successfully."),
+          title = "Markers designed",
+          text = paste(nrow(intertek_table), if (nrow(intertek_table) == 1) "KASP assay is" else "KASP assays are", "ready in the Marker Table."),
           type = "success",
           showCloseButton = TRUE,
           timer = 5000
@@ -679,8 +659,8 @@ mod_kasp_marker_design_server <- function(id) {
         kasp_des.result(NULL)
         kasp_des.plot(NULL)
         shinyWidgets::show_alert(
-          title = "Error!",
-          text = paste("Failed to design KASP markers:", e$message),
+          title = "Couldn't design the markers",
+          text = paste0(e$message, " Check that the chromosome names in the variant file match the reference genome."),
           type = "error",
           showCloseButton = TRUE,
           timer = 8000
@@ -690,32 +670,40 @@ mod_kasp_marker_design_server <- function(id) {
       })
     })
 
+    # MARKER TABLE ----------------------------------------------------------
 
-    # Update select input for user results preview
+    # Fill the alignment plot picker
     observe({
       req(kasp_des.result(), kasp_des.plot())
 
-      updateSelectizeInput(session,
-        inputId = "done_markers",
-        choices = names(kasp_des.result())
-      )
       updateSelectizeInput(session,
         inputId = "plot_choice",
         choices = names(kasp_des.plot())
       )
     })
 
-    # Render KASP table
+    # Summary line above the table
+    output$table_summary <- renderUI({
+      req(kasp_des.result())
+      n <- nrow(kasp_des.result())
+      tags$p(
+        class = "small text-muted",
+        tags$b(n), if (n == 1) " assay" else " assays", " designed on ", tags$b(input$chr_ID),
+        if (nzchar(input$reg_name)) tagList(" (region ", tags$b(input$reg_name), ")"),
+        ". In the sequence, the target variant is shown in square brackets as [reference/alternate]."
+      )
+    })
+
+    # Marker table
     output$kasp_table <- DT::renderDT({
       req(kasp_des.result())
       DT::datatable(kasp_des.result(),
+        rownames = FALSE,
         options = list(pageLength = 10, scrollX = TRUE)
       )
     })
 
-
-
-    # Download table as batch
+    # Marker table download
     output$download_table <- downloadHandler(
       filename = function() {
         # Clean file name
@@ -731,36 +719,20 @@ mod_kasp_marker_design_server <- function(id) {
       }
     )
 
+    # ALIGNMENT PLOT --------------------------------------------------------
 
-
-    # # Plot container UI - show if user selects true
-    # observeEvent(input$draw_plot, {
-    #   if (input$draw_plot == FALSE) {
-    #     output$plot_container <- renderUI({
-    #       div(
-    #         class = "text-center p-5 text-muted",
-    #         icon("eye-slash", class = "fa-6x mb-3"),
-    #         p("Plot generation disabled in parameters")
-    #       )
-    #     })
-    #   } else {
-    #     output$plot_container <- renderUI({
-    #       NULL
-    #     })
-    #   }
-    # })
-
-    # Render Plot
+    # Plot for the selected marker
     output$plot <- renderPlot({
       req(kasp_des.plot(), input$plot_choice)
       print(kasp_des.plot()[[input$plot_choice]])
     })
 
-    # Batch download plots
+    # All plots in one pdf
     output$download_plot <- downloadHandler(
       filename = function() {
-        clean_marker <- gsub("[^[:alnum:]_-]", "_", input$marker_ID)
-        paste0("alignment_", clean_marker, ".pdf")
+        markers <- names(kasp_des.plot())
+        tag <- if (length(markers) == 1) markers else paste0(length(markers), "_markers")
+        paste0("alignment_", gsub("[^[:alnum:]_-]", "_", tag), ".pdf")
       },
       content = function(file) {
         plots <- kasp_des.plot()

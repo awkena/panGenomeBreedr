@@ -11,46 +11,43 @@
 #'
 mod_mv_nsamples_plate_ui <- function(id) {
   ns <- NS(id)
-  tagList(
-    # Summary of plates samples
-    sidebarLayout(
-      sidebarPanel(
-        # widget for plates
-        selectizeInput(
-          inputId = ns("subset_id"),
-          label = "Plate Subset Column",
-          choices = NULL,
-          multiple = FALSE
+  ui_sidebar_layout(
+
+    # SIDEBAR ---------------------------------------------------------------
+
+    sidebar = tagList(
+      selectizeInput(
+        inputId = ns("subset_id"),
+        label = label_help(
+          "Plate Subset Column",
+          "Column that identifies each plate-by-marker subset (the 'plates' column added on upload)."
         ),
-        # Widget  for snpID
-        selectizeInput(
-          inputId = ns("snps_id"),
-          label = "SNP ID Column",
-          choices = NULL,
-          multiple = FALSE
-        ),
-        # Widget for plates
-        selectizeInput(
-          inputId = ns("plates_id"),
-          label = "Master Plate ID Column",
-          choices = NULL,
-          multiple = FALSE
-        )
+        choices = NULL,
+        multiple = FALSE
       ),
-      mainPanel(
-        bslib::accordion(
-          #width = "100%",
-          open = "Summary of Sample Distribution Across Plates",
-          bslib::accordion_panel(
-            "Summary of Sample Distribution Across Plates",
-            DT::DTOutput(ns("nsumm_output"))
-          )
-        )
+      selectizeInput(
+        inputId = ns("snps_id"),
+        label = "SNP ID Column",
+        choices = NULL,
+        multiple = FALSE
+      ),
+      selectizeInput(
+        inputId = ns("plates_id"),
+        label = label_help(
+          "Master Plate ID Column",
+          "Column with the master plate name. Samples are counted per master plate."
+        ),
+        choices = NULL,
+        multiple = FALSE
       )
-    )
+    ),
+
+    # MAIN PANEL ------------------------------------------------------------
+
+    tags$p(class = "fw-semibold mb-2", "Samples per plate"),
+    DT::DTOutput(ns("nsumm_output"))
   )
 }
-
 
 
 #' Number of Samples per Plate Server Function
@@ -71,108 +68,87 @@ mod_mv_nsamples_plate_server <- function(id, kasp_data) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    # COLUMN DROPDOWNS ------------------------------------------------------
 
     # Get colnames from Kasp data
     subset_names <- reactive({
-      req(kasp_data)
-          return(colnames(kasp_data))
-
+      req(kasp_data())
+      return(colnames(kasp_data()))
     })
 
-
-    # Update select inputs field
+    # Fill the dropdowns and guess the right column for each
     observe({
       req(subset_names())
-          # Update the inputs
-          updateSelectizeInput(session,
-            server = TRUE,
-            inputId = "subset_id",
-            choices = subset_names(),
-            selected = safe_grep_match(pattern = 'plates',
-                                       choices = subset_names())
-          )
+      updateSelectizeInput(session,
+        server = TRUE,
+        inputId = "subset_id",
+        choices = subset_names(),
+        selected = safe_grep_match(pattern = 'plates',
+                                   choices = subset_names())
+      )
 
-          updateSelectizeInput(session,
-            server = TRUE,
-            inputId = "snps_id",
-            choices = subset_names(),
-            selected = safe_grep_match(pattern = 'snp',
-                                       choices = subset_names())
-          )
+      updateSelectizeInput(session,
+        server = TRUE,
+        inputId = "snps_id",
+        choices = subset_names(),
+        selected = safe_grep_match(pattern = 'snp',
+                                   choices = subset_names())
+      )
 
-          updateSelectizeInput(session,
-            server = TRUE,
-            inputId = "plates_id",
-            choices = subset_names(),
-            selected = safe_grep_match(pattern = 'masterplate',
-                                       choices = subset_names())
-          )
-
+      updateSelectizeInput(session,
+        server = TRUE,
+        inputId = "plates_id",
+        choices = subset_names(),
+        selected = safe_grep_match(pattern = 'masterplate',
+                                   choices = subset_names())
+      )
     })
 
-    # Get summary of number of samples per plate
-    nsample_plate_result <- reactiveVal(NULL)
+    # PLATE SUMMARY ---------------------------------------------------------
 
-    observe({
-      req(kasp_data, input$subset_id, input$snps_id, input$plates_id)
+    # Number of samples per plate
+    nsample_plate_result <- reactive({
+      req(kasp_data(), input$subset_id, input$snps_id, input$plates_id)
+      req(all(c(input$subset_id, input$snps_id, input$plates_id) %in% colnames(kasp_data())))
 
-      # Validate the selected columns exist in the data
       tryCatch(
-        {
-          # Process the data
-          result <- nsamples_plate(
-            x = kasp_data,
-            subset = input$subset_id,
-            snp_id = input$snps_id,
-            plate_id = input$plates_id
-          )
-
-          # Store the result
-          nsample_plate_result(result$summ)
-        },
+        nsamples_plate(
+          x = kasp_data(),
+          subset = input$subset_id,
+          snp_id = input$snps_id,
+          plate_id = input$plates_id
+        )$summ,
         error = function(e) {
-          # Show error message
           shinyWidgets::show_alert(
-            title = "Error",
-            text = paste("Error processing plate samples:", e$message),
+            title = "Couldn't summarise the plates",
+            text = e$message,
             type = "error",
             showCloseButton = TRUE
           )
+          NULL
         }
       )
     })
 
-
-    # Display Summary of plates.
-    observe({
+    # Summary table
+    output$nsumm_output <- DT::renderDT({
+      validate(need(kasp_data(), msg_no_data))
       req(nsample_plate_result())
+      df <- data.frame(nsample_plate_result(), check.names = FALSE)
+      DT::datatable(df, options = list(pageLength = 10, scrollX = TRUE))
+    })
 
-      tryCatch(        {
-          output$nsumm_output <- DT::renderDT({
-            # Ensure data is properly formatted as a data.frame
-            df <- data.frame(nsample_plate_result(), check.names = FALSE)
-
-            # Render output
-            DT::datatable(df, options = list(pageLength = 10, scrollX = TRUE))
-          })
-
-          shinyWidgets::show_toast(
-            title = "",
-            type = "success",
-            text = "Summary statistics rendered successfully",
-            timer = 2000,
-            position = "bottom-end"
-          )
-        },
-        error = function(e) {
-          # Show alert when there is an error
-          shinyWidgets::show_alert(
-            title = "Error",
-            text = paste("Error displaying results:", e$message),
-            type = "error",
-            showCloseButton = TRUE
-          )
-        }
+    # Toast once each time the summary changes
+    last_summary <- NULL
+    observeEvent(nsample_plate_result(), {
+      if (identical(nsample_plate_result(), last_summary)) return()
+      last_summary <<- nsample_plate_result()
+      shinyWidgets::show_toast(
+        title = "",
+        type = "success",
+        text = "Plate summary ready",
+        timer = 2000,
+        position = "bottom-end"
       )
     })
   })

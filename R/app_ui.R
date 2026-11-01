@@ -26,6 +26,24 @@ app_ui <- function(request) {
       box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
       border-color: #10b981 !important; /* Optional: highlight border on hover */
     }
+
+    /* Placeholder messages on tables (htmlwidgets such as DT).
+       htmlwidgets draws them as an absolute overlay sized from the table's
+       width. In a tab that is not open yet that width is 0, so the text first
+       shows one letter per line, then snaps into place. Show the message in
+       the normal flow instead, and collapse the empty table while it is up
+       (height, not display, so htmlwidgets can still restore it). */
+    .html-widget-output + .htmlwidgets-error {
+      position: static !important;
+      max-width: none !important;
+      height: auto !important;
+    }
+    .html-widget-output:has(+ .htmlwidgets-error) {
+      flex: 0 0 0 !important;
+      height: 0 !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+    }
   "
       ))
     ),
@@ -77,6 +95,17 @@ app_ui <- function(request) {
             style = "max-width: 800px;",
             "panGB is your unified platform for modern, crop-agnostic pangenome-enabled breeding.
             Engineered to simplify variant analysis, marker design, and validation."
+          ),
+          actionButton(
+            "btn_try_demo",
+            "Try the demo",
+            icon = icon("flask"),
+            class = "btn-success rounded-pill px-4 mt-2"
+          ),
+          tags$p(
+            class = "small text-muted mt-2 mb-0",
+            "Loads the example KASP genotyping file from the vignette into Marker Validation.",
+            "Every tab also has a Load example data link."
           )
         ),
 
@@ -203,6 +232,7 @@ app_ui <- function(request) {
       ## Marker validation tab with sub functionalities.
       bslib::nav_panel(
         title = "KASP Marker Validation",
+        value = "kasp_validation",
         icon = icon("check-circle"),
         bslib::navset_card_pill(
           id = "marker_validation_tabs",
@@ -210,9 +240,9 @@ app_ui <- function(request) {
           # Read Kasp file Tab
           bslib::nav_panel(
             title = tags$strong("Upload Data"),
+            value = "upload_data",
             icon = icon("file-import"),
             bslib::card(
-              height = "700px",
               bslib::card_header(h5(tags$b("KASP Genotyping File"))),
               mod_mv_read_kasp_csv_ui("mv_read_kasp_csv_1")
             )
@@ -222,8 +252,11 @@ app_ui <- function(request) {
           bslib::nav_panel(
             title = tags$strong("Data Summary"),
             icon = icon("table"),
-            bslib::layout_column_wrap(
-              width = 1,
+            tagList(
+              bslib::card(
+                bslib::card_header(h5(tags$b("Marker Call Rates"))),
+                mod_mv_call_rate_ui("mv_call_rate_1") # call rate summary & plots
+              ),
               bslib::card(
                 bslib::card_header(h5(tags$b("Plate Statistics"))),
                 mod_mv_nsamples_plate_ui("mv_nsamples_plate_1") # plate count

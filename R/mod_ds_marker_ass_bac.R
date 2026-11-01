@@ -15,6 +15,12 @@
 #'
 mod_ds_marker_ass_bac_ui <- function(id) {
   ns <- NS(id)
+
+  # Accordion section title with an icon
+  section_title <- function(icon_name, text) {
+    div(icon(icon_name, class = "me-2"), tags$span(text, class = "fw-semibold"))
+  }
+
   tagList(
     navset_card_underline(
       nav_panel(
@@ -22,26 +28,22 @@ mod_ds_marker_ass_bac_ui <- function(id) {
         icon = icon("flask"),
         bslib::layout_sidebar(
           sidebar = bslib::sidebar(
-            id = ns("sidebar"),
-            width = 400,
+            id = ns('sidebar'),
+            width = 350,
             position = "left",
             class = "bg-light",
 
-            # Accordion with organized sections
+            # SIDEBAR -------------------------------------------------------
+
             bslib::accordion(
               id = "introgression_accordion",
               open = "files", # Only the first panel is open by default
 
-              ## Data Acquisition
+              # Upload genotype file
               bslib::accordion_panel(
-                title = div(
-                  icon("upload", class = "me-2"),
-                  tags$span(
-                    "Data Acquisition",
-                    style = "font-weight: bold; font-size: 1.1rem;"
-                  )
-                ),
+                title = section_title("upload", "Data Acquisition"),
                 value = "files",
+
                 fileInput(
                   inputId = ns("data_id"),
                   label = "Upload Genotype Data ",
@@ -49,18 +51,35 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                   multiple = FALSE,
                   accept = c(".csv", ".xlsx")
                 ),
+                example_data_link(ns("load_example")),
+                uiOutput(ns("example_badge")),
+                tags$details(
+                  class = "small text-muted mb-3",
+                  tags$summary("Data format"),
+                  tags$ul(
+                    class = "ps-3 mt-2 mb-0",
+                    tags$li("One row per sample. Include both parents and the progenies."),
+                    tags$li("Sample information columns first (e.g. sample ID, batch), then one column per marker, starting at Marker Start."),
+                    tags$li("Marker columns hold the genotype calls, e.g. A, G or A / G for Agriplex.")
+                  )
+                ),
+
                 layout_columns(
                   col_widths = c(6, 6),
+
                   selectInput(
                     inputId = ns("data_type"),
-                    label = "Data Type:",
+                    label = "Data Type",
                     choices = c("Agriplex", "Kasp / DArTag"),
                     selected = "Agriplex",
                     width = "100%"
                   ),
                   numericInput(
                     inputId = ns("marker_start"),
-                    label = "Marker Start:",
+                    label = label_help(
+                      "Marker Start",
+                      "Column number where the marker (genotype call) columns begin. Columns before it are sample information."
+                    ),
                     value = 7,
                     min = 1,
                     width = "100%"
@@ -68,30 +87,31 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                 ),
                 textInput(
                   inputId = ns("allele_sep"),
-                  label = "Enter Allele Separator for Data Format",
+                  label = label_help(
+                    "Allele Separator",
+                    "Characters between the two alleles in a call, e.g. ' / ' in A / G. Spaces count."
+                  ),
                   value = " / ",
                   width = "100%"
                 )
               ),
 
-              ## Genomic Mapping Setup
+              # Map file, or generate one
               bslib::accordion_panel(
-                title = div(
-                  icon("map", class = "me-2"),
-                  tags$span(
-                    "Genomic Mapping Setup",
-                    style = "font-weight: bold; font-size: 1.1rem;"
-                  )
-                ),
+                title = section_title("map", "Genomic Mapping Setup"),
                 value = "mapfile",
+
                 radioButtons(
                   inputId = ns("choice"),
-                  label = "Do you have a map file?",
+                  label = label_help(
+                    "Do you have a map file?",
+                    "A map file gives each marker's chromosome and position. Without one, positions are read from the marker names (e.g. S1_12345)."
+                  ),
                   choices = c("Yes" = "yes", "Generate one" = "no"),
                   selected = "yes"
                 ),
 
-                # Dynamic rendering based on choice
+                # Upload slot when they have one
                 conditionalPanel(
                   condition = paste0('input["', ns("choice"), '"] == "yes"'),
                   tagList(
@@ -103,252 +123,281 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                     ),
                     selectInput(
                       inputId = ns("snp_id"),
-                      label = "Select Column for SNP ID",
+                      label = "SNP ID Column",
                       choices = NULL,
                       width = "100%"
                     )
                   )
                 ),
+
                 conditionalPanel(
                   condition = paste0('input["', ns("choice"), '"] == "no"'),
-                  tagList(
+                  layout_columns(
+                    col_widths = c(6, 6),
                     textInput(
                       inputId = ns("prefix_marker"),
-                      label = "Enter Prefix for Marker ID",
+                      label = label_help(
+                        "Marker Prefix",
+                        "Text before the chromosome number in marker names, e.g. 'S' in S1_12345."
+                      ),
                       value = "S",
                       width = "100%"
                     ),
                     textInput(
                       inputId = ns("sep_marker"),
-                      label = "Enter Separator for Marker ID",
+                      label = label_help(
+                        "Name Separator",
+                        "Character between chromosome and position in marker names, e.g. '_' in S1_12345."
+                      ),
                       value = "_",
                       width = "100%"
                     )
                   )
                 )
-                # div(
-                #   class = "alert alert-info small mt-2",
-                #   icon("lightbulb", class = "me-1"),
-                #   "Map file links markers to their genomic positions"
-                # )
               ),
 
-              ## Selection Parameters
+              # Parents and batch
               bslib::accordion_panel(
-                title = div(
-                  icon("sliders", class = "me-2"),
-                  tags$span(
-                    "Selection Parameters",
-                    style = "font-weight: bold; font-size: 1.1rem;"
-                  )
-                ),
+                title = section_title("sliders", "Selection Parameters"),
                 value = "settings",
+
                 selectizeInput(
                   inputId = ns("sample_id"),
-                  label = "Select Sample ID Column",
+                  label = "Sample ID Column",
                   choices = NULL,
                   width = "100%"
                 ),
+
                 selectizeInput(
                   inputId = ns("cluster_by"),
-                  label = "Group By:",
+                  label = label_help(
+                    "Group By",
+                    "Optional column used to keep only one group of samples, e.g. one batch or family."
+                  ),
                   choices = NULL,
                   width = "100%"
                 ),
+
                 uiOutput(outputId = ns("cluster_focus_ui")),
+
                 bslib::layout_columns(
                   col_widths = c(6, 6),
                   selectizeInput(
                     inputId = ns("rp"),
-                    label = "Recurrent Parent:",
+                    label = label_help("Recurrent Parent", "The elite parent the progenies are backcrossed to."),
                     choices = NULL,
                     width = "100%"
                   ),
                   selectizeInput(
                     inputId = ns("dp"),
-                    label = "Donor Parent:",
+                    label = label_help("Donor Parent", "The parent that carries the trait being introgressed."),
                     choices = NULL,
                     width = "100%"
                   )
                 )
               ),
 
-              ## Genotypic Data Cleaning
+              # Data cleaning
               bslib::accordion_panel(
-                title = div(
-                  icon("filter", class = "me-2"),
-                  tags$span(
-                    "Genotypic Data Cleaning",
-                    style = "font-weight: bold; font-size: 1.1rem;"
-                  )
-                ),
+                title = section_title("filter", "Genotypic Data Cleaning"),
                 value = "qc",
-                div(
-                  class = "small text-muted mb-3",
-                  icon("info-circle", class = "me-1"),
-                  "Enable filters to improve data quality"
-                ),
+
                 bslib::input_switch(
                   id = ns("apply_par_poly"),
-                  label = "Remove Monomorphic Parents",
+                  label = label_help(
+                    "Remove Monomorphic Parents",
+                    "Drop markers where both parents have the same genotype; they cannot tell the parents apart."
+                  ),
                   value = TRUE
                 ),
+
                 bslib::input_switch(
                   id = ns("apply_par_miss"),
-                  label = "Remove Missing Parent Data",
+                  label = label_help("Remove Missing Parent Data", "Drop markers where either parent has no call."),
                   value = TRUE
                 ),
+
                 bslib::input_switch(
                   id = ns("apply_geno_good"),
-                  label = "Apply Genotype Error Check",
+                  label = label_help(
+                    "Apply Genotype Error Check",
+                    "Flag progeny calls that are impossible given the parents' genotypes."
+                  ),
                   value = TRUE
                 ),
+
                 bslib::input_switch(
                   id = ns("apply_par_homo"),
-                  label = "Filter Heterozygous Parents",
+                  label = label_help("Filter Heterozygous Parents", "Drop markers where either parent is heterozygous."),
                   value = TRUE
                 )
               )
             ),
 
-            # Action button to run analysis
-            div(
-              class = "mt-4 d-grid gap-2",
-              actionButton(
-                inputId = ns("config"),
-                label = "Process Data",
-                icon = icon("gears", class = "me-2"),
-                class = "btn-primary btn-lg",
-                style = "font-weight: 600;"
-              )
+            run_button(ns("config"), "Process Data", icon_name = "gears")
+          ),
+
+          # PLACEHOLDER ---------------------------------------------------
+
+          # Shown until the data has been processed
+          div(
+            id = ns("placeholder_ui"),
+            class = "text-center text-muted py-5",
+            div(class = "h1 mb-3", icon("chart-bar")),
+            tags$p(
+              "Upload backcross genotype data in the sidebar, or load the example data, then click",
+              tags$b("Process Data"), "."
+            ),
+            tags$p(
+              class = "small",
+              "You'll then see how much of the recurrent parent's genome each progeny has recovered (RPP)."
             )
           ),
 
-          # Main content area
-          # div(
-          #   id = ns("placeholder_ui"),
-          #   class = "d-flex align-items-center justify-content-center text-muted h-100",
-          #   style = "min-height: 600px; flex-direction: column;",
-          #   icon("arrow-left", class = "mb-3", style = "font-size: 4rem; opacity: 0.5;"),
-          #   h4("Upload and process your data using the sidebar controls to begin.", style = "opacity: 0.7;")
-          # ),
-          
+          # RESULTS -------------------------------------------------------
+
+          # Hidden until the data has been processed
           shinyjs::hidden(
             div(
               id = ns("analysis_ui"),
               bslib::navset_card_underline(
                 id = ns("config_pages"),
-                
+
+                # RPP settings tab
                 bslib::nav_panel(
-                  title = "Plot Configuration",
+                  title = "RPP Settings",
                   value = "main_config",
                   icon = icon("sliders"),
-                  fluidRow(
-                    # Card 1: RPP Configuration
-                    column(
-                      width = 4,
-                      bslib::card(
-                        class = "shadow-sm",
-                        height = "100%",
-                        bslib::card_header(tags$b("RPP Calculation Parameters"), class = "bg-light text-center"),
-                        bslib::card_body(
-                          selectInput(inputId = ns("snp_ids"), label = "Select Column for SNP ID", choices = NULL, width = "100%"),
-                          selectInput(inputId = ns("chr"), label = "Select Column for Chromosome", choices = NULL, width = "100%"),
-                          selectInput(inputId = ns("chr_pos"), label = "Select Column for Chromosome Position", choices = NULL, width = "100%"),
-                          radioButtons(inputId = ns("weight_rpp"), label = "Use Weighted RPP?", choices = c("Yes" = TRUE, "No" = FALSE), selected = TRUE, inline = TRUE)
-                        )
+                  bslib::layout_columns(
+                    col_widths = bslib::breakpoints(sm = 12, lg = c(6, 6)),
+
+                    div(
+                      tags$p(class = "fw-semibold mb-2", "Map columns"),
+                      selectInput(inputId = ns("snp_ids"), label = "Marker Column", choices = NULL, width = "100%"),
+                      selectInput(inputId = ns("chr"), label = "Chromosome Column", choices = NULL, width = "100%"),
+                      selectInput(inputId = ns("chr_pos"), label = "Position Column", choices = NULL, width = "100%"),
+                      radioButtons(
+                        inputId = ns("weight_rpp"),
+                        label = label_help(
+                          "Weighted RPP",
+                          "Yes: each marker counts in proportion to the distance it covers, so unevenly spaced markers don't skew the result. No: every marker counts equally."
+                        ),
+                        choices = c("Yes" = TRUE, "No" = FALSE),
+                        selected = TRUE,
+                        inline = TRUE
                       )
                     ),
-                    
-                    # Card 2: BC Progenies RPP Plot Settings
-                    column(
-                      width = 8,
-                      bslib::card(
-                        class = "shadow-sm",
-                        height = "100%",
-                        bslib::card_header(tags$b("RPP Visualization Controls"), class = "bg-light text-center"),
-                        bslib::card_body(
-                          fluidRow(
-                            column(
-                              width = 6,
-                              selectInput(inputId = ns("rpp_col"), label = "Select Total RPP Column", choices = NULL, width = "100%"),
-                              selectInput(inputId = ns("rpp_sample_id"), label = "Select Sample ID Column", choices = NULL, width = "100%"),
-                              radioButtons(
-                                inputId = ns("rpp_threshold_mode"),
-                                label = "Selection Threshold Basis",
-                                choices = c("Fixed %" = "fixed", "Expected BC Generation" = "bc_gen"),
-                                selected = "fixed",
-                                inline = TRUE
-                              ),
-                              conditionalPanel(
-                                condition = paste0('input["', ns("rpp_threshold_mode"), '"] == "fixed"'),
-                                numericInput(inputId = ns("rpp_threshold"), label = "Selection Threshold (%)", value = 0.93, min = 0, max = 1, width = "100%")
-                              ),
-                              conditionalPanel(
-                                condition = paste0('input["', ns("rpp_threshold_mode"), '"] == "bc_gen"'),
-                                numericInput(inputId = ns("bc_gen"), label = "BC Generation", value = 3, min = 1, width = "100%")
-                              ),
-                              colourpicker::colourInput(inputId = ns("thresh_line_col"), label = "Color of Threshold Line", value = "#B22222", width = "100%"),
-                              bslib::input_switch(id = ns("show_above_thresh"), label = "Show Progenies Above Threshold", value = FALSE)
-                            ),
-                            column(
-                              width = 6,
-                              colourpicker::colourInput(inputId = ns("bar_col"), label = "Set Bar Fill Color", value = "#6495ED", width = "100%"),
-                              numericInput(inputId = ns("alpha"), label = "Adjust Bar Transparency", value = 0.9, min = 0, max = 1, step = 0.1, width = "100%"),
-                              numericInput(inputId = ns("text_size"), label = "Text Size", value = 15, min = 1, width = "100%"),
-                              numericInput(inputId = ns("bar_width"), label = "Set Bar Width", value = 0.5, min = 0.1, width = "100%", step = 0.1),
-                              numericInput(inputId = ns("aspect_ratio"), label = "Set Aspect Ratio of Barplot", value = 0.5, min = 0.1, width = "100%", step = 0.1),
-                              numericInput(inputId = ns("text_scale_fct"), label = "Set Text Size Scaling Factor", value = 0.1, min = 0.1, width = "100%", step = 0.1)
-                            )
-                          )
+
+                    div(
+                      tags$p(class = "fw-semibold mb-2", "Selection threshold"),
+                      radioButtons(
+                        inputId = ns("rpp_threshold_mode"),
+                        label = label_help(
+                          "Threshold based on",
+                          "Fixed: a value you choose. BC generation: the RPP expected on average for that backcross generation (e.g. 93.75% for BC3)."
+                        ),
+                        choices = c("Fixed value" = "fixed", "BC generation" = "bc_gen"),
+                        selected = "fixed",
+                        inline = TRUE
+                      ),
+                      conditionalPanel(
+                        condition = paste0('input["', ns("rpp_threshold_mode"), '"] == "fixed"'),
+                        numericInput(
+                          inputId = ns("rpp_threshold"),
+                          label = "Minimum RPP (0-1)",
+                          value = 0.93, min = 0, max = 1, step = 0.01, width = "100%"
+                        )
+                      ),
+                      conditionalPanel(
+                        condition = paste0('input["', ns("rpp_threshold_mode"), '"] == "bc_gen"'),
+                        numericInput(inputId = ns("bc_gen"), label = "BC Generation", value = 3, min = 1, width = "100%")
+                      ),
+                      bslib::input_switch(
+                        id = ns("show_above_thresh"),
+                        label = "Plot only progenies above the threshold",
+                        value = FALSE
+                      ),
+                      selectizeInput(
+                        inputId = ns("rpp_replicates"),
+                        label = label_help(
+                          "Parent replicates",
+                          "Extra samples of the parents (e.g. BTx623b). They stay in the RPP table as controls but are left out of the progeny counts."
+                        ),
+                        choices = NULL,
+                        multiple = TRUE,
+                        width = "100%"
+                      ),
+                      bslib::accordion(
+                        open = FALSE,
+                        class = "mt-2",
+                        bslib::accordion_panel(
+                          title = "Result columns",
+                          icon = icon("table-columns"),
+                          tags$p(class = "small text-muted", "Picked automatically; change only if needed."),
+                          selectInput(inputId = ns("rpp_col"), label = "Total RPP Column", choices = NULL, width = "100%"),
+                          selectInput(inputId = ns("rpp_sample_id"), label = "Sample ID Column", choices = NULL, width = "100%")
                         )
                       )
                     )
                   ),
                   div(
-                    class = "d-flex justify-content-end mt-3",
-                    actionButton(
-                      inputId = ns("generate_rpp_plot"),
-                      label = "Generate Plot",
-                      icon = icon("play", class = "me-2"),
-                      class = "btn-success btn-lg px-5",
-                      style = "font-weight: 600;"
+                    class = "d-flex justify-content-end mt-2",
+                    div(
+                      style = "min-width: 260px;",
+                      run_button(ns("generate_rpp_plot"), "Generate Plot")
                     )
                   )
                 ),
-                
+
+                # RPP results tab: plot, then table
                 bslib::nav_panel(
-                  title = "RPP Visualization",
+                  title = "RPP Results",
                   value = "plot_tab",
                   icon = icon("chart-bar"),
-                  div(
-                    class = "mb-3 d-flex align-items-end gap-3",
-                    div(
-                      style = "flex: 1; max-width: 250px;",
-                      textInput(inputId = ns("file_name2"), label = "Enter Filename", value = "rpp_barplot", width = "100%")
+                  ui_result_card(
+                    "Recurrent parent percentage (RPP) per progeny",
+                    full_screen = TRUE,
+                    actions = tagList(
+                      plot_options_button(
+                        bslib::layout_columns(
+                          colourpicker::colourInput(inputId = ns("bar_col"), label = "Bar Colour", value = "#6495ED"),
+                          colourpicker::colourInput(inputId = ns("thresh_line_col"), label = "Threshold Line", value = "#B22222")
+                        ),
+                        bslib::layout_columns(
+                          numericInput(inputId = ns("alpha"), label = "Opacity", value = 0.9, min = 0, max = 1, step = 0.1),
+                          numericInput(inputId = ns("text_size"), label = "Text Size", value = 15, min = 1)
+                        ),
+                        bslib::layout_columns(
+                          numericInput(inputId = ns("bar_width"), label = "Bar Width", value = 0.5, min = 0.1, step = 0.1),
+                          numericInput(inputId = ns("aspect_ratio"), label = "Aspect Ratio", value = 0.5, min = 0.1, step = 0.1)
+                        ),
+                        numericInput(inputId = ns("text_scale_fct"), label = "Label Text Scaling", value = 0.1, min = 0.1, step = 0.1),
+                        actionButton(
+                          inputId = ns("redraw_rpp"),
+                          label = "Apply",
+                          icon = icon("rotate"),
+                          class = "btn-success w-100"
+                        ),
+                        title = "Plot appearance"
+                      ),
+                      plot_download_button(
+                        ns, "download_plot2",
+                        file_name = "rpp_barplot",
+                        formats = c("PDF" = "pdf"),
+                        width = 8, height = 6
+                      )
                     ),
-                    div(
-                      style = "flex: 1; max-width: 150px;",
-                      numericInput(inputId = ns("width2"), label = "Plot Width", value = 8, min = 1, width = "100%")
-                    ),
-                    div(
-                      style = "flex: 1; max-width: 150px;",
-                      numericInput(inputId = ns("height2"), label = "Plot Height", value = 6, min = 1, width = "100%")
-                    ),
-                    div(
-                      class = "mb-3",
-                      downloadButton(outputId = ns("download_plot2"), label = "Export PDF", class = "btn-success")
+                    shinycssloaders::withSpinner(
+                      plotOutput(outputId = ns("rpp_bar"), width = "100%", height = "600px"),
+                      type = 4, color = "#0dc5c1"
                     )
                   ),
-                  bslib::card(
-                    class = "shadow-sm border-0",
+                  ui_result_card(
+                    "RPP table",
                     full_screen = TRUE,
-                    bslib::card_body(
-                      shinycssloaders::withSpinner(
-                        plotOutput(outputId = ns("rpp_bar"), width = "100%", height = "600px"),
-                        type = 4, color = "#0dc5c1"
-                      )
-                    )
+                    actions = downloadButton(ns("download_rpp_table"), "CSV", class = "btn-sm btn-success"),
+                    uiOutput(ns("rpp_summary")),
+                    DT::DTOutput(ns("rpp_table"))
                   )
                 )
               )
@@ -373,9 +422,20 @@ mod_ds_marker_ass_bac_ui <- function(id) {
 mod_ds_marker_ass_bac_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    # # Dynamic ui based on choice of individual.
+
+    # MAP FILE GUIDE --------------------------------------------------------
+
+    # Set when the example turns on "Generate one", so the guide is skipped
+    skip_choice_modal <- FALSE
+
+    # Marker naming guide when they choose "Generate one"
     observe({
       if (input$choice == "no") {
+        # Don't show the naming guide when the example data switched this on
+        if (skip_choice_modal) {
+          skip_choice_modal <<- FALSE
+          return()
+        }
         showModal(
           modalDialog(
             title = div(
@@ -388,7 +448,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
                 class = "text-muted mb-4"
               ),
 
-              # Using a list with custom spacing
+              # Naming rules
               tags$ul(
                 class = "list-group list-group-flush mb-4",
                 tags$li(
@@ -413,7 +473,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
                 )
               ),
 
-              # Example to user, highlighted in a Card-style div
+              # Example names
               div(
                 class = "p-3 rounded-3 bg-light border",
                 style = "border-left: 5px solid #0d6efd !important;",
@@ -447,33 +507,80 @@ mod_ds_marker_ass_bac_server <- function(id) {
       removeModal()
     })
 
-    # Read and validate uploaded CSV file
-    validated_data <- eventReactive(input$data_id, {
-      req(input$data_id)
+    # DATA UPLOAD -----------------------------------------------------------
 
-      read_mapfile(filepath = input$data_id$datapath)
+    # Genotype file to read: the latest upload, or the bundled example
+    data_path <- reactiveVal(NULL)
+    example_active <- reactiveVal(FALSE)
+    example_name <- "agriplex_dat.csv"
+
+    # New upload
+    observeEvent(input$data_id, {
+      data_path(input$data_id$datapath)
+      example_active(FALSE)
     })
 
+    # Read the genotype file
+    validated_data <- reactive({
+      req(data_path())
+      read_mapfile(filepath = data_path())
+    })
 
-    # Get column names from the validated data
+    # EXAMPLE DATA ----------------------------------------------------------
+
+    # Vignette Agriplex example: stg5 NILs in Batch 3, BTx623 x BTx642,
+    # map file generated from the marker names
+    observeEvent(input$load_example, {
+      updateSelectInput(session, "data_type", selected = "Agriplex")
+      updateNumericInput(session, "marker_start", value = 7)
+      updateTextInput(session, "allele_sep", value = " / ")
+      if (!identical(input$choice, "no")) skip_choice_modal <<- TRUE
+      updateRadioButtons(session, "choice", selected = "no")
+      updateTextInput(session, "prefix_marker", value = "S")
+      updateTextInput(session, "sep_marker", value = "_")
+
+      data_path(example_file(example_name))
+      example_active(TRUE)
+    })
+
+    # Clear the example
+    observeEvent(input$clear_example, {
+      data_path(NULL)
+      example_active(FALSE)
+    })
+
+    # "Using example data" badge
+    output$example_badge <- renderUI({
+      req(example_active())
+      example_data_badge(
+        example_name,
+        clear_id = ns("clear_example"),
+        note = "Batch 3 (stg5 NILs) is selected with BTx623a and BTx642a as parents. Click Process Data to run."
+      )
+    })
+
+    # COLUMN DROPDOWNS AND PARENTS -------------------------------------------
+
+    # Column names of the genotype file
     data_colnames <- reactive({
       req(validated_data())
       colnames(validated_data())
     })
 
-
-    # Populate Batch and Genotype column selectors dynamically
+    # Fill the batch and genotype column dropdowns
     observe({
       req(data_colnames())
 
-      # Update batch column selector
+      # Batch column
       updateSelectizeInput(
         session,
         inputId = "cluster_by",
-        choices = c("None", data_colnames()), server = T
+        choices = c("None", data_colnames()),
+        selected = if (isTRUE(example_active())) "Batch" else NULL,
+        server = TRUE
       )
 
-      # Update genotype column selector
+      # Genotype (sample name) column
       updateSelectizeInput(
         session,
         inputId = "sample_id",
@@ -485,8 +592,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
       )
     })
 
-
-    # Populate recurrent/donor parent pickers with sample names, mapped to their row index
+    # Fill the parent pickers with sample names, mapped to their row index
     observe({
       req(sub_validated_data(), input$sample_id)
 
@@ -506,27 +612,30 @@ mod_ds_marker_ass_bac_server <- function(id) {
       )
     })
 
+    # BATCH FILTER ----------------------------------------------------------
 
-    # cluster logic
+    # Batch value picker, shown when a batch column is chosen
     output$cluster_focus_ui <- renderUI({
-      # Only show the second dropdown if a factor is selected
+      # Nothing to pick when no batch column is chosen
       req(input$cluster_by, validated_data())
       if (input$cluster_by == "None") {
         return(NULL)
       }
 
-      # Get the unique values
+      # Batch values
       choices_to_focus <- unique(validated_data()[[input$cluster_by]])
 
       selectInput(
         inputId = ns("cluster_focus"),
         label = paste("Select", input$cluster_by, "to focus on:"),
-        choices = choices_to_focus
+        choices = choices_to_focus,
+        selected = if (isTRUE(isolate(example_active())) && "3" %in% as.character(choices_to_focus)) "3" else NULL
       )
     })
+    # Render even while its accordion panel is collapsed
+    outputOptions(output, "cluster_focus_ui", suspendWhenHidden = FALSE)
 
-
-    # Update the validated data based on the cluster selected.
+    # Keep only the chosen batch
     sub_validated_data <- reactive({
       req(validated_data(), input$cluster_by)
 
@@ -538,18 +647,19 @@ mod_ds_marker_ass_bac_server <- function(id) {
       }
     })
 
+    # MAP FILE --------------------------------------------------------------
 
-    # Read map file if user has.
+    # Read map file if user has one
     map_file <- reactive({
       req(input$mapfile)
       read_mapfile(filepath = input$mapfile$datapath)
     })
 
-    # Populate field for snp id column based on mapfile
+    # Fill the SNP ID column dropdown from the map file
     observe({
       req(map_file())
-      updateSelectInput(session,
-        inputId = "snp_id",
+      updateSelectizeInput(session,
+        inputId = "snp_id", server = TRUE,
         choices = colnames(map_file()),
         selected = safe_grep_match(
           pattern = "id",
@@ -558,9 +668,9 @@ mod_ds_marker_ass_bac_server <- function(id) {
       )
     })
 
+    # PROCESS DATA ----------------------------------------------------------
 
-    # Validate required fields before processing, so a missing field shows a
-    # modal naming it instead of the "Process Data" button doing nothing.
+    # Check required fields first, so a missing one shows a modal naming it
     observeEvent(input$config, {
       if (!validate_required_inputs(list(
         "Uploaded Genotype Data (upload a file first)" = sub_validated_data(),
@@ -575,7 +685,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
       }
     })
 
-    # process data.
+    # Process data on Process Data
     Result <- eventReactive(input$config, {
       req(
         sub_validated_data(), input$marker_start, input$sample_id,
@@ -609,8 +719,8 @@ mod_ds_marker_ass_bac_server <- function(id) {
         )
       }, error = function(e) {
         shinyWidgets::show_alert(
-          title = "Error",
-          text = paste("An error occurred while processing the data:", e$message),
+          title = "Couldn't process the data",
+          text = paste0(e$message, " Check the data type, marker start column and parents in the sidebar."),
           type = "error"
         )
         return(NULL)
@@ -623,20 +733,20 @@ mod_ds_marker_ass_bac_server <- function(id) {
       result
     })
 
-    # Update user on next step
+    # Show the results and tell them what to do next
     observeEvent(Result(), {
       req(Result()) # Only proceed if Result is not NULL
 
-      # Transition to Main Analysis UI
+      # Swap placeholder for results
       shinyjs::hide("placeholder_ui")
       shinyjs::show("analysis_ui")
-      
-      # Automatically close sidebar to give main content more space
+
+      # Close the sidebar for more room
       bslib::toggle_sidebar(id = 'sidebar' , open = "closed")
-      
+
       shinyWidgets::show_alert(
-        title = "Data Processed Successfully!",
-        text = "Your genotype data is ready. You can now configure your RPP plot.",
+        title = "Data processed",
+        text = "Choose the map columns and threshold under RPP Settings, then click Generate Plot.",
         type = "success",
         btn_labels = "Got it!",
         closeOnClickOutside = FALSE,
@@ -644,12 +754,13 @@ mod_ds_marker_ass_bac_server <- function(id) {
       )
     })
 
+    # RPP SETTINGS ----------------------------------------------------------
 
-    # Observer for updating map-related inputs
+    # Fill the map column dropdowns
     observe({
       req(Result())
 
-      # Update SNP ID selection
+      # SNP ID
       updateSelectInput(session,
         inputId = "snp_ids",
         choices = colnames(Result()$mapfile),
@@ -659,7 +770,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
         )
       )
 
-      # Update Chromosome selection
+      # Chromosome
       updateSelectInput(session,
         inputId = "chr",
         choices = colnames(Result()$mapfile),
@@ -669,7 +780,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
         )
       )
 
-      # Update Position selection
+      # Position
       updateSelectInput(session,
         inputId = "chr_pos",
         choices = colnames(Result()$mapfile),
@@ -680,14 +791,16 @@ mod_ds_marker_ass_bac_server <- function(id) {
       )
     })
 
+    # RPP CALCULATION -------------------------------------------------------
 
+    # Run calc_rpp_bc()
     calc_rpp_bc_result <- reactive({
       req(
         Result(), input$chr_pos, input$chr, input$weight_rpp,
         input$snp_ids, sub_validated_data(), input$rp, input$sample_id
       )
 
-      # Get recurrent parent name using index index
+      # Recurrent parent name from its row index
       parent_name <- sub_validated_data()[as.numeric(input$rp), input$sample_id]
 
       # Ensure the extracted name is present in the result's rowname
@@ -705,7 +818,9 @@ mod_ds_marker_ass_bac_server <- function(id) {
       )
     })
 
-    # Update UI to enable plot generation
+    # RPP PLOT --------------------------------------------------------------
+
+    # Fill the RPP plot dropdowns
     observe({
       data <- calc_rpp_bc_result()
       req(data)
@@ -723,7 +838,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
       )
     })
 
-    # Switch tabs eagerly when button is clicked
+    # Go to the results tab on Generate Plot
     observeEvent(input$generate_rpp_plot, {
       if (!validate_required_inputs(list(
         "RPP Results (calculate RPP first)" = calc_rpp_bc_result(),
@@ -736,8 +851,11 @@ mod_ds_marker_ass_bac_server <- function(id) {
       bslib::nav_select("config_pages", "plot_tab")
     })
 
-    #  Generate the Barplot when user clicks the button
-    rpp_barplot_result <- eventReactive(input$generate_rpp_plot, {
+    # Bar plot, redrawn by Generate Plot or by Apply in Appearance.
+    # No ignoreInit: the first run happens after the first click, and
+    # ignoreInit would throw that click away
+    rpp_barplot_result <- eventReactive(list(input$generate_rpp_plot, input$redraw_rpp), {
+      req(input$generate_rpp_plot > 0)
       req(calc_rpp_bc_result(), input$rpp_col, input$rpp_sample_id, input$rpp_threshold_mode)
 
       tryCatch(
@@ -760,14 +878,13 @@ mod_ds_marker_ass_bac_server <- function(id) {
           )
         },
         error = function(e) {
-          showNotification(paste("Plot error:", e$message), type = "error")
+          showNotification(paste("Couldn't draw the RPP plot:", e$message), type = "error")
           return(NULL)
         }
       )
     })
 
-
-    # plot it.
+    # Show the plot
     output$rpp_bar <- renderPlot({
       tryCatch(
         {
@@ -776,22 +893,16 @@ mod_ds_marker_ass_bac_server <- function(id) {
 
           if (inherits(plot_obj, "ggplot")) {
             print(plot_obj)
-
-            shinyjs::delay(ms = 1500, {
-              shinyWidgets::show_toast(
-                title = "",
-                text = "Plot rendered successfully",
-                type = "success"
-              )
-            })
           } else {
             plot_obj
           }
         },
         error = function(e) {
+          # req() signals a silent error; let Shiny handle it instead of alerting
+          if (inherits(e, "shiny.silent.error")) stop(e)
           shinyWidgets::show_alert(
-            title = "Error",
-            text = paste("An error occurred while generating plot", e$message),
+            title = "Couldn't draw the plot",
+            text = e$message,
             type = "error"
           )
           return(NULL)
@@ -799,12 +910,95 @@ mod_ds_marker_ass_bac_server <- function(id) {
       )
     })
 
+    # PARENT REPLICATES -----------------------------------------------------
 
-    # Download rpp plot
+    # Any non-parent sample can be a replicate. Preselect names that differ
+    # from a parent only by a trailing letter (e.g. BTx623a / BTx623b)
+    observeEvent(Result(), {
+      parents <- c(Result()$rp_name, Result()$dp_name)
+      others <- setdiff(rownames(Result()$proc_kasp_f), parents)
+      lettered <- parents[grepl("[A-Za-z]$", parents)]
+      stem <- function(v) sub("[A-Za-z]$", "", v)
+      guess <- others[grepl("[A-Za-z]$", others) & stem(others) %in% stem(lettered)]
+      updateSelectizeInput(session, "rpp_replicates", choices = others, selected = guess)
+    })
+
+    # RPP TABLE -------------------------------------------------------------
+
+    # Threshold: typed in, or the expected RPP for the BC generation
+    rpp_threshold_value <- reactive({
+      if (identical(input$rpp_threshold_mode, "bc_gen")) {
+        req(input$bc_gen)
+        unname(calc_rpp_exp(bc_gen = input$bc_gen))
+      } else {
+        req(input$rpp_threshold)
+        input$rpp_threshold
+      }
+    })
+
+    # Every progeny with its RPP and whether it clears the threshold
+    rpp_table_data <- reactive({
+      df <- calc_rpp_bc_result()
+      req(df, input$rpp_col %in% colnames(df), input$rpp_sample_id %in% colnames(df))
+      parents <- c(Result()$rp_name, Result()$dp_name)
+      sid <- input$rpp_sample_id
+      df <- df[!df[[sid]] %in% parents, , drop = FALSE]
+      is_rep <- df[[sid]] %in% input$rpp_replicates
+      df$role <- ifelse(is_rep, "parent replicate", "progeny")
+      df$status <- ifelse(is_rep, "Control",
+                          ifelse(df[[input$rpp_col]] >= rpp_threshold_value(), "Above", "Below"))
+      # Progenies best first, parent replicates (controls) last
+      df <- df[order(is_rep, -df[[input$rpp_col]]), , drop = FALSE]
+      # Key columns first: sample, status, total RPP, then per-chromosome RPP
+      first <- c(sid, "status", input$rpp_col)
+      df[, c(first, setdiff(colnames(df), c(first, "role")), "role"), drop = FALSE]
+    })
+
+    # Summary line above the table
+    output$rpp_summary <- renderUI({
+      df <- rpp_table_data()
+      thr <- rpp_threshold_value()
+      prog <- df[df$role == "progeny", , drop = FALSE]
+      tags$p(
+        class = "small text-muted",
+        tags$b(sum(prog$status == "Above")), " of ", nrow(prog), " progenies reach the threshold of ",
+        tags$b(paste0(round(100 * thr, 2), "%")),
+        if (identical(input$rpp_threshold_mode, "bc_gen")) paste0(" (expected RPP for BC", input$bc_gen, ")"),
+        ". Values are the share of each chromosome, and of the whole genome, that matches the recurrent parent.",
+        if (any(df$role == "parent replicate")) " Parent replicates are listed last as controls and not counted."
+      )
+    })
+
+    # RPP table, coloured by status
+    output$rpp_table <- DT::renderDT({
+      df <- rpp_table_data()
+      shown <- df[, setdiff(colnames(df), "role"), drop = FALSE]
+      num_cols <- colnames(shown)[vapply(shown, is.numeric, logical(1))]
+      DT::datatable(shown, rownames = FALSE,
+                    options = list(pageLength = 15, scrollX = TRUE)) |>
+        DT::formatPercentage(num_cols, digits = 1) |>
+        DT::formatStyle(
+          "status",
+          color = DT::styleEqual(c("Above", "Below", "Control"), c("#1e7e34", "#c0392b", "#6c757d")),
+          fontWeight = "bold"
+        )
+    })
+
+    # DOWNLOADS -------------------------------------------------------------
+
+    # RPP table as csv
+    output$download_rpp_table <- downloadHandler(
+      filename = function() "rpp_table.csv",
+      content = function(file) {
+        utils::write.csv(rpp_table_data(), file, row.names = FALSE)
+      }
+    )
+
+    # RPP plot
     output$download_plot2 <- downloadHandler(
       filename = function() {
-        req(input$file_name2)
-        paste0(input$file_name2, ".pdf")
+        req(input$download_plot2_name)
+        paste0(input$download_plot2_name, ".pdf")
       },
       content = function(file) {
         req(rpp_barplot_result())
@@ -812,21 +1006,21 @@ mod_ds_marker_ass_bac_server <- function(id) {
         tryCatch(
           {
             grDevices::pdf(file,
-              width = input$width2,
-              height = input$height2,
+              width = input$download_plot2_width,
+              height = input$download_plot2_height,
               onefile = FALSE
             )
 
-            # Just print the single plot
+            # Single plot
             print(rpp_barplot_result())
 
             grDevices::dev.off()
           },
           error = function(e) {
             shinyWidgets::show_toast(
-              title = "Error",
+              title = "Download failed",
               type = "error",
-              text = paste("Download failed:", e$message),
+              text = e$message,
               timer = 5000
             )
           }

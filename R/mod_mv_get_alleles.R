@@ -12,52 +12,50 @@
 #'
 mod_mv_get_alleles_ui <- function(id) {
   ns <- NS(id)
-  tagList(
-    # Get alleles
-    sidebarLayout(
-      sidebarPanel(
-        selectInput(
-          inputId = ns("data_type_id"),
-          label = "Genotyping Platform",
-          choices = c("kasp", "agriplex"),
-          multiple = FALSE
-        ),
-        textInput(
-          inputId = ns("sep_id"),
-          label = "Genotype Separator",
-          value = ":"
-        )
+  ui_sidebar_layout(
+
+    # SIDEBAR ---------------------------------------------------------------
+
+    sidebar = tagList(
+      selectInput(
+        inputId = ns("plates_pres"),
+        label = "Plate",
+        choices = NULL,
+        multiple = FALSE
       ),
-      mainPanel(
-        # Allele output
-        bslib::accordion(
-         # width = "100%",
-          open = "Identified Alleles",
-          bslib::accordion_panel(
-            "Identified Alleles",
-            selectInput(ns("plates_pres"),
-              label = "Choose plate",
-              choices = NULL,
-              multiple = FALSE,
-              width = "40%"
-            ),
-            DT::DTOutput(ns("alleles_output"))
-          ), style = "margin-bottom: 15px;"
+      selectInput(
+        inputId = ns("data_type_id"),
+        label = "Genotyping Platform",
+        choices = c("kasp", "agriplex"),
+        multiple = FALSE
+      ),
+      textInput(
+        inputId = ns("sep_id"),
+        label = label_help(
+          "Genotype Separator",
+          "Character between the two alleles in a call, e.g. ':' in A:G."
         ),
-        # Genotype output
-        bslib::accordion(
-         # width = "100%",
-          open = "Genotype Classifications",
-          bslib::accordion_panel(
-            "Genotype Classifications",
-            DT::DTOutput(ns("genotypes_output"))
-          )
-        )
+        value = ":"
+      )
+    ),
+
+    # MAIN PANEL ------------------------------------------------------------
+
+    bslib::layout_columns(
+      col_widths = c(5, 7),
+      # Alleles table
+      div(
+        tags$p(class = "fw-semibold mb-2", "Identified alleles"),
+        DT::DTOutput(ns("alleles_output"))
+      ),
+      # Genotypes table
+      div(
+        tags$p(class = "fw-semibold mb-2", "Genotype classes"),
+        DT::DTOutput(ns("genotypes_output"))
       )
     )
   )
 }
-
 
 
 #' MV Get Alleles Server Functions
@@ -76,12 +74,15 @@ mod_mv_get_alleles_server <- function(id, kasp_data) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    # PLATE DROPDOWN --------------------------------------------------------
+
+    # Plates in the data
     distinct_plates <- reactive({
-      req(kasp_data)
-      uniq_plates(kasp_data)
+      req(kasp_data())
+      uniq_plates(kasp_data())
     })
 
-    # Update for get alleles entry for user.
+    # Fill the plate dropdown
     observe({
       req(distinct_plates())
       updateSelectInput(session,
@@ -90,13 +91,15 @@ mod_mv_get_alleles_server <- function(id, kasp_data) {
       )
     })
 
-    # Get genotype calls
+    # ALLELES ---------------------------------------------------------------
+
+    # Calls for the selected plate
     Get_calls <- reactive({
-      req(kasp_data, input$plates_pres)
-      get_calls(x = kasp_data, a = input$plates_pres)
+      req(kasp_data(), input$plates_pres)
+      get_calls(x = kasp_data(), a = input$plates_pres)
     })
 
-    # Get alleles
+    # Alleles and genotypes from the calls
     obtain_alleles <- reactive({
       req(Get_calls(), input$data_type_id, input$sep_id)
       get_alleles(
@@ -106,26 +109,27 @@ mod_mv_get_alleles_server <- function(id, kasp_data) {
       )
     })
 
-    # Display alleles from get_alleles()
-    observe({
+    # OUTPUTS ---------------------------------------------------------------
+
+    # Alleles table
+    output$alleles_output <- DT::renderDT({
+      validate(need(kasp_data(), msg_no_data))
       req(obtain_alleles())
+      alleles_df(x = obtain_alleles()$alleles)
+    })
 
-      output$alleles_output <- DT::renderDT({
-        req(obtain_alleles())
-        alleles_df(x = obtain_alleles()$alleles)
-      })
+    # Genotypes table
+    output$genotypes_output <- DT::renderDT({
+      validate(need(kasp_data(), "Nothing to show yet."))
+      req(obtain_alleles())
+      genotypes(obtain_alleles()$genotypes)
+    })
 
-
-      # Display genotypes from get_alleles()
-      output$genotypes_output <- DT::renderDT({
-        req(obtain_alleles())
-        genotypes(obtain_alleles()$genotypes)
-      })
-
-      # show toast
+    # Toast when a new plate is shown
+    observeEvent(obtain_alleles(), {
       shinyWidgets::show_toast(
         title = '',
-        text = paste("Showing Alleles for: ",input$plates_pres),
+        text = paste("Showing alleles for", input$plates_pres),
         type = "success",
         timer = 2000,
         position = "bottom-end", width = "30%"

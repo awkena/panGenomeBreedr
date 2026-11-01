@@ -166,16 +166,18 @@ If the package does not run as expected, check the following:
 
 - [Israel Tawiah Tetteh](https://github.com/Israel-Tetteh)
 
-- [Cruet Burgos](https://www.morrislab.org/people/clara-cruet-burgos)
+- [Clara Cruet
+  Burgos](https://www.morrislab.org/people/clara-cruet-burgos)
 
-- [Gaia Cortinovis](https://www.morrislab.org/people)
+- [Gaia
+  Cortinovis](https://scholar.google.com/citations?user=A0P8PugAAAAJ&hl=en)
 
 - [Fanna Maina](https://www.morrislab.org/people/fanna-maina)
 
-- [Linly Banda](https://www.biofortificationlab.org/people/linly-banda)
-
-- [Jacques
+- [Jacques Martin
   Faye](https://sites.google.com/site/morrislaboratory/people/jacques-faye)
+
+- [Linly Banda](https://www.biofortificationlab.org/people/linly-banda)
 
 - [Terry
   Felderhoff](https://www.agronomy.k-state.edu/about/people/faculty/felderhoff-terry/)
