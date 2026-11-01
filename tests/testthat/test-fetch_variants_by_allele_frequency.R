@@ -24,8 +24,15 @@ test_that("fetch_variants_by_allele_frequency() validates inputs", {
 
   # Connection is required for local mode (error comes from internal fetch_table_region call)
   expect_error(
-    fetch_variants_by_allele_frequency(con = NULL, chrom = "Chr05"),
+    fetch_variants_by_allele_frequency(con = NULL, chrom = "Chr05", start = 75104537, end = 75106403),
     "A valid 'con' object is required for 'local' mode. Please run connect_local_db() first.",
+    fixed = TRUE
+  )
+
+  # Coordinates are required (error comes from internal fetch_table_region call)
+  expect_error(
+    fetch_variants_by_allele_frequency(con = con_test, chrom = "Chr05"),
+    "'start' and 'end' are required when querying the 'genotypes' table.",
     fixed = TRUE
   )
 })
@@ -41,7 +48,13 @@ test_that("fetch_variants_by_allele_frequency() handles no results gracefully", 
 
   # Test a filter that returns no variants, expecting a warning
   expect_warning(
-    rare_vars <- fetch_variants_by_allele_frequency(con = con_test, min_af = 0.99, chrom = "Chr05"),
+    rare_vars <- fetch_variants_by_allele_frequency(
+      con = con_test,
+      min_af = 0.99,
+      chrom = "Chr05",
+      start = 75104537,
+      end = 75106403
+    ),
     "No variants passed the allele frequency filter. Check your min_af/max_af thresholds."
   )
   expect_s3_class(rare_vars, "data.frame")
