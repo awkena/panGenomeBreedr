@@ -172,8 +172,6 @@ If the package does not run as expected, check the following:
 - [Gaia
   Cortinovis](https://scholar.google.com/citations?user=A0P8PugAAAAJ&hl=en)
 
-- [Gaia Cortinovis](https://www.morrislab.org/people)
-
 - [Fanna Maina](https://www.morrislab.org/people/fanna-maina)
 
 - [Jacques Martin
