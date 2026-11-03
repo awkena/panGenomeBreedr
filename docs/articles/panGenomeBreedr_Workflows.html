@@ -3507,13 +3507,144 @@ the code snippet below:</p>
 <span><span class="va">kasp_dat</span> <span class="op">&lt;-</span> <span class="va">file1</span><span class="op">$</span><span class="va">Data</span></span></code></pre></div>
 </div>
 <div class="section level3">
+<h3 id="marker-call-rates">Marker call rates<a class="anchor" aria-label="anchor" href="#marker-call-rates"></a>
+</h3>
+<p>Before looking at cluster plots, it is useful to check how many wells
+were successfully genotyped by each marker. The
+<code><a href="../reference/kasp_call_rate.html">kasp_call_rate()</a></code> function computes the call rate of each
+marker overall and on each master plate. No Template Controls (NTC) are
+excluded from the denominator, and the overall call rate is reported
+with a 95% Wilson confidence interval. Wells that were not called are
+grouped by reason: no call (<code>?</code>), <code>Uncallable</code>, or
+any other label.</p>
+<p>The function returns a list with two summary tables
+(<code>marker_summary</code> and <code>plate_summary</code>) and three
+ggplot objects that can be accessed individually:</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
+<span><span class="va">call_rates</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kasp_call_rate.html">kasp_call_rate</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">kasp_dat</span>,</span>
+<span>                             snp_id <span class="op">=</span> <span class="st">'SNPID'</span>,</span>
+<span>                             plate_id <span class="op">=</span> <span class="st">'MasterPlate'</span>,</span>
+<span>                             geno_call <span class="op">=</span> <span class="st">'Call'</span>,</span>
+<span>                             blank <span class="op">=</span> <span class="st">'NTC'</span>,</span>
+<span>                             no_call <span class="op">=</span> <span class="st">'?'</span>,</span>
+<span>                             uncallable <span class="op">=</span> <span class="st">'Uncallable'</span>,</span>
+<span>                             threshold <span class="op">=</span> <span class="fl">0.95</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Overall call rate per marker</span></span>
+<span><span class="va">call_rates</span><span class="op">$</span><span class="va">marker_call_rate</span></span></code></pre></div>
+<div class="figure">
+<img src="figures/call_rate-1.png" class="r-plt" alt="Call rate of each KASP marker with its 95% confidence interval. Open circles show the call rate on each master plate." width="100%"><p class="caption">
+Call rate of each KASP marker with its 95% confidence interval. Open
+circles show the call rate on each master plate.
+</p>
+</div>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">call_rates</span><span class="op">$</span><span class="va">marker_summary</span>, digits <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>             caption <span class="op">=</span> <span class="st">'Call rate summary for each KASP marker.'</span><span class="op">)</span></span></code></pre></div>
+<table style="width:99%;" class="table">
+<caption>Call rate summary for each KASP marker.</caption>
+<colgroup>
+<col width="12%">
+<col width="8%">
+<col width="9%">
+<col width="12%">
+<col width="7%">
+<col width="9%">
+<col width="11%">
+<col width="10%">
+<col width="10%">
+<col width="7%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">SNPID</th>
+<th align="right">called</th>
+<th align="right">no_call</th>
+<th align="right">uncallable</th>
+<th align="right">other</th>
+<th align="right">n_wells</th>
+<th align="right">call_rate</th>
+<th align="right">ci_lower</th>
+<th align="right">ci_upper</th>
+<th align="left">pass</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">snpSB00800</td>
+<td align="right">54</td>
+<td align="right">118</td>
+<td align="right">16</td>
+<td align="right">0</td>
+<td align="right">188</td>
+<td align="right">0.287</td>
+<td align="right">0.227</td>
+<td align="right">0.356</td>
+<td align="left">FALSE</td>
+</tr>
+<tr class="even">
+<td align="left">snpSB00805</td>
+<td align="right">159</td>
+<td align="right">28</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">188</td>
+<td align="right">0.846</td>
+<td align="right">0.787</td>
+<td align="right">0.890</td>
+<td align="left">FALSE</td>
+</tr>
+<tr class="odd">
+<td align="left">snpSB00803</td>
+<td align="right">183</td>
+<td align="right">5</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">188</td>
+<td align="right">0.973</td>
+<td align="right">0.939</td>
+<td align="right">0.989</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">snpSB00804</td>
+<td align="right">184</td>
+<td align="right">4</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">188</td>
+<td align="right">0.979</td>
+<td align="right">0.947</td>
+<td align="right">0.992</td>
+<td align="left">TRUE</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">call_rates</span><span class="op">$</span><span class="va">no_call_reason</span></span></code></pre></div>
+<div class="figure">
+<img src="figures/no_call_reason-1.png" class="r-plt" alt="Reasons why wells were not called for each marker." width="100%"><p class="caption">
+Reasons why wells were not called for each marker.
+</p>
+</div>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">call_rates</span><span class="op">$</span><span class="va">plate_call_rate</span></span></code></pre></div>
+<div class="figure">
+<img src="figures/plate_call_rate-1.png" class="r-plt" alt="Call rate of each marker on each master plate." width="100%"><p class="caption">
+Call rate of each marker on each master plate.
+</p>
+</div>
+<p>Markers snpSB00803 and snpSB00804 pass the 95% threshold. snpSB00805
+falls below it on both plates, and snpSB00800 fails badly because most
+of its wells returned no call.</p>
+</div>
+<div class="section level3">
 <h3 id="assigning-colors-and-pch-symbols-for-kasp-cluster-plotting">Assigning colors and PCH symbols for KASP cluster plotting<a class="anchor" aria-label="anchor" href="#assigning-colors-and-pch-symbols-for-kasp-cluster-plotting"></a>
 </h3>
 <p>The next step after importing data is to assign FAM and HEX
 fluorescence colors to samples based on their observed genotype calls.
 This step is accomplished using the <code><a href="../reference/kasp_color.html">kasp_color()</a></code> function
 in <code>panGB</code> as shown in the code snippet below:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Assign KASP fluorescence colors using the kasp_color() function</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="co"># Create a subet variable called plates: masterplate x snpid</span></span>
@@ -3555,7 +3686,7 @@ discrimination), a cluster plot needs to be generated.</p>
 <code><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2()</a></code>functions in <code>panGB</code> can be
 used to make the cluster plots for each plate and KASP marker as shown
 below:</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># KASP QC plot for Plate 05</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>,</span>
@@ -3573,7 +3704,7 @@ Fig. 6. Cluster plot for Plate 5 using FAM and HEX colors for grouping
 observed genotypes.
 </p>
 </div>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># KASP QC plot for Plate 05</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span> <span class="fu"><a href="../reference/kasp_qc_ggplot2.html">kasp_qc_ggplot2</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>,</span>
@@ -3626,7 +3757,7 @@ above. If this information is not available, set the argument
 <p>The <code><a href="../reference/pred_summary.html">pred_summary()</a></code> function produces a summary of
 predicted genotypes for positive controls in each reaction plate after
 verification (Table 12), as shown in the code snippet below:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get prediction summary for all plates</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">my_sum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pred_summary.html">pred_summary</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dat1</span>,</span>
@@ -3798,7 +3929,7 @@ snpSB00805
 <p>The output of the <code><a href="../reference/pred_summary.html">pred_summary()</a></code> function can be
 visualized as bar plots using the <code><a href="../reference/pred_summary_plot.html">pred_summary_plot()</a></code>
 function as shown in the code snippet below:</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get prediction summary for snp:snpSB00804</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span><span class="va">my_sum</span> <span class="op">&lt;-</span> <span class="va">my_sum</span><span class="op">$</span><span class="va">summ</span></span>
@@ -3826,7 +3957,7 @@ Fig. 8. Match/Mismatch rate of predictions for snp: snpSB00804.
 <p>Users can visualize the observed genotype calls in a plate design
 format using the <code><a href="../reference/plot_plate.html">plot_plate()</a></code> function as depicted in
 Figure 9, using the code snippet below:</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_plate.html">plot_plate</a></span><span class="op">(</span><span class="va">dat1</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>, pdf <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $`SE-24-1088_P01_d1_snpSB00804`</span></span></code></pre></div>
 <div class="figure">
@@ -3875,7 +4006,7 @@ samples as rows. It comes with some meta data about the samples. Marker
 names are informative: chromosome number and position coordinates are
 embedded in the marker names
 (<code>Eg. S1_778962: chr = 1, pos = 779862</code>).</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Set path to the directory where your data is located</span></span>
 <span><span class="va">path1</span> <span class="op">&lt;-</span>  <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"agriplex_dat.csv"</span>,</span>
@@ -4141,7 +4272,7 @@ re-coding to numeric format is done as follows:</p>
 <li>Loci with at least one missing parental or any other genotype =
 -5.</li>
 </ul>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Parse snp ids to generate a map file</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
@@ -4291,7 +4422,7 @@ S1_1985365
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Process genotype data to re-order SNPs based on chromosome and positions</span></span>
 <span><span class="va">stg5</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/proc_kasp.html">proc_kasp</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">stg5</span>,</span>
 <span>                  kasp_map <span class="op">=</span> <span class="va">map_file</span>,</span>
@@ -4606,7 +4737,7 @@ Stg5-|-_3
 <p>All is now set to generate the heatmap (Figure 10) using the
 <code><a href="../reference/cross_qc_ggplot.html">cross_qc_ggplot()</a></code> function, as shown in the code snippet
 below:</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Get prediction summary for snp:snpSB00804</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
@@ -4648,7 +4779,7 @@ PDF file in a directory outside R.</p>
 effective, we can use the <code><a href="../reference/cross_qc_annotate.html">cross_qc_annotate()</a></code> function to
 generate a heatmap (Figure 11) with an annotation of the position of the
 <em>stg5</em> locus on Chr 1, as shown below:</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">###########################################################################</span></span>
 <span><span class="co"># Subset data for the first 30 markers on Chr 1</span></span>
@@ -4709,7 +4840,7 @@ defined RPP threshold on the bar plot.</p>
 <p>We can compute and visualize the observed RPP values for the
 <em>stg5</em> NILs across all polymorphic loci as shown in the code
 snippet below:</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Calculate weighted RPP</span></span>
 <span><span class="va">rpp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_rpp_bc.html">calc_rpp_bc</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">num_geno</span>,</span>
@@ -5259,7 +5390,7 @@ presence of favorable alleles by converting raw marker genotype data
 into a binary matrix (1 = favorable allele present, 0 = absent) based on
 a set of trait-predictive markers. The <code><a href="../reference/foreground_select.html">foreground_select()</a></code>
 function is shown in the code snippet below:</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Marker genotype data</span></span>
@@ -5437,7 +5568,7 @@ loci are involved in each combination.</p></li>
 <li><p><strong>Left bar plot:</strong> shows how many lines have the
 favorable allele for each individual target locus.</p></li>
 </ul>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Make an Upset plot and overlay with trait loci names</span></span>
 <span><span class="va">metadata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sets <span class="op">=</span> <span class="va">marker_info</span><span class="op">$</span><span class="va">qtl_markers</span>,</span>
 <span>                      locus <span class="op">=</span> <span class="va">marker_info</span><span class="op">$</span><span class="va">locus_name</span><span class="op">)</span></span>
@@ -5494,7 +5625,7 @@ desired allele presence/absence profile across loci. Using the binary
 matrix, users can extract line IDs corresponding to any intersection
 (i.e., specific combinations of favorable alleles revealed by the UpSet
 plot).</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://awkena.github.io/panGenomeBreedr/">panGenomeBreedr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Find lines with favorable alleles at all target loci</span></span>
@@ -5552,14 +5683,16 @@ installation?</p></li>
 Kena</a></p></li>
 <li><p><a href="https://github.com/Israel-Tetteh" class="external-link">Israel Tawiah
 Tetteh</a></p></li>
-<li><p><a href="https://www.morrislab.org/people/clara-cruet-burgos" class="external-link">Cruet
+<li><p><a href="https://www.morrislab.org/people/clara-cruet-burgos" class="external-link">Clara Cruet
 Burgos</a></p></li>
-<li><p><a href="https://www.biofortificationlab.org/people/linly-banda" class="external-link">Linly
-Banda</a></p></li>
-<li><p><a href="https://sites.google.com/site/morrislaboratory/people/jacques-faye" class="external-link">Jacques
-Faye</a></p></li>
+<li><p><a href="https://scholar.google.com/citations?user=A0P8PugAAAAJ&amp;hl=en" class="external-link">Gaia
+Cortinovis</a></p></li>
 <li><p><a href="https://www.morrislab.org/people/fanna-maina" class="external-link">Fanna
 Maina</a></p></li>
+<li><p><a href="https://sites.google.com/site/morrislaboratory/people/jacques-faye" class="external-link">Jacques
+Martin Faye</a></p></li>
+<li><p><a href="https://www.biofortificationlab.org/people/linly-banda" class="external-link">Linly
+Banda</a></p></li>
 <li><p><a href="https://www.agronomy.k-state.edu/about/people/faculty/felderhoff-terry/" class="external-link">Terry
 Felderhoff</a></p></li>
 <li><p><a href="https://www.morrislab.org/people/geoff-morris" class="external-link">Geoffrey
@@ -5585,7 +5718,7 @@ GPLv3</a></p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Alexander Wireko Kena, Israel Tawiah Tetteh, Clara Cruet Burgos, Geoffrey Preston Morris.</p>
+  <p>Developed by <a href="https://github.com/awkena" class="external-link">Alexander Wireko Kena</a>, <a href="https://github.com/Israel-Tetteh" class="external-link">Israel Tawiah Tetteh</a>, <a href="https://www.morrislab.org/people/clara-cruet-burgos" class="external-link">Clara Cruet Burgos</a>, <a href="https://www.morrislab.org/people/geoff-morris" class="external-link">Geoffrey Preston Morris</a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">

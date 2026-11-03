@@ -7,10 +7,38 @@ test_that("fetch_table_region() validates required arguments", {
   )
   # Connection is required for local mode
   expect_error(
-    fetch_table_region(con = NULL, table_name = "variants", chrom = "Chr05"),
+    fetch_table_region(
+      con = NULL,
+      table_name = "variants",
+      chrom = "Chr05",
+      start = 75104537,
+      end = 75106403
+    ),
     "A valid 'con' object is required for 'local' mode. Please run connect_local_db() first.",
     fixed = TRUE
   )
+})
+
+test_that("fetch_table_region() requires start and end for variants and genotypes", {
+  for (tbl in c("variants", "genotypes")) {
+    msg <- sprintf("'start' and 'end' are required when querying the '%s' table.", tbl)
+
+    expect_error(
+      fetch_table_region(con = con_test, table_name = tbl, chrom = "Chr05"),
+      msg,
+      fixed = TRUE
+    )
+    expect_error(
+      fetch_table_region(con = con_test, table_name = tbl, chrom = "Chr05", start = 75104537),
+      msg,
+      fixed = TRUE
+    )
+    expect_error(
+      fetch_table_region(con = con_test, table_name = tbl, chrom = "Chr05", end = 75106403),
+      msg,
+      fixed = TRUE
+    )
+  }
 })
 
 test_that("fetch_table_region() works for 'variants' table", {

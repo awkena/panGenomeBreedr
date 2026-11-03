@@ -129,55 +129,53 @@ app_server <- function(input, output, session) {
 
   ## ------------------------- Marker Validation Server side -------------------##
   # import_data_entities; returns kasp data after being read
-  import_data_entities <- mod_mv_read_kasp_csv_server("mv_read_kasp_csv_1")
+  import_data_entities <- mod_mv_read_kasp_csv_server(
+    "mv_read_kasp_csv_1",
+    demo = reactive(input$btn_try_demo)
+  )
 
-  # nsamples & alleles
-  observe({
-    req(import_data_entities())
-    mod_mv_nsamples_plate_server(
-      "mv_nsamples_plate_1",
-      kasp_data = import_data_entities()
-    )
-    mod_mv_get_alleles_server(
-      "mv_get_alleles_1",
-      kasp_data = import_data_entities()
-    )
+  # Home page demo: open the validation tab; the module loads the example data
+  observeEvent(input$btn_try_demo, {
+    bslib::nav_select(id = "nav_bar", selected = "kasp_validation")
+    bslib::nav_select(id = "marker_validation_tabs", selected = "upload_data")
   })
 
-  # Color coding server side
-  color_code_res <- reactiveVal(NULL) # Create a reactive null to hold result.
+  # Each module is started once and receives the uploaded data as a reactive,
+  # so a new upload updates the existing modules instead of starting new copies.
 
-  observe({
-    req(import_data_entities())
-    color_code_res(
-      mod_mv_kasp_color_server(
-        "mv_kasp_color_1",
-        kasp_data = import_data_entities()
-      )
-    )
-  })
+  # nsamples, alleles & call rates
+  mod_mv_nsamples_plate_server(
+    "mv_nsamples_plate_1",
+    kasp_data = import_data_entities
+  )
+  mod_mv_get_alleles_server(
+    "mv_get_alleles_1",
+    kasp_data = import_data_entities
+  )
+  mod_mv_call_rate_server(
+    "mv_call_rate_1",
+    kasp_data = import_data_entities
+  )
+
+  # Color coding server side; returns a reactive with the color-coded plates
+  color_code_res <- mod_mv_kasp_color_server(
+    "mv_kasp_color_1",
+    kasp_data = import_data_entities
+  )
 
   # Qc plot server portion
-  observe({
-    req(color_code_res(), import_data_entities())
-    # Server side for qcplot
-    mod_mv_kasp_qc_ggplot_server(
-      id = "mv_kasp_qc_ggplot_1",
-      kasp_data = import_data_entities(),
-      color_coded = color_code_res()
-    )
-  })
+  mod_mv_kasp_qc_ggplot_server(
+    id = "mv_kasp_qc_ggplot_1",
+    kasp_data = import_data_entities,
+    color_coded = color_code_res
+  )
 
   # Predictive summary and status server side
-  observe({
-    req(import_data_entities(), color_code_res())
-
-    mod_mv_pred_sum_stat_server(
-      "mv_pred_sum_stat_1",
-      color_code_res = color_code_res(),
-      kasp_data = import_data_entities()
-    )
-  })
+  mod_mv_pred_sum_stat_server(
+    "mv_pred_sum_stat_1",
+    color_code_res = color_code_res,
+    kasp_data = import_data_entities
+  )
 
   ## -------------------- Decision support, server-side ------------------------##
   mod_ds_trait_introg_hypothesis_test_server(

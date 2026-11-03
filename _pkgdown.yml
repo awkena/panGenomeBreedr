@@ -14,30 +14,27 @@ home:
   tagline: "Helpers for pangenome-enabled crop breeding"
   strip_header: false
 
+# Names, emails, roles and ORCIDs come from Authors@R in DESCRIPTION;
+# only the profile links are set here.
 authors:
-  - name: "Alexander Wireko Kena"
-    email: "alex.kena24@gmail.com"
-    orcid: "0000-0003-3385-4945"
-    role: [aut, cre]
-  - name: "Clara Cruet Burgos"
-    email: "clara.cruet_burgos@colostate.edu"
-    role: [aut]
-  - name: "Israel Tawiah Tetteh"
-    email: "israeltetteh715@gmail.com"
-    orcid: "0009-0003-3204-004X"
-    role: [aut]
-  - name: "Gaia Cortinovis"
-    email: "gaia.cortinovis@colostate.edu"
-    role: [ctb]   
-  - name: "Joseph Pascal Sene"
-    email: "joseph15.sene@gmail.com"
-    role: [ctb]
-  - name: "Fanna Maina"
-    email: "fannamainaassane@gmail.com"
-    role: [ctb]  
-  - name: "Geoffrey Preston Morris"
-    email: "geoff.morris@colostate.edu"
-    role: [ctb, fnd, rev]
+  Alexander Wireko Kena:
+    href: "https://github.com/awkena"
+  Israel Tawiah Tetteh:
+    href: "https://github.com/Israel-Tetteh"
+  Clara Cruet Burgos:
+    href: "https://www.morrislab.org/people/clara-cruet-burgos"
+  Gaia Cortinovis:
+    href: "https://scholar.google.com/citations?user=A0P8PugAAAAJ&hl=en"
+  Fanna Maina:
+    href: "https://www.morrislab.org/people/fanna-maina"
+  Jacques Martin Faye:
+    href: "https://sites.google.com/site/morrislaboratory/people/jacques-faye"
+  Linly Banda:
+    href: "https://www.biofortificationlab.org/people/linly-banda"
+  Terry Felderhoff:
+    href: "https://www.agronomy.k-state.edu/about/people/faculty/felderhoff-terry/"
+  Geoffrey Preston Morris:
+    href: "https://www.morrislab.org/people/geoff-morris"
 
 navbar:
   structure:
@@ -139,6 +136,7 @@ reference:
       - kasp_qc_ggplot2
       - plot_plate
       - nsamples_plate
+      - kasp_call_rate
       - kasp_reshape_wide
       - proc_kasp
       - geno_error
@@ -157,6 +155,7 @@ reference:
       - cross_qc_annotate
       - cross_qc_heatmap
       - cross_qc_heatmap2
+      - introgression_check
       - sim_snp_dat
       - order_markers
       - hapmap_ns_fmt

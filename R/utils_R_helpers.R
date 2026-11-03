@@ -1,8 +1,9 @@
-#' Helper functions for panGenomeBreedr application
-#'
-#' This file contains various helper functions used throughout the application.
-#' Functions are organized by their purpose and usage context.
-#' None of these functions are exported as they're meant for internal use only.
+# Internal R helper functions for the panGenomeBreedr application
+#
+# Plain R helpers (data reading, parsing, QC summaries, plotting) used by the
+# Shiny modules. None of them depend on a Shiny session; helpers that build UI
+# or drive the app live in utils_shiny.R. None of these functions are exported.
+
 #' Extract marker IDs and chromosome IDs from VCF file
 #'
 #' This function reads a VCF file and extracts all unique marker IDs and chromosome IDs.
@@ -84,76 +85,6 @@ uniq_plates <- function(x) {
   return(uniq_plate) # return unique plate as a vector.
 }
 
-#' Generate a kasp marker map.
-#'
-#' This function parses SNPID strings and extracts chromosome and position details
-#' and creates a mapping data frame
-#' @param kasp_data a data frame of KASP genotype calls for one or mulitiple plates
-#'
-#' @returns a data frame for kasp marker map
-#'
-#' @noRd
-#'
-kasp_marker_map <- function(kasp_data) {
-  # Validate input
-  if (is.data.frame(kasp_data) != TRUE) {
-    stop("Kasp_data must be a data frame")
-  }
-
-  # Confirm required column
-  if (!("SNPID" %in% colnames(kasp_data))) {
-    stop("Kasp_data must have column: SNPID")
-  }
-
-  # Index required column(SNPID)
-  SNP_ids <- kasp_data[["SNPID"]] |> unique()
-
-  # Get length of SNP_ids
-  SNP_ids_length <- length(SNP_ids)
-
-  # Initialize result dataframe
-  kasp_map <- data.frame(
-    SNPID = character(SNP_ids_length),
-    SNP_ID2 = character(SNP_ids_length),
-    chr = numeric(SNP_ids_length),
-    pos = integer(SNP_ids_length),
-    stringsAsFactors = FALSE
-  )
-
-  # for loop to generate and insert
-  for (i in seq_len(SNP_ids_length)) {
-    current_snp_id <- SNP_ids[i]
-    kasp_map[i, "SNPID"] <- current_snp_id
-
-    # Assumes format like "Chr01_100"
-    parts <- strsplit(current_snp_id, "_")[[1]]
-    if (length(parts) == 2) {
-      chr_part <- parts[1]
-      pos_part <- parts[2]
-
-      # Parse chromosome part like "Chr01" into "Chr" and "01"
-      chr_matches <- regexec("([a-zA-Z]+)(\\d+)", chr_part)
-      chr_components <- regmatches(chr_part, chr_matches)[[1]]
-
-      if (length(chr_components) == 3) {
-        kasp_map[i, "SNP_ID2"] <- paste(chr_components[2], chr_components[3], sep = "|")
-        kasp_map[i, "chr"] <- as.numeric(chr_components[3])
-      } else {
-        kasp_map[i, "SNP_ID2"] <- chr_part
-        kasp_map[i, "chr"] <- NA
-      }
-      kasp_map[i, "pos"] <- as.integer(pos_part)
-    } else {
-      kasp_map[i, "pos"] <- NA
-      kasp_map[i, "chr"] <- NA
-    }
-  }
-
-  return(kasp_map)
-}
-
-
-
 
 #' Extract genotype calls
 #'
@@ -184,27 +115,6 @@ get_calls <- function(x, a) {
 
   return(x_filtered[["Call"]]) # Returns call column as a vector
 }
-
-#' Get colnames from KASP data
-#'
-#' @param x a data frame of KASP genotype calls for one or multiple plates
-#'
-#' @returns a character vector
-#' @noRd
-col_names.data <- function(x) {
-  # Validate input
-  if (!is.data.frame(x) && !is.matrix(x)) {
-    stop("Input must be a data frame or matrix")
-  }
-
-  if (is.null(x) || nrow(x) == 0) {
-    return(character(0)) # Return an empty character vector
-  }
-
-  return(colnames(x))
-}
-
-
 
 
 #' Convert genotype list to data frame
@@ -329,111 +239,6 @@ kasp_color_stat.give <- function(x,
     }
   }
   return(dyn_df)
-}
-
-
-#' Update column names in sample data frame
-#'
-#' This function dynamically renames columns in a sample data frame to match
-#' specified identifiers for MasterPlate, SNP ID, and plate information.
-#'
-#' @param MasterPlate New name for the master plate column
-#' @param SNIPID New name for the SNP ID column
-#' @param PLATE New name for the plate column
-#' @param data_nsamples Data frame containing sample information to be renamed
-#' @return Data frame with updated column names
-#'
-#' @noRd
-new_colnames_nsamples <- function(MasterPlate,
-                                  SNIPID,
-                                  PLATE,
-                                  data_nsamples) {
-  # Validate input
-  if (!is.data.frame(data_nsamples)) {
-    stop("Input must be a data frame")
-  }
-
-  if (ncol(data_nsamples) < 4) {
-    stop("Input data frame must have at least 4 columns")
-  }
-
-  result <- as.data.frame(data_nsamples) # convert to dataframe
-
-  # Update column names, preserving the 4th column name
-  original_names <- colnames(result)
-  new_names <- c(MasterPlate, SNIPID, PLATE, original_names[4:length(original_names)])
-  colnames(result) <- new_names
-
-  return(result)
-}
-
-
-#' Split user defined height and weight
-#'
-#' Converts a comma-separated string into a numeric vector of height and width values.
-#' The input string should contain exactly two numeric values separated by a comma.
-#'
-#' @param string A character string of length 1 containing two comma-separated numeric values
-#'
-#' @return A numeric vector of length 2, where the first element is height and the second is width
-#'
-#' @noRd
-height_width <- function(string) {
-  # Check if input is a character and length 1
-  if (!is.character(string) || length(string) != 1) {
-    stop("Input must be a single character string")
-  }
-
-  # Split the string by comma
-  splitted <- strsplit(string, split = ",")[[1]]
-
-  # Check if exactly two values were provided
-  if (length(splitted) < 2) {
-    stop("Input must contain exactly two values separated by a comma")
-  }
-
-  # Convert to numeric and handle potential NA values
-  h_w_vector <- as.numeric(splitted)[1:2]
-
-  if (any(is.na(h_w_vector))) {
-    stop("Both values must be convertible to numbers")
-  }
-
-  return(h_w_vector)
-}
-
-
-
-
-
-################### Writing a bulk function to carry out decision support.
-#' Extract genotype names for user selection
-#'
-#' This function extracts genotype names from a specific batch in the dataset
-#' to provide options for user selection of recurrent parent (rp) and donor
-#' parent (dp) in downstream analysis.
-#'
-#' @param data Character. Path to the CSV file containing the genotype data.
-#' @param Batch Numeric. The batch number from which to extract genotype names.
-#'
-#' @return Character vector. A vector containing the genotype names/IDs from
-#'   the specified batch, suitable for use in dropdown menus or selection lists.
-#'
-#' @details The function performs the following operations:
-#'   1. Reads the CSV file and converts to data frame
-#'   2. Examines the first 100 columns to identify the start of genotype data
-#'   3. Automatically detects "batch" and "genotype" columns (case-insensitive)
-#'   4. Filters data to the specified batch
-#'   5. Extracts and returns genotype names for that batch
-#'
-#'
-#' @noRd
-#'
-Genotypes_user <- function(data, sample_id = 'Genotype') {
-  # Select column for genotypes
-  just_geno <- data[[sample_id]]
-
-  return(just_geno) # return genotypes of selected batch.
 }
 
 
@@ -608,7 +413,6 @@ proc_nd_map_func <- function(data = NULL,
   }
 
 
-
   # If user prompts for mapfile to be generated automatically
   if (feedback == "no") {
     # Get snp id
@@ -694,33 +498,6 @@ proc_nd_map_func <- function(data = NULL,
 }
 
 
-#' Convert SNP positions to genomic windows
-#'
-#' @param pos_list A named list where each element is a numeric vector with 'chr' and 'pos'.
-#' @return A list with 'chr', 'start', and 'end' for each trait.
-#' @noRd
-#'
-get_trait_windows <- function(pos_list) {
-
-  # Use lapply to iterate through each trait in your list
-  lapply(pos_list, function(x) {
-
-    # Extract original values
-    chr <- unname(x["chr"])
-    pos <- unname(x["pos"])
-
-    # Add 50kb upstream and 500kb downstream of the defined position
-    start <- pos - 1e6
-    end   <- pos + 1.5e6
-
-    # Return the new structure
-    c(chr = chr, start = start, end = end)
-  })
-}
-
-
-
-
 #' Check and standardize separator format
 #'
 #' This function validates and standardizes separator characters used in genotype
@@ -771,177 +548,6 @@ check_sep <- function(sep) {
 }
 
 
-
-
-#' Generate named list from vector
-#'
-#' Creates a named list where the names are derived from the input vector.
-#' Each element in the resulting list is initialized as NULL and named
-#' according to the corresponding element in the input vector.
-#'
-#' @param x A character vector or any vector that can be coerced to character.
-#'   The elements will be used as names for the resulting list. Must not be
-#'   NULL, empty, or contain NA values.
-#'
-#' @return A named list of the same length as the input vector, with each
-#'   element initialized as NULL and named according to the input vector.
-#'
-#' @examples
-#' # Basic usage with character vector
-#' generate_named_list(c("apple", "banana", "cherry"))
-#' # $apple
-#' # NULL
-#' # $banana
-#' # NULL
-#' # $cherry
-#' # NULL
-#'
-#' @noRd
-
-generate_named_list <- function(x) {
-  # Input validation
-  if (is.null(x)) {
-    stop("Argument 'x' must not be NULL", call. = FALSE)
-  }
-
-  if (length(x) == 0) {
-    stop("Argument 'x' must not be empty", call. = FALSE)
-  }
-
-  if (any(is.na(x))) {
-    stop("Argument 'x' must not contain NA values", call. = FALSE)
-  }
-
-  # Convert to character
-  x_char <- as.character(x)
-
-  # Check for empty strings
-  if (any(x_char == "")) {
-    stop("Argument 'x' must not contain empty strings", call. = FALSE)
-  }
-
-  # Create named list more efficiently
-  result <- vector(mode = "list", length = length(x_char))
-  names(result) <- x_char
-
-  return(result)
-}
-
-
-#' Title
-#'
-#' @param list_loc  a list containing the start, end , chromosome and locus name
-#' @param map_doc  a mapfile of the genotype calls
-#' @param genofile a genotype file containing the genotype calls
-#'
-#' @returns a list of the subsetted individual map file and
-#'
-#' @noRd
-#'
-combi_func <- function(list_loc,
-                       map_doc,
-                       genofile) {
-  starts <- sapply(list_loc, function(x) x["start"]) # get all starts entered
-  ends <- sapply(list_loc, function(x) x["end"]) # get all ends
-  chr <- sapply(list_loc, function(x) x["chr"]) # get chromosome
-
-  # Convert mapfile columns to lower text is they haven't
-  # colnames(map_doc) <- tolower(colnames(map_doc))
-
-  # Chromosomes must be the same
-  if (length(unique(chr)) != 1) {
-    # Throw an error
-    stop("Chromosome of focus must be the same") # one chromosome at a time
-  } else {
-    chr_markers <- map_doc[map_doc["chr"] == unique(chr), ] # map file only selected chr
-  }
-
-  starts_min <- min(starts) # find the mini of the subsetted
-  ends_max <- max(ends) # find max of selected
-
-  # Must be within range.
-  map_range <- range(chr_markers[["pos"]])
-
-  user_def_reg <- c(starts_min, ends_max) # user defined start and end
-
-  # Show range and then if user enters beyond the range, flage error.
-  flag_err <- all(map_range[2] > user_def_reg)
-  if (isFALSE(flag_err)) {
-    stop(sprintf("Start and End positions must be within the range %d - %d", map_range[1], map_range[2]))
-  }
-
-  # subset actual postions from markers and determine the length
-  actual_range <- chr_markers[["pos"]][chr_markers[["pos"]] >= starts_min & chr_markers[["pos"]] <= ends_max]
-
-  less_min <- chr_markers[["pos"]][chr_markers[["pos"]] < starts_min]
-
-  greater_max <- chr_markers[["pos"]][chr_markers[["pos"]] > ends_max]
-
-  if (length(actual_range) < 20) {
-    len_actual <- 20 - length(actual_range) # get excess
-
-    bulk_up <- c(less_min, greater_max)[1:len_actual] # merge max and min
-
-    set_pos <- sort(c(actual_range, bulk_up))
-  } else if (length(actual_range) >= 20) {
-    set_pos <- actual_range[seq_len(20)]
-  }
-
-  # Get marker ID for selected range
-  markers_in_region <- chr_markers[chr_markers[["pos"]] %in% set_pos, ][["snpid"]]
-
-  # Get the subset data - use the same data for both x and the chr_a calculation
-  chr_a <- genofile[, colnames(genofile) %in% markers_in_region]
-
-  chr_map <- parse_marker_ns(colnames(chr_a))
-
-  return(list(chr_a = chr_a, chr_map = chr_map)) # return map and chromosome
-}
-
-
-
-# Get data colnames.
-#' Extract colnames of Agriplex file.
-#'
-#' @param data  a dataframe containing genotype calls
-#'
-#' @returns a vector of column names from the data uploaded
-#' @noRd
-#'
-Get_dt_coln <- function(data) {
-  read_data <- data |> as.data.frame()
-  # Get first 100 columns for possible extraction.
-  first_hun_col <- read_data[1, 1:100]
-
-  store_position <- which(first_hun_col %in% c("A", "G", "C", "T", NA))[1]
-
-  data_colnames <- colnames(first_hun_col)[seq_len(store_position - 1)]
-
-  # Return
-  data_colnames
-}
-
-
-#' Extract colnames of Agriplex file.
-#'
-#' @param data  a dataframe containing genotype calls
-#' @param mapfile Mapfile for genotype calls
-#' @param chr chromosome number of interest.
-#'
-#' @returns a vector of column names from the data uploaded
-#' @noRd
-# Function for window size manipulation.
-window_size_func <- function(data, mapfile, chr) {
-  # Validate if colnames of mapfile contains snpid
-  snpid <- grep(x = colnames(mapfile), pattern = "id", ignore.case = TRUE, value = TRUE)
-
-  just_1 <- data[, mapfile[mapfile["chr"] == chr, ][[snpid]]]
-
-  return(just_1) # return
-}
-
-
-
 #' Check and categorize genetic numeric codes
 #'
 #' This function checks genetic numeric codes present in the recoded data and categorizes
@@ -986,12 +592,6 @@ color_code_checker <- function(data , par_1 , par_2){
 }
 
 
-
-
-
-
-
-
 #' Read VCF file and return as data frame
 #'
 #' This function reads a Variant Call Format (VCF) file and converts it into
@@ -1019,8 +619,6 @@ read_vcf_as_df <- function(vcf_file) {
   )
   return(vcf_df)
 }
-
-
 
 
 #' Safe pattern matching in character vector
@@ -1114,36 +712,6 @@ run_upset_plot <- function(foreground_matrix,
 }
 
 
-
-
-
-#' Compute summary result from par missing function.
-#'
-#' @param df a dataframe from parent missing for summary
-#'
-#' @returns a data frame of summarised snps
-#' @noRd
-par_missing_dat <- function(df){
-  #Count of missing genotype calls per SNP locus (column)
-  missing_per_locus <- colSums(is.na(df))
-
-  # Count of missing genotype calls per sample (row)
-  missing_per_sample <- rowSums(is.na(df))
-
-  # Print missing calls per sample separately for reference
-  missing_samples_df <- data.frame(
-    Sample = rownames(df),
-    Missing_Calls = missing_per_sample,
-    Total_SNPs = colnames(df) |> length() ,
-    row.names = NULL
-  )
-
-  return(missing_samples_df)
-}
-
-
-
-
 #' A padded dataframe for organizing found lines.
 #'
 #' This utility function takes vectors of varying lengths (SNPs present, SNPs absent, and sample names)
@@ -1184,247 +752,5 @@ create_padded_df <- function(snps_present, snps_absent, sample_name) {
     sample_name  = pad_vector(sample_name, actual_max_len),
     stringsAsFactors = FALSE
   )
-}
-
-
-
-
-#' Generate a trait input row for genomic coordinates
-#'
-#' This helper function creates a stylized UI row containing inputs for
-#' a trait name, chromosome number, and physical position. It is used
-#' within the coordinate definition wizard to allow dynamic addition of multiple loci.
-#'
-#' @param id A unique integer or character string to suffix the input IDs,
-#' ensuring namespace consistency.
-#'
-#' @return A \code{shiny::tag.list} (div) containing a \code{fluidRow} with
-#' \code{textInput} and \code{numericInput} elements.
-#'
-#' @note The 'Remove' button is programmatically excluded for the first input
-#' row (\code{id = 1}) to ensure at least one locus remains defined.
-#'
-#' @importFrom shiny div fluidRow column textInput numericInput actionButton
-#' @noRd
-makeTraitInput <- function(id, ns) {
-  div(
-    id = ns(paste0("trait_", id)),
-    style = "border: 1px solid #dee2e6; padding: 15px; margin-bottom: 15px; border-radius: 8px; background-color: #f8f9fa; position: relative;",
-
-    fluidRow(
-      # Basic Info
-      column(3, textInput(ns(paste0("name_", id)), "Trait/QTL Name:", value = paste0("QTL_", id))),
-      column(2, numericInput(ns(paste0("chr_", id)), "Chr:", value = 1, min = 1)),
-
-      # Configuration Checkboxes
-      column(7,
-             checkboxGroupInput(
-               inputId = ns(paste0("type_", id)),
-               label = "Annotation Components (Select at least one):",
-               choices = c("Point Position" = "pos", "Genomic Range" = "range"),
-               selected = "range",
-               inline = TRUE
-             )
-      )
-    ),
-
-    fluidRow(
-      # Conditional Point Input
-      conditionalPanel(
-        condition = paste0("input['", ns(paste0("type_", id)), "'].includes('pos')"),
-        column(4, numericInput(ns(paste0("pos_", id)), "Exact Position (bp):", value = 1200000))
-      ),
-
-      # Conditional Range Inputs
-      conditionalPanel(
-        condition = paste0("input['", ns(paste0("type_", id)), "'].includes('range')"),
-        column(4, numericInput(ns(paste0("start_", id)), "Start (bp):", value = 1000000)),
-        column(4, numericInput(ns(paste0("end_", id)), "End (bp):", value = 1400000))
-      )
-    ),
-
-    # Remove button: only for traits after the first one
-    if (id > 1) {
-      div(style = "position: absolute; top: 10px; right: 10px;",
-          actionButton(ns(paste0("remove_", id)), "", icon = icon("trash"),
-                       class = "btn-outline-danger btn-sm", title = "Remove Trait"))
-    }
-  )
-}
-
-
-
-#' Render a ghost plate error plot
-#'
-#' @description This function generates a stylized ggplot2 plot that visually
-#' represents a plate layout error. It displays a "ghost" plate background 
-#' with an overlayed error message.
-#'
-#' @param error_msg A character string containing the specific error message to display.
-#' @param text_size A numeric value controlling the size of the text elements in the plot.
-#' @return A ggplot2 object representing the error plot.
-#' @noRd
-render_ghost_plate_error <- function(error_msg, text_size = 12) {
-  
-  # Data setup
-  ghost_data <- expand.grid(
-    row = factor(rev(LETTERS[1:8])), 
-    col = factor(sprintf("%02d", 1:12))
-  )
-
-  # Color Palette
-  well_grey   <- "#F1F2F6"
-  stroke_grey <- "#CED4DA"
-  grid_grey   <- "#E9ECEF"
-  text_dark   <- "#2D3436"
-  error_red   <- "#D63031"
-
-  ggplot2::ggplot(ghost_data, ggplot2::aes(x = col, y = row)) +
-    # Draw the empty grid
-    ggplot2::geom_tile(fill = "white", color = grid_grey, linewidth = 0.5) +
-    
-    # Draw the empty wells
-    ggplot2::geom_point(
-      size = text_size,
-      shape = 21,
-      fill = well_grey,
-      color = stroke_grey,
-      stroke = 1,
-      alpha = 0.8
-    ) +
-    
-    # Semi-transparent overlay to "de-emphasize" the background
-    ggplot2::annotate(
-      "rect",
-      xmin = -Inf, xmax = Inf,
-      ymin = -Inf, ymax = Inf,
-      fill = "white",
-      alpha = 0.3
-    ) +
-    
-    # Labels and Theme setup
-    ggplot2::scale_x_discrete(position = "top") +
-    ggplot2::labs(title = "PLATE LAYOUT ERROR") +
-    ggplot2::theme_classic() +
-    ggplot2::theme(
-      axis.line = ggplot2::element_blank(),
-      axis.title = ggplot2::element_blank(),
-      axis.ticks = ggplot2::element_blank(),
-      plot.title = ggplot2::element_text(
-        hjust = 0.5,
-        face = "bold",
-        size = text_size,
-        color = error_red
-      ),
-      axis.text = ggplot2::element_text(
-        size = text_size,
-        face = "bold",
-        color = "#B2BEC3"
-      )
-    ) +
-    
-    # Central Error Message Label
-    ggplot2::annotate(
-      "label",
-      x = 6.5,
-      y = 4.5,
-      label = paste0("VALIDATION FAILED:\n", error_msg),
-      fill = "white",
-      color = text_dark,
-      size = text_size * 0.35,
-      fontface = "bold",
-      label.padding = ggplot2::unit(1, "lines")
-    )
-}
-
-
-
-
-
-#' Render a reactable table with custom theming
-#'
-#' @description This helper function generates a `reactable` table with a default
-#'   theme and common display options. It allows for easy and consistent styling
-#'   of interactive tables throughout the application.
-#'
-#' @param data A data frame or tibble to be displayed in the reactable table.
-#' @param theme An optional `reactableTheme` object to override the default theme.
-#'   If `NULL`, a predefined default theme is used.
-#'
-#' @return A `reactable` HTML widget displaying the provided data.
-#'
-#' @noRd
- # Reactable Helper
-    render_reactable <- function(data, theme = NULL) {
-     # Add validation check for the data input
-      if (is.null(data) || (!is.data.frame(data) && !is.matrix(data))) {
-        return(NULL) # Return NULL to avoid error 
-      }
-      if (is.null(theme)) {
-        theme <- reactable::reactableTheme(
-          backgroundColor = "hsl(0, 0%, 100%)",
-          borderColor = "hsl(0, 0%, 89%)",
-          stripedColor = "hsl(0, 0%, 97%)",
-          highlightColor = "hsl(0, 0%, 96%)",
-          cellPadding = "8px 12px",
-          searchInputStyle = list(width = "100%", padding = "8px 12px"),
-          headerStyle = list(borderWidth = "1px", padding = "8px 12px")
-        )
-      }
-      reactable::reactable(
-        data,
-        defaultColDef = reactable::colDef(
-          headerClass = "header",
-          align = "center",
-          minWidth = 100,
-          width = 250
-        ),
-        pagination = TRUE,
-        showPageSizeOptions = TRUE,
-        pageSizeOptions = c(10, 25, 50, 100),
-        striped = TRUE,
-        highlight = TRUE,
-        bordered = TRUE,
-        compact = TRUE,
-        wrap = TRUE,
-        theme = theme,
-        style = list(maxWidth = "100%")
-      )
-    }
-
-
-
-
-
-
-#' Update sidebar navigation buttons
-#'
-#' This function dynamically updates the CSS classes of sidebar navigation buttons
-#' to visually indicate the active tab. It uses `shinyjs` to toggle Bootstrap 5
-#' button classes between outlined and filled states.
-#'
-#' @param active_id Character string containing the input ID of the currently active button.
-#'
-#' @return No return value. Called for its side effects on the UI.
-#'
-#' @noRd
-update_sidebar_buttons <- function(active_id) {
-  # Updated to match the exact IDs in active_dashboard_view
-  buttons <- c(
-    "get_db_info",
-    "identify_variants_btn",
-    "design_kasp_sidebar_btn",
-    "pcil_selection_btn"
-  )
-
-  for (btn_id in buttons) {
-    if (btn_id == active_id) {
-      shinyjs::removeClass(btn_id, "btn-outline-primary")
-      shinyjs::addClass(btn_id, "btn-primary")
-    } else {
-      shinyjs::removeClass(btn_id, "btn-primary")
-      shinyjs::addClass(btn_id, "btn-outline-primary")
-    }
-  }
 }
 

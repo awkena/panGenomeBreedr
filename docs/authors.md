@@ -2,24 +2,38 @@
 
 ## Authors
 
-- **Alexander Wireko Kena**. Author, maintainer.
-  [](https://orcid.org/0000-0003-3385-4945)
+- **[Alexander Wireko Kena](https://github.com/awkena)**. Author,
+  maintainer. [](https://orcid.org/0000-0003-3385-4945)
 
-- **Israel Tawiah Tetteh**. Author.
+- **[Israel Tawiah Tetteh](https://github.com/Israel-Tetteh)**. Author.
+  [](https://orcid.org/0009-0003-3204-004X)
 
-- **Clara Cruet Burgos**. Author.
+- **[Clara Cruet
+  Burgos](https://www.morrislab.org/people/clara-cruet-burgos)**.
+  Author.
 
-- **Fanna Maina**. Contributor, reviewer.
+- **[Gaia
+  Cortinovis](https://scholar.google.com/citations?user=A0P8PugAAAAJ&hl=en)**.
+  Contributor, reviewer.
 
-- **Jacques Martin Faye**. Contributor, reviewer.
+- **[Fanna Maina](https://www.morrislab.org/people/fanna-maina)**.
+  Contributor, reviewer.
 
-- **Benjamin Annor**. Contributor, reviewer.
+- **[Jacques Martin
+  Faye](https://sites.google.com/site/morrislaboratory/people/jacques-faye)**.
+  Contributor, reviewer.
 
-- **Linly Banda**. Contributor, reviewer.
+- **[Linly
+  Banda](https://www.biofortificationlab.org/people/linly-banda)**.
+  Contributor, reviewer.
 
-- **Terry Felderhoff**. Contributor.
+- **[Terry
+  Felderhoff](https://www.agronomy.k-state.edu/about/people/faculty/felderhoff-terry/)**.
+  Contributor.
 
-- **Geoffrey Preston Morris**. Contributor, funder, reviewer.
+- **[Geoffrey Preston
+  Morris](https://www.morrislab.org/people/geoff-morris)**. Contributor,
+  funder, reviewer.
 
 ## Citation
 

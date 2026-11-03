@@ -2191,3 +2191,319 @@ gg_dat <- function(num_mat,
   return(df)
 
 }
+
+
+#' Compute and plot KASP marker call rates
+#'
+#' @description
+#' Summarizes how many wells were successfully genotyped (called) for each KASP
+#' marker, overall and on each master plate, and explains why the remaining
+#' wells were not called. No Template Controls (NTC) are excluded from the
+#' denominator. Overall call rates are reported with a Wilson score confidence
+#' interval.
+#'
+#' A well is classified as:
+#' \itemize{
+#'   \item \strong{Called}: the genotype call contains \code{sep} (e.g. \code{A:G}).
+#'   \item \strong{No call}: the genotype call matches \code{no_call} (e.g. \code{?}) or is missing.
+#'   \item \strong{Uncallable}: the genotype call matches \code{uncallable}.
+#'   \item \strong{Other}: any other non-NTC value (e.g. \code{Bad}, \code{Missing}, \code{DUPE}).
+#' }
+#'
+#' @param x A data frame of KASP genotype calls for one or multiple plates,
+#' such as the \code{Data} component returned by \code{read_kasp_csv()}.
+#' @param snp_id A character value indicating the column name for SNP IDs in \code{x}.
+#' @param plate_id A character value indicating the column name for master plate
+#' IDs in \code{x}. Set to \code{NULL} if \code{x} has no plate column; the per-plate
+#' summary and plot are then omitted.
+#' @param geno_call A character value indicating the column name for KASP genotype
+#' calls in \code{x}.
+#' @param sep A character value for the separator between alleles in a genotype call.
+#' @param blank A character vector of genotype calls for No Template Controls (NTC).
+#' @param no_call A character vector of genotype calls for wells that could not be
+#' called (KASP uses \code{?}).
+#' @param uncallable A character vector of genotype calls for uncallable wells.
+#' @param threshold A numeric value between 0 and 1. Markers and plates with a call
+#' rate at or above this value pass.
+#' @param conf_level Confidence level for the Wilson confidence interval of the
+#' overall marker call rate.
+#'
+#' @returns A list with the following components:
+#' \describe{
+#'   \item{marker_summary}{A data frame with one row per marker: well counts by
+#'   category, \code{call_rate}, \code{ci_lower}, \code{ci_upper} and \code{pass}.
+#'   Rows are ordered from the lowest to the highest call rate.}
+#'   \item{plate_summary}{A data frame with one row per marker and master plate with
+#'   the same counts, \code{call_rate} and \code{pass}. \code{NULL} if \code{plate_id = NULL}.}
+#'   \item{marker_call_rate}{A ggplot of the overall call rate of each marker with
+#'   its confidence interval, the call rate of each plate (open circles) and the
+#'   pass threshold.}
+#'   \item{no_call_reason}{A ggplot of the share of wells not called for each
+#'   marker, split by reason.}
+#'   \item{plate_call_rate}{A ggplot heatmap of call rates by marker and master
+#'   plate. \code{NULL} if \code{plate_id = NULL}.}
+#' }
+#'
+#' @examples
+#' \donttest{
+#' library(panGenomeBreedr)
+#' path1 <- system.file("extdata", "Genotyping_141.010_01.csv",
+#'                      package = "panGenomeBreedr", mustWork = TRUE)
+#' file1 <- read_kasp_csv(file = path1, data_type = 'raw')
+#'
+#' cr <- kasp_call_rate(x = file1$Data,
+#'                      snp_id = 'SNPID',
+#'                      plate_id = 'MasterPlate',
+#'                      geno_call = 'Call',
+#'                      threshold = 0.95)
+#'
+#' cr$marker_summary
+#' cr$marker_call_rate
+#' cr$no_call_reason
+#' cr$plate_call_rate
+#' }
+#'
+#' @import ggplot2
+#' @importFrom stats qnorm
+#'
+#' @export
+kasp_call_rate <- function(x,
+                           snp_id = 'SNPID',
+                           plate_id = 'MasterPlate',
+                           geno_call = 'Call',
+                           sep = ':',
+                           blank = 'NTC',
+                           no_call = '?',
+                           uncallable = 'Uncallable',
+                           threshold = 0.95,
+                           conf_level = 0.95) {
+
+  # Validate inputs
+  if (!is.data.frame(x)) stop("'x' must be a data frame.")
+  needed <- c(snp_id, geno_call, plate_id)
+  missing_cols <- setdiff(needed, colnames(x))
+  if (length(missing_cols) > 0) {
+    stop("Column(s) not found in 'x': ", paste(missing_cols, collapse = ", "))
+  }
+  if (!is.numeric(threshold) || length(threshold) != 1 ||
+      threshold < 0 || threshold > 1) {
+    stop("'threshold' must be a single number between 0 and 1.")
+  }
+
+  # Classify each well
+  calls <- trimws(as.character(x[[geno_call]]))
+  status <- ifelse(calls %in% blank, 'blank',
+            ifelse(is.na(calls) | calls == '' | calls %in% no_call, 'No call',
+            ifelse(calls %in% uncallable, 'Uncallable',
+            ifelse(grepl(sep, calls, fixed = TRUE), 'Called', 'Other'))))
+
+  cats <- c('Called', 'No call', 'Uncallable', 'Other')
+  wells <- data.frame(snp = as.character(x[[snp_id]]),
+                      plate = if (is.null(plate_id)) 'All' else as.character(x[[plate_id]]),
+                      status = status,
+                      stringsAsFactors = FALSE)
+  wells <- wells[wells$status != 'blank', , drop = FALSE]
+  if (nrow(wells) == 0) stop("No non-NTC wells found in 'x'.")
+  wells$status <- factor(wells$status, levels = cats)
+
+  # Count wells per group and compute call rates
+  count_wells <- function(keys) {
+    grp <- interaction(wells[keys], drop = TRUE, sep = '\r', lex.order = TRUE)
+    tab <- table(grp, wells$status)
+    ids <- do.call(rbind, strsplit(rownames(tab), '\r', fixed = TRUE))
+    out <- data.frame(ids, matrix(as.integer(tab), nrow = nrow(tab)),
+                      stringsAsFactors = FALSE)
+    colnames(out) <- c(keys, 'called', 'no_call', 'uncallable', 'other')
+    out$n_wells <- rowSums(out[, c('called', 'no_call', 'uncallable', 'other')])
+    out$call_rate <- out$called / out$n_wells
+    out
+  }
+
+  marker <- count_wells('snp')
+  ci <- call_rate_ci(marker$called, marker$n_wells, conf_level = conf_level)
+  marker$ci_lower <- ci[, 'lower']
+  marker$ci_upper <- ci[, 'upper']
+  marker$pass <- marker$call_rate >= threshold
+  marker <- marker[order(marker$call_rate, marker$snp), , drop = FALSE]
+  rownames(marker) <- NULL
+  colnames(marker)[1] <- snp_id
+
+  plate <- NULL
+  if (!is.null(plate_id)) {
+    plate <- count_wells(c('snp', 'plate'))
+    plate$pass <- plate$call_rate >= threshold
+    colnames(plate)[1:2] <- c(snp_id, plate_id)
+  }
+
+  plots <- call_rate_plots(marker = marker,
+                           plate = plate,
+                           snp_id = snp_id,
+                           plate_id = plate_id,
+                           threshold = threshold,
+                           conf_level = conf_level)
+
+  c(list(marker_summary = marker, plate_summary = plate), plots)
+}
+
+
+#' Wilson score confidence interval for a call rate
+#' @param k Number of called wells.
+#' @param n Number of non-NTC wells.
+#' @param conf_level Confidence level.
+#' @returns A two-column matrix with \code{lower} and \code{upper} bounds.
+#' @noRd
+call_rate_ci <- function(k, n, conf_level = 0.95) {
+  z <- stats::qnorm(1 - (1 - conf_level) / 2)
+  p <- k / n
+  mid <- (p + z^2 / (2 * n)) / (1 + z^2 / n)
+  half <- z * sqrt(p * (1 - p) / n + z^2 / (4 * n^2)) / (1 + z^2 / n)
+  cbind(lower = pmax(0, mid - half), upper = pmin(1, mid + half))
+}
+
+
+#' Shorten master plate names for plot labels by dropping their shared prefix
+#' @param x A character vector of plate names.
+#' @returns A character vector of the same length.
+#' @noRd
+short_plate_names <- function(x) {
+  u <- unique(x)
+  if (length(u) < 2) return(x)
+  parts <- strsplit(u, '_', fixed = TRUE)
+  n_common <- 0
+  min_len <- min(lengths(parts))
+  while (n_common < min_len - 1 &&
+         length(unique(vapply(parts, `[`, character(1), n_common + 1))) == 1) {
+    n_common <- n_common + 1
+  }
+  if (n_common == 0) return(x)
+  short <- vapply(parts, function(p) paste(p[-seq_len(n_common)], collapse = '_'),
+                  character(1))
+  if (anyDuplicated(short)) return(x)
+  unname(short[match(x, u)])
+}
+
+
+#' Build the call rate plots returned by kasp_call_rate()
+#' @noRd
+call_rate_plots <- function(marker, plate, snp_id, plate_id, threshold, conf_level) {
+
+  # Colour-blind safe (Okabe-Ito) colours
+  col_pass <- '#009E73'
+  col_fail <- '#D55E00'
+  col_reason <- c('No call' = '#0072B2', 'Uncallable' = '#E69F00', 'Other' = '#CC79A7')
+
+  base_theme <- ggplot2::theme_classic(base_size = 11) +
+    ggplot2::theme(axis.text = ggplot2::element_text(colour = 'black'),
+                   plot.title = ggplot2::element_text(face = 'bold'),
+                   legend.position = 'bottom',
+                   legend.title = ggplot2::element_blank())
+
+  # Markers are drawn from the lowest call rate (bottom) to the highest (top)
+  snp_levels <- marker[[snp_id]]
+  m <- data.frame(snp = factor(marker[[snp_id]], levels = snp_levels),
+                  call_rate = marker$call_rate,
+                  lo = marker$ci_lower,
+                  hi = marker$ci_upper,
+                  status = factor(ifelse(marker$pass, 'Pass', 'Fail'),
+                                  levels = c('Pass', 'Fail')),
+                  n_lab = sprintf('%d/%d', marker$called, marker$n_wells))
+
+  p <- NULL
+  if (!is.null(plate)) {
+    p <- data.frame(snp = factor(plate[[snp_id]], levels = snp_levels),
+                    plate = short_plate_names(plate[[plate_id]]),
+                    call_rate = plate$call_rate)
+  }
+
+  lowest <- min(c(m$lo, p$call_rate))
+  xmin <- min(0.5, floor(lowest * 10) / 10)
+  pct <- function(v) paste0(100 * v)
+
+  # 1. Overall call rate per marker, with plate call rates and the threshold
+  marker_plot <- ggplot2::ggplot(m, ggplot2::aes(y = .data$snp)) +
+    ggplot2::annotate('rect', xmin = threshold, xmax = 1, ymin = -Inf, ymax = Inf,
+                      fill = col_pass, alpha = 0.08) +
+    ggplot2::geom_vline(xintercept = threshold, linetype = 'dashed',
+                        linewidth = 0.4, colour = 'grey40')
+
+  if (!is.null(p)) {
+    marker_plot <- marker_plot +
+      ggplot2::geom_point(data = p, ggplot2::aes(x = .data$call_rate),
+                          shape = 1, size = 1.8, colour = 'grey45',
+                          position = ggplot2::position_nudge(y = -0.22))
+  }
+
+  marker_plot <- marker_plot +
+    ggplot2::geom_errorbar(ggplot2::aes(xmin = .data$lo, xmax = .data$hi),
+                           width = 0.18, linewidth = 0.4, orientation = 'y') +
+    ggplot2::geom_point(ggplot2::aes(x = .data$call_rate, fill = .data$status),
+                        shape = 21, size = 3, stroke = 0.4) +
+    ggplot2::geom_text(ggplot2::aes(x = 1.015, label = .data$n_lab),
+                       hjust = 0, size = 3.2, colour = 'grey25') +
+    ggplot2::scale_fill_manual(values = c(Pass = col_pass, Fail = col_fail),
+                               labels = c(Pass = sprintf('Pass (>= %s%%)', pct(threshold)),
+                                          Fail = 'Below threshold'),
+                               drop = FALSE) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, 0.1), labels = pct,
+                                expand = c(0, 0)) +
+    ggplot2::coord_cartesian(xlim = c(xmin, 1.12), clip = 'off') +
+    ggplot2::labs(x = 'Call rate (%)', y = NULL,
+                  title = 'Marker call rate',
+                  subtitle = paste0('Overall call rate with ', pct(conf_level), '% CI',
+                                    if (!is.null(p)) '; open circles = plates')) +
+    base_theme
+
+  # Why wells were not called
+  reasons <- c('No call', 'Uncallable', 'Other')
+  totals <- c(sum(marker$no_call), sum(marker$uncallable), sum(marker$other))
+  reasons <- reasons[totals > 0]
+  reason_cols <- c('No call' = 'no_call', 'Uncallable' = 'uncallable', 'Other' = 'other')
+
+  if (length(reasons) == 0) {
+    long <- data.frame(snp = m$snp, reason = factor('No call'), pct = 0)
+    reasons <- 'No call'
+  } else {
+    long <- do.call(rbind, lapply(reasons, function(r) {
+      data.frame(snp = m$snp, reason = r,
+                 pct = 100 * marker[[reason_cols[[r]]]] / marker$n_wells)
+    }))
+    long$reason <- factor(long$reason, levels = rev(reasons))
+  }
+
+  no_call_plot <- ggplot2::ggplot(long, ggplot2::aes(x = .data$pct, y = .data$snp,
+                                                     fill = .data$reason)) +
+    ggplot2::geom_col(width = 0.6, colour = 'white', linewidth = 0.3) +
+    ggplot2::scale_fill_manual(values = col_reason, breaks = reasons) +
+    ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = c(0, 0.05))) +
+    ggplot2::labs(x = 'Wells not called (%)', y = NULL,
+                  title = 'Reasons for no-calls',
+                  subtitle = 'Share of non-NTC wells for each marker') +
+    base_theme
+
+  # Heatmap of call rate by marker and master plate
+  plate_plot <- NULL
+  if (!is.null(p)) {
+    plate_plot <- ggplot2::ggplot(p, ggplot2::aes(x = .data$plate, y = .data$snp,
+                                                  fill = 100 * .data$call_rate)) +
+      ggplot2::geom_tile(colour = 'white', linewidth = 0.8) +
+      ggplot2::geom_text(ggplot2::aes(label = sprintf('%.0f', 100 * .data$call_rate),
+                                      colour = .data$call_rate < (xmin + 1) / 2),
+                         size = 3.2, show.legend = FALSE) +
+      ggplot2::scale_fill_viridis_c(option = 'mako', limits = c(100 * xmin, 100),
+                                    name = 'Call rate (%)') +
+      ggplot2::scale_colour_manual(values = c(`TRUE` = 'white', `FALSE` = 'black')) +
+      ggplot2::scale_x_discrete(expand = c(0, 0)) +
+      ggplot2::scale_y_discrete(expand = c(0, 0)) +
+      ggplot2::labs(x = 'Master plate', y = NULL,
+                    title = 'Call rate by marker and plate') +
+      ggplot2::guides(fill = ggplot2::guide_colourbar(title.position = 'top')) +
+      base_theme +
+      ggplot2::theme(axis.line = ggplot2::element_blank(),
+                     axis.ticks = ggplot2::element_blank(),
+                     legend.title = ggplot2::element_text(size = 9))
+  }
+
+  list(marker_call_rate = marker_plot,
+       no_call_reason = no_call_plot,
+       plate_call_rate = plate_plot)
+}

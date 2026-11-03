@@ -2455,3 +2455,152 @@ make_intertek_table <- function(
 
   return(final_table)
 }
+
+
+#' Check whether progenies carry the donor segment at target loci
+#' @description
+#' Tests the hypothesis that a trait locus was successfully introgressed. For
+#' each progeny and each target locus, the markers in the locus are classified
+#' as donor, heterozygous or recurrent parent calls. Each progeny is then
+#' called at the locus and compared with the expected genotype.
+#'
+#' @param x A numeric matrix of genotype scores with samples as rows and
+#' markers as columns, as returned by `kasp_numeric()`: `1` = recurrent parent
+#' allele, `0` = donor parent allele, `0.5` = heterozygous. Any other code
+#' (missing, error, monomorphic) is treated as not informative.
+#' @param map_file A data frame of marker IDs, chromosome numbers and positions.
+#' @param snp_ids,chr,chr_pos Column names in `map_file` for marker IDs,
+#' chromosome numbers and positions.
+#' @param parents A character vector of length 2: the recurrent and donor
+#' parent row names in `x`. These rows are left out of the results.
+#' @param trait_pos A named list of target loci. Each element is a named
+#' numeric vector with `chr` and either `start` and `end` (a region) or `pos`
+#' (a single position), as used by `cross_qc_annotate()`.
+#' @param expected The genotype expected at the loci: `"donor"` (homozygous for
+#' the donor allele, e.g. NILs), `"het"` (heterozygous, e.g. BC1F1), or
+#' `"carrier"` (donor or heterozygous).
+#' @param threshold Minimum proportion of informative markers that must agree
+#' for a call.
+#' @param n_nearest Number of markers closest to the locus to use for a
+#' single position, or for a region that contains no markers.
+#'
+#' @returns A data frame with one row per progeny and locus: the locus, how the
+#' markers were chosen (`"region"` or `"nearest"`), the number of markers and
+#' informative markers, the proportions of donor, heterozygous and recurrent
+#' calls, the call (`Donor`, `Heterozygous`, `Recurrent`, `Mixed` or
+#' `No informative markers`) and whether it matches the expected genotype.
+#'
+#' @examples
+#' \donttest{
+#' library(panGenomeBreedr)
+#' num_dat <- matrix(c(rep(1, 6), rep(0, 6),
+#'                     1, 1, 0, 0, 1, 1,
+#'                     1, 1, 1, 1, 1, 1,
+#'                     1, 1, 0.5, 0.5, 1, 1),
+#'                   byrow = TRUE, ncol = 6)
+#' rownames(num_dat) <- c('rp', 'dp', paste0('bc_', 1:3))
+#' colnames(num_dat) <- paste0('S1_', c(1000, 2000, 3000, 3500, 6000, 8000))
+#' map_file <- parse_marker_ns(colnames(num_dat))
+#'
+#' introgression_check(x = num_dat,
+#'                     map_file = map_file,
+#'                     parents = c('rp', 'dp'),
+#'                     trait_pos = list(qtl1 = c(chr = 1, start = 2500, end = 4000)),
+#'                     expected = 'donor')
+#' }
+#'
+#' @export
+introgression_check <- function(x,
+                                map_file,
+                                snp_ids = 'snpid',
+                                chr = 'chr',
+                                chr_pos = 'pos',
+                                parents,
+                                trait_pos,
+                                expected = c("donor", "het", "carrier"),
+                                threshold = 0.8,
+                                n_nearest = 3) {
+  expected <- match.arg(expected)
+
+  if (!is.list(trait_pos) || length(trait_pos) == 0 || is.null(names(trait_pos))) {
+    stop("Argument `trait_pos` must be a named list of loci.")
+  }
+  if (!all(c(snp_ids, chr, chr_pos) %in% colnames(map_file))) {
+    stop("`snp_ids`, `chr` and `chr_pos` must be columns of `map_file`.")
+  }
+  if (threshold <= 0 || threshold > 1) stop("`threshold` must be in (0, 1].")
+
+  x <- as.matrix(x)
+
+  # Map rows for the markers in x, in the column order of x
+  map_file <- as.data.frame(map_file)
+  map <- map_file[match(colnames(x), map_file[[snp_ids]]), , drop = FALSE]
+  keep <- !is.na(map[[snp_ids]])
+  x <- x[, keep, drop = FALSE]
+  map <- map[keep, , drop = FALSE]
+  m_chr <- as.character(map[[chr]])
+  m_pos <- as.numeric(map[[chr_pos]])
+
+  progeny <- setdiff(rownames(x), parents)
+  if (length(progeny) == 0) stop("No progenies left after removing the parents.")
+
+  fmt_bp <- function(v) format(v, big.mark = ",", scientific = FALSE, trim = TRUE)
+
+  out <- lapply(names(trait_pos), function(locus) {
+    loc <- trait_pos[[locus]]
+    on_chr <- which(m_chr == as.character(loc[["chr"]]))
+
+    if (all(c("start", "end") %in% names(loc))) {
+      region <- paste0(fmt_bp(loc[["start"]]), "-", fmt_bp(loc[["end"]]))
+      cols <- on_chr[m_pos[on_chr] >= loc[["start"]] & m_pos[on_chr] <= loc[["end"]]]
+      centre <- (loc[["start"]] + loc[["end"]]) / 2
+    } else if ("pos" %in% names(loc)) {
+      region <- fmt_bp(loc[["pos"]])
+      cols <- integer(0)
+      centre <- loc[["pos"]]
+    } else {
+      stop("Locus `", locus, "` needs `start` and `end`, or `pos`.")
+    }
+
+    source <- "region"
+    if (length(cols) == 0 && length(on_chr) > 0) {
+      source <- "nearest"
+      cols <- on_chr[order(abs(m_pos[on_chr] - centre))][seq_len(min(n_nearest, length(on_chr)))]
+    }
+
+    geno <- x[progeny, cols, drop = FALSE]
+    n_inf <- rowSums(geno == 0 | geno == 0.5 | geno == 1, na.rm = TRUE)
+    prop <- function(code) ifelse(n_inf > 0, rowSums(geno == code, na.rm = TRUE) / n_inf, NA_real_)
+    donor <- prop(0)
+    het <- prop(0.5)
+    recurrent <- prop(1)
+
+    call <- ifelse(n_inf == 0, "No informative markers",
+            ifelse(donor >= threshold, "Donor",
+            ifelse(het >= threshold, "Heterozygous",
+            ifelse(recurrent >= threshold, "Recurrent", "Mixed"))))
+
+    pass <- switch(expected,
+                   donor = call == "Donor",
+                   het = call == "Heterozygous",
+                   carrier = n_inf > 0 & (donor + het) >= threshold)
+    pass[n_inf == 0] <- NA
+
+    data.frame(sample = progeny,
+               locus = locus,
+               chr = unname(loc[["chr"]]),
+               region = region,
+               markers_from = source,
+               n_markers = length(cols),
+               n_informative = unname(n_inf),
+               donor = round(unname(donor), 3),
+               het = round(unname(het), 3),
+               recurrent = round(unname(recurrent), 3),
+               call = unname(call),
+               pass = unname(pass),
+               stringsAsFactors = FALSE,
+               row.names = NULL)
+  })
+
+  do.call(rbind, out)
+}

@@ -14,112 +14,112 @@
 #'
 mod_mv_pred_sum_stat_ui <- function(id) {
   ns <- NS(id)
-  tagList(
-    sidebarLayout(
-      sidebarPanel(
-        selectInput(
-          inputId = ns("snp_id"),
-          label = "SNP ID Column",
-          choices = NULL,
-          multiple = FALSE
-        ),
-        selectInput(
-          inputId = ns("geno_call_id"),
-          label = "Genotype Call Column",
-          choices = NULL,
-          multiple = FALSE
-        ),
-        selectInput(
-          inputId = ns("group_id"),
-          label = "Positive Control Column",
-          choices = NULL,
-          multiple = FALSE
-        ),
-        textInput(
-          inputId = ns("group_unknown"),
-          label = "Unverified Status Label",
-          value = "?"
-        ),
-        textInput(
-          inputId = ns("blank"),
-          label = "NTC / Blank Label",
-          value = "NTC"
-        ),
-        bslib::input_switch(
-          id = ns("rate_out_id"),
-          label = "Return Predictions As Proportion",
-          value = TRUE
-        )
+  ui_sidebar_layout(
 
+    # SIDEBAR ---------------------------------------------------------------
+
+    sidebar = tagList(
+      selectInput(
+        inputId = ns("snp_id"),
+        label = "SNP ID Column",
+        choices = NULL,
+        multiple = FALSE
       ),
-      mainPanel(
-        bslib::accordion(
-          open = TRUE,
-          bslib::accordion_panel(
-            title = "Predictive Summary for Positive Controls in KASP Genotype Data",
-            DT::DTOutput(outputId = ns("predict_sum"))
-          ), style = "margin-bottom: 15px;"
+      selectInput(
+        inputId = ns("geno_call_id"),
+        label = "Genotype Call Column",
+        choices = NULL,
+        multiple = FALSE
+      ),
+      selectInput(
+        inputId = ns("group_id"),
+        label = label_help(
+          "Positive Control Column",
+          "Column with the expected genotype of each positive control. Predictions are scored against it."
         ),
-        bslib::accordion(
-          bslib::accordion_panel(
-            title = "Predictive Summary Plot",
-            fluidRow(
-              column(
-                width = 4,
-                selectInput(inputId = ns("SNP_id"), label = "Target SNP ID", choices = NULL, multiple = FALSE)
-              ),
-              column(
-                width = 4,
-                numericInput(inputId = ns("alpha_id"), label = "Bar Opacity", value = 1, min = 0, max = 1, step = 0.05)
-              ),
-              column(
-                width = 4,
-                numericInput(inputId = ns("height_id"), label = "Plot Height", value = 5, min = 1, max = 30, step = 1)
-              )
+        choices = NULL,
+        multiple = FALSE
+      ),
+      bslib::input_switch(
+        id = ns("rate_out_id"),
+        label = label_help(
+          "Show as proportions",
+          "On: share of controls in each class. Off: raw counts."
+        ),
+        value = TRUE
+      ),
+
+      # Labels used in the call column
+      bslib::accordion(
+        open = FALSE,
+        bslib::accordion_panel(
+          title = "Call labels",
+          icon = icon("tags"),
+          textInput(
+            inputId = ns("group_unknown"),
+            label = label_help(
+              "Unverified Status Label",
+              "Label used in the positive control column when the expected genotype is not known."
             ),
-            fluidRow(
-              column(
-                width = 4,
-                selectInput(
-                  inputId = ns("pred_col_id"),
-                  label = "Positive Control Colors",
-                  choices = c(
-                          "firebrick3", "cornflowerblue", "beige",
-                          setdiff(grDevices::colors(), c("firebrick3", "cornflowerblue", "beige"))
-                        ),
-                  selected = c("firebrick3", "cornflowerblue", "beige"),
-                  multiple = TRUE
-                ),
-                helpText(
-                  tags$em("Required Order: False, True, Unverified")
-                )
-              ),
-              column(
-                width = 4,
-                numericInput(inputId = ns("textsize_id"), label = "Plot Font Size", value = 12, min = 1, max = 30, step = 1)
-              ),
-              column(
-                width = 4,
-                numericInput(inputId = ns("width_id"), label = "Plot Width", value = 8, min = 1, max = 30, step = 1)
-              )
-            ), hr(),
-            plotOutput(outputId = ns("pred_plot"), height = "500px"),
-            bslib::card(card_footer(
-              textInput(inputId = ns("file_name"), label = "Enter Filename", value = "Predictive_plot"),
-              downloadButton(outputId = ns("download_pred_plot"), label = "Download Plot", class = "btn-success")
-            ))
+            value = "?"
           ),
-          style = "margin-bottom: 15px;"
-        ),
-        bslib::accordion(
-          bslib::accordion_panel(
-            title = "Predictive Status for Positive Controls in KASP Genotype Data",
-            selectInput(inputId = ns("pred_stat_dd"), label = "Select Plate ID", choices = NULL, multiple = FALSE),
-            DT::DTOutput(outputId = ns("predict_stat"))
-          ),
-          style = "margin-bottom: 15px;"
+          textInput(
+            inputId = ns("blank"),
+            label = label_help("NTC / Blank Label", "Label of the no-template-control (blank) wells."),
+            value = "NTC"
+          )
         )
       )
+    ),
+
+    # MAIN PANEL ------------------------------------------------------------
+
+    # Summary table card
+    ui_result_card(
+      "Prediction summary for positive controls",
+      full_screen = TRUE,
+      DT::DTOutput(outputId = ns("predict_sum"))
+    ),
+
+    # Summary plot card, with SNP picker, Appearance and download
+    ui_result_card(
+      "Prediction summary plot",
+      full_screen = TRUE,
+      actions = tagList(
+        div(
+          style = "min-width: 200px; margin-bottom: -1rem;",
+          selectInput(inputId = ns("SNP_id"), label = NULL, choices = NULL, multiple = FALSE, width = "100%")
+        ),
+        plot_options_button(
+          bslib::layout_columns(
+            numericInput(ns("textsize_id"), "Font Size", value = 12, min = 1, max = 30, step = 1),
+            numericInput(ns("alpha_id"), "Bar Opacity", value = 1, min = 0, max = 1, step = 0.05)
+          ),
+          tags$p(class = "fw-semibold small mb-1", "Bar colours"),
+          bslib::layout_columns(
+            colourpicker::colourInput(ns("col_false"), "False", value = "firebrick3", returnName = TRUE),
+            colourpicker::colourInput(ns("col_true"), "True", value = "cornflowerblue", returnName = TRUE),
+            colourpicker::colourInput(ns("col_unverified"), "Unverified", value = "beige", returnName = TRUE)
+          )
+        ),
+        plot_download_button(
+          ns, "download_pred_plot",
+          file_name = "Predictive_plot",
+          width = 8, height = 5
+        )
+      ),
+      plotOutput(outputId = ns("pred_plot"), height = "450px")
+    ),
+
+    # Per-sample status card, with plate picker
+    ui_result_card(
+      "Prediction status per sample",
+      full_screen = TRUE,
+      actions = div(
+        style = "min-width: 260px; margin-bottom: -1rem;",
+        selectInput(inputId = ns("pred_stat_dd"), label = NULL, choices = NULL, multiple = FALSE, width = "100%")
+      ),
+      DT::DTOutput(outputId = ns("predict_stat"))
     )
   )
 }
@@ -143,40 +143,44 @@ mod_mv_pred_sum_stat_ui <- function(id) {
 mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    # Script to give the user drop down inputs for the select input tabs.
+
+    # COLUMN DROPDOWNS ------------------------------------------------------
+
+    # Column names of the KASP data
     drop_down <- reactive({
-      req(kasp_data)
-      colnames(kasp_data)
+      req(kasp_data())
+      colnames(kasp_data())
     })
 
-    # Populate the select input values.
+    # Fill the dropdowns and guess the right column for each
     observeEvent(drop_down(), {
       req(drop_down())
       updateSelectInput(session,
                         inputId = "snp_id",
                         choices = drop_down(),
                         selected = safe_grep_match(pattern = 'SNP',
-                                     choices = drop_down())
+                                                   choices = drop_down())
       )
 
       updateSelectInput(session,
                         inputId = "geno_call_id",
                         choices = drop_down(),
                         selected = safe_grep_match(pattern = 'Call',
-                                     choices = drop_down()))
+                                                   choices = drop_down()))
 
       updateSelectInput(session,
                         inputId = "group_id",
                         choices = drop_down(),
                         selected = safe_grep_match(pattern = 'Group',
                                                    choices = drop_down())
-                        )
-
+      )
     })
 
-    pred_sum_result <- reactiveVal() # empty reactive value to hold result
+    # PREDICTION SUMMARY ----------------------------------------------------
 
-    # Store result in the reactive value when "Run" button is clicked
+    pred_sum_result <- reactiveVal()
+
+    # Re-run pred_summary() whenever the inputs change
     observe({
       req(
         input$geno_call_id, input$group_id,
@@ -187,10 +191,8 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
       cc_res <- color_code_res()
       req(length(cc_res) >= 1)
 
-      # Get the actual column names from the current data
+      # Only go on if the chosen columns are in the data
       current_cols <- colnames(cc_res[[1]])
-
-      # Only proceed if selected inputs exist in the current data
       req(
         input$snp_id %in% current_cols,
         input$group_id %in% current_cols,
@@ -210,40 +212,10 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
       pred_sum_result(pred_result)
     })
 
-    # Extract plate names (ensure pred_sum_result() has valid data)
-    plates_field <- reactive({
-      req(pred_sum_result())
-      names(pred_sum_result()$plates)
-    })
-
-    # Update dropdown for plates selection
-    observe({
-      req(plates_field())
-
-     updateSelectInput(session, inputId = "pred_stat_dd", choices = plates_field() )
-
-    })
-
-    # Improved handling of predictive status display
-    observeEvent(input$pred_stat_dd,{
-      req(pred_sum_result())
-
-      # Display predictive status with error handling
-      output$predict_stat <- DT::renderDT({
-        tryCatch(
-          {
-            DT::datatable(pred_sum_result()$plates[[input$pred_stat_dd]], options = list(pageLength = 10, scrollX = TRUE))
-          },
-          error = function(e) {
-           # print(paste("Error displaying prediction status:", e$message))
-            return(NULL)
-          }
-        )
-      })
-    })
-
-    # Display prediction summary with error handling
+    # Summary table
     output$predict_sum <- DT::renderDT({
+      validate(need(kasp_data(), msg_no_data))
+      validate(need(if_ready(color_code_res()), msg_no_color))
       req(pred_sum_result())
       tryCatch(
         {
@@ -253,7 +225,7 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
         error = function(e) {
           shinyWidgets::show_toast(
             title = "",
-            text = paste("Error displaying prediction summary:", e$message),
+            text = paste("Couldn't show the prediction summary:", e$message),
             type = "error",
             timer = 2000,
             position = "bottom-end"
@@ -263,36 +235,58 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
       )
     })
 
+    # PER-SAMPLE STATUS -----------------------------------------------------
+
+    # Plate names
+    plates_field <- reactive({
+      req(pred_sum_result())
+      names(pred_sum_result()$plates)
+    })
+
+    # Fill the plate picker
+    observe({
+      req(plates_field())
+      updateSelectInput(session, inputId = "pred_stat_dd", choices = plates_field())
+    })
+
+    # Status table for the selected plate
+    output$predict_stat <- DT::renderDT({
+      validate(need(kasp_data(), msg_no_data))
+      validate(need(if_ready(color_code_res()), msg_no_color))
+      req(pred_sum_result(), input$pred_stat_dd)
+      tryCatch(
+        DT::datatable(pred_sum_result()$plates[[input$pred_stat_dd]],
+                      options = list(pageLength = 10, scrollX = TRUE)),
+        error = function(e) NULL
+      )
+    })
+
+    # SUMMARY PLOT ----------------------------------------------------------
+
+    # One bar plot per SNP
     pred_sum_plot <- reactive({
-      # Validate inputs
       req(
         pred_sum_result(),
-        input$pred_col_id,
+        input$col_false, input$col_true, input$col_unverified,
         input$textsize_id,
-        input$height_id,
-        input$alpha_id,
-        input$width_id,length(input$pred_col_id) == 3
+        input$alpha_id
       )
 
       tryCatch(
         {
-          # Generate plot
-           pred_summary_plot(
+          pred_summary_plot(
             x = as.data.frame(pred_sum_result()$summ),
-            pred_cols = c( false = input$pred_col_id[1],
-                           true = input$pred_col_id[2],
-                          unverified = input$pred_col_id[3]
-                          ),
-            alpha = input$alpha_id ,
-            width = input$width_id ,
-            height = input$height_id ,
+            pred_cols = c(false = input$col_false,
+                          true = input$col_true,
+                          unverified = input$col_unverified),
+            alpha = input$alpha_id,
             text_size = input$textsize_id
           )
         },
         error = function(e) {
           shinyWidgets::show_alert(
-            title = "Error!",
-            text = paste("Error generating prediction plots:", e$message),
+            title = "Couldn't draw the prediction plots",
+            text = e$message,
             type = "error",
             showCloseButton = TRUE
           )
@@ -301,7 +295,7 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
       )
     })
 
-    # Get unique SNP names from plots
+    # SNP names from the plots
     name_snpid <- reactive({
       req(pred_sum_plot())
       tryCatch(
@@ -310,8 +304,8 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
         },
         error = function(e) {
           shinyWidgets::show_toast(
-            title = "Error",
-            text = paste("Error extracting SNP names:", e$message),
+            title = "",
+            text = paste("Couldn't read the SNP names:", e$message),
             type = "error",
             timer = 2000,
             position = "bottom-end"
@@ -320,71 +314,66 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
       )
     })
 
-    # Update dropdown for SNP selection with error handling
+    # Fill the SNP picker
     observe({
       req(name_snpid())
-
-    updateSelectInput(session, inputId = "SNP_id", choices = name_snpid())
-
+      updateSelectInput(session, inputId = "SNP_id", choices = name_snpid())
     })
 
-
-
-    # Render predictive plot
-    observe({
+    # Plot for the selected SNP
+    output$pred_plot <- renderPlot({
+      validate(need(kasp_data(), msg_no_data))
+      validate(need(if_ready(color_code_res()), msg_no_color))
       req(input$SNP_id, pred_sum_plot())
+      tryCatch(
+        print(pred_sum_plot()[[input$SNP_id]]),
+        error = function(e) {
+          shinyWidgets::show_toast(
+            title = "",
+            text = "Pick three colours (False, True and Unverified) under Appearance.",
+            type = "error",
+            timer = 2000
+          )
+        }
+      )
+    })
 
-      output$pred_plot <- renderPlot({
-        tryCatch({
-        print(pred_sum_plot()[[input$SNP_id]])
-          # Show success message
+    # Toast once each time the plots are rebuilt
+    observeEvent(pred_sum_plot(), {
       shinyWidgets::show_toast(
         title = "",
         text = "Plot rendered successfully",
         type = "success",
         timer = 2000
       )
-        },error = function(e){
-          shinyWidgets::show_toast(
-            title = "",
-            text =  'Select 3 Colors for Predictive Plot',
-            type = "error",
-            timer = 2000
-          )
-        })
-
-      })
-
     })
 
+    # DOWNLOADS -------------------------------------------------------------
 
-
-    # Download Plot with error handling
+    # Plot for the selected SNP
     output$download_pred_plot <- downloadHandler(
       filename = function() {
-        paste0(input$file_name, ".pdf")
+        paste0(input$download_pred_plot_name, ".", input$download_pred_plot_type)
       },
       content = function(file) {
         req(pred_sum_plot(), input$SNP_id)
 
-        # Find exact match
         plot_obj <- pred_sum_plot()[[input$SNP_id]]
 
         if (is.null(plot_obj)) {
-          shinyWidgets::show_alert("Error", "Plot not found for selected SNP", type = "error")
+          shinyWidgets::show_alert("Plot not available", "No prediction plot for this SNP. Pick another SNP from the list.", type = "warning")
           return()
         }
 
-      ggplot2::ggsave(
+        ggplot2::ggsave(
           file,
           plot = plot_obj,
-          width = as.numeric(input$width_id),
-          height = as.numeric(input$height_id)
+          device = input$download_pred_plot_type,
+          width = as.numeric(input$download_pred_plot_width),
+          height = as.numeric(input$download_pred_plot_height)
         )
       }
     )
-
-
   })
 }
 
