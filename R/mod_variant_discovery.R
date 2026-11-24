@@ -570,6 +570,9 @@ gene_cord_tab <- function(ns) {
         class = "btn-outline-primary btn-lg mb-4 fw-bold text-start"
       ),
 
+      # Script of the steps run so far
+      mod_repro_ui(ns("repro"), class = "btn-outline-secondary w-100 mb-3"),
+
       # Disconnect button
       actionButton(
         ns("disconnect_btn"),
@@ -785,12 +788,26 @@ gene_cord_tab <- function(ns) {
 #' @description Server logic for variant discovery module.
 #'
 #' @param id Internal parameter for {shiny}.
+#' @param repro If TRUE, add the "Reproduce this" script of the steps run.
 #' @importFrom shiny showModal modalDialog
 #'
 #' @noRd
-mod_variant_discovery_server <- function(id) {
+mod_variant_discovery_server <- function(id, repro = TRUE) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+
+    # Settings of the steps run so far, for the "Reproduce this" script.
+    # Each is set when its step succeeds; see R/repro_variant_discovery.R
+    repro_rec <- reactiveValues(
+      connect = NULL, region = NULL, ld = NULL, families = NULL,
+      positive = NULL, negative = NULL, kasp = NULL
+    )
+    repro_clear <- function() {
+      for (k in names(repro_rec)) repro_rec[[k]] <- NULL
+    }
+    repro_mode <- function() {
+      if (identical(repro_rec$connect$mode, "online")) "online" else "local"
+    }
 
     # Apply a list of filters to a data frame
     apply_filters_to_df <- function(df, filters) {
@@ -956,7 +973,8 @@ mod_variant_discovery_server <- function(id) {
     )# Offline file choosing logic
 
     # Connect to a local Parquet folder and open the dashboard
-    connect_local <- function(db_path, success_text = "Connected to the local database. Use the menu on the left to explore it.") {
+    connect_local <- function(db_path, success_text = "Connected to the local database. Use the menu on the left to explore it.",
+                              example = FALSE) {
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
         color = "#27AE60",
@@ -973,6 +991,8 @@ mod_variant_discovery_server <- function(id) {
           rv$connected <- TRUE
           rv$conn_type <- "sqlite"
           rv$db_path <- db_path
+          repro_clear()
+          repro_rec$connect <- list(mode = "local", db_path = db_path, example = example)
 
           # Load only the pangenome data for now
           shinybusy::update_modal_spinner(
@@ -1021,7 +1041,8 @@ mod_variant_discovery_server <- function(id) {
         success_text = paste(
           "Connected to the example database. The vignette gene",
           "Sobic.005G213600 is filled in under Define Genomic Region."
-        )
+        ),
+        example = TRUE
       )
     })
 
@@ -1100,6 +1121,8 @@ mod_variant_discovery_server <- function(id) {
           rv$connected <- TRUE
           rv$conn_type <- "postgres"
           rv$db_path <- NULL
+          repro_clear()
+          repro_rec$connect <- list(mode = "online", api_url = target_url)
 
           # Load only the pangenome data for now
           shinybusy::update_modal_spinner("Loading Pangenome-scale Resource...")
@@ -1141,6 +1164,7 @@ mod_variant_discovery_server <- function(id) {
       rv$conn_type <- NULL
       rv$tables <- NULL
       rv$db_path <- NULL
+      repro_clear()
       rv$sample_metadata <- NULL
 
       rv$variant_impact <- NULL
@@ -1518,6 +1542,13 @@ mod_variant_discovery_server <- function(id) {
       values$plot_filters_annotations <- NULL; values$plot_filters_genotypes <- NULL; values$plot_filters_variants <- NULL
       filter_states$genotypes <- NULL; filter_states$variants <- NULL; filter_states$annotations <- NULL
       values$filtered_sample_ids <- NULL
+      values$sample_filters <- NULL
+      repro_rec$ld <- NULL
+      repro_rec$kasp <- NULL
+      if (identical(repro_rec$positive$type, "position")) {
+        repro_rec$positive <- NULL
+        repro_rec$negative <- NULL
+      }
 
       shinybusy::show_modal_spinner(
         spin = "fading-circle",
@@ -1615,6 +1646,13 @@ mod_variant_discovery_server <- function(id) {
             chrom = gene_feature$Chromosome[1],
             start = min(gene_feature$Start, na.rm = TRUE),
             end = max(gene_feature$End, na.rm = TRUE)
+          )
+          repro_rec$region <- list(
+            method = "gene",
+            gene_name = trimws(input$gene_name),
+            gff_source = input$input_method,
+            gff_url = input$gff_url,
+            gff_name = input$gff_file$name
           )
 
           shinyWidgets::show_alert(
@@ -1729,6 +1767,8 @@ mod_variant_discovery_server <- function(id) {
           start = st_val,
           end = en_val
         )
+        repro_rec$region <- list(method = "coords", chrom = chr_val,
+                                 start = st_val, end = en_val)
         shinyWidgets::show_alert(
           title = "Region set",
           text = sprintf("Chromosome: %s | Start: %s | End: %s",
@@ -1793,6 +1833,8 @@ mod_variant_discovery_server <- function(id) {
               start = st_val,
               end = en_val
             )
+            repro_rec$region <- list(method = "coords", chrom = chr_val,
+                                     start = st_val, end = en_val)
             shinyWidgets::show_alert(
               title = "Region set",
               text = sprintf("Chromosome: %s | Start: %s | End: %s",
@@ -2301,6 +2343,7 @@ mod_variant_discovery_server <- function(id) {
           }
 
           values$data_for_marker_design <- geno_data
+          values$kasp_candidates <- if (length(values$final_selected_variants) > 0) marker_candidates
 
           bslib::toggle_sidebar(id = 'db_sidebar', open = 'closed')
           update_sidebar_buttons("design_kasp_sidebar_btn")
@@ -2462,6 +2505,9 @@ mod_variant_discovery_server <- function(id) {
             return()
           }
           pcil$family_results <- res
+          repro_rec$families <- list(selection = selection)
+          repro_rec$positive <- NULL
+          repro_rec$negative <- NULL
           pcil$positive_results <- NULL
           pcil$positive_plots <- NULL
           pcil$negative_results <- NULL
@@ -2835,6 +2881,24 @@ mod_variant_discovery_server <- function(id) {
 
           # Save results and make the plots
           pcil$positive_results <- res
+          use_families <- !is.null(pcil$family_results)
+          repro_rec$positive <- list(
+            type = input$pcil_pos_type,
+            gene_ids = input$pcil_gene_ids,
+            region = list(chr = input$pcil_region_chr,
+                          start = input$pcil_region_start,
+                          end = input$pcil_region_end),
+            variant_ids = input$pcil_marker_ID,
+            sel = input$pcil_sel,
+            donor_thresh = input$pcil_donor_thresh,
+            block_quantile = input$pcil_block_quantile,
+            F_quantile = input$pcil_F_quantile,
+            window = if (input$pcil_pos_type == "position") input$pcil_window else 0,
+            use_families = use_families,
+            use_family_ids = use_families && input$pcil_pos_type == "position",
+            global_ids = pcil_global_ids()
+          )
+          repro_rec$negative <- NULL
           pcil$positive_plots <- list(
             per_region = plot_pcil_positive(pcil_positive_result = res),
             best_lines = plot_pcil_best_lines(
@@ -3128,6 +3192,13 @@ mod_variant_discovery_server <- function(id) {
           }
 
           pcil$negative_results <- res
+          use_families <- !is.null(pcil$family_results)
+          repro_rec$negative <- list(
+            n_neg = input$pcil_n_neg,
+            use_families = use_families,
+            use_family_ids = use_families && input$pcil_pos_type == "position",
+            global_ids = pcil_global_ids()
+          )
           pcil$negative_plots <- plot_pcil_pairs(
             pcil_neg_results = res,
             pcil_data = rv$pcil_data
@@ -3512,6 +3583,7 @@ mod_variant_discovery_server <- function(id) {
 
     # Modal actions
     observeEvent(input$clear_genotype_filters_btn, {
+      values$sample_filters <- NULL
       filter_states$genotypes <- NULL
       filter_states$sample_filters <- NULL
       updateSelectizeInput(session, "modal_meta_filter_col", selected = "")
@@ -3533,11 +3605,14 @@ mod_variant_discovery_server <- function(id) {
             filtered_meta <- filtered_meta[filtered_meta[[col_name]] %in% filters_list[[col_name]], , drop = FALSE]
           }
           values$filtered_sample_ids <- filtered_meta$lib
+          values$sample_filters <- filters_list
         } else {
+          values$sample_filters <- NULL
           values$filtered_sample_ids <- NULL
         }
       } else {
         values$filtered_sample_ids <- NULL
+        values$sample_filters <- NULL
       }
 
       show_toast_success("Genotype table filters applied.", type = "info")
@@ -3787,6 +3862,14 @@ mod_variant_discovery_server <- function(id) {
           shinybusy::remove_modal_spinner()
           shinyWidgets::show_toast("LD analysis complete.", type = "success")
           plot_pkg$ld_res <- ld_res
+          repro_rec$ld <- list(
+            target_ids = target_variants,
+            metric = input$ld_metric,
+            threshold = input$ld_r2_threshold,
+            block_threshold = input$ld_block_threshold,
+            filled = as.logical(input$ld_plot_type),
+            palette_option = input$palette_option
+          )
           return(plot_pkg)
         },
         error = function(e) {
@@ -4028,6 +4111,27 @@ mod_variant_discovery_server <- function(id) {
           )
 
           kasp_des.result(intertek_table)
+          repro_rec$kasp <- list(
+            mode = repro_mode(),
+            candidates = values$kasp_candidates,
+            meta_cols = c("chrom", "pos", "ref", "alt", "variant_type", "major_allele",
+                          "minor_allele", "major_allele_freq", "minor_allele_freq"),
+            genome_name = input$modal_genome_file$name,
+            design = list(
+              variant_id_col = id_col, chrom_col = chrom_col, pos_col = pos_col,
+              ref_al_col = ref_col, alt_al_col = alt_col,
+              geno_start = input$modal_genotype_start_col,
+              marker_IDs = input$modal_marker_ID,
+              region_name = input$modal_reg_name,
+              maf = input$modal_maf
+            ),
+            intertek = list(
+              genome_version = input$modal_genome_version,
+              region_name = input$modal_reg_name,
+              trait = input$modal_trait,
+              owner = input$modal_owner
+            )
+          )
           kasp_des.plot(result_data$plot)
           bslib::nav_select("results_tabs", "table_tab")
 
@@ -4116,5 +4220,86 @@ mod_variant_discovery_server <- function(id) {
         grDevices::dev.off()
       }
     )
+
+    # REPRODUCE THIS ---------------------------------------------------------
+
+    # One script for the whole tab: the connection and region, plus each
+    # later step (hotspot plot, LD, PCIL selection, marker design) that has
+    # run. No data bundle: the script queries the same database.
+    if (isTRUE(repro)) {
+      vd_repro <- repro_recorder()
+      vd_repro$register("connect", reactive({
+        req(repro_rec$connect)
+        repro_vd_connect_step(repro_rec$connect)
+      }))
+      vd_repro$register("disconnect", reactive({
+        req(identical(repro_rec$connect$mode, "local"))
+        repro_vd_disconnect_step()
+      }))
+      vd_repro$register("region", reactive({
+        req(repro_rec$region, values$result)
+        repro_vd_region_step(c(repro_rec$region, list(mode = repro_mode())))
+      }))
+      vd_repro$register("filters", reactive({
+        req(repro_rec$region, values$table_variants)
+        repro_vd_filters_step(list(
+          mode = repro_mode(),
+          filters = list(genotypes = values$filters_genotypes,
+                         variants = values$filters_variants,
+                         annotations = values$filters_annotations),
+          sample_filters = values$sample_filters,
+          plot_filters = if (!is.null(values$final_selected_variants)) {
+            list(genotypes = values$plot_filters_genotypes,
+                 variants = values$plot_filters_variants,
+                 annotations = values$plot_filters_annotations)
+          }
+        ))
+      }))
+      vd_repro$register("hotspot", reactive({
+        req(repro_rec$region, values$table_annotations, values$table_genotypes)
+        repro_vd_hotspot_step(list(
+          method = repro_rec$region$method,
+          gene_name = repro_rec$region$gene_name,
+          text_sz = if (is.null(input$gene_txt_sz)) 2.5 else input$gene_txt_sz,
+          plot_annotations = !is.null(values$final_selected_variants) &&
+            length(values$plot_filters_annotations) > 0
+        ))
+      }))
+      vd_repro$register("ld", reactive({
+        req(repro_rec$ld)
+        repro_vd_ld_step(repro_rec$ld)
+      }))
+      vd_repro$register("pcil_data", reactive({
+        req(rv$pcil_data)
+        repro_vd_pcil_data_step(list(mode = repro_mode()))
+      }))
+      vd_repro$register("pcil_families", reactive({
+        req(repro_rec$families)
+        repro_vd_pcil_families_step(c(repro_rec$families, list(mode = repro_mode())))
+      }))
+      vd_repro$register("pcil_positive", reactive({
+        req(repro_rec$positive)
+        repro_vd_pcil_positive_step(repro_rec$positive)
+      }))
+      vd_repro$register("pcil_negative", reactive({
+        req(repro_rec$negative)
+        repro_vd_pcil_negative_step(repro_rec$negative)
+      }))
+      vd_repro$register("kasp", reactive({
+        req(repro_rec$kasp)
+        repro_vd_kasp_step(repro_rec$kasp)
+      }))
+
+      mod_repro_server(
+        "repro", vd_repro, key = "connect",
+        title = repro_vd_title,
+        script_name = repro_vd_script,
+        labels = repro_vd_labels,
+        optional = c("region", "hotspot", "ld", "pcil_positive", "pcil_negative",
+                     "pcil_families", "kasp", "disconnect"),
+        bundle = FALSE,
+        notes = repro_vd_notes
+      )
+    }
   })
 }

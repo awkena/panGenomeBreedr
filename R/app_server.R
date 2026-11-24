@@ -128,10 +128,15 @@ app_server <- function(input, output, session) {
   mod_kasp_marker_design_server(id = "kasp_marker_design_1")
 
   ## ------------------------- Marker Validation Server side -------------------##
+  # Shared record of the steps run in this workflow, for the
+  # "Reproduce this" scripts (see R/utils_repro.R)
+  kasp_repro <- repro_recorder()
+
   # import_data_entities; returns kasp data after being read
   import_data_entities <- mod_mv_read_kasp_csv_server(
     "mv_read_kasp_csv_1",
-    demo = reactive(input$btn_try_demo)
+    demo = reactive(input$btn_try_demo),
+    repro = kasp_repro
   )
 
   # Home page demo: open the validation tab; the module loads the example data
@@ -146,7 +151,8 @@ app_server <- function(input, output, session) {
   # nsamples, alleles & call rates
   mod_mv_nsamples_plate_server(
     "mv_nsamples_plate_1",
-    kasp_data = import_data_entities
+    kasp_data = import_data_entities,
+    repro = kasp_repro
   )
   mod_mv_get_alleles_server(
     "mv_get_alleles_1",
@@ -154,27 +160,31 @@ app_server <- function(input, output, session) {
   )
   mod_mv_call_rate_server(
     "mv_call_rate_1",
-    kasp_data = import_data_entities
+    kasp_data = import_data_entities,
+    repro = kasp_repro
   )
 
   # Color coding server side; returns a reactive with the color-coded plates
   color_code_res <- mod_mv_kasp_color_server(
     "mv_kasp_color_1",
-    kasp_data = import_data_entities
+    kasp_data = import_data_entities,
+    repro = kasp_repro
   )
 
   # Qc plot server portion
   mod_mv_kasp_qc_ggplot_server(
     id = "mv_kasp_qc_ggplot_1",
     kasp_data = import_data_entities,
-    color_coded = color_code_res
+    color_coded = color_code_res,
+    repro = kasp_repro
   )
 
   # Predictive summary and status server side
   mod_mv_pred_sum_stat_server(
     "mv_pred_sum_stat_1",
     color_code_res = color_code_res,
-    kasp_data = import_data_entities
+    kasp_data = import_data_entities,
+    repro = kasp_repro
   )
 
   ## -------------------- Decision support, server-side ------------------------##

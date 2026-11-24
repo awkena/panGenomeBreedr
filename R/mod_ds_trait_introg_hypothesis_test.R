@@ -295,7 +295,7 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
 
                     # What to show
                     div(
-                      tags$p(class = "fw-semibold mb-2", "Samples and annotations"),
+                      tags$p(class = "fw-semibold mb-2", "Samples"),
                       selectInput(
                         inputId = ns("parents"),
                         label = label_help("Parents", "Recurrent and donor parent, shown as the top rows of the heatmap."),
@@ -314,51 +314,10 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                         step = 1,
                         width = "100%"
                       ),
-                      radioButtons(
-                        inputId = ns("options"),
-                        label = label_help(
-                          "Trait annotations",
-                          "Mark the positions of known trait loci (QTLs) on the heatmap."
-                        ),
-                        choices = c(
-                          "Hide" = "no",
-                          "Show" = "yes"
-                        ),
-                        selected = "no",
-                        inline = TRUE
-                      ),
-                      conditionalPanel(
-                        condition = "input.options == 'yes'",
-                        ns = ns,
-                        actionButton(
-                          inputId = ns("newBtn"),
-                          label = "Define QTL Coordinates",
-                          icon = icon("location-crosshairs"),
-                          class = "btn-outline-primary mb-3 w-100"
-                        ),
-                        conditionalPanel(
-                          condition = "output.qtls_defined === true",
-                          ns = ns,
-                          radioButtons(
-                            inputId = ns("focus_qtl"),
-                            label = "Which QTLs to annotate?",
-                            choices = c(
-                              "Specific QTLs (zoom in)" = "yes",
-                              "All QTLs" = "no"
-                            ),
-                            selected = "no"
-                          ),
-                          conditionalPanel(
-                            condition = "input.focus_qtl == 'yes'",
-                            ns = ns,
-                            selectInput(
-                              inputId = ns("qtls"),
-                              label = "Select defined QTL(s)",
-                              choices = NULL,
-                              multiple = TRUE
-                            )
-                          )
-                        )
+                      tags$p(
+                        class = "small text-muted mb-0",
+                        icon("location-dot"),
+                        "To mark trait loci (QTLs), use Annotate in the Heatmap Viewer."
                       )
                     )
                   ),
@@ -436,6 +395,54 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                           choices = NULL,
                           width = "100%"
                         )
+                      ),
+                      # Trait loci, shown on the heatmap as soon as they change
+                      bslib::popover(
+                        tags$button(
+                          type = "button",
+                          class = "btn btn-sm btn-outline-secondary",
+                          icon("location-dot"), " Annotate"
+                        ),
+                        tags$p(
+                          class = "small text-muted",
+                          "Mark trait loci (QTLs) on the heatmap. Changes show right away."
+                        ),
+                        checkboxGroupInput(
+                          inputId = ns("show_qtls"),
+                          label = "Loci to show",
+                          choices = character(0),
+                          width = "100%"
+                        ),
+                        checkboxInput(
+                          inputId = ns("zoom_qtl"),
+                          label = "Zoom in on the shown loci",
+                          value = FALSE
+                        ),
+                        tags$hr(class = "my-2"),
+                        tags$p(class = "fw-semibold mb-1", "Add a locus"),
+                        bslib::layout_columns(
+                          col_widths = c(8, 4),
+                          textInput(ns("annot_name"), "Name", value = "", placeholder = "e.g. Stg5"),
+                          numericInput(ns("annot_chr"), "Chr", value = 1, min = 1, step = 1)
+                        ),
+                        bslib::layout_columns(
+                          numericInput(ns("annot_start"), "Start (bp)", value = NA, min = 0),
+                          numericInput(ns("annot_end"), "End (bp)", value = NA, min = 0)
+                        ),
+                        tags$p(class = "small text-muted", "Leave End empty to mark a single position."),
+                        actionButton(
+                          inputId = ns("annot_add"),
+                          label = "Add locus",
+                          icon = icon("plus"),
+                          class = "btn-success btn-sm w-100 mb-2"
+                        ),
+                        div(
+                          class = "d-flex justify-content-between",
+                          actionLink(ns("annot_remove"), "Remove unchecked"),
+                          actionLink(ns("newBtn"), "Open the full form")
+                        ),
+                        title = "Trait annotations",
+                        placement = "bottom"
                       ),
                       plot_options_button(
                         textInput(
@@ -591,7 +598,8 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
                       )
                     ),
                     div(
-                      class = "mb-3",
+                      class = "mb-3 d-flex gap-2",
+                      mod_repro_ui(ns("repro"), class = "btn-outline-secondary btn-sm"),
                       downloadButton(ns("download_check"), "CSV", class = "btn-sm btn-success")
                     )
                   ),
@@ -615,13 +623,14 @@ mod_ds_trait_introg_hypothesis_test_ui <- function(id) {
 #' 4. Performs hypothesis testing
 #'
 #' @param id Unique namespace ID for the module
+#' @param repro If TRUE, add the "Reproduce this" script for the last run.
 #'
 #' @importFrom shiny moduleServer observeEvent req reactive renderUI observe
 #' @importFrom shiny showModal modalDialog modalButton removeModal insertUI
 #' @importFrom shiny removeUI updateSelectInput
 #' @importFrom utils read.csv
 #' @noRd
-mod_ds_trait_introg_hypothesis_test_server <- function(id) {
+mod_ds_trait_introg_hypothesis_test_server <- function(id, repro = TRUE) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -701,12 +710,14 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
     # Genotype file to read: the latest upload, or the bundled example
     data_path <- reactiveVal(NULL)
+    data_name <- reactiveVal(NULL)
     example_active <- reactiveVal(FALSE)
     example_name <- "agriplex_dat.csv"
 
     # New upload
     observeEvent(input$data_id, {
       data_path(input$data_id$datapath)
+      data_name(input$data_id$name)
       example_active(FALSE)
     })
 
@@ -730,6 +741,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       updateTextInput(session, "sep_marker", value = "_")
 
       data_path(example_file(example_name))
+      data_name(example_name)
       example_active(TRUE)
     })
 
@@ -872,6 +884,9 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       }
     })
 
+    # Settings of the last successful Process Data, for the reproducible script
+    last_process <- reactiveVal(NULL)
+
     # Process data on Process Data
     Result <- eventReactive(input$config, {
       req(sub_validated_data(),input$marker_start,input$sample_id ,
@@ -883,6 +898,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
         text = "Processing... Please wait."
       )
 
+      last_process(NULL)
       result <- tryCatch({
         proc_nd_map_func(data = sub_validated_data() ,
                           marker_start = input$marker_start ,
@@ -915,6 +931,18 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
         })
 
       })
+
+      if (!is.null(result)) {
+        map_up <- if_ready(map_file())
+        last_process(repro_ds_process_settings(
+          input,
+          data_path = data_path(), data_name = data_name(), result = result,
+          map_path = if (!is.null(map_up)) input$mapfile$datapath,
+          map_name = if (!is.null(map_up)) input$mapfile$name,
+          map_data = map_up,
+          data_cols = data_colnames()
+        ))
+      }
 
       result
     })
@@ -1000,6 +1028,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
 
     # QTLs entered in the form
     values <- reactiveValues(
+      form_names = character(),
       count = 1,
       removed_traits = c(),
       trait_data = NULL
@@ -1008,7 +1037,7 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     # Open the form, and remember which tab to go back to
     coord_return <- reactiveVal("main_config")
     observeEvent(input$newBtn, {
-      coord_return("main_config")
+      coord_return("plot_tab")
       bslib::nav_select("config_pages", "coord_entry")
     })
 
@@ -1068,7 +1097,11 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
         return()
       }
 
-      values$trait_data <- trait_list
+      # Keep loci added from Annotate; replace the ones that came from this form
+      kept <- values$trait_data[setdiff(names(values$trait_data),
+                                        c(values$form_names, names(trait_list)))]
+      values$trait_data <- c(trait_list, kept)
+      values$form_names <- names(trait_list)
       bslib::nav_select("config_pages", coord_return())
 
       shinyWidgets::show_toast("", "Trait positions saved.", type = "success")
@@ -1078,8 +1111,6 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     observeEvent(input$cancel_coords, {
       bslib::nav_select("config_pages", coord_return())
 
-      values$trait_data <- NULL # nullify all existing trait data
-
       # Toast to confirm nothing was saved
       shinyWidgets::show_toast(
         title = "",
@@ -1088,20 +1119,60 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       )
     })
 
-    # Whether any QTLs are saved (shows the QTL options)
-    output$qtls_defined <- reactive({
-      !is.null(values$trait_data) && length(values$trait_data) > 0
-    })
-    outputOptions(output, "qtls_defined", suspendWhenHidden = FALSE)
+    # ANNOTATE --------------------------------------------------------------
 
-    # Fill the QTL picker when focusing on QTLs
-    observe({
-      req(values$trait_data)
-      if(input$focus_qtl == 'yes'){
-        updateSelectInput(session, inputId = 'qtls',choices = names(values$trait_data))
-      } else {
-        updateSelectInput(session, inputId = 'qtls',choices = NULL,selected = NULL)
+    # List the loci in Annotate. New loci are shown; the rest keep their tick
+    known_loci <- character()
+    observeEvent(values$trait_data, {
+      loci <- names(values$trait_data)
+      ticked <- intersect(isolate(input$show_qtls), loci)
+      ticked <- union(ticked, setdiff(loci, known_loci))
+      known_loci <<- loci
+      updateCheckboxGroupInput(session, "show_qtls",
+                               choices = if (length(loci)) loci else character(0),
+                               selected = ticked)
+    }, ignoreNULL = FALSE)
+
+    # Add a locus from Annotate
+    observeEvent(input$annot_add, {
+      name <- trimws(input$annot_name)
+      chr <- input$annot_chr
+      start <- input$annot_start
+      end <- input$annot_end
+      if (!nzchar(name) || is.na(chr) || is.na(start)) {
+        shinyWidgets::show_toast("", "Give the locus a name, a chromosome and a start position.", type = "warning")
+        return()
       }
+      if (!is.na(end) && end < start) {
+        shinyWidgets::show_toast("", "End must be after Start.", type = "warning")
+        return()
+      }
+      locus <- if (is.na(end) || end == start) {
+        c(chr = as.numeric(chr), pos = as.numeric(start))
+      } else {
+        c(chr = as.numeric(chr), start = as.numeric(start), end = as.numeric(end))
+      }
+      loci <- values$trait_data
+      if (is.null(loci)) loci <- list()
+      loci[[name]] <- locus
+      values$trait_data <- loci
+      updateTextInput(session, "annot_name", value = "")
+      shinyWidgets::show_toast("", paste("Added", name), type = "success")
+    })
+
+    # Remove the loci that are not ticked
+    observeEvent(input$annot_remove, {
+      req(values$trait_data)
+      keep <- intersect(names(values$trait_data), input$show_qtls)
+      values$trait_data <- if (length(keep)) values$trait_data[keep] else NULL
+      values$form_names <- intersect(values$form_names, keep)
+    })
+
+    # Loci to draw: the ticked ones
+    shown_loci <- reactive({
+      loci <- values$trait_data
+      if (is.null(loci)) return(list())
+      loci[intersect(names(loci), input$show_qtls)]
     })
 
     # HEATMAP ---------------------------------------------------------------
@@ -1110,7 +1181,6 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     observeEvent(input$generate_heatmap, {
       if (!validate_required_inputs(list(
         "Processed Data (process your data first)" = Result(),
-        "Display Annotations Option" = input$options,
         "Marker Column" = input$snp_ids,
         "Chromosome Column" = input$chr,
         "Position Column" = input$chr_pos,
@@ -1124,10 +1194,15 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     # Heatmap, redrawn by Generate Heatmap or by Apply in Appearance.
     # No ignoreInit: the first run happens after the first click, and
     # ignoreInit would throw that click away
-    heatmap_plot <- eventReactive(list(input$generate_heatmap, input$redraw_heatmap), {
+    # Plot function and arguments of the last heatmap, for the script
+    heatmap_used <- reactiveVal(NULL)
+    # Also redrawn when the loci or their ticks change in Annotate
+    heatmap_plot <- eventReactive(list(input$generate_heatmap, input$redraw_heatmap,
+                                       shown_loci(), input$zoom_qtl), {
       req(input$generate_heatmap > 0)
-      req(input$options , Result(),input$snp_ids, input$chr,input$chr_pos ,
+      req(Result(),input$snp_ids, input$chr,input$chr_pos ,
           input$parents  )
+      loci <- shown_loci()
 
       # Default color mapping
       col_mapping <- c('-5' = 'deeppink', '-2' = 'cornflowerblue', '-1' = 'beige',
@@ -1136,12 +1211,10 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       col_labels <- c('-5' = "Missing", '-2' = 'Error', '-1' = "Monomorphic",
                       '0' = input$parents[2], '0.5' = "Heterozygous", '1' = input$parents[1])
 
-      if(input$options == "no"){
-        cross_qc_heatmap(
+      if(length(loci) == 0){
+        args <- list(
           col_mapping = if(is.null(input$col_mapping)) col_mapping else input$col_mapping,
           col_labels  = if(is.null(input$col_labels)) col_labels else input$col_labels,
-          x = Result()$proc_kasp_f,
-          map_file = Result()$mapfile,
           snp_ids = input$snp_ids,
           chr = input$chr,
           chr_pos = input$chr_pos,
@@ -1155,18 +1228,22 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
           panel_fill = input$panel_fill,
           panel_col = input$panel_col,
           # Suppose user forgets to set it
-          label_offset = if(is.null(input$label_offset)) -1 else input$label_offset,
-          pdf = FALSE
+          label_offset = if(is.null(input$label_offset)) -1 else input$label_offset
         )
-      } else if(input$options == 'yes' && input$focus_qtl == 'yes' ){ # Zoomed in plot
-        req(values$trait_data ,input$qtls)
+        plots <- do.call(cross_qc_heatmap, c(
+          list(x = Result()$proc_kasp_f, map_file = Result()$mapfile, pdf = FALSE),
+          args
+        ))
+        heatmap_used(list(fn = "cross_qc_heatmap", args = args))
+        plots
+      } else if(isTRUE(input$zoom_qtl)){ # Zoomed in plot
 
         df <- Result()$proc_kasp_f
         mapfile <- Result()$mapfile
 
         # Automatically setting the start and end from user defined position
-        trait_lists <- values$trait_data
-        target_qtl <- input$qtls # user's target or focused qtls
+        trait_lists <- loci
+        target_qtl <- names(loci)
 
         # Extract genomic regions of interest. based on user selected list.
         focus_trait_list <- lapply(trait_lists[target_qtl], function(x) {
@@ -1224,31 +1301,33 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
         df_updated <- df[, marker_indices, drop = F ]
         subset_map <- mapfile[marker_indices, , drop = F]
 
-        cross_qc_annotate(x = df_updated ,
-                          map_file = subset_map,
-                          snp_ids = input$snp_ids,
-                          chr = input$chr,
-                          chr_pos = input$chr_pos,
-                          parents = input$parents,
-                          trait_pos =  focus_trait_list,
-                          group_sz = if(input$group_sz == 0) nrow(df_updated) - 2 else input$group_sz,
-                          pdf = F,
-                          legend_title = if(is.null(input$legend_title)) "Genetic Heatmap Key" else input$legend_title,
-                          col_mapping = if(is.null(input$col_mapping)) col_mapping else input$col_mapping,
-                          col_labels = if(is.null(input$col_labels)) col_labels else input$col_labels,
-                          panel_fill = input$panel_fill ,
-                          panel_col = input$panel_col,
-                          alpha = input$alpha,
-                          text_size = if(is.null(input$text_size)) 12 else input$text_size,
-                          text_scale_fct = if(input$text_scale_fct <= 0) 0.1 else input$text_scale_fct,
-                          label_offset = if(is.null(input$label_offset)) -1 else input$label_offset
+        args <- list(
+          snp_ids = input$snp_ids,
+          chr = input$chr,
+          chr_pos = input$chr_pos,
+          parents = input$parents,
+          trait_pos =  focus_trait_list,
+          group_sz = if(input$group_sz == 0) nrow(df_updated) - 2 else input$group_sz,
+          legend_title = if(is.null(input$legend_title)) "Genetic Heatmap Key" else input$legend_title,
+          col_mapping = if(is.null(input$col_mapping)) col_mapping else input$col_mapping,
+          col_labels = if(is.null(input$col_labels)) col_labels else input$col_labels,
+          panel_fill = input$panel_fill ,
+          panel_col = input$panel_col,
+          alpha = input$alpha,
+          text_size = if(is.null(input$text_size)) 12 else input$text_size,
+          text_scale_fct = if(input$text_scale_fct <= 0) 0.1 else input$text_scale_fct,
+          label_offset = if(is.null(input$label_offset)) -1 else input$label_offset
         )
+        plots <- do.call(cross_qc_annotate, c(
+          list(x = df_updated, map_file = subset_map, pdf = FALSE),
+          args
+        ))
+        heatmap_used(list(fn = "cross_qc_annotate", args = args, zoom_idx = marker_indices))
+        plots
         }
-      else if(input$options == "yes" && input$focus_qtl == 'no'){
-        req(values$trait_data)
-
+      else {
         # Extract genomic positions.
-        positions_only_list <- lapply(values$trait_data, function(x) {
+        positions_only_list <- lapply(loci, function(x) {
           if ("pos" %in% names(x)) {
             return(c(chr = unname(x["chr"]), pos = unname(x["pos"])))
           }
@@ -1259,11 +1338,9 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
         })
 
         # Cross qc heatmap2: a single vertical bar
-        cross_qc_heatmap2(
+        args <- list(
           col_mapping = if(is.null(input$col_mapping)) col_mapping else input$col_mapping,
           col_labels  = if(is.null(input$col_labels)) col_labels else input$col_labels,
-          x = Result()$proc_kasp_f,
-          map_file = Result()$mapfile,
           snp_ids = input$snp_ids,
           chr = input$chr,
           chr_pos = input$chr_pos,
@@ -1276,9 +1353,14 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
           alpha = if(is.null(input$alpha)) 1 else input$alpha,
           label_offset = if(is.null(input$label_offset)) -1 else input$label_offset,
           panel_fill = input$panel_fill,
-          panel_col = input$panel_col,
-          pdf = FALSE
+          panel_col = input$panel_col
         )
+        plots <- do.call(cross_qc_heatmap2, c(
+          list(x = Result()$proc_kasp_f, map_file = Result()$mapfile, pdf = FALSE),
+          args
+        ))
+        heatmap_used(list(fn = "cross_qc_heatmap2", args = args))
+        plots
       }
 
     })
@@ -1286,7 +1368,11 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
     # Fill the progeny batch picker
     observe({
       req(heatmap_plot())
-      updateSelectInput(session,inputId = 'batch_no',choices = names(heatmap_plot()))
+      # Keep the batch they were looking at when the heatmap is redrawn
+      batches <- names(heatmap_plot())
+      current <- isolate(input$batch_no)
+      updateSelectInput(session, inputId = 'batch_no', choices = batches,
+                        selected = if (!is.null(current) && current %in% batches) current else batches[1])
     })
 
     # Heatmap for the selected batch
@@ -1340,6 +1426,9 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       updateSelectizeInput(session, "check_replicates", choices = others, selected = guess)
     })
 
+    # Arguments of the last check, for the script
+    check_used <- reactiveVal(NULL)
+
     # Run the check for every progeny and QTL
     check_result <- reactive({
       req(Result(), values$trait_data, input$check_expected,
@@ -1351,19 +1440,20 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
         if (!is.null(sel) && sel %in% cols) sel else safe_grep_match(pattern, choices = cols)[1]
       }
 
+      check_args <- list(
+        snp_ids = pick(input$snp_ids, "id"),
+        chr = pick(input$chr, "chr"),
+        chr_pos = pick(input$chr_pos, "pos"),
+        parents = c(Result()$rp_name, Result()$dp_name),
+        trait_pos = values$trait_data,
+        expected = input$check_expected,
+        threshold = min(max(input$check_threshold, 1), 100) / 100,
+        n_nearest = max(1, round(input$check_nearest))
+      )
+      check_used(check_args)
+
       tryCatch(
-        introgression_check(
-          x = Result()$proc_kasp_f,
-          map_file = map,
-          snp_ids = pick(input$snp_ids, "id"),
-          chr = pick(input$chr, "chr"),
-          chr_pos = pick(input$chr_pos, "pos"),
-          parents = c(Result()$rp_name, Result()$dp_name),
-          trait_pos = values$trait_data,
-          expected = input$check_expected,
-          threshold = min(max(input$check_threshold, 1), 100) / 100,
-          n_nearest = max(1, round(input$check_nearest))
-        ),
+        do.call(introgression_check, c(list(x = Result()$proc_kasp_f, map_file = map), check_args)),
         error = function(e) {
           structure(list(message = conditionMessage(e)), class = "check_error")
         }
@@ -1449,6 +1539,29 @@ mod_ds_trait_introg_hypothesis_test_server <- function(id) {
       coord_return("check_tab")
       bslib::nav_select("config_pages", "coord_entry")
     })
+
+    # REPRODUCIBLE SCRIPT ---------------------------------------------------
+
+    if (isTRUE(repro)) {
+      ds_repro <- repro_recorder()
+      ds_repro$register("process", reactive({
+        req(last_process())
+        repro_ds_process_step(last_process())
+      }))
+      ds_repro$register("heatmap", reactive({
+        req(if_ready(heatmap_plot()), heatmap_used())
+        repro_ds_heatmap_step(heatmap_used())
+      }))
+      ds_repro$register("check", reactive({
+        req(is.data.frame(check_result()), check_used())
+        repro_ds_check_step(check_used())
+      }))
+      mod_repro_server("repro", ds_repro, key = "process",
+                       title = repro_ds_titles[["introgression"]],
+                       script_name = repro_ds_scripts[["introgression"]],
+                       labels = c(process = "Process Data"),
+                       optional = c("heatmap", "check"))
+    }
 
     # DOWNLOADS -------------------------------------------------------------
 

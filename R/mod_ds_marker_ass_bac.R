@@ -395,7 +395,10 @@ mod_ds_marker_ass_bac_ui <- function(id) {
                   ui_result_card(
                     "RPP table",
                     full_screen = TRUE,
-                    actions = downloadButton(ns("download_rpp_table"), "CSV", class = "btn-sm btn-success"),
+                    actions = tagList(
+                      mod_repro_ui(ns("repro"), class = "btn-outline-secondary btn-sm"),
+                      downloadButton(ns("download_rpp_table"), "CSV", class = "btn-sm btn-success")
+                    ),
                     uiOutput(ns("rpp_summary")),
                     DT::DTOutput(ns("rpp_table"))
                   )
@@ -414,12 +417,13 @@ mod_ds_marker_ass_bac_ui <- function(id) {
 #' @description Server logic for the MABC analysis module
 #'
 #' @param id Unique namespace ID
+#' @param repro If TRUE, add the "Reproduce this" script for the last run.
 #'
 #' @importFrom shiny moduleServer observeEvent req reactive renderUI observe
 #' @importFrom utils read.csv
 #' @importFrom stats setNames
 #' @noRd
-mod_ds_marker_ass_bac_server <- function(id) {
+mod_ds_marker_ass_bac_server <- function(id, repro = TRUE) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -511,12 +515,14 @@ mod_ds_marker_ass_bac_server <- function(id) {
 
     # Genotype file to read: the latest upload, or the bundled example
     data_path <- reactiveVal(NULL)
+    data_name <- reactiveVal(NULL)
     example_active <- reactiveVal(FALSE)
     example_name <- "agriplex_dat.csv"
 
     # New upload
     observeEvent(input$data_id, {
       data_path(input$data_id$datapath)
+      data_name(input$data_id$name)
       example_active(FALSE)
     })
 
@@ -540,6 +546,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
       updateTextInput(session, "sep_marker", value = "_")
 
       data_path(example_file(example_name))
+      data_name(example_name)
       example_active(TRUE)
     })
 
@@ -685,6 +692,9 @@ mod_ds_marker_ass_bac_server <- function(id) {
       }
     })
 
+    # Settings of the last successful Process Data, for the reproducible script
+    last_process <- reactiveVal(NULL)
+
     # Process data on Process Data
     Result <- eventReactive(input$config, {
       req(
@@ -698,6 +708,7 @@ mod_ds_marker_ass_bac_server <- function(id) {
         text = "Processing... Please wait."
       )
 
+      last_process(NULL)
       result <- tryCatch({
         proc_nd_map_func(
           data = sub_validated_data(),
@@ -729,6 +740,18 @@ mod_ds_marker_ass_bac_server <- function(id) {
           shinybusy::remove_modal_spinner()
         })
       })
+
+      if (!is.null(result)) {
+        map_up <- if_ready(map_file())
+        last_process(repro_ds_process_settings(
+          input,
+          data_path = data_path(), data_name = data_name(), result = result,
+          map_path = if (!is.null(map_up)) input$mapfile$datapath,
+          map_name = if (!is.null(map_up)) input$mapfile$name,
+          map_data = map_up,
+          data_cols = data_colnames()
+        ))
+      }
 
       result
     })
@@ -854,28 +877,32 @@ mod_ds_marker_ass_bac_server <- function(id) {
     # Bar plot, redrawn by Generate Plot or by Apply in Appearance.
     # No ignoreInit: the first run happens after the first click, and
     # ignoreInit would throw that click away
+    rpp_plot_args <- reactiveVal(NULL)
     rpp_barplot_result <- eventReactive(list(input$generate_rpp_plot, input$redraw_rpp), {
       req(input$generate_rpp_plot > 0)
       req(calc_rpp_bc_result(), input$rpp_col, input$rpp_sample_id, input$rpp_threshold_mode)
 
+      # Arguments of rpp_barplot(), also written into the reproducible script
+      plot_args <- list(
+        rpp_sample_id = input$rpp_sample_id,
+        rpp_col = input$rpp_col,
+        rpp_threshold = if (input$rpp_threshold_mode == "fixed") input$rpp_threshold else NULL,
+        text_size = input$text_size,
+        text_scale_fct = input$text_scale_fct,
+        alpha = input$alpha,
+        bar_width = input$bar_width,
+        aspect_ratio = input$aspect_ratio,
+        bar_col = input$bar_col,
+        thresh_line_col = input$thresh_line_col,
+        show_above_thresh = input$show_above_thresh,
+        bc_gen = if (input$rpp_threshold_mode == "bc_gen") input$bc_gen else NULL
+      )
+
       tryCatch(
         {
-          rpp_barplot(
-            rpp_df = calc_rpp_bc_result(),
-            rpp_sample_id = input$rpp_sample_id,
-            rpp_col = input$rpp_col,
-            rpp_threshold = if (input$rpp_threshold_mode == "fixed") input$rpp_threshold else NULL,
-            text_size = input$text_size,
-            text_scale_fct = input$text_scale_fct,
-            alpha = input$alpha,
-            bar_width = input$bar_width,
-            aspect_ratio = input$aspect_ratio,
-            bar_col = input$bar_col,
-            thresh_line_col = input$thresh_line_col,
-            show_above_thresh = input$show_above_thresh,
-            bc_gen = if (input$rpp_threshold_mode == "bc_gen") input$bc_gen else NULL,
-            pdf = FALSE
-          )
+          plot <- do.call(rpp_barplot, c(list(rpp_df = calc_rpp_bc_result(), pdf = FALSE), plot_args))
+          rpp_plot_args(plot_args)
+          plot
         },
         error = function(e) {
           showNotification(paste("Couldn't draw the RPP plot:", e$message), type = "error")
@@ -983,6 +1010,49 @@ mod_ds_marker_ass_bac_server <- function(id) {
           fontWeight = "bold"
         )
     })
+
+    # REPRODUCIBLE SCRIPT ---------------------------------------------------
+
+    if (isTRUE(repro)) {
+      ds_repro <- repro_recorder()
+      ds_repro$register("process", reactive({
+        req(last_process())
+        repro_ds_process_step(last_process())
+      }))
+      ds_repro$register("rpp", reactive({
+        req(calc_rpp_bc_result(), Result(), input$rpp_sample_id, input$rpp_col)
+        rp_name <- sub_validated_data()[as.numeric(input$rp), input$sample_id]
+        repro_ds_rpp_step(
+          list(
+            rpp = list(
+              map_chr = input$chr,
+              map_pos = input$chr_pos,
+              map_snp_ids = input$snp_ids,
+              rp = rp_name,
+              na_code = -5,
+              weighted = as.logical(input$weight_rpp)
+            ),
+            plot = if (is.null(if_ready(rpp_barplot_result()))) NULL else rpp_plot_args(),
+            sample_col = input$rpp_sample_id,
+            rpp_col = input$rpp_col,
+            threshold = rpp_threshold_value(),
+            threshold_note = if (identical(input$rpp_threshold_mode, "bc_gen")) {
+              paste0("(expected RPP for BC", input$bc_gen, ")")
+            } else {
+              "(typed in the app)"
+            },
+            parents = c(Result()$rp_name, Result()$dp_name),
+            replicates = input$rpp_replicates
+          ),
+          width = if (is.null(input$download_plot2_width)) 8 else input$download_plot2_width,
+          height = if (is.null(input$download_plot2_height)) 6 else input$download_plot2_height
+        )
+      }))
+      mod_repro_server("repro", ds_repro, key = "rpp",
+                       title = repro_ds_titles[["mabc"]],
+                       script_name = repro_ds_scripts[["mabc"]],
+                       labels = c(process = "Process Data", rpp = "RPP Settings: pick the map columns"))
+    }
 
     # DOWNLOADS -------------------------------------------------------------
 

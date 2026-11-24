@@ -39,7 +39,8 @@ mod_mv_nsamples_plate_ui <- function(id) {
         ),
         choices = NULL,
         multiple = FALSE
-      )
+      ),
+      mod_repro_ui(ns("repro"))
     ),
 
     # MAIN PANEL ------------------------------------------------------------
@@ -57,6 +58,8 @@ mod_mv_nsamples_plate_ui <- function(id) {
 #'
 #' @param id An ID string that corresponds with the ID used to call the module's UI function
 #' @param kasp_data A reactive expression that returns the KASP data frame
+#' @param repro Optional `repro_recorder()`. If given, the module registers
+#'   its step as `"nsamples"` for the "Reproduce this" scripts.
 #'
 #' @return A summary of samples per plate
 #'
@@ -64,7 +67,7 @@ mod_mv_nsamples_plate_ui <- function(id) {
 #'
 #' @importFrom shiny moduleServer reactive reactiveVal observeEvent req updateSelectInput invalidateLater
 #'
-mod_mv_nsamples_plate_server <- function(id, kasp_data) {
+mod_mv_nsamples_plate_server <- function(id, kasp_data, repro = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -137,6 +140,22 @@ mod_mv_nsamples_plate_server <- function(id, kasp_data) {
       df <- data.frame(nsample_plate_result(), check.names = FALSE)
       DT::datatable(df, options = list(pageLength = 10, scrollX = TRUE))
     })
+
+    # REPRODUCIBLE SCRIPT ---------------------------------------------------
+
+    if (!is.null(repro)) {
+      repro$register("nsamples", reactive({
+        req(nsample_plate_result())
+        repro_kasp_nsamples_step(list(
+          subset = input$subset_id,
+          snp_id = input$snps_id,
+          plate_id = input$plates_id
+        ))
+      }))
+      mod_repro_server("repro", repro, key = "nsamples",
+                       title = repro_kasp_title, script_name = repro_kasp_script,
+                       labels = repro_kasp_labels)
+    }
 
     # Toast once each time the summary changes
     last_summary <- NULL
