@@ -63,7 +63,8 @@ mod_mv_read_kasp_csv_ui <- function(id) {
           )
         )
       ),
-      run_button(ns("submit_btn"), "Run Analysis")
+      run_button(ns("submit_btn"), "Run Analysis"),
+      mod_repro_ui(ns("repro"))
     ),
 
     # MAIN PANEL ------------------------------------------------------------
@@ -85,11 +86,13 @@ mod_mv_read_kasp_csv_ui <- function(id) {
 #' mv_read_kasp_csv Server Functions
 #' @param demo A reactive that loads the example data each time it changes
 #'   (used by the Home page "Try the demo" button).
+#' @param repro Optional `repro_recorder()`. If given, the module registers
+#'   its step as `"read"` for the "Reproduce this" scripts.
 #' @import shiny
 #'
 #' @noRd
 
-mod_mv_read_kasp_csv_server <- function(id, demo = reactive(NULL)) {
+mod_mv_read_kasp_csv_server <- function(id, demo = reactive(NULL), repro = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -103,6 +106,10 @@ mod_mv_read_kasp_csv_server <- function(id, demo = reactive(NULL)) {
 
     # File to read: the latest upload, or the bundled example
     data_path <- reactiveVal(NULL)
+    data_name <- reactiveVal(NULL)
+
+    # Settings of the last successful read, for the reproducible script
+    last_read <- reactiveVal(NULL)
     using_example <- reactiveVal(FALSE)
     example_name <- "Genotyping_141.010_01.csv"
     default_row_tags <- "Statistics , DNA , SNPs , Scaling , Data"
@@ -112,6 +119,7 @@ mod_mv_read_kasp_csv_server <- function(id, demo = reactive(NULL)) {
     # New upload
     observeEvent(input$Kasp_csv.file, {
       data_path(input$Kasp_csv.file$datapath)
+      data_name(input$Kasp_csv.file$name)
       using_example(FALSE)
     })
 
@@ -131,6 +139,13 @@ mod_mv_read_kasp_csv_server <- function(id, demo = reactive(NULL)) {
           }
 
           import_data(read_kasp_result)
+          last_read(list(
+            path = path,
+            name = data_name(),
+            datatype = datatype,
+            row_tags = trimws(unlist(strsplit(row_tags, split = ","))),
+            spacing = spacing
+          ))
           shinyWidgets::show_toast(
             title = "",
             text = "KASP data loaded",
@@ -173,6 +188,7 @@ mod_mv_read_kasp_csv_server <- function(id, demo = reactive(NULL)) {
       updateNumericInput(session, "data_space", value = 2)
 
       data_path(example_file(example_name))
+      data_name(example_name)
       using_example(TRUE)
       read_file(data_path(), "raw", default_row_tags, 2)
     }
@@ -182,8 +198,10 @@ mod_mv_read_kasp_csv_server <- function(id, demo = reactive(NULL)) {
     # Clear the example
     observeEvent(input$clear_example, {
       data_path(NULL)
+      data_name(NULL)
       using_example(FALSE)
       import_data(NULL)
+      last_read(NULL)
       add_plates(NULL)
     })
 
@@ -295,6 +313,18 @@ mod_mv_read_kasp_csv_server <- function(id, demo = reactive(NULL)) {
         }
       )
     })
+
+    # REPRODUCIBLE SCRIPT ---------------------------------------------------
+
+    if (!is.null(repro)) {
+      repro$register("read", reactive({
+        req(last_read(), add_plates())
+        repro_kasp_read_step(last_read())
+      }))
+      mod_repro_server("repro", repro, key = "read",
+                       title = repro_kasp_title, script_name = repro_kasp_script,
+                       labels = repro_kasp_labels)
+    }
 
     # Data with plates goes to the other Marker Validation modules
     return(add_plates)

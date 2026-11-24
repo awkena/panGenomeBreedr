@@ -182,22 +182,25 @@ mod_kasp_marker_design_ui <- function(id) {
               ui_result_card(
                 "KASP assays for Intertek",
                 full_screen = TRUE,
-                actions = bslib::popover(
-                  tags$button(
-                    type = "button",
-                    class = "btn btn-sm btn-success",
-                    icon("download"), " Download"
-                  ),
-                  textInput(inputId = ns("file_name"), label = "File name", value = "KASP_markers_for_Intertek"),
-                  selectInput(
-                    inputId = ns("exten"),
-                    label = "Format",
-                    choices = c("Excel (.xlsx)" = ".xlsx", "CSV (.csv)" = ".csv"),
-                    selected = ".xlsx"
-                  ),
-                  downloadButton(ns("download_table"), "Save", class = "btn-success w-100"),
-                  title = "Download table",
-                  placement = "bottom"
+                actions = tagList(
+                  mod_repro_ui(ns("repro"), class = "btn-outline-secondary btn-sm"),
+                  bslib::popover(
+                    tags$button(
+                      type = "button",
+                      class = "btn btn-sm btn-success",
+                      icon("download"), " Download"
+                    ),
+                    textInput(inputId = ns("file_name"), label = "File name", value = "KASP_markers_for_Intertek"),
+                    selectInput(
+                      inputId = ns("exten"),
+                      label = "Format",
+                      choices = c("Excel (.xlsx)" = ".xlsx", "CSV (.csv)" = ".csv"),
+                      selected = ".xlsx"
+                    ),
+                    downloadButton(ns("download_table"), "Save", class = "btn-success w-100"),
+                    title = "Download table",
+                    placement = "bottom"
+                  )
                 ),
                 uiOutput(ns("table_summary")),
                 DT::DTOutput(ns("kasp_table"))
@@ -249,11 +252,13 @@ mod_kasp_marker_design_ui <- function(id) {
 #'
 #' @param id Internal parameter for {shiny}.
 #' @param input,output,session Internal parameters for {shiny}.
+#' @param repro If TRUE, add the "Reproduce this" script for the last
+#'   design run.
 #' @importFrom shiny NS moduleServer observeEvent renderUI req reactiveVal
 #' @importFrom shiny div icon tags strong
 #' @noRd
 #'
-mod_kasp_marker_design_server <- function(id) {
+mod_kasp_marker_design_server <- function(id, repro = TRUE) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -284,6 +289,7 @@ mod_kasp_marker_design_server <- function(id) {
 
     # VCF to read: the latest upload, or the bundled example
     vcf_path <- reactiveVal(NULL)
+    vcf_name <- reactiveVal(NULL)
     example_active <- reactiveVal(FALSE)
     example_vcf <- "Sobic.002G302700_SNP_snpeff.vcf"
     example_genome_url <- "https://raw.githubusercontent.com/awkena/panGB/main/Chr02.fa.gz"
@@ -291,6 +297,7 @@ mod_kasp_marker_design_server <- function(id) {
     # New VCF upload
     observeEvent(input$vcf_file, {
       vcf_path(input$vcf_file$datapath)
+      vcf_name(input$vcf_file$name)
       example_active(FALSE)
     })
 
@@ -307,12 +314,14 @@ mod_kasp_marker_design_server <- function(id) {
       updateTextInput(session, "trait", value = "Example trait")
       updateTextInput(session, "owner", value = "panGenomeBreedr example")
       vcf_path(example_file(example_vcf))
+      vcf_name(example_vcf)
       example_active(TRUE)
     })
 
     # Clear the example
     observeEvent(input$clear_example, {
       vcf_path(NULL)
+      vcf_name(NULL)
       example_active(FALSE)
     })
 
@@ -560,6 +569,9 @@ mod_kasp_marker_design_server <- function(id) {
     kasp_des.result <- reactiveVal(NULL)
     kasp_des.plot <- reactiveVal(NULL)
 
+    # Settings of the last successful run, for the reproducible script
+    last_design <- reactiveVal(NULL)
+
     # Design KASP Markers
     observeEvent(input$run_but, {
       data_source_field <- if (identical(input$upload_choice, "snpEff Annotated VCF")) {
@@ -609,34 +621,63 @@ mod_kasp_marker_design_server <- function(id) {
         NULL
       }
 
+      # Arguments of kasp_marker_design() and make_intertek_table(), also
+      # written into the reproducible script
+      design_args <- list(
+        variant_id_col = input$variant_id_col,
+        chrom_col = input$chrom_col,
+        pos_col = input$pos_col,
+        ref_al_col = input$ref_al_col,
+        alt_al_col = input$alt_al_col,
+        geno_start = input$geno_start,
+        marker_IDs = input$marker_ID,
+        chr = input$chr_ID,
+        region_name = input$reg_name,
+        maf = input$maf
+      )
+      intertek_args <- list(
+        genome_version = input$genome_version,
+        region_name = input$reg_name,
+        trait = input$trait,
+        owner = input$owner
+      )
+
       tryCatch({
         # Call the vectorized kasp_marker_design function once
-        result_data <- kasp_marker_design(
-          vcf_file = vcf_file_path,
-          gt_df = genotype_df,
-          variant_id_col = input$variant_id_col,
-          chrom_col = input$chrom_col,
-          pos_col = input$pos_col,
-          ref_al_col = input$ref_al_col,
-          alt_al_col = input$alt_al_col,
-          geno_start = input$geno_start,
-          marker_IDs = input$marker_ID, # Pass the vector of IDs
-          chr = input$chr_ID,
-          genome_file = input$genome_file$datapath,
-          plot_file = tempdir(),
-          save_alignment = FALSE,
-          region_name = input$reg_name,
-          maf = input$maf
-        )
+        result_data <- do.call(kasp_marker_design, c(
+          list(
+            vcf_file = vcf_file_path,
+            gt_df = genotype_df,
+            genome_file = input$genome_file$datapath,
+            plot_file = tempdir(),
+            save_alignment = FALSE
+          ),
+          design_args
+        ))
 
         # Generate Intertek table
-        intertek_table <- make_intertek_table(
-          marker_data = result_data,
-          genome_version = input$genome_version,
-          region_name = input$reg_name,
-          trait = input$trait,
-          owner = input$owner
-        )
+        intertek_table <- do.call(make_intertek_table,
+                                  c(list(marker_data = result_data), intertek_args))
+
+        use_vcf <- identical(input$upload_choice, "snpEff Annotated VCF")
+        last_design(list(
+          source = if (use_vcf) "vcf" else "matrix",
+          variant_file = if (use_vcf) vcf_path() else input$gt_df$datapath,
+          variant_name = if (use_vcf) {
+            if (is.null(vcf_name())) "variants.vcf" else vcf_name()
+          } else {
+            input$gt_df$name
+          },
+          genome_file = input$genome_file$datapath,
+          genome_name = input$genome_file$name,
+          # The example genome can be downloaded again by the script
+          genome_url = if (isTRUE(example_active()) &&
+                           identical(input$genome_file$name, basename(example_genome_url))) {
+            example_genome_url
+          },
+          design = design_args,
+          intertek = intertek_args
+        ))
 
         # Store the consolidated results
         kasp_des.result(intertek_table)
@@ -658,6 +699,7 @@ mod_kasp_marker_design_server <- function(id) {
       }, error = function(e) {
         kasp_des.result(NULL)
         kasp_des.plot(NULL)
+        last_design(NULL)
         shinyWidgets::show_alert(
           title = "Couldn't design the markers",
           text = paste0(e$message, " Check that the chromosome names in the variant file match the reference genome."),
@@ -669,6 +711,19 @@ mod_kasp_marker_design_server <- function(id) {
         shinybusy::remove_modal_spinner()
       })
     })
+
+    # REPRODUCIBLE SCRIPT ---------------------------------------------------
+
+    if (isTRUE(repro)) {
+      md_repro <- repro_recorder()
+      md_repro$register("design", reactive({
+        req(last_design())
+        repro_md_step(last_design())
+      }))
+      mod_repro_server("repro", md_repro, key = "design",
+                       title = repro_md_title, script_name = repro_md_script,
+                       labels = c(design = "Design KASP Markers"))
+    }
 
     # MARKER TABLE ----------------------------------------------------------
 

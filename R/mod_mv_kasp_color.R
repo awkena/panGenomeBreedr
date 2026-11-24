@@ -78,7 +78,8 @@ mod_mv_kasp_color_ui <- function(id) {
           colourpicker::colourInput(ns("col_hex"), "HEX homozygote", value = "gold", returnName = TRUE),
           colourpicker::colourInput(ns("col_het"), "Heterozygote", value = "forestgreen", returnName = TRUE)
         )
-      )
+      ),
+      mod_repro_ui(ns("repro"))
     ),
 
     # MAIN PANEL ------------------------------------------------------------
@@ -112,13 +113,15 @@ mod_mv_kasp_color_ui <- function(id) {
 #'
 #' @param id The module ID
 #' @param kasp_data The KASP genotyping data from read_kasp_csv
+#' @param repro Optional `repro_recorder()`. If given, the module registers
+#'   its step as `"color"` for the "Reproduce this" scripts.
 #'
 #' @noRd
 #'
 #' @importFrom shiny moduleServer req observeEvent reactiveVal reactive
 #' @importFrom shiny updateSelectInput
 #'
-mod_mv_kasp_color_server <- function(id, kasp_data) {
+mod_mv_kasp_color_server <- function(id, kasp_data, repro = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -150,10 +153,9 @@ mod_mv_kasp_color_server <- function(id, kasp_data) {
 
     # COLOUR CODING ---------------------------------------------------------
 
-    # Colour code the calls per plate
-    color_coded <- reactive({
+    # Arguments of kasp_color(), also written into the reproducible script
+    color_args <- reactive({
       req(
-        kasp_data(),
         input$Subset_names,
         input$geno_call_col,
         input$col_fam, input$col_hex, input$col_het,
@@ -163,23 +165,32 @@ mod_mv_kasp_color_server <- function(id, kasp_data) {
         input$others,
         input$sep
       )
+      list(
+        uncallable = trimws(input$uncallable),
+        unused = trimws(input$unused),
+        blank = trimws(input$blank),
+        others = trimws(unlist(strsplit(input$others, split = ","))),
+        sep = tryCatch(check_sep(input$sep), error = function(e) {
+          shinyWidgets::show_alert("Check the genotype separator", e$message, type = "error")
+          req(FALSE)
+        }),
+        subset = input$Subset_names,
+        geno_call = input$geno_call_col,
+        assign_cols = c(
+          FAM = input$col_fam,
+          HEX = input$col_hex,
+          het = input$col_het
+        )
+      )
+    })
+
+    # Colour code the calls per plate
+    color_coded <- reactive({
+      req(kasp_data())
+      args <- color_args()
 
       tryCatch({
-        kasp_color(
-          x = kasp_data(),
-          uncallable = trimws(input$uncallable),
-          unused = trimws(input$unused),
-          blank = trimws(input$blank),
-          others = trimws(unlist(strsplit(input$others, split = ","))),
-          sep = check_sep(input$sep),
-          subset = input$Subset_names,
-          geno_call = input$geno_call_col,
-          assign_cols = c(
-            FAM = input$col_fam,
-            HEX = input$col_hex,
-            het = input$col_het
-          )
-        )
+        do.call(kasp_color, c(list(x = kasp_data()), args))
       }, error = function(e) {
         shinyWidgets::show_alert("Couldn't colour-code the calls", paste0(e$message, " Check the genotype call column and separator."), type = "error")
         NULL
@@ -243,6 +254,18 @@ mod_mv_kasp_color_server <- function(id, kasp_data) {
                     )
       )
     })
+
+    # REPRODUCIBLE SCRIPT ---------------------------------------------------
+
+    if (!is.null(repro)) {
+      repro$register("color", reactive({
+        req(color_coded())
+        repro_kasp_color_step(color_args())
+      }))
+      mod_repro_server("repro", repro, key = "color",
+                       title = repro_kasp_title, script_name = repro_kasp_script,
+                       labels = repro_kasp_labels)
+    }
 
     # Colour-coded data goes to the QC plot and prediction modules
     return(color_coded)

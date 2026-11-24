@@ -107,7 +107,8 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
             width = "100%"
           )
         )
-      )
+      ),
+      mod_repro_ui(ns("repro"))
     ),
 
     # MAIN PANEL ------------------------------------------------------------
@@ -205,6 +206,8 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
 #' @param id An ID string that corresponds with the ID used to call the module's UI function
 #' @param kasp_data A reactive that returns the imported KASP data
 #' @param color_coded A reactive that returns the color-coded KASP data
+#' @param repro Optional `repro_recorder()`. If given, the module registers
+#'   its step as `"qc"` for the "Reproduce this" scripts.
 #'
 #' @noRd
 #'
@@ -212,7 +215,7 @@ mod_mv_kasp_qc_ggplot_ui <- function(id) {
 #' @importFrom ggplot2 ggsave
 #' @importFrom stats setNames
 #'
-mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
+mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded, repro = NULL) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -269,6 +272,10 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
 
       result_plot <- reactiveVal(NULL)
 
+      # Arguments of the last successful kasp_qc_ggplot2() call, for the
+      # reproducible script
+      qc_args_used <- reactiveVal(NULL)
+
       # Build QC plots for all plates
       observe({
         req(
@@ -298,37 +305,41 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
           input$Hex_id %in% current_cols
         )
 
+        qc_args <- list(
+          blank = input$blank,
+          uncallable = input$uncallable,
+          others = trimws(unlist(strsplit(input$others, ","))),
+          Group_unknown = input$group_unknown,
+          unused = input$unused,
+          FAM = input$fam_id,
+          HEX = input$Hex_id,
+          geno_call = input$geno_call,
+          snp_id = input$snp_id,
+          Group_id = if (input$group_id == "None") NULL else input$group_id,
+          legend.pos.x = input$legendx_id,
+          legend.pos.y = input$legendy_id,
+          legend.box = input$legend_box,
+          alpha = input$alpha_id,
+          text_size = input$textsize_id,
+          legend.pos = input$legend_pos,
+          scale = as.logical(input$scale),
+          pred_cols = c(
+            Blank = input$col_blank,
+            False = input$col_false,
+            True = input$col_true,
+            Unverified = input$col_unverified
+          ),
+          expand_axis = input$expand_id
+        )
+
         tryCatch(
           {
-            result <- kasp_qc_ggplot2(
-              pdf = FALSE,
-              blank = input$blank,
-              uncallable = input$uncallable,
-              others = trimws(unlist(strsplit(input$others, ","))),
-              Group_unknown = input$group_unknown,
-              unused = input$unused,
-              x = color_coded(),
-              FAM = input$fam_id,
-              HEX = input$Hex_id,
-              geno_call = input$geno_call,
-              snp_id = input$snp_id,
-              Group_id = if (input$group_id == "None") NULL else input$group_id,
-              legend.pos.x = input$legendx_id,
-              legend.pos.y = input$legendy_id,
-              legend.box = input$legend_box,
-              alpha = input$alpha_id,
-              text_size = input$textsize_id,
-              legend.pos = input$legend_pos,
-              scale = as.logical(input$scale),
-              pred_cols = c(
-                Blank = input$col_blank,
-                False = input$col_false,
-                True = input$col_true,
-                Unverified = input$col_unverified
-              ),
-              expand_axis = input$expand_id
+            result <- do.call(
+              kasp_qc_ggplot2,
+              c(list(x = color_coded(), pdf = FALSE), qc_args)
             )
             result_plot(result)
+            qc_args_used(qc_args)
           },
           error = function(e) {
             shinyjs::delay(100, {
@@ -465,6 +476,27 @@ mod_mv_kasp_qc_ggplot_server <- function(id, kasp_data, color_coded) {
 
         print(plot_obj)
       })
+
+      # REPRODUCIBLE SCRIPT ---------------------------------------------------
+
+      if (!is.null(repro)) {
+        repro$register("qc", reactive({
+          req(qc_args_used(), input$well_id, input$geno_call, input$snp_id)
+          repro_kasp_qc_step(
+            qc_args_used(),
+            layout = list(
+              well = input$well_id,
+              geno_call = input$geno_call,
+              snp_id = input$snp_id
+            ),
+            width = if (is.null(input$download_plot2_width)) 8 else input$download_plot2_width,
+            height = if (is.null(input$download_plot2_height)) 6 else input$download_plot2_height
+          )
+        }))
+        mod_repro_server("repro", repro, key = "qc",
+                         title = repro_kasp_title, script_name = repro_kasp_script,
+                       labels = repro_kasp_labels)
+      }
 
       # DOWNLOADS -------------------------------------------------------------
 

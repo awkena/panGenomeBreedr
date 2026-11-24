@@ -156,7 +156,10 @@ mod_ds_foreground_select_ui <- function(id) {
                   ui_result_card(
                     "Favourable alleles per line",
                     full_screen = TRUE,
-                    actions = downloadButton(ns("download_matrix"), "CSV", class = "btn-sm btn-success"),
+                    actions = tagList(
+                      mod_repro_ui(ns("repro"), class = "btn-outline-secondary btn-sm"),
+                      downloadButton(ns("download_matrix"), "CSV", class = "btn-sm btn-success")
+                    ),
                     uiOutput(ns("matrix_summary")),
                     DT::DTOutput(ns("result_table"))
                   )
@@ -245,8 +248,10 @@ mod_ds_foreground_select_ui <- function(id) {
 
 #' ds_foreground_select Server Function
 #'
+#' @param id Module ID.
+#' @param repro If TRUE, add the "Reproduce this" script for the last run.
 #' @noRd
-mod_ds_foreground_select_server <- function(id) {
+mod_ds_foreground_select_server <- function(id, repro = TRUE) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -257,15 +262,21 @@ mod_ds_foreground_select_server <- function(id) {
     marker_info <- reactiveVal(NULL)
     example_active <- reactiveVal(FALSE)
 
+    # Files behind the data, for the reproducible script: list(name, path)
+    geno_file <- reactiveVal(NULL)
+    info_file <- reactiveVal(NULL)
+
     # Genotype file
     observeEvent(input$geno_data, {
       geno_data(read_mapfile(input$geno_data$datapath))
+      geno_file(list(name = input$geno_data$name, path = input$geno_data$datapath))
       example_active(FALSE)
     })
 
     # Marker information file
     observeEvent(input$marker_info, {
       marker_info(read_mapfile(input$marker_info$datapath))
+      info_file(list(name = input$marker_info$name, path = input$marker_info$datapath))
       example_active(FALSE)
     })
 
@@ -286,6 +297,10 @@ mod_ds_foreground_select_server <- function(id) {
         alt_alleles = c("G", "T", "A")
       ))
       updateTextInput(session, "sep", value = ":")
+      geno_file(list(name = "example_genotypes.csv",
+                     path = repro_temp_csv(geno_data(), "example_genotypes.csv")))
+      info_file(list(name = "example_marker_info.csv",
+                     path = repro_temp_csv(marker_info(), "example_marker_info.csv")))
       example_active(TRUE)
     })
 
@@ -293,6 +308,8 @@ mod_ds_foreground_select_server <- function(id) {
     observeEvent(input$clear_example, {
       geno_data(NULL)
       marker_info(NULL)
+      geno_file(NULL)
+      info_file(NULL)
       example_active(FALSE)
     })
 
@@ -338,6 +355,9 @@ mod_ds_foreground_select_server <- function(id) {
 
     # RUN SELECTION ---------------------------------------------------------
 
+    # Arguments of the last foreground_select() run, for the script
+    last_select <- reactiveVal(NULL)
+
     # Run foreground_select() on Process Data
     result_data <- eventReactive(input$run_analysis, {
       if (!validate_required_inputs(list(
@@ -372,19 +392,24 @@ mod_ds_foreground_select_server <- function(id) {
         rownames(df_geno) <- sample_col_data
       }
 
+      last_select(NULL)
       result <- tryCatch({
         if (nrow(marker_info_updated) == 0) {
           stop("none of the markers in the marker information file are columns of the genotype file.")
         }
-        foreground_select(
-          geno_data = df_geno,
-          fore_marker_info = marker_info_updated,
+        select_args <- list(
           fore_marker_col = input$fore_marker_col,
           fav_allele_col = input$fav_allele_col,
           alt_allele_col = input$alt_allele_col,
           select_type = input$select_type,
           sep = check_sep(input$sep)
         )
+        out <- do.call(foreground_select, c(
+          list(geno_data = df_geno, fore_marker_info = marker_info_updated),
+          select_args
+        ))
+        last_select(list(args = select_args, sample_col = input$sample_name))
+        out
       }, error = function(e) {
         shinyWidgets::show_alert(
           title = "Couldn't run foreground selection",
@@ -488,12 +513,13 @@ mod_ds_foreground_select_server <- function(id) {
     # UPSET PLOT ------------------------------------------------------------
 
     # Drawn after processing, redrawn by Apply in Appearance
+    upset_used <- reactiveVal(NULL)
     upset_result <- eventReactive(list(result_data(), input$redraw_plot), {
       req(result_data(), marker_info())
 
       tryCatch(
         {
-          run_upset_plot(
+          plot <- run_upset_plot(
             foreground_matrix = result_data(),
             marker_info = marker_info(),
             mainbar_y_label = input$mainbar_y_label,
@@ -504,6 +530,17 @@ mod_ds_foreground_select_server <- function(id) {
             column = "locus",
             colors = input$plot_colors
           )
+          info_cols <- colnames(marker_info())
+          upset_used(list(
+            marker_col = safe_grep_match(pattern = "mark", choices = info_cols)[1],
+            locus_col = safe_grep_match(pattern = "locus", choices = info_cols)[1],
+            mainbar_y_label = input$mainbar_y_label,
+            sets_x_label = input$sets_x_label,
+            text_scale = input$text_scale,
+            assign = input$plot_assign,
+            colors = input$plot_colors
+          ))
+          plot
         },
         error = function(e) {
           shinyWidgets::show_alert(
@@ -557,7 +594,8 @@ mod_ds_foreground_select_server <- function(id) {
     # Search results
     values <- reactiveValues(
       found_lines = NULL,
-      df = NULL
+      df = NULL,
+      find = NULL
     )
 
     # Find Matching Lines
@@ -574,6 +612,7 @@ mod_ds_foreground_select_server <- function(id) {
       }
 
       result <- find_lines(mat = result_data(), present = input$present, absent = input$absent)
+      values$find <- list(present = as.character(input$present), absent = as.character(input$absent))
 
       values$found_lines <- if (is.null(result)) character(0) else result
 
@@ -616,6 +655,31 @@ mod_ds_foreground_select_server <- function(id) {
         }
       )
     })
+
+    # REPRODUCIBLE SCRIPT ---------------------------------------------------
+
+    if (isTRUE(repro)) {
+      fg_repro <- repro_recorder()
+      fg_repro$register("foreground", reactive({
+        req(result_data(), last_select(), geno_file(), info_file())
+        repro_ds_foreground_step(
+          list(
+            geno_name = geno_file()$name, geno_path = geno_file()$path,
+            info_name = info_file()$name, info_path = info_file()$path,
+            sample_col = last_select()$sample_col,
+            select = last_select()$args,
+            upset = if (is.null(if_ready(upset_result()))) NULL else upset_used(),
+            find = values$find
+          ),
+          width = if (is.null(input$download_plot_width)) 8 else input$download_plot_width,
+          height = if (is.null(input$download_plot_height)) 6 else input$download_plot_height
+        )
+      }))
+      mod_repro_server("repro", fg_repro, key = "foreground",
+                       title = repro_ds_titles[["foreground"]],
+                       script_name = repro_ds_scripts[["foreground"]],
+                       labels = c(foreground = "Process Data"))
+    }
 
     # Matching lines as csv
     output$download_results <- downloadHandler(

@@ -179,7 +179,7 @@ app_ui <- function(request) {
             # Introgression Support card
             bslib::card(
               class = "feature-card text-center shadow-sm border-0 p-3",
-              tags$div(class = "h1 text-primary mb-3", icon("cogs")),
+              tags$div(class = "h1 text-primary mb-3", icon("seedling")),
               tags$h5("Introgression Support", class = "fw-bold"),
               bslib::card_footer(
                 actionButton(
@@ -306,7 +306,7 @@ app_ui <- function(request) {
       ## Breeding Decision Support
       navbarMenu(
         title = "Breeding Decision Support",
-        icon = icon("cogs"),
+        icon = icon("seedling"),
 
         # Tab for Trait Introgression Hypothesis Testing
         bslib::nav_panel(

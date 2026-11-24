@@ -76,7 +76,8 @@ mod_mv_call_rate_ui <- function(id) {
             value = "NTC"
           )
         )
-      )
+      ),
+      mod_repro_ui(ns("repro"))
     ),
 
     # MAIN PANEL ------------------------------------------------------------
@@ -157,12 +158,14 @@ mod_mv_call_rate_ui <- function(id) {
 #'
 #' @param id An ID string that corresponds with the ID used to call the module's UI function.
 #' @param kasp_data A reactive returning a data frame of KASP genotype calls.
+#' @param repro Optional `repro_recorder()`. If given, the module registers
+#'   its step as `"call_rate"` for the "Reproduce this" scripts.
 #'
 #' @noRd
 #'
 #' @importFrom shiny moduleServer reactive observe req updateSelectizeInput renderPlot downloadHandler
 #'
-mod_mv_call_rate_server <- function(id, kasp_data) {
+mod_mv_call_rate_server <- function(id, kasp_data, repro = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -190,24 +193,30 @@ mod_mv_call_rate_server <- function(id, kasp_data) {
 
     # CALL RATES ------------------------------------------------------------
 
+    # Arguments of kasp_call_rate(), also written into the reproducible script
+    call_rate_args <- reactive({
+      req(input$snp_id, input$plate_id, input$geno_call_id,
+          input$sep, input$threshold)
+      list(
+        snp_id = input$snp_id,
+        plate_id = input$plate_id,
+        geno_call = input$geno_call_id,
+        sep = input$sep,
+        blank = input$blank,
+        no_call = input$no_call,
+        uncallable = input$uncallable,
+        threshold = input$threshold / 100
+      )
+    })
+
     # Run kasp_call_rate() whenever the inputs change
     call_rate_res <- reactive({
-      req(kasp_data(), input$snp_id, input$plate_id, input$geno_call_id,
-          input$sep, input$threshold)
+      req(kasp_data())
+      args <- call_rate_args()
       req(all(c(input$snp_id, input$plate_id, input$geno_call_id) %in% col_names()))
 
       tryCatch(
-        kasp_call_rate(
-          x = kasp_data(),
-          snp_id = input$snp_id,
-          plate_id = input$plate_id,
-          geno_call = input$geno_call_id,
-          sep = input$sep,
-          blank = input$blank,
-          no_call = input$no_call,
-          uncallable = input$uncallable,
-          threshold = input$threshold / 100
-        ),
+        do.call(kasp_call_rate, c(list(x = kasp_data()), args)),
         error = function(e) {
           shinyWidgets::show_alert(
             title = "Couldn't compute call rates",
@@ -274,6 +283,22 @@ mod_mv_call_rate_server <- function(id, kasp_data) {
       m <- res$marker_summary
       paste(sum(m$pass), "of", nrow(m))
     })
+
+    # REPRODUCIBLE SCRIPT ---------------------------------------------------
+
+    if (!is.null(repro)) {
+      repro$register("call_rate", reactive({
+        req(call_rate_res())
+        repro_kasp_call_rate_step(
+          call_rate_args(),
+          width = if (is.null(input$download_plot_width)) 8 else input$download_plot_width,
+          height = if (is.null(input$download_plot_height)) 6 else input$download_plot_height
+        )
+      }))
+      mod_repro_server("repro", repro, key = "call_rate",
+                       title = repro_kasp_title, script_name = repro_kasp_script,
+                       labels = repro_kasp_labels)
+    }
 
     # DOWNLOADS -------------------------------------------------------------
 

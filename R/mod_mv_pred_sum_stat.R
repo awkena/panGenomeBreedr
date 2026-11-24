@@ -69,7 +69,8 @@ mod_mv_pred_sum_stat_ui <- function(id) {
             value = "NTC"
           )
         )
-      )
+      ),
+      mod_repro_ui(ns("repro"))
     ),
 
     # MAIN PANEL ------------------------------------------------------------
@@ -133,6 +134,8 @@ mod_mv_pred_sum_stat_ui <- function(id) {
 #' @param id An ID string that corresponds with the ID used to call the module's UI function
 #' @param kasp_data A reactive expression that returns the KASP data frame
 #' @param color_code_res A reactive expression that returns the color-coded data
+#' @param repro Optional `repro_recorder()`. If given, the module registers
+#'   its step as `"pred"` for the "Reproduce this" scripts.
 #'
 #' @return A reactive expression with selected inputs for further processing
 #'
@@ -140,7 +143,7 @@ mod_mv_pred_sum_stat_ui <- function(id) {
 #'
 #' @importFrom shiny moduleServer reactive observeEvent req validate need updateSelectInput renderPlot downloadHandler
 #'
-mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
+mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data, repro = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -180,6 +183,9 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
 
     pred_sum_result <- reactiveVal()
 
+    # Arguments of the last pred_summary() call, for the reproducible script
+    pred_args_used <- reactiveVal(NULL)
+
     # Re-run pred_summary() whenever the inputs change
     observe({
       req(
@@ -199,17 +205,18 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
         input$geno_call_id %in% current_cols
       )
 
-      pred_result <- pred_summary(
-        x = color_code_res(),
+      pred_args <- list(
         Group_unknown = input$group_unknown,
         blank = input$blank,
         snp_id = input$snp_id,
         Group_id = input$group_id,
         geno_call = input$geno_call_id,
-        rate_out = if(input$rate_out_id) TRUE else FALSE
+        rate_out = if (isTRUE(input$rate_out_id)) TRUE else FALSE
       )
+      pred_result <- do.call(pred_summary, c(list(x = color_code_res()), pred_args))
 
       pred_sum_result(pred_result)
+      pred_args_used(pred_args)
     })
 
     # Summary table
@@ -263,24 +270,32 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
 
     # SUMMARY PLOT ----------------------------------------------------------
 
-    # One bar plot per SNP
-    pred_sum_plot <- reactive({
+    # Arguments of pred_summary_plot(), also written into the script
+    plot_args <- reactive({
       req(
-        pred_sum_result(),
         input$col_false, input$col_true, input$col_unverified,
         input$textsize_id,
         input$alpha_id
       )
+      list(
+        pred_cols = c(false = input$col_false,
+                      true = input$col_true,
+                      unverified = input$col_unverified),
+        alpha = input$alpha_id,
+        text_size = input$textsize_id
+      )
+    })
+
+    # One bar plot per SNP
+    pred_sum_plot <- reactive({
+      req(pred_sum_result())
+      args <- plot_args()
 
       tryCatch(
         {
-          pred_summary_plot(
-            x = as.data.frame(pred_sum_result()$summ),
-            pred_cols = c(false = input$col_false,
-                          true = input$col_true,
-                          unverified = input$col_unverified),
-            alpha = input$alpha_id,
-            text_size = input$textsize_id
+          do.call(
+            pred_summary_plot,
+            c(list(x = as.data.frame(pred_sum_result()$summ)), args)
           )
         },
         error = function(e) {
@@ -347,6 +362,23 @@ mod_mv_pred_sum_stat_server <- function(id, color_code_res, kasp_data) {
         timer = 2000
       )
     })
+
+    # REPRODUCIBLE SCRIPT ---------------------------------------------------
+
+    if (!is.null(repro)) {
+      repro$register("pred", reactive({
+        req(pred_args_used())
+        repro_kasp_pred_step(
+          pred_args_used(),
+          plot = if_ready(plot_args()),
+          width = if (is.null(input$download_pred_plot_width)) 8 else as.numeric(input$download_pred_plot_width),
+          height = if (is.null(input$download_pred_plot_height)) 6 else as.numeric(input$download_pred_plot_height)
+        )
+      }))
+      mod_repro_server("repro", repro, key = "pred",
+                       title = repro_kasp_title, script_name = repro_kasp_script,
+                       labels = repro_kasp_labels)
+    }
 
     # DOWNLOADS -------------------------------------------------------------
 
