@@ -46,6 +46,7 @@ con_local <- connect_local_db(folder_path = my_db_folder)
 
 # Generate the wide-format impact profile matrix
 local_impact <- summarize_variant_impacts(con = con_local)
+#> Warning: NAs introduced by coercion
 print(local_impact)
 #>   chrom impact_HIGH impact_LOW impact_MODERATE impact_MODIFIER
 #> 1 Chr03           1         15               8              34
